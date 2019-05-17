@@ -129,23 +129,26 @@ private:
     void notification_Destructed(QSharedPointer<NotificationObject> obj);
 
 signals:
-    void vc_centerOnItems(QList<int> ids);
-    void vc_selectItems(QList<int> ids);
-    void vc_showWelcomeScreen(bool);
     void GotJava(bool);
     void GotRe(bool);
     void GotRegen(bool);
     void GotJenkins(bool);
+
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem* item);
-    void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void vc_gotSearchSuggestions(QStringList suggestions);
     void vc_editTableCell(int ID, QString keyName);
-    void vc_centerItem(int ID);
-    void vc_fitToScreen(bool if_active_view = false);
     void vc_addProjectToRecentProjects(QString filePath);
     void vc_removeProjectFromRecentProjects(QString filePath);
+
+    void vc_showWelcomeScreen(bool);
+    void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
+
+    void vc_centerOnItems(QList<int> ids);
+    void vc_selectItems(QList<int> ids);
+    void vc_centerItem(int ID);
+    void vc_fitToScreen(bool if_active_view = false);
     void vc_highlightItem(int ID, bool highlight);
     void vc_selectAndCenterConnectedEntities(const QVector<ViewItem*>& item);
 

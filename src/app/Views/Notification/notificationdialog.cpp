@@ -8,7 +8,6 @@
 #include <QScrollBar>
 #include <QApplication>
 
-
 #define FILTER_DEFAULT_WIDTH 150
 
 /**
@@ -39,7 +38,6 @@ NotificationDialog::NotificationDialog(ViewController* viewController, QWidget *
     auto v_scrollbar = notifications_scroll->verticalScrollBar();
     connect(v_scrollbar, &QScrollBar::valueChanged, this, &NotificationDialog::scrollBarValueChanged);
     connect(load_more_button, &QToolButton::clicked, this, &NotificationDialog::loadNextResults);
-
     connect(sort_time_action, &QAction::triggered, this, &NotificationDialog::filtersChanged);
     
     themeChanged();
@@ -76,14 +74,13 @@ QSet<QSharedPointer<NotificationObject> > NotificationDialog::getFilteredNotific
     //We only need to check selection when the SELECTED is exclusively selected.
     auto check_selection = checked_context_set.size() == 1 && checked_context_set.contains(Notification::Context::SELECTED);
     QSet<QSharedPointer<NotificationObject> > selected_notifications;
-    if(viewController && check_selection){
-        for(auto view_item : viewController->getSelectionController()->getSelection()){
+    if (viewController && check_selection) {
+        for (auto view_item : viewController->getSelectionController()->getSelection()) {
             selected_notifications += view_item->getNestedNotifications();
         }
     }
 
     QSet<QSharedPointer<NotificationObject> > filtered;
-
     for (auto notification : NotificationManager::manager()->getNotifications()) {
         auto matches_severity = checked_severity_set.contains(notification->getSeverity());
         auto matches_category = checked_category_set.contains(notification->getCategory());
@@ -117,7 +114,7 @@ void NotificationDialog::updateNotificationsVisibility()
 
     //Sort the list by ascending or descending time
     qSort(all_notifications.begin(), all_notifications.end(), 
-        [=](const QSharedPointer<NotificationObject> a, const QSharedPointer<NotificationObject> b) -> bool{
+        [=](const QSharedPointer<NotificationObject> a, const QSharedPointer<NotificationObject> b) -> bool {
             bool agtb = a->getModifiedTime() > b->getModifiedTime();
             return sort_time_action->isChecked() ? agtb : !agtb;
         });
@@ -126,7 +123,7 @@ void NotificationDialog::updateNotificationsVisibility()
         //Check if this notification matches all the filters
         auto matches_filters = filtered_notifications.contains(notification);
 
-        if(matches_filters){
+        if (matches_filters) {
             current_matched_notifications ++;
         }
         
@@ -173,8 +170,8 @@ void NotificationDialog::updateLabels()
     if (any_filtered) {
         status_label->setText(QString::number(total_notifications - current_matched_notifications) + "/" + QString::number(total_notifications) + " notifications hidden by filters");
     } 
-    notifications_status_widget->setVisible(any_filtered);
 
+    notifications_status_widget->setVisible(any_filtered);
     load_more_button->setVisible(!all_showing);
 }
 
@@ -214,7 +211,6 @@ void NotificationDialog::themeChanged()
     top_toolbar->setIconSize(theme->getIconSize());
     bottom_toolbar->setIconSize(theme->getIconSize());
     left_toolbar->setIconSize(theme->getIconSize());
-    
 }
 
 
@@ -247,6 +243,27 @@ void NotificationDialog::centerEntity()
 
 
 /**
+ * @brief NotificationDialog::flashEntity
+ * @param ID
+ */
+void NotificationDialog::flashEntity(int ID)
+{
+    viewController->HighlightItems({ID});
+}
+
+
+/**
+ * @brief NotificationDialog::selectAndCenterEntity
+ * @param ID
+ */
+void NotificationDialog::selectAndCenterEntity(int ID)
+{
+    viewController->centerOnID(ID);
+    emit viewController->vc_selectItems({ID});
+}
+
+
+/**
  * @brief NotificationDialog::clearFilteredNotifications
  */
 void NotificationDialog::clearFilteredNotifications()
@@ -259,27 +276,29 @@ void NotificationDialog::clearFilteredNotifications()
 
 
 /**
- * @brief NotificationDialog::ToggleSelection
+ * @brief NotificationDialog::notificationItemClicked
+ * This is called whenever a notification item is clicked
  * @param item
  */
-void NotificationDialog::ToggleSelection(NotificationItem* item)
+void NotificationDialog::notificationItemClicked(NotificationItem *item)
 {
-    bool set_selected = selected_notification != item;
-    
-    if (selected_notification) {
-        //unselect old notification
-        selected_notification->setSelected(!set_selected);
+    if (selected_notification != item) {
+        // deselect the previously selected notification
+        if (selected_notification) {
+            selected_notification->setSelected(false);
+        }
     }
 
-    if (item) {
-        item->setSelected(set_selected);
+    bool enableEntityAction = false;
+    if (item && item->isSelected()) {
+        selected_notification = item;
+        enableEntityAction = (item->getEntityID() != -1);
+    } else {
+        selected_notification = 0;
     }
-    selected_notification = item;
-    
-    bool has_entity = selected_notification && selected_notification->getEntityID() != -1;
-    
-    center_action->setEnabled(has_entity);
-    popup_action->setEnabled(has_entity);
+
+    center_action->setEnabled(enableEntityAction);
+    popup_action->setEnabled(enableEntityAction);
 }
 
 
@@ -320,8 +339,11 @@ NotificationItem* NotificationDialog::constructNotificationItem(QSharedPointer<N
       
         //Add to map
         notification_items[id] = notification_item;
-        connect(notification_item, &NotificationItem::highlightEntity, viewController, &ViewController::vc_highlightItem);
-        connect(notification_item, &NotificationItem::itemClicked, this, &NotificationDialog::ToggleSelection);
+
+        connect(notification_item, &NotificationItem::notificationItemClicked, this, &NotificationDialog::notificationItemClicked);
+        connect(notification_item, &NotificationItem::flashEntityItem, this, &NotificationDialog::flashEntity);
+        connect(notification_item, &NotificationItem::selectAndCenterEntityItem, this, &NotificationDialog::selectAndCenterEntity);
+        connect(notification_item, &NotificationItem::centerEntityItem, viewController, &ViewController::centerOnID);
     }
     return notification_item;
 }
@@ -364,7 +386,7 @@ void NotificationDialog::notificationDeleted(QSharedPointer<NotificationObject> 
     }
 
     if (selected_notification == notification_item) {
-        ToggleSelection(0);
+        clearSelection();
     }
 
     if (notification_item) {
@@ -545,7 +567,13 @@ void NotificationDialog::setupLayout()
     setupFilters();
 }
 
-void NotificationDialog::showSeveritySelection(Notification::Severity severity){
+
+/**
+ * @brief NotificationDialog::showSeveritySelection
+ * @param severity
+ */
+void NotificationDialog::showSeveritySelection(Notification::Severity severity)
+{
     showSeverity(severity);
     context_filters->setOptionChecked(QVariant::fromValue(Notification::Context::SELECTED), true);
 }
@@ -623,6 +651,21 @@ void NotificationDialog::setupFilters()
     connect(reset_filters_action, &QAction::triggered, source_filters, &OptionGroupBox::reset);
 }
 
+
+/**
+ * @brief NotificationDialog::clearSelection
+ */
+void NotificationDialog::clearSelection()
+{
+    selected_notification = 0;
+    center_action->setEnabled(false);
+    popup_action->setEnabled(false);
+}
+
+
+/**
+ * @brief NotificationDialog::scrollBarValueChanged
+ */
 void NotificationDialog::scrollBarValueChanged()
 {
     auto v_scroll = notifications_scroll->verticalScrollBar();
@@ -631,6 +674,10 @@ void NotificationDialog::scrollBarValueChanged()
     }
 }
 
+
+/**
+ * @brief NotificationDialog::loadNextResults
+ */
 void NotificationDialog::loadNextResults(){
     if(current_visible_notifications < current_matched_notifications){
         max_visible += 10;

@@ -6,7 +6,6 @@
 #include <QMouseEvent>
 #include <QToolBar>
 
-
 /**
  * @brief NotificationItem::NotificationItem
  * @param obj
@@ -29,33 +28,37 @@ NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidg
     connect(notification.data(), &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
     connect(notification.data(), &NotificationObject::titleChanged, this, &NotificationItem::titleChanged);
 
-    
     connect(notification.data(), &NotificationObject::severityChanged, this, &NotificationItem::updateIcon);
     connect(notification.data(), &NotificationObject::iconChanged, this, &NotificationItem::updateIcon);
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
 
-    connect(action_delete, &QAction::triggered, [=](){
+    connect(action_delete, &QAction::triggered, [=]() {
         NotificationManager::manager()->deleteNotification(getID());
     });
 }
 
-NotificationItem::~NotificationItem(){
 
+/**
+ * @brief NotificationItem::setupDescriptionLayout
+ */
+void NotificationItem::setupDescriptionLayout()
+{
+    label_description = new QLabel(this);
+    label_description->setObjectName("DESCRIPTION");
+    label_description->setWordWrap(true);
+
+    //Add to the main layout
+    layout()->addWidget(label_description);
 }
 
-void NotificationItem::setupDescriptionLayout(){
-    if(!label_description){
-        label_description = new QLabel(this);
-        label_description->setObjectName("DESCRIPTION");
-        label_description->setWordWrap(true);
-        //Add to the main layout
-        layout()->addWidget(label_description);
-    }
-}
 
-void NotificationItem::setupLayout(){
+/**
+ * @brief NotificationItem::setupLayout
+ */
+void NotificationItem::setupLayout()
+{
     auto v_layout = new QVBoxLayout(this);
     v_layout->setMargin(2);
     v_layout->setSpacing(5);
@@ -67,8 +70,6 @@ void NotificationItem::setupLayout(){
 
     label_icon = new QLabel(this);
     label_icon->setScaledContents(true);
-    
-    
     label_icon->setAlignment(Qt::AlignCenter);
 
     label_text = new QLabel(this);
@@ -76,20 +77,11 @@ void NotificationItem::setupLayout(){
     label_time = new QLabel(this);
 
     toolbar = new QToolBar(this);
-    
     action_delete = toolbar->addAction("Delete Notification");
-    
-    /*
-    button_expand = new QToolButton(this);
-    button_expand->setCheckable(true);
-    button_expand->setAutoRaise(false);
-    button_expand->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    action_expand = toolbar->addWidget(button_expand);*/
 
     layout->addWidget(label_icon);
     layout->addWidget(label_text, 1);
     layout->addWidget(label_time);
-    
     layout->addWidget(toolbar);
     layout->addStretch();
 
@@ -105,10 +97,7 @@ void NotificationItem::setupLayout(){
  */
 int NotificationItem::getID()
 {
-    if (notification) {
-        return notification->getID();
-    }
-    return -1;
+    return notification->getID();
 }
 
 
@@ -118,33 +107,31 @@ int NotificationItem::getID()
  */
 int NotificationItem::getEntityID()
 {
-    if (notification) {
-        return notification->getEntityID();
-    }
-    return -1;
+    return notification->getEntityID();
 }
+
+
+/**
+ * @brief NotificationItem::isSelected
+ * @return
+ */
+bool NotificationItem::isSelected()
+{
+    return selected_;
+}
+
 
 /**
  * @brief NotificationItem::setSelected
- * @param select
+ * @param selected
  */
-void NotificationItem::setSelected(bool select)
+void NotificationItem::setSelected(bool selected)
 {
-    if (selected != select) {
-        selected = select;
-        auto entity_id = getEntityID();
-        if (selected) {
-            backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
-        } else {
-            backgroundColor =  Theme::theme()->getBackgroundColorHex();
-        }
-        if(entity_id != -1){
-            emit highlightEntity(entity_id, selected);
-        }
+    if (selected_ != selected) {
+        selected_ = selected;
         updateStyleSheet();
     }
 }
-
 
 
 /**
@@ -153,79 +140,38 @@ void NotificationItem::setSelected(bool select)
 void NotificationItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-    if (selected) {
-        backgroundColor =  theme->getAltBackgroundColorHex();
-    } else {
-        backgroundColor = theme->getBackgroundColorHex();
+    if (action_delete) {
+        action_delete->setIcon(theme->getIcon("Icons", "cross"));
     }
-    auto icon_size = theme->getIconSize();
-    label_icon->setFixedSize(icon_size);
-    toolbar->setIconSize(icon_size);
-
+    if (toolbar){
+        toolbar->setIconSize(theme->getIconSize());
+    }
     updateStyleSheet();
-
     updateIcon();
 }
 
 
 /**
  * @brief NotificationItem::descriptionChanged
- * @param description
  */
 void NotificationItem::descriptionChanged()
 {
     auto description = notification->getDescription();
-    if(!label_description){
+    if (!label_description) {
         setupDescriptionLayout();
     }
-    if(label_description){
-        label_description->setText(description);
-        label_description->setVisible(description.length());
-    }
+    label_description->setText(description);
+    label_description->setVisible(description.length());
 }
 
 
 /**
- * @brief NotificationItem::descriptionChanged
+ * @brief NotificationItem::titleChanged
  * @param description
  */
 void NotificationItem::titleChanged()
 {
     label_text->setText(notification->getTitle());
-}
-
-
-/**
- * @brief NotificationItem::iconChanged
- * @param iconPath
- * @param iconName
- */
-void NotificationItem::updateIcon()
-{
-    auto theme = Theme::theme();
-    auto severity = notification->getSeverity();
-    auto is_running = severity == Notification::Severity::RUNNING;
-    auto icon_size = theme->getLargeIconSize();
-    label_icon->setFixedSize(icon_size);
-    if(is_running){
-        //Use a GIF if we are loading
-        auto movie = theme->getGif("Icons", "loading");
-        label_icon->setMovie(movie);
-    }else{
-        //Use an icon otherwise
-        auto icon = notification->getIcon();
-        if (icon.first.isEmpty() || icon.second.isEmpty()) {
-            icon.first = "Notification";
-            icon.second = Notification::getSeverityString(severity);
-        }
-        auto icon_color = theme->getSeverityColor(severity);
-
-        auto pixmap = theme->getImage(icon.first, icon.second, icon_size, icon_color);
-        label_icon->setPixmap(pixmap);
-    }
-
-    //Can only delete finished notifications
-    action_delete->setEnabled(!is_running);
 }
 
 
@@ -240,14 +186,96 @@ void NotificationItem::timeChanged()
 
 
 /**
+ * @brief NotificationItem::iconChanged
+ * @param iconPath
+ * @param iconName
+ */
+void NotificationItem::updateIcon()
+{
+    auto theme = Theme::theme();
+    auto severity = notification->getSeverity();
+    auto is_running = severity == Notification::Severity::RUNNING;
+    auto icon_size = theme->getLargeIconSize();
+
+    label_icon->setFixedSize(icon_size);
+
+    if (is_running) {
+        //Use a GIF if we are loading
+        auto movie = theme->getGif("Icons", "loading");
+        label_icon->setMovie(movie);
+    } else {
+        //Use an icon otherwise
+        auto icon = notification->getIcon();
+        if (icon.first.isEmpty() || icon.second.isEmpty()) {
+            icon.first = "Notification";
+            icon.second = Notification::getSeverityString(severity);
+        }
+        auto icon_color = theme->getSeverityColor(severity);
+        auto pixmap = theme->getImage(icon.first, icon.second, icon_size, icon_color);
+        label_icon->setPixmap(pixmap);
+    }
+
+    //Can only delete finished notifications
+    action_delete->setEnabled(!is_running);
+}
+
+
+/**
  * @brief NotificationItem::mouseReleaseEvent
  * This sends a signal to the notification dialog notifying it of this item's current selected state and whether the CONTROL key is down.
  * @param event
  */
 void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 {
-    emit itemClicked(this);
+    if (event->button() == Qt::LeftButton) {
+        if (!doubleClicked_) {
+            // toggle the item's selected state
+            toggleSelected();
+        } else {
+            doubleClicked_ = false;
+        }
+    } else if (event->button() == Qt::MiddleButton) {
+        // center on the linked entity item
+        emit centerEntityItem(getEntityID());
+    }
 }
+
+
+/**
+ * @brief NotificationItem::mouseDoubleClickEvent
+ * @param event
+ */
+void NotificationItem::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        // always select the item on double-click
+        doubleClicked_ = true;
+        selected_ = false;
+        toggleSelected();
+        emit selectAndCenterEntityItem(getEntityID());
+    }
+}
+
+
+/**
+ * @brief NotificationItem::toggleSelected
+ * This should only be called from within the mouse events, when this item is clicked/double-clicked.
+ */
+void NotificationItem::toggleSelected()
+{
+    setSelected(!selected_);
+    emit notificationItemClicked(this);
+
+    // when selected, flash the linked entity item if there is one
+    // unfortunately, this is also triggered when the item is expanded/contracted
+    if (selected_) {
+        auto entityID = getEntityID();
+        if (entityID != -1) {
+            emit flashEntityItem(entityID);
+        }
+    }
+}
+
 
 /**
  * @brief NotificationItem::updateStyleSheet
@@ -255,12 +283,17 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 void NotificationItem::updateStyleSheet()
 {
     Theme* theme = Theme::theme();
-    auto icon_size = theme->getIconSize();
+    if (selected_) {
+        backgroundColor_ = theme->getAltBackgroundColorHex();
+    } else {
+        backgroundColor_ = theme->getBackgroundColorHex();
+    }
+
     setStyleSheet("QFrame {"
                   "border-style: solid;"
                   "border-width: 0px 0px 1px 0px;"
                   "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + backgroundColor + ";"
+                  "background:" + backgroundColor_ + ";"
                   "color:" + theme->getTextColorHex() + ";"
                   "padding:2px;"
                   "}"
@@ -270,13 +303,4 @@ void NotificationItem::updateStyleSheet()
                   + theme->getToolBarStyleSheet()
                   + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }"
     );
-
-    
-    
-    if (action_delete) {
-        action_delete->setIcon(theme->getIcon("Icons", "cross"));
-    }
-    if (toolbar){
-        toolbar->setIconSize(icon_size);
-    }
 }

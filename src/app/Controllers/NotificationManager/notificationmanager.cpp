@@ -80,7 +80,6 @@ NotificationManager* NotificationManager::manager()
 }
 
 
-
 NotificationDialog* NotificationManager::getPanel()
 {
     if(!notification_panel){

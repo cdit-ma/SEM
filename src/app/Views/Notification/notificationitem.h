@@ -14,24 +14,32 @@ class NotificationItem : public QFrame
     Q_OBJECT
 public:
     explicit NotificationItem(QSharedPointer<NotificationObject> obj, QWidget* parent = 0);
-    ~NotificationItem();
 
     int getID();
     int getEntityID();
-    void setSelected(bool select);
+
+    bool isSelected();
+    void setSelected(bool selected);
+
 signals:
-    void highlightEntity(int entityID, bool highlight);
-    void itemClicked(NotificationItem* item);
+    void notificationItemClicked(NotificationItem* item);
+    void flashEntityItem(int ID);
+    void centerEntityItem(int ID);
+    void selectAndCenterEntityItem(int ID);
+
 private slots:
     void themeChanged();
     void descriptionChanged();
     void titleChanged();
-    void updateIcon();
     void timeChanged();
+    void updateIcon();
+
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
 
 private:
+    void toggleSelected();
     void setupDescriptionLayout();
     void setupLayout();
     void updateStyleSheet();
@@ -42,15 +50,14 @@ private:
     QLabel* label_icon = 0;
     QLabel* label_text = 0;
     QLabel* label_time = 0;
+    QLabel* label_description = 0;
+
     QAction* action_delete = 0;
     QToolBar* toolbar = 0;
-    //QToolButton* button_expand = 0;
-    //QAction* action_expand = 0;
-    QLabel* label_description = 0;
     
-
-    QString backgroundColor;
-    bool selected = false;
+    QString backgroundColor_;
+    bool selected_ = false;
+    bool doubleClicked_ = false;
 };
 
 

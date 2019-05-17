@@ -52,8 +52,6 @@ signals:
     void trans_InActive2Connecting();
     void trans_Connecting2InActive();
 
-
-
     void edgeToolbarRequested(QPoint screenPos, EDGE_KIND kind, EDGE_DIRECTION direction);
     
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
@@ -65,6 +63,8 @@ signals:
     void setData(int, QString, QVariant);
     void removeData(int, QString);
     void editData(int, QString);
+
+    void itemSelectionChanged(ViewItem* item, bool selected);
 
 private slots:
     void viewItem_LabelChanged(QString label);

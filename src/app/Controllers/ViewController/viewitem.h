@@ -67,6 +67,7 @@ public:
     QSet<QSharedPointer<NotificationObject> > getNestedNotifications();
 
     QList<QVariant> getValidValuesForKey(const QString& keyName) const;
+
 signals:
     void labelChanged(QString label);
     void iconChanged();
@@ -81,6 +82,7 @@ signals:
     void showNotifications(Notification::Severity severity);
 
     void destructing(int ID);
+
 protected:
     void updateIcon();
     void changeData(const QString& keyName, QVariant data, bool is_protected = false);

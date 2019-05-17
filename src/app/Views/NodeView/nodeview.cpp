@@ -248,6 +248,7 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem *item, bool select
         EntityItem* e = getEntityItem(item->getID());
         if(e){
             e->setSelected(selected);
+            emit itemSelectionChanged(item, selected);
         }
     }
 }

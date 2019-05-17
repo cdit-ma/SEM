@@ -29,7 +29,7 @@ SearchDialog::SearchDialog(QWidget *parent)
  * @brief SearchDialog::setQuery
  * @param query
  */
-void SearchDialog::setQuery(QString query)
+void SearchDialog::setQuery(const QString &query)
 {
     query_text = query;
     if (query_label) {
@@ -43,19 +43,18 @@ void SearchDialog::setQuery(QString query)
  * @param query
  * @param results
  */
-void SearchDialog::DisplaySearchResults(QString query, QHash<QString, ViewItem*> results)
+void SearchDialog::DisplaySearchResults(const QString &query, const QHash<QString, ViewItem *> &results)
 {
     setQuery(query);
-
     clearSearchItems();
 
     data_filters->removeOptions();
 
     auto has_results = !results.isEmpty();
-    
     info_label->setVisible(!has_results);
-    if(has_results){
-        for(auto key : results.uniqueKeys()){
+
+    if (has_results) {
+        for (auto key : results.uniqueKeys()) {
             auto view_items = results.values(key);
             for (auto item : view_items) {
                 search_key_lookups.insertMulti(item, key);
@@ -67,6 +66,8 @@ void SearchDialog::DisplaySearchResults(QString query, QHash<QString, ViewItem*>
     } else {
         data_filters->setResetButtonText("All");
     }
+
+    // set the visibility of the search items based on the current filters
     filtersChanged();
 }
 
@@ -160,26 +161,7 @@ void SearchDialog::filtersChanged()
     } 
 
     result_status_widget->setVisible(any_filtered);
-
     load_more_button->setVisible(!all_showing);
-}
-
-
-/**
- * @brief SearchDialog::search_itemselected
- * This is called whenever a search item is selected.
- * It deselects the previously selected search item.
- * @param ID
- */
-void SearchDialog::searchItemSelected(int ID)
-{
-    if (selected_id != ID) {
-        if (search_items.contains(selected_id)) {
-            SearchItemWidget* item = search_items.value(selected_id);
-            item->setSelected(false);
-        }
-        selected_id = ID;
-    }
 }
 
 
@@ -196,6 +178,44 @@ void SearchDialog::viewItemDestructed(int ID, ViewItem* item)
         widget->deleteLater();
     }
     if (selected_id == ID) {
+        selected_id = -1;
+    }
+}
+
+
+/**
+ * @brief SearchDialog::viewItemSelected
+ * This is called whenever a view item is selected/unselected
+ * @param item
+ * @param selected
+ */
+void SearchDialog::viewItemSelected(ViewItem *item, bool selected)
+{
+    if (item) {
+        int ID = item->getID();
+        if (search_items.contains(ID)) {
+            auto searchItem = search_items.value(ID);
+            searchItem->viewItemSelected(selected);
+        }
+    }
+}
+
+
+/**
+ * @brief SearchDialog::searchItemClicked
+ * This is called whenever a search item is clicked
+ * @param ID
+ */
+void SearchDialog::searchItemClicked(int ID)
+{
+    if (selected_id != ID) {
+        // deselect the previously selected search item
+        if (search_items.contains(selected_id)) {
+            SearchItemWidget* item = search_items.value(selected_id);
+            item->setSelected(false);
+        }
+        selected_id = ID;
+    } else {
         selected_id = -1;
     }
 }
@@ -372,7 +392,7 @@ void SearchDialog::clearSearchItems()
         i->hide();
     }
     search_key_lookups.clear();
-    searchItemSelected(-1);
+    searchItemClicked(-1);
     max_visible = 30;
 }
 
@@ -418,14 +438,12 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
     }
 
     auto search_item = new SearchItemWidget(item, this);
-    results_layout->addWidget(search_item);
-    search_items.insert(ID, search_item);
+    connect(search_item, &SearchItemWidget::searchItemClicked, this, &SearchDialog::searchItemClicked);
+    connect(search_item, &SearchItemWidget::flashEntityItem, this, &SearchDialog::FlashEntity);
+    connect(search_item, &SearchItemWidget::centerEntityItem, this, &SearchDialog::CenterOn);
 
-    if (item) {
-        connect(search_item, &SearchItemWidget::itemSelected, this, &SearchDialog::searchItemSelected);
-        connect(search_item, &SearchItemWidget::itemHovered, this, &SearchDialog::HighlightEntity);
-        
-    }
+    search_items.insert(ID, search_item);
+    results_layout->addWidget(search_item);
     return search_item;
 }
 

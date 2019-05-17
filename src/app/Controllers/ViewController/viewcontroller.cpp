@@ -455,6 +455,7 @@ ViewDockWidget *ViewController::constructViewDockWidget(QString label, QWidget* 
     
     //Setup NodeView
     node_view->setViewController(this);
+    connect(node_view, &NodeView::itemSelectionChanged, SearchManager::manager(), &SearchManager::ItemSelectionChanged);
 
     return (ViewDockWidget*)dock_widget;
 }

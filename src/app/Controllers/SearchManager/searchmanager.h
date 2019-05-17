@@ -13,17 +13,17 @@ class SearchManager : public QObject
 {
     Q_OBJECT
     friend class ViewController;
+
 private:
     SearchManager(ViewController* controller);
-    ~SearchManager();
 
 protected:
     static bool construct_singleton(ViewController* controller);
-    static void destruct_singleton();
 
 signals:
     void SearchComplete();
     void GotoID(int id);
+    void ItemSelectionChanged(ViewItem* item, bool selected);
 
 public:
     static SearchManager* manager();
@@ -32,7 +32,7 @@ public:
     GotoPopup* getGotoPopup();
     SearchDialog* getSearchDialog();
     
-    void Search(QString search_query);
+    void Search(const QString& search_query);
     void PopupSearch();
     void PopupGoto();
 

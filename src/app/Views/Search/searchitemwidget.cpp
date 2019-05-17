@@ -1,4 +1,5 @@
 #include "searchitemwidget.h"
+#include <QMouseEvent>
 
 /**
  * @brief SearchItemWidget::SearchItemWidget
@@ -9,28 +10,30 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
     : QFrame(parent)
 {
     view_item = item;
-    if(view_item){
+
+    if (view_item) {
         ID = view_item->getID();
-        
+        view_item->registerObject(this);
+
         if (view_item->isNode()) {
             auto node_view_item = (NodeViewItem*) view_item;
             view_aspect = node_view_item->getViewAspect();
         }
-        view_item->registerObject(this);
+        if (view_item->isEdge()) {
+            auto edge_item = (EdgeViewItem*) view_item;
+            addPersistentKey("SRC ID");
+            addPersistentKey("DST ID");
+            updateDataKey("SRC ID", edge_item->getSourceID());
+            updateDataKey("DST ID", edge_item->getDestinationID());
+        }
 
         connect(view_item, &ViewItem::labelChanged, this, &SearchItemWidget::updateLabel);
         connect(view_item, &ViewItem::iconChanged, this, &SearchItemWidget::updateIcon);
         connect(view_item, &ViewItem::dataChanged, this, &SearchItemWidget::updateData);
+        //connect(view_item, &ViewItem::)
     }
 
     setupLayout();
-    if(view_item->isEdge()){
-        auto edge_item = (EdgeViewItem*) view_item;
-        addPersistentKey("SRC ID");
-        addPersistentKey("DST ID");
-        updateDataKey("SRC ID", edge_item->getSourceID());
-        updateDataKey("DST ID", edge_item->getDestinationID());
-    }
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &SearchItemWidget::themeChanged);
     themeChanged();
@@ -47,31 +50,69 @@ SearchItemWidget::~SearchItemWidget()
     }
 }
 
-void SearchItemWidget::addMatchedKeys(QSet<QString> keys){
-    for(auto key : keys){
+
+/**
+ * @brief SearchItemWidget::addMatchedKeys
+ * @param keys
+ */
+void SearchItemWidget::addMatchedKeys(const QSet<QString> &keys)
+{
+    for (auto key : keys) {
         addMatchedKey(key);
     }
 }
 
-void SearchItemWidget::addMatchedKey(QString key){
+
+/**
+ * @brief SearchItemWidget::addMatchedKey
+ * @param key
+ */
+void SearchItemWidget::addMatchedKey(const QString &key)
+{
     matched_keys.insert(key);
     setupDataKey(key);
 }
 
-void SearchItemWidget::addPersistentKey(QString key){
+
+/**
+ * @brief SearchItemWidget::addPersistentKey
+ * @param key
+ */
+void SearchItemWidget::addPersistentKey(const QString &key)
+{
     persistent_keys.insert(key);
     setupDataKey(key);
 }
 
-void SearchItemWidget::clearMatchedKeys(){
-    for(auto key : matched_keys){
+
+/**
+ * @brief SearchItemWidget::clearMatchedKeys
+ */
+void SearchItemWidget::clearMatchedKeys()
+{
+    for (auto key : matched_keys) {
         removeDataKey(key);
     }
     matched_keys.clear();
 
-    //Triggered
-    expandButtonToggled(false);
+    // hide the data widget
+    setExpanded(false);
 }
+
+
+/**
+ * @brief SearchItemWidget::viewItemSelected
+ * @param selected
+ */
+void SearchItemWidget::viewItemSelected(bool selected)
+{
+    // set this item's selected state and update its stylesheet
+    if (viewItemSelected_ != selected) {
+        viewItemSelected_ = selected;
+        updateStyleSheet();
+    }
+}
+
 
 /**
  * @brief SearchItemWidget::setSelected
@@ -79,20 +120,28 @@ void SearchItemWidget::clearMatchedKeys(){
  */
 void SearchItemWidget::setSelected(bool selected)
 {
-    if (this->selected == selected) {
-        return;
+    // set this item's selected state and update its stylesheet
+    if (selected_ != selected) {
+        selected_ = selected;
+        updateStyleSheet();
     }
+}
 
-    this->selected = selected;
-    if (selected) {
-        backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
-        emit itemSelected(ID);
-    } else {
-        backgroundColor =  Theme::theme()->getBackgroundColorHex();
+
+/**
+ * @brief SearchItemWidget::setExpanded
+ * @param expanded
+ */
+void SearchItemWidget::setExpanded(bool expanded)
+{
+    // update the button_expand's checked state and pixmap
+    button_expand->setChecked(expanded);
+
+    // construct the data widget when the item is first expanded
+    if (!data_widget) {
+        setupDataLayout();
     }
-    emit itemHovered(ID, selected);
-
-    updateStyleSheet();
+    data_widget->setVisible(expanded);
 }
 
 
@@ -106,27 +155,39 @@ VIEW_ASPECT SearchItemWidget::getViewAspect()
 }
 
 
-void SearchItemWidget::updateIcon(){
+/**
+ * @brief SearchItemWidget::updateIcon
+ */
+void SearchItemWidget::updateIcon()
+{
     auto theme = Theme::theme();
     auto icon_path = view_item->getIcon();
     auto tint = theme->getMenuIconColor();
     auto icon_size = theme->getLargeIconSize();
     auto pixmap = theme->getImage(icon_path.first, icon_path.second, icon_size, tint);
-    label_icon->setFixedSize(icon_size);
-    if(pixmap.isNull()){
+
+    if (pixmap.isNull()) {
         pixmap = theme->getImage("Icons", "Help", icon_size, tint);
     }
     //pixmap = pixmap.scaled(icon_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    label_icon->setFixedSize(icon_size);
     label_icon->setPixmap(pixmap);
 }
 
-void SearchItemWidget::updateDataIcon(QString key){
+
+/**
+ * @brief SearchItemWidget::updateDataIcon
+ * @param key
+ */
+void SearchItemWidget::updateDataIcon(const QString &key)
+{
     auto theme = Theme::theme();
     auto data = data_key_hash.value(key, 0);
     auto tint = theme->getMenuIconColor();
-    if(data){
+    if (data) {
         auto pixmap = theme->getImage("Data", key, theme->getIconSize(), tint);
-        if(pixmap.isNull()){
+        if (pixmap.isNull()) {
             pixmap = theme->getImage("Icons", "circleHalo", theme->getIconSize(), tint);
         }
         data->label_icon->setFixedSize(theme->getIconSize());
@@ -134,14 +195,25 @@ void SearchItemWidget::updateDataIcon(QString key){
     }
 }
 
-void SearchItemWidget::updateLabel(){
+
+/**
+ * @brief SearchItemWidget::updateLabel
+ */
+void SearchItemWidget::updateLabel()
+{
     auto key_name = view_item->isNode() ? "label" : "kind";
     auto label = view_item->getData(key_name).toString();
     label_text->setText(label);
 }
 
-void SearchItemWidget::updateData(QString data){
-    if(matched_keys.contains(data)){
+
+/**
+ * @brief SearchItemWidget::updateData
+ * @param data
+ */
+void SearchItemWidget::updateData(const QString &data)
+{
+    if (matched_keys.contains(data)) {
         setupDataKey(data);
     }
 }
@@ -153,16 +225,10 @@ void SearchItemWidget::updateData(QString data){
 void SearchItemWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    if (selected) {
-        backgroundColor =  theme->getAltBackgroundColorHex();
-    } else {
-        backgroundColor = theme->getBackgroundColorHex();
-    }
-
     updateStyleSheet();
     updateIcon();
 
-    for(auto key : data_key_hash.keys()){
+    for (auto key : data_key_hash.keys()) {
         updateDataIcon(key);
     }
 
@@ -175,45 +241,38 @@ void SearchItemWidget::themeChanged()
 
 
 /**
- * @brief SearchItemWidget::expandButtonToggled
- * @param checked
- */
-void SearchItemWidget::expandButtonToggled(bool checked)
-{
-    if(!data_widget){
-        setupDataLayout();
-    }
-
-    data_widget->setVisible(checked);
-}
-
-
-/**
  * @brief SearchItemWidget::mouseReleaseEvent
- * Imitate clicking the expand button when any of this widget is clicked.
+ * @param event
  */
-void SearchItemWidget::mouseReleaseEvent(QMouseEvent *)
+void SearchItemWidget::mouseReleaseEvent(QMouseEvent* event)
 {
-    
-    if (doubleClicked) {
-        if (button_expand) {
-            bool checked = !button_expand->isChecked();
-            expandButtonToggled(checked);
-            button_expand->setChecked(checked);
+    if (event->button() == Qt::LeftButton) {
+        // toggle the item's selected state
+        setSelected(!selected_);
+        emit searchItemClicked(ID);
+        if (selected_) {
+            // when selected, flash the linked entity item
+            // unfortunately, this is also triggered when the item is expanded/contracted
+            emit flashEntityItem(ID);
         }
-        doubleClicked = false;
-    } else {
-        setSelected(!selected);
+    } else if (event->button() == Qt::MiddleButton) {
+        // center on the linked entity item
+        emit centerEntityItem(ID);
     }
 }
 
 
 /**
  * @brief SearchItemWidget::mouseDoubleClickEvent
+ * @param event
  */
-void SearchItemWidget::mouseDoubleClickEvent(QMouseEvent *)
+void SearchItemWidget::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    doubleClicked = true;
+    if (event->button() == Qt::LeftButton) {
+        if (button_expand) {
+            setExpanded(!button_expand->isChecked());
+        }
+    }
 }
 
 
@@ -221,31 +280,44 @@ void SearchItemWidget::mouseDoubleClickEvent(QMouseEvent *)
  * @brief SearchItemWidget::updateStyleSheet
  */
 void SearchItemWidget::updateStyleSheet()
-{
+{   
     Theme* theme = Theme::theme();
+    QString borderStr = "border-style: solid;";
+    if (viewItemSelected_) {
+        borderStr += "border-width: 2px;"
+                     "border-color:" + theme->getHighlightColorHex() + ";";
+    } else {
+        borderStr += "border-width: 0px 0px 1px 0px;"
+                     "border-color:" + theme->getDisabledBackgroundColorHex() + ";";
+    }
+
+    QString backgrounStr = theme->getBackgroundColorHex();
+    if (selected_) {
+        backgrounStr = theme->getAltBackgroundColorHex();
+    }
+
     setStyleSheet("QFrame {"
-                  "border-style: solid;"
-                  "border-width: 0px 0px 1px 0px;"
-                  "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + backgroundColor + ";"
+                  + borderStr +
+                  "background:" + backgrounStr + ";"
                   "color:" + theme->getTextColorHex() + ";"
                   "}"
-                  "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  "QLabel#KEY_LABEL{ color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
-                  /*"QWidget{border:1px solid red;}"*/
+                  "QFrame:hover { background:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() +  ";}"
+                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
                   + theme->getToolBarStyleSheet());
 }
 
-void SearchItemWidget::setupLayout(){
+
+/**
+ * @brief SearchItemWidget::setupLayout
+ */
+void SearchItemWidget::setupLayout()
+{
     auto layout = new QVBoxLayout(this);
     layout->setMargin(5);
     layout->setSpacing(5);
 
-    if(view_item){
-        auto top_layout = new QHBoxLayout();
-        top_layout->setMargin(0);
-        top_layout->setMargin(0);
+    if (view_item) {
         label_icon = new QLabel(this);
         label_icon->setStyleSheet("padding:0px;margin:0px;");
         label_icon->setAlignment(Qt::AlignCenter);
@@ -257,7 +329,8 @@ void SearchItemWidget::setupLayout(){
         button_expand->setAutoRaise(false);
         button_expand->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
-
+        auto top_layout = new QHBoxLayout();
+        top_layout->setMargin(0);
         top_layout->addWidget(label_icon);
         top_layout->addWidget(label_text, 1);
         top_layout->addWidget(button_expand);
@@ -267,21 +340,30 @@ void SearchItemWidget::setupLayout(){
     updateLabel();
 }
 
-void SearchItemWidget::setupDataKey(QString key){
+
+/**
+ * @brief SearchItemWidget::setupDataKey
+ * @param key
+ */
+void SearchItemWidget::setupDataKey(const QString &key)
+{
     auto data = data_key_hash.value(key, 0);
-    if(!data){
+    if (!data) {
         data = new DataItem();
         data->item = new QWidget(this);
         data->item->setVisible(false);
+
         auto layout = new QHBoxLayout(data->item);
         layout->setMargin(0);
         layout->setSpacing(5);
         
         data->label_icon = new QLabel(data->item);
         data->label_icon->setStyleSheet("padding:0px;margin:0px;");
+
         data->label_value = new QLabel(data->item);
         data->label_key = new QLabel(data->item);
         data->label_key->setObjectName("KEY_LABEL");
+
         layout->addWidget(data->label_icon);
         layout->addWidget(data->label_key);
         layout->addWidget(data->label_value, 1);
@@ -290,32 +372,50 @@ void SearchItemWidget::setupDataKey(QString key){
         updateDataKey(key, view_item->getData(key));
         updateDataIcon(key);
     }
-    if(data && data->in_layout == false && data_widget){
+    if ((data->in_layout == false) && data_widget) {
         data_widget->layout()->addWidget(data->item);
         data->item->setVisible(true);
         data->in_layout = true;
     }
 }
-void SearchItemWidget::updateDataKey(QString key, QVariant value){
+
+
+/**
+ * @brief SearchItemWidget::updateDataKey
+ * @param key
+ * @param value
+ */
+void SearchItemWidget::updateDataKey(const QString &key, const QVariant &value)
+{
     auto data = data_key_hash.value(key, 0);
-    if(data){
+    if (data) {
         data->label_key->setText(key + ":");
         data->label_value->setText(value.toString());
     }
 }
 
-void SearchItemWidget::removeDataKey(QString key){
-    auto data = data_key_hash.value(key, 0);
 
-    if(data){
+/**
+ * @brief SearchItemWidget::removeDataKey
+ * @param key
+ */
+void SearchItemWidget::removeDataKey(const QString &key)
+{
+    auto data = data_key_hash.value(key, 0);
+    if (data) {
         data_key_hash.remove(key);
         delete data->item;
         delete data;
     }
 }
 
-void SearchItemWidget::setupDataLayout(){
-    if(!data_widget){
+
+/**
+ * @brief SearchItemWidget::setupDataLayout
+ */
+void SearchItemWidget::setupDataLayout()
+{
+    if (!data_widget) {
         data_widget = new QWidget(this);
         data_widget->setContentsMargins(icon_size.width() + 5, 5, 5, 5);
         data_widget->hide();
@@ -324,15 +424,14 @@ void SearchItemWidget::setupDataLayout(){
         v_layout->setMargin(0);
         v_layout->setSpacing(5);
 
-        for(auto key : persistent_keys){
+        for (auto key : persistent_keys) {
             setupDataKey(key);
         }
-        
-        for(auto key : matched_keys){
+        for (auto key : matched_keys) {
             setupDataKey(key);
         }
 
-        //Add to the main layout
+        // add to the main layout
         layout()->addWidget(data_widget);
     }
 }

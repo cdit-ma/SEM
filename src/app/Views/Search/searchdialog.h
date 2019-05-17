@@ -18,11 +18,12 @@ class SearchDialog : public QFrame
 public:
     explicit SearchDialog(QWidget *parent = 0);
 
-    void DisplaySearchResults(QString query, QHash<QString, ViewItem*> results);
+    void DisplaySearchResults(const QString& query, const QHash<QString, ViewItem*>& results);
+
 signals:
     void SearchQuery(QString query);
     void SearchPopup();
-    void HighlightEntity(int ID, bool highlight);
+    void FlashEntity(int ID);
     void CenterOn(int ID);
     void Popup(int ID);
 
@@ -30,14 +31,18 @@ private slots:
     void themeChanged();
     void filtersChanged();
 
-    void searchItemSelected(int ID);
 public slots:
     void viewItemDestructed(int ID, ViewItem* item);
+    void viewItemSelected(ViewItem* item, bool selected);
+
+    void searchItemClicked(int ID);
 
 private:
     void scrollBarValueChanged();
     void loadNextResults();
-    void setQuery(QString query);
+
+    void setQuery(const QString& query);
+
     void setupLayout();
     void setupFilters();
 
