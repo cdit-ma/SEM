@@ -1,4 +1,5 @@
-FROM minimal_deps
+ARG base_image=minimal_deps
+FROM $base_image
 
 #Set up code and env vars
 COPY . /logan/
