@@ -40,12 +40,13 @@
 	<key attr.name="y" attr.type="double" id="303"/>
 	<key attr.name="isExpanded" attr.type="boolean" id="304"/>
 	<key attr.name="middleware" attr.type="string" id="305"/>
-	<key attr.name="editable_key" attr.type="string" id="306"/>
+	<key attr.name="replicate_value" attr.type="string" id="306"/>
+	<key attr.name="editable_key" attr.type="string" id="307"/>
 
 	<graph edgedefault="directed" id="g0">
 		<node id="12">
 			<data key="1">Model</data>
-			<data key="2">Model</data>
+			<data key="2">SensorArray</data>
 			<data key="3">-1</data>
 			<data key="4">3.3.8</data>
 			<data key="5"></data>
@@ -55,92 +56,188 @@
 					<data key="2">INTERFACES</data>
 					<data key="3">0</data>
 					<graph id="g13">
-						<node id="307">
+						<node id="317">
 							<data key="1">Aggregate</data>
-							<data key="2">Message</data>
+							<data key="2">Sample</data>
 							<data key="3">0</data>
-							<data key="21">Message</data>
+							<data key="21">Sample</data>
 							<data key="32"></data>
 							<data key="300">1</data>
 							<data key="301"></data>
-							<data key="302">0</data>
-							<data key="303">-5</data>
-							<graph id="g307">
-								<node id="308">
+							<data key="302">-90</data>
+							<data key="303">-65</data>
+							<data key="304">false</data>
+							<graph id="g317">
+								<node id="318">
 									<data key="1">Member</data>
-									<data key="2">instName</data>
+									<data key="2">sensorID</data>
 									<data key="3">0</data>
 									<data key="21">String</data>
 									<data key="40"></data>
 									<data key="41">true</data>
 								</node>
-								<node id="309">
+								<node id="319">
 									<data key="1">Member</data>
-									<data key="2">messageID</data>
+									<data key="2">time</data>
 									<data key="3">1</data>
 									<data key="21">Integer</data>
 									<data key="40"></data>
 									<data key="41">false</data>
 								</node>
-								<node id="310">
+								<node id="320">
 									<data key="1">Member</data>
-									<data key="2">content</data>
+									<data key="2">observation</data>
 									<data key="3">2</data>
-									<data key="21">String</data>
+									<data key="21">Float</data>
 									<data key="40"></data>
 									<data key="41">false</data>
 								</node>
 							</graph>
 						</node>
-						<node id="311">
-							<data key="1">Component</data>
-							<data key="2">HelloReceiver</data>
+						<node id="321">
+							<data key="1">Aggregate</data>
+							<data key="2">SampleSequence</data>
 							<data key="3">1</data>
-							<data key="21">HelloReceiver</data>
+							<data key="21">SampleSequence</data>
+							<data key="32"></data>
+							<data key="300">1</data>
+							<data key="301"></data>
+							<data key="302">30</data>
+							<data key="303">-65</data>
+							<data key="304">false</data>
+							<graph id="g321">
+								<node id="322">
+									<data key="1">Member</data>
+									<data key="2">collectorID</data>
+									<data key="3">0</data>
+									<data key="21">String</data>
+									<data key="40"></data>
+									<data key="41">true</data>
+								</node>
+								<node id="606">
+									<data key="1">AggregateInstance</data>
+									<data key="2">AggregateInstance</data>
+									<data key="3">1</data>
+									<data key="21">Vector_Agg</data>
+									<data key="22">Vector_Agg</data>
+									<data key="23"></data>
+									<data key="300">1</data>
+									<graph id="g606">
+										<node id="608">
+											<data key="1">VectorInstance</data>
+											<data key="2">Samples</data>
+											<data key="3">0</data>
+											<data key="21">Vector&lt;Sample&gt;</data>
+											<data key="22">Sample</data>
+											<data key="23">Vector</data>
+											<data key="27">EntityIcons</data>
+											<data key="28">Vector_AggregateInstance</data>
+											<graph id="g608">
+												<node id="610">
+													<data key="1">AggregateInstance</data>
+													<data key="2">Sample</data>
+													<data key="3">0</data>
+													<data key="21">Sample</data>
+													<data key="22">Sample</data>
+													<data key="23"></data>
+													<data key="300">1</data>
+													<graph id="g610">
+														<node id="612">
+															<data key="1">MemberInstance</data>
+															<data key="2">sensorID</data>
+															<data key="3">0</data>
+															<data key="21">String</data>
+															<data key="22">String</data>
+															<data key="23"></data>
+														</node>
+														<node id="614">
+															<data key="1">MemberInstance</data>
+															<data key="2">time</data>
+															<data key="3">1</data>
+															<data key="21">Integer</data>
+															<data key="22">Integer</data>
+															<data key="23"></data>
+														</node>
+														<node id="616">
+															<data key="1">MemberInstance</data>
+															<data key="2">observation</data>
+															<data key="3">2</data>
+															<data key="21">Float</data>
+															<data key="22">Float</data>
+															<data key="23"></data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+							</graph>
+						</node>
+						<node id="328">
+							<data key="1">Component</data>
+							<data key="2">Sensor</data>
+							<data key="3">2</data>
+							<data key="21">Sensor</data>
 							<data key="32"></data>
 							<data key="301"></data>
-							<data key="302">250</data>
-							<data key="303">-5</data>
+							<data key="302">-90</data>
+							<data key="303">-30</data>
 							<data key="304">true</data>
-							<graph id="g311">
-								<node id="312">
-									<data key="1">SubscriberPort</data>
-									<data key="2">rxGreeting</data>
+							<graph id="g328">
+								<node id="337">
+									<data key="1">Attribute</data>
+									<data key="2">sensorID</data>
 									<data key="3">0</data>
-									<data key="21">Message</data>
-									<data key="37">0</data>
-									<graph id="g312">
-										<node id="313">
+									<data key="21">String</data>
+									<data key="37">1</data>
+								</node>
+								<node id="340">
+									<data key="1">Attribute</data>
+									<data key="2">observation</data>
+									<data key="3">1</data>
+									<data key="21">Float</data>
+									<data key="37">1</data>
+								</node>
+								<node id="358">
+									<data key="1">PublisherPort</data>
+									<data key="2">sensorSample</data>
+									<data key="3">2</data>
+									<data key="21">Sample</data>
+									<data key="37">2</data>
+									<data key="304">true</data>
+									<graph id="g358">
+										<node id="360">
 											<data key="1">AggregateInstance</data>
-											<data key="2">Message</data>
+											<data key="2">Sample</data>
 											<data key="3">0</data>
-											<data key="21">Message</data>
-											<data key="22">Message</data>
+											<data key="21">Sample</data>
+											<data key="22">Sample</data>
 											<data key="23"></data>
 											<data key="300">1</data>
-											<graph id="g313">
-												<node id="314">
+											<graph id="g360">
+												<node id="362">
 													<data key="1">MemberInstance</data>
-													<data key="2">instName</data>
+													<data key="2">sensorID</data>
 													<data key="3">0</data>
 													<data key="21">String</data>
 													<data key="22">String</data>
 													<data key="23"></data>
 												</node>
-												<node id="315">
+												<node id="364">
 													<data key="1">MemberInstance</data>
-													<data key="2">messageID</data>
+													<data key="2">time</data>
 													<data key="3">1</data>
 													<data key="21">Integer</data>
 													<data key="22">Integer</data>
 													<data key="23"></data>
 												</node>
-												<node id="316">
+												<node id="366">
 													<data key="1">MemberInstance</data>
-													<data key="2">content</data>
+													<data key="2">observation</data>
 													<data key="3">2</data>
-													<data key="21">String</data>
-													<data key="22">String</data>
+													<data key="21">Float</data>
+													<data key="22">Float</data>
 													<data key="23"></data>
 												</node>
 											</graph>
@@ -149,62 +246,328 @@
 								</node>
 							</graph>
 						</node>
-						<node id="317">
+						<node id="331">
 							<data key="1">Component</data>
-							<data key="2">HelloSender</data>
-							<data key="3">2</data>
-							<data key="21">HelloSender</data>
+							<data key="2">SensorCollector</data>
+							<data key="3">3</data>
+							<data key="21">SensorCollector</data>
 							<data key="32"></data>
 							<data key="301"></data>
-							<data key="302">75</data>
-							<data key="303">-5</data>
+							<data key="302">80</data>
+							<data key="303">-30</data>
 							<data key="304">true</data>
-							<graph id="g317">
-								<node id="318">
-									<data key="1">Attribute</data>
-									<data key="2">message</data>
+							<graph id="g331">
+								<node id="374">
+									<data key="1">SubscriberPort</data>
+									<data key="2">sensorSample</data>
 									<data key="3">0</data>
-									<data key="21">String</data>
-									<data key="37">1</data>
-								</node>
-								<node id="319">
-									<data key="1">PublisherPort</data>
-									<data key="2">txGreeting</data>
-									<data key="3">1</data>
-									<data key="21">Message</data>
-									<data key="37">2</data>
-									<graph id="g319">
-										<node id="320">
+									<data key="21">Sample</data>
+									<data key="37">0</data>
+									<data key="304">true</data>
+									<graph id="g374">
+										<node id="376">
 											<data key="1">AggregateInstance</data>
-											<data key="2">Message</data>
+											<data key="2">Sample</data>
 											<data key="3">0</data>
-											<data key="21">Message</data>
-											<data key="22">Message</data>
+											<data key="21">Sample</data>
+											<data key="22">Sample</data>
 											<data key="23"></data>
 											<data key="300">1</data>
-											<graph id="g320">
-												<node id="321">
+											<graph id="g376">
+												<node id="378">
 													<data key="1">MemberInstance</data>
-													<data key="2">instName</data>
+													<data key="2">sensorID</data>
 													<data key="3">0</data>
 													<data key="21">String</data>
 													<data key="22">String</data>
 													<data key="23"></data>
 												</node>
-												<node id="322">
+												<node id="380">
 													<data key="1">MemberInstance</data>
-													<data key="2">messageID</data>
+													<data key="2">time</data>
 													<data key="3">1</data>
 													<data key="21">Integer</data>
 													<data key="22">Integer</data>
 													<data key="23"></data>
 												</node>
-												<node id="323">
+												<node id="382">
 													<data key="1">MemberInstance</data>
-													<data key="2">content</data>
+													<data key="2">observation</data>
 													<data key="3">2</data>
+													<data key="21">Float</data>
+													<data key="22">Float</data>
+													<data key="23"></data>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="368">
+									<data key="1">Attribute</data>
+									<data key="2">collectorID</data>
+									<data key="3">1</data>
+									<data key="21">String</data>
+									<data key="37">1</data>
+								</node>
+								<node id="371">
+									<data key="1">Attribute</data>
+									<data key="2">relaySequence</data>
+									<data key="3">2</data>
+									<data key="21">Boolean</data>
+									<data key="37">1</data>
+								</node>
+								<node id="394">
+									<data key="1">PublisherPort</data>
+									<data key="2">sensorSequence</data>
+									<data key="3">3</data>
+									<data key="21">SampleSequence</data>
+									<data key="37">2</data>
+									<data key="304">true</data>
+									<graph id="g394">
+										<node id="396">
+											<data key="1">AggregateInstance</data>
+											<data key="2">SampleSequence</data>
+											<data key="3">0</data>
+											<data key="21">SampleSequence</data>
+											<data key="22">SampleSequence</data>
+											<data key="23"></data>
+											<data key="300">1</data>
+											<graph id="g396">
+												<node id="398">
+													<data key="1">MemberInstance</data>
+													<data key="2">collectorID</data>
+													<data key="3">0</data>
 													<data key="21">String</data>
 													<data key="22">String</data>
+													<data key="23"></data>
+												</node>
+												<node id="618">
+													<data key="1">AggregateInstance</data>
+													<data key="2">AggregateInstance</data>
+													<data key="3">1</data>
+													<data key="21">Vector_Agg</data>
+													<data key="22">Vector_Agg</data>
+													<data key="23"></data>
+													<data key="300">1</data>
+													<graph id="g618">
+														<node id="620">
+															<data key="1">VectorInstance</data>
+															<data key="2">Samples</data>
+															<data key="3">0</data>
+															<data key="21">Vector&lt;Sample&gt;</data>
+															<data key="22">Sample</data>
+															<data key="23">Vector</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector_AggregateInstance</data>
+															<graph id="g620">
+																<node id="622">
+																	<data key="1">AggregateInstance</data>
+																	<data key="2">Sample</data>
+																	<data key="3">0</data>
+																	<data key="21">Sample</data>
+																	<data key="22">Sample</data>
+																	<data key="23"></data>
+																	<data key="300">1</data>
+																	<graph id="g622">
+																		<node id="624">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">sensorID</data>
+																			<data key="3">0</data>
+																			<data key="21">String</data>
+																			<data key="22">String</data>
+																			<data key="23"></data>
+																		</node>
+																		<node id="626">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">time</data>
+																			<data key="3">1</data>
+																			<data key="21">Integer</data>
+																			<data key="22">Integer</data>
+																			<data key="23"></data>
+																		</node>
+																		<node id="628">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">observation</data>
+																			<data key="3">2</data>
+																			<data key="21">Float</data>
+																			<data key="22">Float</data>
+																			<data key="23"></data>
+																		</node>
+																	</graph>
+																</node>
+															</graph>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+							</graph>
+						</node>
+						<node id="334">
+							<data key="1">Component</data>
+							<data key="2">SensorProcessor</data>
+							<data key="3">4</data>
+							<data key="21">SensorProcessor</data>
+							<data key="32"></data>
+							<data key="301"></data>
+							<data key="302">375</data>
+							<data key="303">-30</data>
+							<data key="304">true</data>
+							<graph id="g334">
+								<node id="415">
+									<data key="1">SubscriberPort</data>
+									<data key="2">sensorSequence</data>
+									<data key="3">0</data>
+									<data key="21">SampleSequence</data>
+									<data key="37">0</data>
+									<data key="304">true</data>
+									<graph id="g415">
+										<node id="417">
+											<data key="1">AggregateInstance</data>
+											<data key="2">SampleSequence</data>
+											<data key="3">0</data>
+											<data key="21">SampleSequence</data>
+											<data key="22">SampleSequence</data>
+											<data key="23"></data>
+											<data key="300">1</data>
+											<graph id="g417">
+												<node id="419">
+													<data key="1">MemberInstance</data>
+													<data key="2">collectorID</data>
+													<data key="3">0</data>
+													<data key="21">String</data>
+													<data key="22">String</data>
+													<data key="23"></data>
+												</node>
+												<node id="630">
+													<data key="1">AggregateInstance</data>
+													<data key="2">AggregateInstance</data>
+													<data key="3">1</data>
+													<data key="21">Vector_Agg</data>
+													<data key="22">Vector_Agg</data>
+													<data key="23"></data>
+													<data key="300">1</data>
+													<graph id="g630">
+														<node id="632">
+															<data key="1">VectorInstance</data>
+															<data key="2">Samples</data>
+															<data key="3">0</data>
+															<data key="21">Vector&lt;Sample&gt;</data>
+															<data key="22">Sample</data>
+															<data key="23">Vector</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector_AggregateInstance</data>
+															<graph id="g632">
+																<node id="634">
+																	<data key="1">AggregateInstance</data>
+																	<data key="2">Sample</data>
+																	<data key="3">0</data>
+																	<data key="21">Sample</data>
+																	<data key="22">Sample</data>
+																	<data key="23"></data>
+																	<data key="300">1</data>
+																	<graph id="g634">
+																		<node id="636">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">sensorID</data>
+																			<data key="3">0</data>
+																			<data key="21">String</data>
+																			<data key="22">String</data>
+																			<data key="23"></data>
+																		</node>
+																		<node id="638">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">time</data>
+																			<data key="3">1</data>
+																			<data key="21">Integer</data>
+																			<data key="22">Integer</data>
+																			<data key="23"></data>
+																		</node>
+																		<node id="640">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">observation</data>
+																			<data key="3">2</data>
+																			<data key="21">Float</data>
+																			<data key="22">Float</data>
+																			<data key="23"></data>
+																		</node>
+																	</graph>
+																</node>
+															</graph>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="412">
+									<data key="1">Attribute</data>
+									<data key="2">processSequence</data>
+									<data key="3">1</data>
+									<data key="21">Boolean</data>
+									<data key="37">1</data>
+								</node>
+							</graph>
+						</node>
+						<node id="540">
+							<data key="1">Aggregate</data>
+							<data key="2">Vector_Agg</data>
+							<data key="3">5</data>
+							<data key="21">Vector_Agg</data>
+							<data key="32"></data>
+							<data key="300">1</data>
+							<data key="301"></data>
+							<data key="302">-30</data>
+							<data key="303">-65</data>
+							<data key="304">false</data>
+							<graph id="g540">
+								<node id="541">
+									<data key="1">Vector</data>
+									<data key="2">Samples</data>
+									<data key="3">0</data>
+									<data key="21">Vector&lt;Sample&gt;</data>
+									<data key="22">Sample</data>
+									<data key="23">Vector</data>
+									<data key="27">EntityIcons</data>
+									<data key="28">Vector_AggregateInstance</data>
+									<data key="304">true</data>
+									<graph id="g541">
+										<node id="598">
+											<data key="1">AggregateInstance</data>
+											<data key="2">Sample</data>
+											<data key="3">0</data>
+											<data key="21">Sample</data>
+											<data key="22">Sample</data>
+											<data key="23"></data>
+											<data key="300">1</data>
+											<data key="302">19.05126195884067</data>
+											<data key="303">18.531002165710305</data>
+											<graph id="g598">
+												<node id="600">
+													<data key="1">MemberInstance</data>
+													<data key="2">sensorID</data>
+													<data key="3">0</data>
+													<data key="21">String</data>
+													<data key="22">String</data>
+													<data key="23"></data>
+												</node>
+												<node id="602">
+													<data key="1">MemberInstance</data>
+													<data key="2">time</data>
+													<data key="3">1</data>
+													<data key="21">Integer</data>
+													<data key="22">Integer</data>
+													<data key="23"></data>
+												</node>
+												<node id="604">
+													<data key="1">MemberInstance</data>
+													<data key="2">observation</data>
+													<data key="3">2</data>
+													<data key="21">Float</data>
+													<data key="22">Float</data>
 													<data key="23"></data>
 												</node>
 											</graph>
@@ -219,158 +582,115 @@
 					<data key="1">BehaviourDefinitions</data>
 					<data key="2">BEHAVIOUR</data>
 					<data key="3">1</data>
-					<data key="304">true</data>
 					<graph id="g14">
-						<node id="324">
+						<node id="329">
 							<data key="1">ComponentImpl</data>
-							<data key="2">HelloSender</data>
+							<data key="2">Sensor</data>
 							<data key="3">0</data>
-							<data key="21">HelloSender</data>
-							<data key="302">-50</data>
-							<data key="303">40</data>
+							<data key="21">Sensor</data>
+							<data key="302">15</data>
+							<data key="303">105</data>
 							<data key="304">true</data>
-							<graph id="g324">
-								<node id="325">
+							<graph id="g329">
+								<node id="518">
 									<data key="1">PeriodicPort</data>
-									<data key="2">tick</data>
+									<data key="2">PeriodicPort</data>
 									<data key="3">0</data>
 									<data key="304">true</data>
-									<graph id="g325">
-										<node id="342">
+									<graph id="g518">
+										<node id="967">
 											<data key="1">FunctionCall</data>
-											<data key="2">Get Name</data>
+											<data key="2">Get Time Of Day</data>
 											<data key="3">0</data>
-											<data key="5">Returns an element from a std::vector at an index.</data>
+											<data key="5">Get the time of day as a double (To Microseconds Precision).</data>
 											<data key="27">Icons</data>
-											<data key="28">label</data>
-											<data key="35">Component_Info</data>
-											<graph id="g342">
-												<node id="344">
+											<data key="28">clock</data>
+											<data key="35">Utility_Worker</data>
+											<graph id="g967">
+												<node id="969">
 													<data key="1">ReturnParameterGroupInstance</data>
 													<data key="2">Return Parameters</data>
 													<data key="3">0</data>
 													<data key="21"></data>
 													<data key="37">0</data>
 													<data key="38">1</data>
-													<graph id="g344">
-														<node id="346">
+													<graph id="g969">
+														<node id="971">
 															<data key="1">MemberInstance</data>
-															<data key="2">Label</data>
+															<data key="2">Time</data>
 															<data key="3">0</data>
-															<data key="21">String</data>
-															<data key="22">String</data>
+															<data key="5">Current Time of Day</data>
+															<data key="21">Double</data>
+															<data key="22">Double</data>
 															<data key="23"></data>
+															<data key="27">Icons</data>
+															<data key="28">numberOne</data>
 														</node>
 													</graph>
 												</node>
 											</graph>
 										</node>
-										<node id="326">
+										<node id="1131">
 											<data key="1">PublisherPortImpl</data>
-											<data key="2">txGreeting</data>
+											<data key="2">sensorSample</data>
 											<data key="3">1</data>
-											<data key="21">Message</data>
-											<graph id="g326">
-												<node id="327">
+											<data key="21">Sample</data>
+											<graph id="g1131">
+												<node id="1133">
 													<data key="1">AggregateInstance</data>
-													<data key="2">Message</data>
+													<data key="2">Sample</data>
 													<data key="3">0</data>
 													<data key="20"></data>
-													<data key="21">Message</data>
-													<data key="22">Message</data>
+													<data key="21">Sample</data>
+													<data key="22">Sample</data>
 													<data key="23"></data>
 													<data key="300">1</data>
-													<graph id="g327">
-														<node id="328">
+													<graph id="g1133">
+														<node id="1135">
 															<data key="1">MemberInstance</data>
-															<data key="2">instName</data>
+															<data key="2">sensorID</data>
 															<data key="3">0</data>
-															<data key="20">Label</data>
+															<data key="20">sensorID</data>
 															<data key="21">String</data>
 															<data key="22">String</data>
 															<data key="23"></data>
 														</node>
-														<node id="329">
+														<node id="1137">
 															<data key="1">MemberInstance</data>
-															<data key="2">messageID</data>
+															<data key="2">time</data>
 															<data key="3">1</data>
-															<data key="20">count</data>
+															<data key="20">Time</data>
 															<data key="21">Integer</data>
 															<data key="22">Integer</data>
 															<data key="23"></data>
 														</node>
-														<node id="330">
+														<node id="1139">
 															<data key="1">MemberInstance</data>
-															<data key="2">content</data>
+															<data key="2">observation</data>
 															<data key="3">2</data>
-															<data key="20">message</data>
-															<data key="21">String</data>
-															<data key="22">String</data>
+															<data key="20"></data>
+															<data key="21">Float</data>
+															<data key="22">Float</data>
 															<data key="23"></data>
 														</node>
 													</graph>
 												</node>
 											</graph>
 										</node>
-										<node id="352">
-											<data key="1">Setter</data>
-											<data key="2">count += 1</data>
-											<data key="3">2</data>
-											<data key="21">Integer</data>
-											<data key="22">Integer</data>
-											<data key="23"></data>
-											<graph id="g352">
-												<node id="353">
-													<data key="1">InputParameter</data>
-													<data key="2">lhs</data>
-													<data key="3">0</data>
-													<data key="20">count</data>
-													<data key="21">Integer</data>
-													<data key="22">Integer</data>
-													<data key="23"></data>
-													<data key="27">EntityIcons</data>
-													<data key="28">Variable</data>
-													<data key="125">true</data>
-													<data key="126">true</data>
-												</node>
-												<node id="354">
-													<data key="1">InputParameter</data>
-													<data key="2">+=</data>
-													<data key="3">1</data>
-													<data key="20">+=</data>
-													<data key="27">Icons</data>
-													<data key="28">circlePlusDark</data>
-													<data key="125">true</data>
-													<data key="306">label</data>
-												</node>
-												<node id="355">
-													<data key="1">InputParameter</data>
-													<data key="2">rhs</data>
-													<data key="3">2</data>
-													<data key="20">1</data>
-													<data key="21">Integer</data>
-													<data key="22">Integer</data>
-													<data key="23"></data>
-													<data key="27">EntityIcons</data>
-													<data key="28">Variable</data>
-													<data key="125">true</data>
-												</node>
-											</graph>
-										</node>
-										<node id="331">
+										<node id="519">
 											<data key="1">Attribute</data>
 											<data key="2">Frequency</data>
-											<data key="3">3</data>
+											<data key="3">2</data>
 											<data key="21">Double</data>
 											<data key="27">Icons</data>
-											<data key="28">timeElapsed</data>
+											<data key="28">timeElapsedTwoTone</data>
 											<data key="37">1</data>
 										</node>
 									</graph>
 								</node>
-								<node id="332">
+								<node id="338">
 									<data key="1">AttributeImpl</data>
-									<data key="2">message</data>
+									<data key="2">sensorID</data>
 									<data key="3">1</data>
 									<data key="21">String</data>
 									<data key="22">String</data>
@@ -378,244 +698,20 @@
 									<data key="37">1</data>
 									<data key="38">0</data>
 								</node>
-								<node id="349">
-									<data key="1">Variable</data>
-									<data key="2">count</data>
+								<node id="341">
+									<data key="1">AttributeImpl</data>
+									<data key="2">observation</data>
 									<data key="3">2</data>
-									<data key="20">0</data>
-									<data key="21">Integer</data>
-									<data key="22">Integer</data>
+									<data key="21">Float</data>
+									<data key="22">Float</data>
 									<data key="23"></data>
 									<data key="37">1</data>
-									<data key="38">1</data>
-									<data key="304">false</data>
-									<graph id="g349">
-										<node id="350">
-											<data key="1">Member</data>
-											<data key="2">Member</data>
-											<data key="3">0</data>
-											<data key="21">Integer</data>
-											<data key="40"></data>
-											<data key="41">false</data>
-										</node>
-									</graph>
+									<data key="38">0</data>
 								</node>
-								<node id="333">
-									<data key="1">ClassInstance</data>
-									<data key="2">Component_Info</data>
-									<data key="3">3</data>
-									<data key="21">Component_Info</data>
-									<data key="27">Icons</data>
-									<data key="28">circleInfoDark</data>
-									<data key="31">1.0.0</data>
-									<data key="33">true</data>
-									<data key="37">1</data>
-									<data key="38">2</data>
-									<graph id="g333">
-										<node id="334">
-											<data key="1">Function</data>
-											<data key="2">Get Name</data>
-											<data key="3">0</data>
-											<data key="5">Returns an element from a std::vector at an index.</data>
-											<data key="27">Icons</data>
-											<data key="28">label</data>
-											<data key="29">get_name</data>
-											<data key="35">Component_Info</data>
-										</node>
-										<node id="335">
-											<data key="1">Function</data>
-											<data key="2">Get ID</data>
-											<data key="3">1</data>
-											<data key="5">Gets the ID of this Component Instance.</data>
-											<data key="27">Icons</data>
-											<data key="28">fingerprint</data>
-											<data key="29">get_id</data>
-											<data key="35">Component_Info</data>
-										</node>
-										<node id="336">
-											<data key="1">Function</data>
-											<data key="2">Get Type</data>
-											<data key="3">2</data>
-											<data key="5">Gets the Type of this Component Instance.</data>
-											<data key="27">Icons</data>
-											<data key="28">tiles</data>
-											<data key="29">get_type</data>
-											<data key="35">Component_Info</data>
-										</node>
-										<node id="337">
-											<data key="1">Function</data>
-											<data key="2">Get Localised Name</data>
-											<data key="3">3</data>
-											<data key="5">Gets the Type of this Component Instance.</data>
-											<data key="27">Icons</data>
-											<data key="28">label</data>
-											<data key="29">GetLocalisedName</data>
-											<data key="35">Component_Info</data>
-										</node>
-										<node id="338">
-											<data key="1">Function</data>
-											<data key="2">Get Location</data>
-											<data key="3">4</data>
-											<data key="5">Gets the Vector which has the the name of the parent assemblies</data>
-											<data key="27">Icons</data>
-											<data key="28">cards</data>
-											<data key="29">GetLocation</data>
-											<data key="35">Component_Info</data>
-										</node>
-										<node id="339">
-											<data key="1">Function</data>
-											<data key="2">Get Replication Indices</data>
-											<data key="3">5</data>
-											<data key="5">Gets the Vector which has the the replication values of the ComponentInstance</data>
-											<data key="27">Icons</data>
-											<data key="28">cards</data>
-											<data key="29">GetReplicationIndices</data>
-											<data key="35">Component_Info</data>
-										</node>
-										<node id="340">
-											<data key="1">Function</data>
-											<data key="2">Shutdown Component</data>
-											<data key="3">6</data>
-											<data key="5">Shutdown the Component. Cannot be called from within a HandleTransition Function.</data>
-											<data key="27">Icons</data>
-											<data key="28">power</data>
-											<data key="29">Passivate</data>
-											<data key="35">Component_Info</data>
-										</node>
-									</graph>
-								</node>
-							</graph>
-						</node>
-						<node id="341">
-							<data key="1">ComponentImpl</data>
-							<data key="2">HelloReceiver</data>
-							<data key="3">1</data>
-							<data key="21">HelloReceiver</data>
-							<data key="302">275</data>
-							<data key="303">40</data>
-							<data key="304">true</data>
-							<graph id="g341">
-								<node id="343">
-									<data key="1">SubscriberPortImpl</data>
-									<data key="2">rxGreeting</data>
-									<data key="3">0</data>
-									<data key="21">Message</data>
-									<data key="304">true</data>
-									<graph id="g343">
-										<node id="345">
-											<data key="1">AggregateInstance</data>
-											<data key="2">Message</data>
-											<data key="3">0</data>
-											<data key="21">Message</data>
-											<data key="22">Message</data>
-											<data key="23"></data>
-											<data key="37">0</data>
-											<data key="38">-1</data>
-											<data key="300">1</data>
-											<data key="304">true</data>
-											<graph id="g345">
-												<node id="347">
-													<data key="1">MemberInstance</data>
-													<data key="2">instName</data>
-													<data key="3">0</data>
-													<data key="21">String</data>
-													<data key="22">String</data>
-													<data key="23"></data>
-												</node>
-												<node id="348">
-													<data key="1">MemberInstance</data>
-													<data key="2">messageID</data>
-													<data key="3">1</data>
-													<data key="21">Integer</data>
-													<data key="22">Integer</data>
-													<data key="23"></data>
-												</node>
-												<node id="351">
-													<data key="1">MemberInstance</data>
-													<data key="2">content</data>
-													<data key="3">2</data>
-													<data key="21">String</data>
-													<data key="22">String</data>
-													<data key="23"></data>
-												</node>
-											</graph>
-										</node>
-										<node id="387">
-											<data key="1">FunctionCall</data>
-											<data key="2">Log</data>
-											<data key="3">1</data>
-											<data key="5">Logs a message to the database.</data>
-											<data key="27">Icons</data>
-											<data key="28">speechBubbleFilled</data>
-											<data key="35">Utility_Worker</data>
-											<data key="204">true</data>
-											<graph id="g387">
-												<node id="389">
-													<data key="1">InputParameterGroupInstance</data>
-													<data key="2">Input Parameters</data>
-													<data key="3">0</data>
-													<data key="21"></data>
-													<data key="37">0</data>
-													<data key="38">-1</data>
-													<graph id="g389">
-														<node id="391">
-															<data key="1">MemberInstance</data>
-															<data key="2">Message Format</data>
-															<data key="3">0</data>
-															<data key="5">Message to Log.</data>
-															<data key="20">&quot;Received Message[%d] from &apos;%s&apos; = &apos;%s&apos;&quot;</data>
-															<data key="21">String</data>
-															<data key="22">String</data>
-															<data key="23"></data>
-															<data key="27">Icons</data>
-															<data key="28">format</data>
-														</node>
-														<node id="393">
-															<data key="1">MemberInstance</data>
-															<data key="2">Verbosity</data>
-															<data key="3">1</data>
-															<data key="5">The verbosity of this message (1-10).</data>
-															<data key="20">3</data>
-															<data key="21">Integer</data>
-															<data key="22">Integer</data>
-															<data key="23"></data>
-															<data key="27">Icons</data>
-															<data key="28">exclamationInBubble</data>
-														</node>
-														<node id="395">
-															<data key="1">VariadicParameter</data>
-															<data key="3">2</data>
-															<data key="20">messageID</data>
-															<data key="21"></data>
-															<data key="22"></data>
-															<data key="23"></data>
-														</node>
-														<node id="396">
-															<data key="1">VariadicParameter</data>
-															<data key="3">3</data>
-															<data key="20">instName</data>
-															<data key="21"></data>
-															<data key="22"></data>
-															<data key="23"></data>
-														</node>
-														<node id="397">
-															<data key="1">VariadicParameter</data>
-															<data key="3">4</data>
-															<data key="20">content</data>
-															<data key="21"></data>
-															<data key="22"></data>
-															<data key="23"></data>
-														</node>
-													</graph>
-												</node>
-											</graph>
-										</node>
-									</graph>
-								</node>
-								<node id="359">
+								<node id="937">
 									<data key="1">ClassInstance</data>
 									<data key="2">Utility_Worker</data>
-									<data key="3">1</data>
+									<data key="3">3</data>
 									<data key="21">Utility_Worker</data>
 									<data key="27">Icons</data>
 									<data key="28">spanner</data>
@@ -623,8 +719,10 @@
 									<data key="33">true</data>
 									<data key="37">1</data>
 									<data key="38">2</data>
-									<graph id="g359">
-										<node id="361">
+									<data key="302">101.39288490210521</data>
+									<data key="303">224.95326072037346</data>
+									<graph id="g937">
+										<node id="939">
 											<data key="1">Function</data>
 											<data key="2">Evaluate Complexity</data>
 											<data key="3">0</data>
@@ -635,7 +733,7 @@
 											<data key="35">Utility_Worker</data>
 											<data key="204">true</data>
 										</node>
-										<node id="363">
+										<node id="941">
 											<data key="1">Function</data>
 											<data key="2">Log</data>
 											<data key="3">1</data>
@@ -646,7 +744,7 @@
 											<data key="35">Utility_Worker</data>
 											<data key="204">true</data>
 										</node>
-										<node id="365">
+										<node id="943">
 											<data key="1">Function</data>
 											<data key="2">Marker</data>
 											<data key="3">2</data>
@@ -656,7 +754,7 @@
 											<data key="29">Marker</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="367">
+										<node id="945">
 											<data key="1">Function</data>
 											<data key="2">Get Time Of Day String</data>
 											<data key="3">3</data>
@@ -666,7 +764,7 @@
 											<data key="29">GetTimeOfDayString</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="369">
+										<node id="947">
 											<data key="1">Function</data>
 											<data key="2">Get Time Of Day</data>
 											<data key="3">4</data>
@@ -676,7 +774,7 @@
 											<data key="29">GetTimeOfDay</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="371">
+										<node id="949">
 											<data key="1">Function</data>
 											<data key="2">Set Random Seed</data>
 											<data key="3">5</data>
@@ -686,7 +784,7 @@
 											<data key="29">SetRandomSeed</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="373">
+										<node id="951">
 											<data key="1">Function</data>
 											<data key="2">U Sleep</data>
 											<data key="3">6</data>
@@ -696,7 +794,7 @@
 											<data key="29">USleep</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="375">
+										<node id="953">
 											<data key="1">Function</data>
 											<data key="2">Sleep</data>
 											<data key="3">7</data>
@@ -706,7 +804,7 @@
 											<data key="29">Sleep</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="377">
+										<node id="955">
 											<data key="1">Function</data>
 											<data key="2">Get Random Uniform Int</data>
 											<data key="3">8</data>
@@ -716,7 +814,7 @@
 											<data key="29">RandomUniformInt</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="379">
+										<node id="957">
 											<data key="1">Function</data>
 											<data key="2">Get Random Uniform Real</data>
 											<data key="3">9</data>
@@ -726,7 +824,7 @@
 											<data key="29">RandomUniformReal</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="381">
+										<node id="959">
 											<data key="1">Function</data>
 											<data key="2">Get Random Normal Real</data>
 											<data key="3">10</data>
@@ -736,7 +834,7 @@
 											<data key="29">RandomNormalReal</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="383">
+										<node id="961">
 											<data key="1">Function</data>
 											<data key="2">Get Random Exponential Real</data>
 											<data key="3">11</data>
@@ -746,7 +844,7 @@
 											<data key="29">RandomExponentialReal</data>
 											<data key="35">Utility_Worker</data>
 										</node>
-										<node id="385">
+										<node id="963">
 											<data key="1">Function</data>
 											<data key="2">Get UUID</data>
 											<data key="3">12</data>
@@ -755,6 +853,1088 @@
 											<data key="28">fingerprint</data>
 											<data key="29">GenerateUUID</data>
 											<data key="35">Utility_Worker</data>
+										</node>
+									</graph>
+								</node>
+							</graph>
+						</node>
+						<node id="332">
+							<data key="1">ComponentImpl</data>
+							<data key="2">SensorCollector</data>
+							<data key="3">1</data>
+							<data key="21">SensorCollector</data>
+							<data key="302">260</data>
+							<data key="303">105</data>
+							<data key="304">true</data>
+							<graph id="g332">
+								<node id="384">
+									<data key="1">SubscriberPortImpl</data>
+									<data key="2">sensorSample</data>
+									<data key="3">0</data>
+									<data key="21">Sample</data>
+									<data key="304">true</data>
+									<graph id="g384">
+										<node id="386">
+											<data key="1">AggregateInstance</data>
+											<data key="2">Sample</data>
+											<data key="3">0</data>
+											<data key="21">Sample</data>
+											<data key="22">Sample</data>
+											<data key="23"></data>
+											<data key="37">0</data>
+											<data key="38">-1</data>
+											<data key="300">1</data>
+											<graph id="g386">
+												<node id="388">
+													<data key="1">MemberInstance</data>
+													<data key="2">sensorID</data>
+													<data key="3">0</data>
+													<data key="21">String</data>
+													<data key="22">String</data>
+													<data key="23"></data>
+												</node>
+												<node id="390">
+													<data key="1">MemberInstance</data>
+													<data key="2">time</data>
+													<data key="3">1</data>
+													<data key="21">Integer</data>
+													<data key="22">Integer</data>
+													<data key="23"></data>
+												</node>
+												<node id="392">
+													<data key="1">MemberInstance</data>
+													<data key="2">observation</data>
+													<data key="3">2</data>
+													<data key="21">Float</data>
+													<data key="22">Float</data>
+													<data key="23"></data>
+												</node>
+											</graph>
+										</node>
+										<node id="760">
+											<data key="1">WhileLoop</data>
+											<data key="2">while(relaySequence == true)</data>
+											<data key="3">1</data>
+											<data key="304">true</data>
+											<graph id="g760">
+												<node id="761">
+													<data key="1">BooleanExpression</data>
+													<data key="2">relaySequence == true</data>
+													<data key="3">0</data>
+													<data key="20"></data>
+													<data key="21">Boolean</data>
+													<data key="37">0</data>
+													<data key="38">-1</data>
+													<graph id="g761">
+														<node id="762">
+															<data key="1">InputParameter</data>
+															<data key="2">lhs</data>
+															<data key="3">0</data>
+															<data key="20">relaySequence</data>
+															<data key="21">Boolean</data>
+															<data key="22">Boolean</data>
+															<data key="23"></data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Variable</data>
+															<data key="125">true</data>
+															<data key="126">true</data>
+														</node>
+														<node id="763">
+															<data key="1">InputParameter</data>
+															<data key="2">==</data>
+															<data key="3">1</data>
+															<data key="20">==</data>
+															<data key="27">Icons</data>
+															<data key="28">circleQuestionDark</data>
+															<data key="125">true</data>
+															<data key="307">label</data>
+														</node>
+														<node id="764">
+															<data key="1">InputParameter</data>
+															<data key="2">rhs</data>
+															<data key="3">2</data>
+															<data key="20">true</data>
+															<data key="21">Boolean</data>
+															<data key="22">Boolean</data>
+															<data key="23"></data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Variable</data>
+															<data key="125">true</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+										<node id="722">
+											<data key="1">FunctionCall</data>
+											<data key="2">Length</data>
+											<data key="3">2</data>
+											<data key="5">Gets the length of a std::vector.</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowUpDown</data>
+											<data key="35">Vector_Operations</data>
+											<graph id="g722">
+												<node id="724">
+													<data key="1">InputParameterGroupInstance</data>
+													<data key="2">Input Parameters</data>
+													<data key="3">0</data>
+													<data key="21"></data>
+													<data key="37">0</data>
+													<data key="38">-1</data>
+													<graph id="g724">
+														<node id="726">
+															<data key="1">VectorInstance</data>
+															<data key="2">Vector</data>
+															<data key="3">0</data>
+															<data key="5">The vector.</data>
+															<data key="20">Samples</data>
+															<data key="21">Vector&lt;&gt;</data>
+															<data key="22"></data>
+															<data key="23">Vector</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector</data>
+															<data key="125">true</data>
+															<data key="126">true</data>
+														</node>
+													</graph>
+												</node>
+												<node id="728">
+													<data key="1">ReturnParameterGroupInstance</data>
+													<data key="2">Return Parameters</data>
+													<data key="3">1</data>
+													<data key="21"></data>
+													<data key="37">0</data>
+													<data key="38">1</data>
+													<graph id="g728">
+														<node id="730">
+															<data key="1">MemberInstance</data>
+															<data key="2">Length</data>
+															<data key="3">0</data>
+															<data key="5">The number of elements in the vector.</data>
+															<data key="21">Integer</data>
+															<data key="22">Integer</data>
+															<data key="23"></data>
+															<data key="27">Icons</data>
+															<data key="28">pencil</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+										<node id="1149">
+											<data key="1">FunctionCall</data>
+											<data key="2">Insert</data>
+											<data key="3">3</data>
+											<data key="5">Inserts an element into a std::vector at an index (Will change length)</data>
+											<data key="27">Icons</data>
+											<data key="28">circlePlus</data>
+											<data key="35">Vector_Operations</data>
+											<graph id="g1149">
+												<node id="1151">
+													<data key="1">InputParameterGroupInstance</data>
+													<data key="2">Input Parameters</data>
+													<data key="3">0</data>
+													<data key="21"></data>
+													<data key="37">0</data>
+													<data key="38">-1</data>
+													<graph id="g1151">
+														<node id="1153">
+															<data key="1">VectorInstance</data>
+															<data key="2">Vector</data>
+															<data key="3">0</data>
+															<data key="5">The vector.</data>
+															<data key="20">Samples</data>
+															<data key="21">Vector&lt;&gt;</data>
+															<data key="22"></data>
+															<data key="23">Vector</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector</data>
+															<data key="125">true</data>
+															<data key="126">true</data>
+														</node>
+														<node id="1155">
+															<data key="1">MemberInstance</data>
+															<data key="2">Index</data>
+															<data key="3">1</data>
+															<data key="5">The Index.</data>
+															<data key="20">Length</data>
+															<data key="21">Integer</data>
+															<data key="22">Integer</data>
+															<data key="23"></data>
+															<data key="27">Icons</data>
+															<data key="28">listNumbered</data>
+														</node>
+														<node id="1157">
+															<data key="1">MemberInstance</data>
+															<data key="2">Value</data>
+															<data key="3">2</data>
+															<data key="5">The Value to set</data>
+															<data key="20">Sample</data>
+															<data key="21">Sample</data>
+															<data key="22">Sample</data>
+															<data key="23"></data>
+															<data key="27">Icons</data>
+															<data key="28">pencil</data>
+															<data key="125">true</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="766">
+									<data key="1">PeriodicPort</data>
+									<data key="2">PeriodicPort</data>
+									<data key="3">1</data>
+									<data key="304">false</data>
+									<graph id="g766">
+										<node id="774">
+											<data key="1">Setter</data>
+											<data key="2">relaySequence = true</data>
+											<data key="3">0</data>
+											<data key="21">Boolean</data>
+											<data key="22">Boolean</data>
+											<data key="23"></data>
+											<graph id="g774">
+												<node id="775">
+													<data key="1">InputParameter</data>
+													<data key="2">lhs</data>
+													<data key="3">0</data>
+													<data key="20">relaySequence</data>
+													<data key="21">Boolean</data>
+													<data key="22">Boolean</data>
+													<data key="23"></data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Variable</data>
+													<data key="125">true</data>
+													<data key="126">true</data>
+												</node>
+												<node id="776">
+													<data key="1">InputParameter</data>
+													<data key="2">=</data>
+													<data key="3">1</data>
+													<data key="20">=</data>
+													<data key="27">Icons</data>
+													<data key="28">circlePlusDark</data>
+													<data key="125">true</data>
+													<data key="307">label</data>
+												</node>
+												<node id="777">
+													<data key="1">InputParameter</data>
+													<data key="2">rhs</data>
+													<data key="3">2</data>
+													<data key="20">true</data>
+													<data key="21">Boolean</data>
+													<data key="22">Boolean</data>
+													<data key="23"></data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Variable</data>
+													<data key="125">true</data>
+												</node>
+											</graph>
+										</node>
+										<node id="801">
+											<data key="1">PublisherPortImpl</data>
+											<data key="2">sensorSequence</data>
+											<data key="3">1</data>
+											<data key="21">SampleSequence</data>
+											<graph id="g801">
+												<node id="803">
+													<data key="1">AggregateInstance</data>
+													<data key="2">SampleSequence</data>
+													<data key="3">0</data>
+													<data key="20"></data>
+													<data key="21">SampleSequence</data>
+													<data key="22">SampleSequence</data>
+													<data key="23"></data>
+													<data key="300">1</data>
+													<graph id="g803">
+														<node id="805">
+															<data key="1">MemberInstance</data>
+															<data key="2">collectorID</data>
+															<data key="3">0</data>
+															<data key="20">collectorID</data>
+															<data key="21">String</data>
+															<data key="22">String</data>
+															<data key="23"></data>
+														</node>
+														<node id="807">
+															<data key="1">AggregateInstance</data>
+															<data key="2">AggregateInstance</data>
+															<data key="3">1</data>
+															<data key="20"></data>
+															<data key="21">Vector_Agg</data>
+															<data key="22">Vector_Agg</data>
+															<data key="23"></data>
+															<data key="300">1</data>
+															<graph id="g807">
+																<node id="809">
+																	<data key="1">VectorInstance</data>
+																	<data key="2">Samples</data>
+																	<data key="3">0</data>
+																	<data key="20">Samples</data>
+																	<data key="21">Vector&lt;Sample&gt;</data>
+																	<data key="22">Sample</data>
+																	<data key="23">Vector</data>
+																	<data key="27">EntityIcons</data>
+																	<data key="28">Vector_AggregateInstance</data>
+																	<graph id="g809">
+																		<node id="811">
+																			<data key="1">AggregateInstance</data>
+																			<data key="2">Sample</data>
+																			<data key="3">0</data>
+																			<data key="21">Sample</data>
+																			<data key="22">Sample</data>
+																			<data key="23"></data>
+																			<data key="300">1</data>
+																			<graph id="g811">
+																				<node id="813">
+																					<data key="1">MemberInstance</data>
+																					<data key="2">sensorID</data>
+																					<data key="3">0</data>
+																					<data key="21">String</data>
+																					<data key="22">String</data>
+																					<data key="23"></data>
+																				</node>
+																				<node id="815">
+																					<data key="1">MemberInstance</data>
+																					<data key="2">time</data>
+																					<data key="3">1</data>
+																					<data key="21">Integer</data>
+																					<data key="22">Integer</data>
+																					<data key="23"></data>
+																				</node>
+																				<node id="817">
+																					<data key="1">MemberInstance</data>
+																					<data key="2">observation</data>
+																					<data key="3">2</data>
+																					<data key="21">Float</data>
+																					<data key="22">Float</data>
+																					<data key="23"></data>
+																				</node>
+																			</graph>
+																		</node>
+																	</graph>
+																</node>
+															</graph>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+										<node id="929">
+											<data key="1">Setter</data>
+											<data key="2">relaySequence = false</data>
+											<data key="3">2</data>
+											<data key="21">Boolean</data>
+											<data key="22">Boolean</data>
+											<data key="23"></data>
+											<graph id="g929">
+												<node id="930">
+													<data key="1">InputParameter</data>
+													<data key="2">lhs</data>
+													<data key="3">0</data>
+													<data key="20">relaySequence</data>
+													<data key="21">Boolean</data>
+													<data key="22">Boolean</data>
+													<data key="23"></data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Variable</data>
+													<data key="125">true</data>
+													<data key="126">true</data>
+												</node>
+												<node id="931">
+													<data key="1">InputParameter</data>
+													<data key="2">=</data>
+													<data key="3">1</data>
+													<data key="20">=</data>
+													<data key="27">Icons</data>
+													<data key="28">circlePlusDark</data>
+													<data key="125">true</data>
+													<data key="307">label</data>
+												</node>
+												<node id="932">
+													<data key="1">InputParameter</data>
+													<data key="2">rhs</data>
+													<data key="3">2</data>
+													<data key="20">false</data>
+													<data key="21">Boolean</data>
+													<data key="22">Boolean</data>
+													<data key="23"></data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Variable</data>
+													<data key="125">true</data>
+												</node>
+											</graph>
+										</node>
+										<node id="767">
+											<data key="1">Attribute</data>
+											<data key="2">Frequency</data>
+											<data key="3">3</data>
+											<data key="21">Double</data>
+											<data key="27">Icons</data>
+											<data key="28">timeElapsedTwoTone</data>
+											<data key="37">1</data>
+										</node>
+									</graph>
+								</node>
+								<node id="369">
+									<data key="1">AttributeImpl</data>
+									<data key="2">collectorID</data>
+									<data key="3">2</data>
+									<data key="21">String</data>
+									<data key="22">String</data>
+									<data key="23"></data>
+									<data key="37">1</data>
+									<data key="38">0</data>
+								</node>
+								<node id="372">
+									<data key="1">AttributeImpl</data>
+									<data key="2">relaySequence</data>
+									<data key="3">3</data>
+									<data key="21">Boolean</data>
+									<data key="22">Boolean</data>
+									<data key="23"></data>
+									<data key="37">1</data>
+									<data key="38">0</data>
+								</node>
+								<node id="536">
+									<data key="1">Variable</data>
+									<data key="2">tempSamples</data>
+									<data key="3">4</data>
+									<data key="20"></data>
+									<data key="21">Vector_Agg</data>
+									<data key="22">Vector_Agg</data>
+									<data key="23"></data>
+									<data key="37">1</data>
+									<data key="38">1</data>
+									<data key="304">true</data>
+									<graph id="g536">
+										<node id="663">
+											<data key="1">AggregateInstance</data>
+											<data key="2">Vector_Agg</data>
+											<data key="3">0</data>
+											<data key="21">Vector_Agg</data>
+											<data key="22">Vector_Agg</data>
+											<data key="23"></data>
+											<data key="300">1</data>
+											<data key="302">22.600000000000023</data>
+											<data key="303">22.399999999999977</data>
+											<graph id="g663">
+												<node id="665">
+													<data key="1">VectorInstance</data>
+													<data key="2">Samples</data>
+													<data key="3">0</data>
+													<data key="21">Vector&lt;Sample&gt;</data>
+													<data key="22">Sample</data>
+													<data key="23">Vector</data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Vector_AggregateInstance</data>
+													<graph id="g665">
+														<node id="667">
+															<data key="1">AggregateInstance</data>
+															<data key="2">Sample</data>
+															<data key="3">0</data>
+															<data key="21">Sample</data>
+															<data key="22">Sample</data>
+															<data key="23"></data>
+															<data key="300">1</data>
+															<graph id="g667">
+																<node id="669">
+																	<data key="1">MemberInstance</data>
+																	<data key="2">sensorID</data>
+																	<data key="3">0</data>
+																	<data key="21">String</data>
+																	<data key="22">String</data>
+																	<data key="23"></data>
+																</node>
+																<node id="671">
+																	<data key="1">MemberInstance</data>
+																	<data key="2">time</data>
+																	<data key="3">1</data>
+																	<data key="21">Integer</data>
+																	<data key="22">Integer</data>
+																	<data key="23"></data>
+																</node>
+																<node id="673">
+																	<data key="1">MemberInstance</data>
+																	<data key="2">observation</data>
+																	<data key="3">2</data>
+																	<data key="21">Float</data>
+																	<data key="22">Float</data>
+																	<data key="23"></data>
+																</node>
+															</graph>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="676">
+									<data key="1">ClassInstance</data>
+									<data key="2">Vector_Operations</data>
+									<data key="3">5</data>
+									<data key="21">Vector_Operations</data>
+									<data key="27">EntityIcons</data>
+									<data key="28">Vector</data>
+									<data key="31">1.1.0</data>
+									<data key="33">true</data>
+									<data key="37">1</data>
+									<data key="38">2</data>
+									<data key="302">36.811202889578</data>
+									<data key="303">323.65325873642973</data>
+									<graph id="g676">
+										<node id="678">
+											<data key="1">Function</data>
+											<data key="2">Get</data>
+											<data key="3">0</data>
+											<data key="5">Returns an element from a std::vector at an index.</data>
+											<data key="27">Icons</data>
+											<data key="28">circleInfo</data>
+											<data key="29">Get</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="680">
+											<data key="1">Function</data>
+											<data key="2">Remove</data>
+											<data key="3">1</data>
+											<data key="5">Returns and then removes an element from a std::vector at an index.</data>
+											<data key="27">Icons</data>
+											<data key="28">circleMinus</data>
+											<data key="29">Remove</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="682">
+											<data key="1">Function</data>
+											<data key="2">Insert</data>
+											<data key="3">2</data>
+											<data key="5">Inserts an element into a std::vector at an index (Will change length)</data>
+											<data key="27">Icons</data>
+											<data key="28">circlePlus</data>
+											<data key="29">Insert</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="684">
+											<data key="1">Function</data>
+											<data key="2">Set</data>
+											<data key="3">3</data>
+											<data key="5">Replaces an element into a std::vector at an index</data>
+											<data key="27">Icons</data>
+											<data key="28">pencil</data>
+											<data key="29">Set</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="686">
+											<data key="1">Function</data>
+											<data key="2">Length</data>
+											<data key="3">4</data>
+											<data key="5">Gets the length of a std::vector.</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowUpDown</data>
+											<data key="29">Length</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="688">
+											<data key="1">Function</data>
+											<data key="2">Clear</data>
+											<data key="3">5</data>
+											<data key="5">Empties the std::vector.</data>
+											<data key="27">Icons</data>
+											<data key="28">bin</data>
+											<data key="29">Clear</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="690">
+											<data key="1">Function</data>
+											<data key="2">Resize</data>
+											<data key="3">6</data>
+											<data key="5">Resize an element from a std::vector at an index.</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowTransfer</data>
+											<data key="29">Resize</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="692">
+											<data key="1">Function</data>
+											<data key="2">Swap</data>
+											<data key="3">7</data>
+											<data key="5">Swaps two std::vectors.</data>
+											<data key="27">Icons</data>
+											<data key="28">refresh</data>
+											<data key="29">Swap</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+									</graph>
+								</node>
+							</graph>
+						</node>
+						<node id="335">
+							<data key="1">ComponentImpl</data>
+							<data key="2">SensorProcessor</data>
+							<data key="3">2</data>
+							<data key="21">SensorProcessor</data>
+							<data key="302">780</data>
+							<data key="303">105</data>
+							<data key="304">true</data>
+							<graph id="g335">
+								<node id="433">
+									<data key="1">SubscriberPortImpl</data>
+									<data key="2">sensorSequence</data>
+									<data key="3">0</data>
+									<data key="21">SampleSequence</data>
+									<data key="304">true</data>
+									<graph id="g433">
+										<node id="435">
+											<data key="1">AggregateInstance</data>
+											<data key="2">SampleSequence</data>
+											<data key="3">0</data>
+											<data key="21">SampleSequence</data>
+											<data key="22">SampleSequence</data>
+											<data key="23"></data>
+											<data key="37">0</data>
+											<data key="38">-1</data>
+											<data key="300">1</data>
+											<graph id="g435">
+												<node id="437">
+													<data key="1">MemberInstance</data>
+													<data key="2">collectorID</data>
+													<data key="3">0</data>
+													<data key="21">String</data>
+													<data key="22">String</data>
+													<data key="23"></data>
+												</node>
+												<node id="642">
+													<data key="1">AggregateInstance</data>
+													<data key="2">AggregateInstance</data>
+													<data key="3">1</data>
+													<data key="21">Vector_Agg</data>
+													<data key="22">Vector_Agg</data>
+													<data key="23"></data>
+													<data key="300">1</data>
+													<graph id="g642">
+														<node id="644">
+															<data key="1">VectorInstance</data>
+															<data key="2">Samples</data>
+															<data key="3">0</data>
+															<data key="21">Vector&lt;Sample&gt;</data>
+															<data key="22">Sample</data>
+															<data key="23">Vector</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector_AggregateInstance</data>
+															<graph id="g644">
+																<node id="646">
+																	<data key="1">AggregateInstance</data>
+																	<data key="2">Sample</data>
+																	<data key="3">0</data>
+																	<data key="21">Sample</data>
+																	<data key="22">Sample</data>
+																	<data key="23"></data>
+																	<data key="300">1</data>
+																	<graph id="g646">
+																		<node id="648">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">sensorID</data>
+																			<data key="3">0</data>
+																			<data key="21">String</data>
+																			<data key="22">String</data>
+																			<data key="23"></data>
+																		</node>
+																		<node id="650">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">time</data>
+																			<data key="3">1</data>
+																			<data key="21">Integer</data>
+																			<data key="22">Integer</data>
+																			<data key="23"></data>
+																		</node>
+																		<node id="652">
+																			<data key="1">MemberInstance</data>
+																			<data key="2">observation</data>
+																			<data key="3">2</data>
+																			<data key="21">Float</data>
+																			<data key="22">Float</data>
+																			<data key="23"></data>
+																		</node>
+																	</graph>
+																</node>
+															</graph>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+										<node id="878">
+											<data key="1">FunctionCall</data>
+											<data key="2">Length</data>
+											<data key="3">1</data>
+											<data key="5">Gets the length of a std::vector.</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowUpDown</data>
+											<data key="35">Vector_Operations</data>
+											<graph id="g878">
+												<node id="880">
+													<data key="1">InputParameterGroupInstance</data>
+													<data key="2">Input Parameters</data>
+													<data key="3">0</data>
+													<data key="21"></data>
+													<data key="37">0</data>
+													<data key="38">-1</data>
+													<graph id="g880">
+														<node id="882">
+															<data key="1">VectorInstance</data>
+															<data key="2">Vector</data>
+															<data key="3">0</data>
+															<data key="5">The vector.</data>
+															<data key="20">Samples</data>
+															<data key="21">Vector&lt;&gt;</data>
+															<data key="22"></data>
+															<data key="23">Vector</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector</data>
+															<data key="125">true</data>
+															<data key="126">true</data>
+														</node>
+													</graph>
+												</node>
+												<node id="884">
+													<data key="1">ReturnParameterGroupInstance</data>
+													<data key="2">Return Parameters</data>
+													<data key="3">1</data>
+													<data key="21"></data>
+													<data key="37">0</data>
+													<data key="38">1</data>
+													<graph id="g884">
+														<node id="886">
+															<data key="1">MemberInstance</data>
+															<data key="2">Length</data>
+															<data key="3">0</data>
+															<data key="5">The number of elements in the vector.</data>
+															<data key="21">Integer</data>
+															<data key="22">Integer</data>
+															<data key="23"></data>
+															<data key="27">Icons</data>
+															<data key="28">pencil</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+										<node id="888">
+											<data key="1">FunctionCall</data>
+											<data key="2">Log</data>
+											<data key="3">2</data>
+											<data key="5">Logs a message to the database.</data>
+											<data key="27">Icons</data>
+											<data key="28">speechBubbleFilled</data>
+											<data key="35">Utility_Worker</data>
+											<data key="204">true</data>
+											<graph id="g888">
+												<node id="890">
+													<data key="1">InputParameterGroupInstance</data>
+													<data key="2">Input Parameters</data>
+													<data key="3">0</data>
+													<data key="21"></data>
+													<data key="37">0</data>
+													<data key="38">-1</data>
+													<graph id="g890">
+														<node id="892">
+															<data key="1">MemberInstance</data>
+															<data key="2">Message Format</data>
+															<data key="3">0</data>
+															<data key="5">Message to Log.</data>
+															<data key="20">&quot;Processing message from %s, Vector length %d\n&quot;</data>
+															<data key="21">String</data>
+															<data key="22">String</data>
+															<data key="23"></data>
+															<data key="27">Icons</data>
+															<data key="28">format</data>
+														</node>
+														<node id="894">
+															<data key="1">MemberInstance</data>
+															<data key="2">Verbosity</data>
+															<data key="3">1</data>
+															<data key="5">The verbosity of this message (1-10).</data>
+															<data key="20">1</data>
+															<data key="21">Integer</data>
+															<data key="22">Integer</data>
+															<data key="23"></data>
+															<data key="27">Icons</data>
+															<data key="28">exclamationInBubble</data>
+														</node>
+														<node id="897">
+															<data key="1">VariadicParameter</data>
+															<data key="3">2</data>
+															<data key="20">collectorID</data>
+															<data key="21"></data>
+															<data key="22"></data>
+															<data key="23"></data>
+															<data key="302">45.660802638812584</data>
+															<data key="303">11.471137987905408</data>
+														</node>
+														<node id="898">
+															<data key="1">VariadicParameter</data>
+															<data key="3">3</data>
+															<data key="20">Length</data>
+															<data key="21"></data>
+															<data key="22"></data>
+															<data key="23"></data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="413">
+									<data key="1">AttributeImpl</data>
+									<data key="2">processSequence</data>
+									<data key="3">1</data>
+									<data key="21">Boolean</data>
+									<data key="22">Boolean</data>
+									<data key="23"></data>
+									<data key="37">1</data>
+									<data key="38">0</data>
+								</node>
+								<node id="828">
+									<data key="1">ClassInstance</data>
+									<data key="2">Utility_Worker</data>
+									<data key="3">2</data>
+									<data key="21">Utility_Worker</data>
+									<data key="27">Icons</data>
+									<data key="28">spanner</data>
+									<data key="31">1.3.1</data>
+									<data key="33">true</data>
+									<data key="37">1</data>
+									<data key="38">2</data>
+									<graph id="g828">
+										<node id="830">
+											<data key="1">Function</data>
+											<data key="2">Evaluate Complexity</data>
+											<data key="3">0</data>
+											<data key="5">Evaluate the complexity function given, may use one or more value parameters (eg n, m, x, y etc).</data>
+											<data key="27">Icons</data>
+											<data key="28">sigma</data>
+											<data key="29">EvaluateComplexity</data>
+											<data key="35">Utility_Worker</data>
+											<data key="204">true</data>
+										</node>
+										<node id="832">
+											<data key="1">Function</data>
+											<data key="2">Log</data>
+											<data key="3">1</data>
+											<data key="5">Logs a message to the database.</data>
+											<data key="27">Icons</data>
+											<data key="28">speechBubbleFilled</data>
+											<data key="29">Log</data>
+											<data key="35">Utility_Worker</data>
+											<data key="204">true</data>
+										</node>
+										<node id="834">
+											<data key="1">Function</data>
+											<data key="2">Marker</data>
+											<data key="3">2</data>
+											<data key="5">Logs a marker message to the database.</data>
+											<data key="27">Icons</data>
+											<data key="28">flag</data>
+											<data key="29">Marker</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="836">
+											<data key="1">Function</data>
+											<data key="2">Get Time Of Day String</data>
+											<data key="3">3</data>
+											<data key="5">Get the time of day in a string (To Microseconds Precision).</data>
+											<data key="27">Icons</data>
+											<data key="28">clock</data>
+											<data key="29">GetTimeOfDayString</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="838">
+											<data key="1">Function</data>
+											<data key="2">Get Time Of Day</data>
+											<data key="3">4</data>
+											<data key="5">Get the time of day as a double (To Microseconds Precision).</data>
+											<data key="27">Icons</data>
+											<data key="28">clock</data>
+											<data key="29">GetTimeOfDay</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="840">
+											<data key="1">Function</data>
+											<data key="2">Set Random Seed</data>
+											<data key="3">5</data>
+											<data key="5">Sets the seed for the Random Number Generator used by this worker.</data>
+											<data key="27">Icons</data>
+											<data key="28">drop</data>
+											<data key="29">SetRandomSeed</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="842">
+											<data key="1">Function</data>
+											<data key="2">U Sleep</data>
+											<data key="3">6</data>
+											<data key="5">Sleeps the current thread for x microseconds.</data>
+											<data key="27">Icons</data>
+											<data key="28">bed</data>
+											<data key="29">USleep</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="844">
+											<data key="1">Function</data>
+											<data key="2">Sleep</data>
+											<data key="3">7</data>
+											<data key="5">Sleeps the current thread for x seconds.</data>
+											<data key="27">Icons</data>
+											<data key="28">bed</data>
+											<data key="29">Sleep</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="846">
+											<data key="1">Function</data>
+											<data key="2">Get Random Uniform Int</data>
+											<data key="3">8</data>
+											<data key="5">Gets a random Integer in an inclusive range (Lower Bound - Upper Bound)</data>
+											<data key="27">Icons</data>
+											<data key="28">chartUniform</data>
+											<data key="29">RandomUniformInt</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="848">
+											<data key="1">Function</data>
+											<data key="2">Get Random Uniform Real</data>
+											<data key="3">9</data>
+											<data key="5">Gets a random double in an inclusive range (Lower Bound - Upper Bound)</data>
+											<data key="27">Icons</data>
+											<data key="28">chartUniform</data>
+											<data key="29">RandomUniformReal</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="850">
+											<data key="1">Function</data>
+											<data key="2">Get Random Normal Real</data>
+											<data key="3">10</data>
+											<data key="5">Gets a random double in a Normal distribution.</data>
+											<data key="27">Icons</data>
+											<data key="28">chartNormal</data>
+											<data key="29">RandomNormalReal</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="852">
+											<data key="1">Function</data>
+											<data key="2">Get Random Exponential Real</data>
+											<data key="3">11</data>
+											<data key="5">Gets a random double in an Exponential distribution. This distribution produces random numbers where each value represents the interval between two random events that are independent but statistically defined by a constant average rate of occurrence</data>
+											<data key="27">Icons</data>
+											<data key="28">chartExponential</data>
+											<data key="29">RandomExponentialReal</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+										<node id="854">
+											<data key="1">Function</data>
+											<data key="2">Get UUID</data>
+											<data key="3">12</data>
+											<data key="5">Generates a 128-bit unique universal unique identifier, in the form of a string. Represented as 32 hexadecimal digits, displayed in five groups separated by hyphens, in the form 8-4-4-4-12.</data>
+											<data key="27">Icons</data>
+											<data key="28">fingerprint</data>
+											<data key="29">GenerateUUID</data>
+											<data key="35">Utility_Worker</data>
+										</node>
+									</graph>
+								</node>
+								<node id="858">
+									<data key="1">ClassInstance</data>
+									<data key="2">Vector_Operations</data>
+									<data key="3">3</data>
+									<data key="21">Vector_Operations</data>
+									<data key="27">EntityIcons</data>
+									<data key="28">Vector</data>
+									<data key="31">1.1.0</data>
+									<data key="33">true</data>
+									<data key="37">1</data>
+									<data key="38">2</data>
+									<graph id="g858">
+										<node id="860">
+											<data key="1">Function</data>
+											<data key="2">Get</data>
+											<data key="3">0</data>
+											<data key="5">Returns an element from a std::vector at an index.</data>
+											<data key="27">Icons</data>
+											<data key="28">circleInfo</data>
+											<data key="29">Get</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="862">
+											<data key="1">Function</data>
+											<data key="2">Remove</data>
+											<data key="3">1</data>
+											<data key="5">Returns and then removes an element from a std::vector at an index.</data>
+											<data key="27">Icons</data>
+											<data key="28">circleMinus</data>
+											<data key="29">Remove</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="864">
+											<data key="1">Function</data>
+											<data key="2">Insert</data>
+											<data key="3">2</data>
+											<data key="5">Inserts an element into a std::vector at an index (Will change length)</data>
+											<data key="27">Icons</data>
+											<data key="28">circlePlus</data>
+											<data key="29">Insert</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="866">
+											<data key="1">Function</data>
+											<data key="2">Set</data>
+											<data key="3">3</data>
+											<data key="5">Replaces an element into a std::vector at an index</data>
+											<data key="27">Icons</data>
+											<data key="28">pencil</data>
+											<data key="29">Set</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="868">
+											<data key="1">Function</data>
+											<data key="2">Length</data>
+											<data key="3">4</data>
+											<data key="5">Gets the length of a std::vector.</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowUpDown</data>
+											<data key="29">Length</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="870">
+											<data key="1">Function</data>
+											<data key="2">Clear</data>
+											<data key="3">5</data>
+											<data key="5">Empties the std::vector.</data>
+											<data key="27">Icons</data>
+											<data key="28">bin</data>
+											<data key="29">Clear</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="872">
+											<data key="1">Function</data>
+											<data key="2">Resize</data>
+											<data key="3">6</data>
+											<data key="5">Resize an element from a std::vector at an index.</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowTransfer</data>
+											<data key="29">Resize</data>
+											<data key="35">Vector_Operations</data>
+										</node>
+										<node id="874">
+											<data key="1">Function</data>
+											<data key="2">Swap</data>
+											<data key="3">7</data>
+											<data key="5">Swaps two std::vectors.</data>
+											<data key="27">Icons</data>
+											<data key="28">refresh</data>
+											<data key="29">Swap</data>
+											<data key="35">Vector_Operations</data>
 										</node>
 									</graph>
 								</node>
@@ -772,95 +1952,298 @@
 							<data key="2">ASSEMBLIES</data>
 							<data key="3">0</data>
 							<graph id="g17">
-								<node id="404">
-									<data key="1">ComponentInstance</data>
-									<data key="2">receiver</data>
+								<node id="452">
+									<data key="1">ComponentAssembly</data>
+									<data key="2">SensorArray_Asm</data>
 									<data key="3">0</data>
-									<data key="21">HelloReceiver</data>
 									<data key="301"></data>
-									<data key="302">155</data>
-									<data key="303">65</data>
-									<graph id="g404">
-										<node id="434">
-											<data key="1">SubscriberPortInstance</data>
-											<data key="2">rxGreeting</data>
+									<data key="302">-105</data>
+									<data key="303">-70</data>
+									<data key="306">1</data>
+									<graph id="g452">
+										<node id="454">
+											<data key="1">ComponentAssembly</data>
+											<data key="2">Sensors_Asm</data>
 											<data key="3">0</data>
-											<data key="21">Message</data>
-											<data key="37">0</data>
+											<data key="301"></data>
+											<data key="302">10</data>
+											<data key="303">30</data>
 											<data key="304">true</data>
-											<data key="305">ZMQ</data>
-										</node>
-										<node id="406">
-											<data key="1">ClassInstance</data>
-											<data key="2">Utility_Worker</data>
-											<data key="3">1</data>
-											<data key="21">Utility_Worker</data>
-											<data key="27">Icons</data>
-											<data key="28">spanner</data>
-											<data key="31">1.3.1</data>
-											<data key="33">true</data>
-											<data key="37">1</data>
-											<data key="38">2</data>
-										</node>
-									</graph>
-								</node>
-								<node id="436">
-									<data key="1">ComponentInstance</data>
-									<data key="2">sender</data>
-									<data key="3">1</data>
-									<data key="21">HelloSender</data>
-									<data key="301"></data>
-									<data key="302">5</data>
-									<data key="303">65</data>
-									<graph id="g436">
-										<node id="458">
-											<data key="1">AttributeInstance</data>
-											<data key="2">message</data>
-											<data key="3">0</data>
-											<data key="20">&quot;Hello, World!&quot;</data>
-											<data key="21">String</data>
-											<data key="37">1</data>
-											<data key="38">0</data>
-										</node>
-										<node id="438">
-											<data key="1">PeriodicPortInstance</data>
-											<data key="2">tick</data>
-											<data key="3">1</data>
-											<data key="37">1</data>
-											<data key="38">1</data>
-											<graph id="g438">
-												<node id="439">
-													<data key="1">AttributeInstance</data>
-													<data key="2">Frequency</data>
+											<data key="306">1</data>
+											<graph id="g454">
+												<node id="456">
+													<data key="1">ComponentInstance</data>
+													<data key="2">Sensor_Inst</data>
 													<data key="3">0</data>
+													<data key="21">Sensor</data>
+													<data key="301"></data>
+													<data key="302">10</data>
+													<data key="303">30</data>
+													<graph id="g456">
+														<node id="458">
+															<data key="1">AttributeInstance</data>
+															<data key="2">sensorID</data>
+															<data key="3">0</data>
+															<data key="20">sensor_%replicate</data>
+															<data key="21">String</data>
+															<data key="37">1</data>
+															<data key="38">0</data>
+														</node>
+														<node id="460">
+															<data key="1">AttributeInstance</data>
+															<data key="2">observation</data>
+															<data key="3">1</data>
+															<data key="20">0.0</data>
+															<data key="21">Float</data>
+															<data key="37">1</data>
+															<data key="38">0</data>
+														</node>
+														<node id="520">
+															<data key="1">PeriodicPortInstance</data>
+															<data key="2">PeriodicPort</data>
+															<data key="3">2</data>
+															<data key="37">1</data>
+															<data key="38">1</data>
+															<graph id="g520">
+																<node id="521">
+																	<data key="1">AttributeInstance</data>
+																	<data key="2">Frequency</data>
+																	<data key="3">0</data>
+																	<data key="20">1</data>
+																	<data key="21">Double</data>
+																	<data key="27">Icons</data>
+																	<data key="28">timeElapsedTwoTone</data>
+																	<data key="37">1</data>
+																	<data key="38">0</data>
+																</node>
+															</graph>
+														</node>
+														<node id="965">
+															<data key="1">ClassInstance</data>
+															<data key="2">Utility_Worker</data>
+															<data key="3">3</data>
+															<data key="21">Utility_Worker</data>
+															<data key="27">Icons</data>
+															<data key="28">spanner</data>
+															<data key="31">1.3.1</data>
+															<data key="33">true</data>
+															<data key="37">1</data>
+															<data key="38">2</data>
+														</node>
+														<node id="462">
+															<data key="1">PublisherPortInstance</data>
+															<data key="2">sensorSample</data>
+															<data key="3">4</data>
+															<data key="21">Sample</data>
+															<data key="37">2</data>
+															<data key="305">ZMQ</data>
+														</node>
+													</graph>
+												</node>
+												<node id="464">
+													<data key="1">PublisherPortDelegate</data>
+													<data key="2">PublisherPortDelegate</data>
+													<data key="3">1</data>
+													<data key="21">Sample</data>
+													<data key="302">150</data>
+													<data key="303">55</data>
+												</node>
+												<node id="455">
+													<data key="1">Variable</data>
+													<data key="2">Replication</data>
+													<data key="3">2</data>
 													<data key="20">1</data>
-													<data key="21">Double</data>
+													<data key="21">Integer</data>
+													<data key="22">Integer</data>
+													<data key="23"></data>
 													<data key="27">Icons</data>
-													<data key="28">timeElapsed</data>
+													<data key="28">copyX</data>
 													<data key="37">1</data>
-													<data key="38">0</data>
+													<data key="38">1</data>
+													<data key="302">10</data>
+													<data key="303">110</data>
 												</node>
 											</graph>
 										</node>
-										<node id="442">
-											<data key="1">ClassInstance</data>
-											<data key="2">Component_Info</data>
-											<data key="3">2</data>
-											<data key="21">Component_Info</data>
-											<data key="27">Icons</data>
-											<data key="28">circleInfoDark</data>
-											<data key="31">1.0.0</data>
-											<data key="33">true</data>
-											<data key="37">1</data>
-											<data key="38">2</data>
+										<node id="467">
+											<data key="1">ComponentAssembly</data>
+											<data key="2">SignalProcessing_Asm</data>
+											<data key="3">1</data>
+											<data key="301"></data>
+											<data key="302">235</data>
+											<data key="303">30</data>
+											<data key="304">true</data>
+											<data key="306">1</data>
+											<graph id="g467">
+												<node id="469">
+													<data key="1">SubscriberPortDelegate</data>
+													<data key="2">SubscriberPortDelegate</data>
+													<data key="3">0</data>
+													<data key="21">Sample</data>
+													<data key="302">10</data>
+													<data key="303">55</data>
+												</node>
+												<node id="484">
+													<data key="1">ComponentInstance</data>
+													<data key="2">SensorCollector_Inst</data>
+													<data key="3">1</data>
+													<data key="21">SensorCollector</data>
+													<data key="301"></data>
+													<data key="302">85</data>
+													<data key="303">30</data>
+													<data key="304">true</data>
+													<graph id="g484">
+														<node id="486">
+															<data key="1">SubscriberPortInstance</data>
+															<data key="2">sensorSample</data>
+															<data key="3">0</data>
+															<data key="21">Sample</data>
+															<data key="37">0</data>
+															<data key="305">ZMQ</data>
+														</node>
+														<node id="490">
+															<data key="1">AttributeInstance</data>
+															<data key="2">relaySequence</data>
+															<data key="3">1</data>
+															<data key="20">false</data>
+															<data key="21">Boolean</data>
+															<data key="37">1</data>
+															<data key="38">0</data>
+														</node>
+														<node id="488">
+															<data key="1">AttributeInstance</data>
+															<data key="2">collectorID</data>
+															<data key="3">2</data>
+															<data key="20">Collector</data>
+															<data key="21">String</data>
+															<data key="37">1</data>
+															<data key="38">0</data>
+														</node>
+														<node id="768">
+															<data key="1">PeriodicPortInstance</data>
+															<data key="2">PeriodicPort</data>
+															<data key="3">3</data>
+															<data key="37">1</data>
+															<data key="38">1</data>
+															<graph id="g768">
+																<node id="769">
+																	<data key="1">AttributeInstance</data>
+																	<data key="2">Frequency</data>
+																	<data key="3">0</data>
+																	<data key="20">1</data>
+																	<data key="21">Double</data>
+																	<data key="27">Icons</data>
+																	<data key="28">timeElapsedTwoTone</data>
+																	<data key="37">1</data>
+																	<data key="38">0</data>
+																</node>
+															</graph>
+														</node>
+														<node id="694">
+															<data key="1">ClassInstance</data>
+															<data key="2">Vector_Operations</data>
+															<data key="3">4</data>
+															<data key="21">Vector_Operations</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector</data>
+															<data key="31">1.1.0</data>
+															<data key="33">true</data>
+															<data key="37">1</data>
+															<data key="38">2</data>
+														</node>
+														<node id="492">
+															<data key="1">PublisherPortInstance</data>
+															<data key="2">sensorSequence</data>
+															<data key="3">5</data>
+															<data key="21">SampleSequence</data>
+															<data key="37">2</data>
+															<data key="305">ZMQ</data>
+														</node>
+													</graph>
+												</node>
+												<node id="509">
+													<data key="1">ComponentInstance</data>
+													<data key="2">SensorProcessor_Inst</data>
+													<data key="3">2</data>
+													<data key="21">SensorProcessor</data>
+													<data key="301"></data>
+													<data key="302">270</data>
+													<data key="303">30</data>
+													<graph id="g509">
+														<node id="511">
+															<data key="1">SubscriberPortInstance</data>
+															<data key="2">sensorSequence</data>
+															<data key="3">0</data>
+															<data key="21">SampleSequence</data>
+															<data key="37">0</data>
+															<data key="305">ZMQ</data>
+														</node>
+														<node id="513">
+															<data key="1">AttributeInstance</data>
+															<data key="2">processSequence</data>
+															<data key="3">1</data>
+															<data key="20">false</data>
+															<data key="21">Boolean</data>
+															<data key="37">1</data>
+															<data key="38">0</data>
+														</node>
+														<node id="856">
+															<data key="1">ClassInstance</data>
+															<data key="2">Utility_Worker</data>
+															<data key="3">2</data>
+															<data key="21">Utility_Worker</data>
+															<data key="27">Icons</data>
+															<data key="28">spanner</data>
+															<data key="31">1.3.1</data>
+															<data key="33">true</data>
+															<data key="37">1</data>
+															<data key="38">2</data>
+														</node>
+														<node id="876">
+															<data key="1">ClassInstance</data>
+															<data key="2">Vector_Operations</data>
+															<data key="3">3</data>
+															<data key="21">Vector_Operations</data>
+															<data key="27">EntityIcons</data>
+															<data key="28">Vector</data>
+															<data key="31">1.1.0</data>
+															<data key="33">true</data>
+															<data key="37">1</data>
+															<data key="38">2</data>
+														</node>
+													</graph>
+												</node>
+												<node id="468">
+													<data key="1">Variable</data>
+													<data key="2">Replication</data>
+													<data key="3">3</data>
+													<data key="20">1</data>
+													<data key="21">Integer</data>
+													<data key="22">Integer</data>
+													<data key="23"></data>
+													<data key="27">Icons</data>
+													<data key="28">copyX</data>
+													<data key="37">1</data>
+													<data key="38">1</data>
+													<data key="302">10</data>
+													<data key="303">110</data>
+												</node>
+											</graph>
 										</node>
-										<node id="460">
-											<data key="1">PublisherPortInstance</data>
-											<data key="2">txGreeting</data>
-											<data key="3">3</data>
-											<data key="21">Message</data>
-											<data key="37">2</data>
-											<data key="305">ZMQ</data>
+										<node id="453">
+											<data key="1">Variable</data>
+											<data key="2">Replication</data>
+											<data key="3">2</data>
+											<data key="20">1</data>
+											<data key="21">Integer</data>
+											<data key="22">Integer</data>
+											<data key="23"></data>
+											<data key="27">Icons</data>
+											<data key="28">copyX</data>
+											<data key="37">1</data>
+											<data key="38">1</data>
+											<data key="302">10</data>
+											<data key="303">190</data>
 										</node>
 									</graph>
 								</node>
@@ -876,8 +2259,8 @@
 									<data key="2">localhost</data>
 									<data key="3">0</data>
 									<data key="6">127.0.0.1</data>
-									<data key="7">osx</data>
-									<data key="8">10.13</data>
+									<data key="7">windows</data>
+									<data key="8">10</data>
 									<data key="9">x86_64</data>
 									<data key="10">{421aa90e-079f-a326-b649-4f812ad13e79}</data>
 									<data key="11">true</data>
@@ -1676,10 +3059,222 @@
 								</node>
 							</graph>
 						</node>
+						<node id="99">
+							<data key="1">Class</data>
+							<data key="2">Dis_Worker</data>
+							<data key="3">2</data>
+							<data key="5">Provides DIS Support. Requires an IP address and Port attribute to be set</data>
+							<data key="10">{aef70f8f-79be-9478-5d04-39acf5bad0ef}</data>
+							<data key="11">true</data>
+							<data key="21">Dis_Worker</data>
+							<data key="24">Dis_Worker</data>
+							<data key="25">${RE_PATH}/src/workers/dis</data>
+							<data key="26">dis_worker</data>
+							<data key="27">Icons</data>
+							<data key="28">waveEmit</data>
+							<data key="31">0.1.0</data>
+							<data key="32"></data>
+							<data key="33">true</data>
+							<graph id="g99">
+								<node id="100">
+									<data key="1">CallbackFunction</data>
+									<data key="2">Got PDU</data>
+									<data key="3">0</data>
+									<data key="5">This function is called whenever a DIS PDU is received. Can only be called if the Dis_worker has been connected.</data>
+									<data key="10">{9e741535-435e-8ac7-2429-4c54984e2150}</data>
+									<data key="11">true</data>
+									<data key="27"></data>
+									<data key="28"></data>
+									<data key="29">SetPduCallback</data>
+									<data key="35">Dis_Worker</data>
+									<graph id="g100">
+										<node id="101">
+											<data key="1">InputParameterGroup</data>
+											<data key="2">Input Parameters</data>
+											<data key="3">0</data>
+											<data key="10">{2657747d-c61d-f8b1-ad5a-a103bda2ad80}</data>
+											<data key="11">true</data>
+											<data key="21"></data>
+											<data key="37">0</data>
+											<data key="38">-1</data>
+											<graph id="g101">
+												<node id="102">
+													<data key="1">Member</data>
+													<data key="2">PDU Header</data>
+													<data key="3">0</data>
+													<data key="5">The PDU header</data>
+													<data key="10">{e059facd-4532-7ac2-f2ad-79b8db5b7312}</data>
+													<data key="11">true</data>
+													<data key="21">String</data>
+													<data key="22">KDIS::PDU::Header</data>
+													<data key="27">Icons</data>
+													<data key="28">category</data>
+													<data key="40"></data>
+													<data key="41">false</data>
+													<data key="97">CONST_REF</data>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="103">
+									<data key="1">Function</data>
+									<data key="2">To String</data>
+									<data key="3">1</data>
+									<data key="5">Convert DIS Pdu to string</data>
+									<data key="10">{0d5e23ef-79b5-bc91-7c6e-240ea4a97bee}</data>
+									<data key="11">true</data>
+									<data key="27">Icons</data>
+									<data key="28">format</data>
+									<data key="29">PDU2String</data>
+									<data key="35">Dis_Worker</data>
+									<graph id="g103">
+										<node id="104">
+											<data key="1">InputParameterGroup</data>
+											<data key="2">Input Parameters</data>
+											<data key="3">0</data>
+											<data key="10">{df2e4e4a-fe27-b8e6-95f6-ee83b8b5703d}</data>
+											<data key="11">true</data>
+											<data key="21"></data>
+											<data key="37">0</data>
+											<data key="38">-1</data>
+											<graph id="g104">
+												<node id="105">
+													<data key="1">Member</data>
+													<data key="2">PDU Header</data>
+													<data key="3">0</data>
+													<data key="5">The PDU header</data>
+													<data key="10">{813c73df-3981-a995-3956-ea9d652d09a1}</data>
+													<data key="11">true</data>
+													<data key="21">String</data>
+													<data key="22">KDIS::PDU::Header</data>
+													<data key="27">Icons</data>
+													<data key="28">category</data>
+													<data key="40"></data>
+													<data key="41">false</data>
+													<data key="97">CONST_REF</data>
+												</node>
+											</graph>
+										</node>
+										<node id="106">
+											<data key="1">ReturnParameterGroup</data>
+											<data key="2">Return Parameters</data>
+											<data key="3">1</data>
+											<data key="10">{661f15e7-bfab-55ce-4398-ff504f6e26dc}</data>
+											<data key="11">true</data>
+											<data key="21"></data>
+											<data key="37">0</data>
+											<data key="38">1</data>
+											<graph id="g106">
+												<node id="107">
+													<data key="1">Member</data>
+													<data key="2">value</data>
+													<data key="3">0</data>
+													<data key="5">The String.</data>
+													<data key="10">{15a5ed8f-7ece-c98b-feb2-b8d3bfc536b0}</data>
+													<data key="11">true</data>
+													<data key="21">String</data>
+													<data key="22">String</data>
+													<data key="23"></data>
+													<data key="27">Icons</data>
+													<data key="28">memoryCard</data>
+													<data key="40"></data>
+													<data key="41">false</data>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="108">
+									<data key="1">Function</data>
+									<data key="2">Connect</data>
+									<data key="3">2</data>
+									<data key="5">Connects to the DIS Service, uses the IP and port from the workers attributes</data>
+									<data key="10">{4b27fb75-cfad-b449-ebb3-ac61cc70432b}</data>
+									<data key="11">true</data>
+									<data key="27">Icons</data>
+									<data key="28">circlePlayTwoTone</data>
+									<data key="29">Connect</data>
+									<data key="35">Dis_Worker</data>
+									<graph id="g108">
+										<node id="109">
+											<data key="1">ReturnParameterGroup</data>
+											<data key="2">Return Parameters</data>
+											<data key="3">0</data>
+											<data key="10">{41eb92d1-8e4c-314a-b1da-ef7c3c4ea6a2}</data>
+											<data key="11">true</data>
+											<data key="21"></data>
+											<data key="37">0</data>
+											<data key="38">1</data>
+											<graph id="g109">
+												<node id="110">
+													<data key="1">Member</data>
+													<data key="2">value</data>
+													<data key="3">0</data>
+													<data key="5">Connection Succesful</data>
+													<data key="10">{5e722197-c358-8a48-1faa-b461c6c5d93f}</data>
+													<data key="11">true</data>
+													<data key="21">Boolean</data>
+													<data key="22">Boolean</data>
+													<data key="23"></data>
+													<data key="40"></data>
+													<data key="41">false</data>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+								<node id="111">
+									<data key="1">Function</data>
+									<data key="2">Disconnect</data>
+									<data key="3">3</data>
+									<data key="5">Disconnects from the DIS Service.</data>
+									<data key="10">{441e809b-6111-807a-263c-a38e6c51dd47}</data>
+									<data key="11">true</data>
+									<data key="27">Icons</data>
+									<data key="28">circlePauseTwoTone</data>
+									<data key="29">Disconnect</data>
+									<data key="35">Dis_Worker</data>
+								</node>
+								<node id="112">
+									<data key="1">ExternalType</data>
+									<data key="2">DIS_PDU_Header</data>
+									<data key="3">4</data>
+									<data key="10">{72e8b43f-2a9b-68a8-7c09-ab7624fa155c}</data>
+									<data key="11">true</data>
+									<data key="21">KDIS::PDU::Header</data>
+									<data key="22">KDIS::PDU::Header</data>
+									<data key="23"></data>
+								</node>
+								<node id="113">
+									<data key="1">Attribute</data>
+									<data key="2">ip_address</data>
+									<data key="3">5</data>
+									<data key="10">{7a5cf20d-5fde-c0d9-c002-226da977cf7a}</data>
+									<data key="11">true</data>
+									<data key="21">String</data>
+									<data key="27">Icons</data>
+									<data key="28">arrowsUpDownDark</data>
+									<data key="37">1</data>
+								</node>
+								<node id="114">
+									<data key="1">Attribute</data>
+									<data key="2">port</data>
+									<data key="3">6</data>
+									<data key="10">{2d47f10a-40e6-719c-7946-b8813dc72b63}</data>
+									<data key="11">true</data>
+									<data key="20">3000</data>
+									<data key="21">Integer</data>
+									<data key="27">Icons</data>
+									<data key="28">numberOne</data>
+									<data key="37">1</data>
+								</node>
+							</graph>
+						</node>
 						<node id="115">
 							<data key="1">Class</data>
 							<data key="2">Memory_Worker</data>
-							<data key="3">2</data>
+							<data key="3">3</data>
 							<data key="5">Provides memory (RAM) functionality.</data>
 							<data key="10">{13ff6239-0182-46bb-671f-42d5407d0819}</data>
 							<data key="11">true</data>
@@ -1815,7 +3410,7 @@
 						<node id="127">
 							<data key="1">Class</data>
 							<data key="2">OpenCL_Worker</data>
-							<data key="3">3</data>
+							<data key="3">4</data>
 							<data key="5">Provides heterogeneous compute workload functionality.</data>
 							<data key="10">{93195db1-ad73-788f-e961-93503a7d8887}</data>
 							<data key="11">true</data>
@@ -2542,7 +4137,7 @@
 						<node id="205">
 							<data key="1">Class</data>
 							<data key="2">Utility_Worker</data>
-							<data key="3">4</data>
+							<data key="3">5</data>
 							<data key="5">A Worker that provides utility functions for use in workload.</data>
 							<data key="10">{bd09d257-6d48-392f-5b3b-5fd691f39002}</data>
 							<data key="11">true</data>
@@ -3284,7 +4879,7 @@
 						<node id="260">
 							<data key="1">Class</data>
 							<data key="2">Vector_Operations</data>
-							<data key="3">5</data>
+							<data key="3">6</data>
 							<data key="5">Provides Vector handling functionality.</data>
 							<data key="10">{26fdc5f0-51d8-fae9-5763-9d1f4d758604}</data>
 							<data key="11">true</data>
@@ -3833,218 +5428,6 @@
 								</node>
 							</graph>
 						</node>
-						<node id="99">
-							<data key="1">Class</data>
-							<data key="2">Dis_Worker</data>
-							<data key="3">6</data>
-							<data key="5">Provides DIS Support. Requires an IP address and Port attribute to be set</data>
-							<data key="10">{aef70f8f-79be-9478-5d04-39acf5bad0ef}</data>
-							<data key="11">true</data>
-							<data key="21">Dis_Worker</data>
-							<data key="24">Dis_Worker</data>
-							<data key="25">${RE_PATH}/src/workers/dis</data>
-							<data key="26">dis_worker</data>
-							<data key="27">Icons</data>
-							<data key="28">waveEmit</data>
-							<data key="31">0.1.0</data>
-							<data key="32"></data>
-							<data key="33">true</data>
-							<graph id="g99">
-								<node id="100">
-									<data key="1">CallbackFunction</data>
-									<data key="2">Got PDU</data>
-									<data key="3">0</data>
-									<data key="5">This function is called whenever a DIS PDU is received. Can only be called if the Dis_worker has been connected.</data>
-									<data key="10">{9e741535-435e-8ac7-2429-4c54984e2150}</data>
-									<data key="11">true</data>
-									<data key="27"></data>
-									<data key="28"></data>
-									<data key="29">SetPduCallback</data>
-									<data key="35">Dis_Worker</data>
-									<graph id="g100">
-										<node id="101">
-											<data key="1">InputParameterGroup</data>
-											<data key="2">Input Parameters</data>
-											<data key="3">0</data>
-											<data key="10">{2657747d-c61d-f8b1-ad5a-a103bda2ad80}</data>
-											<data key="11">true</data>
-											<data key="21"></data>
-											<data key="37">0</data>
-											<data key="38">-1</data>
-											<graph id="g101">
-												<node id="102">
-													<data key="1">Member</data>
-													<data key="2">PDU Header</data>
-													<data key="3">0</data>
-													<data key="5">The PDU header</data>
-													<data key="10">{e059facd-4532-7ac2-f2ad-79b8db5b7312}</data>
-													<data key="11">true</data>
-													<data key="21">String</data>
-													<data key="22">KDIS::PDU::Header</data>
-													<data key="27">Icons</data>
-													<data key="28">category</data>
-													<data key="40"></data>
-													<data key="41">false</data>
-													<data key="97">CONST_REF</data>
-												</node>
-											</graph>
-										</node>
-									</graph>
-								</node>
-								<node id="103">
-									<data key="1">Function</data>
-									<data key="2">To String</data>
-									<data key="3">1</data>
-									<data key="5">Convert DIS Pdu to string</data>
-									<data key="10">{0d5e23ef-79b5-bc91-7c6e-240ea4a97bee}</data>
-									<data key="11">true</data>
-									<data key="27">Icons</data>
-									<data key="28">format</data>
-									<data key="29">PDU2String</data>
-									<data key="35">Dis_Worker</data>
-									<graph id="g103">
-										<node id="104">
-											<data key="1">InputParameterGroup</data>
-											<data key="2">Input Parameters</data>
-											<data key="3">0</data>
-											<data key="10">{df2e4e4a-fe27-b8e6-95f6-ee83b8b5703d}</data>
-											<data key="11">true</data>
-											<data key="21"></data>
-											<data key="37">0</data>
-											<data key="38">-1</data>
-											<graph id="g104">
-												<node id="105">
-													<data key="1">Member</data>
-													<data key="2">PDU Header</data>
-													<data key="3">0</data>
-													<data key="5">The PDU header</data>
-													<data key="10">{813c73df-3981-a995-3956-ea9d652d09a1}</data>
-													<data key="11">true</data>
-													<data key="21">String</data>
-													<data key="22">KDIS::PDU::Header</data>
-													<data key="27">Icons</data>
-													<data key="28">category</data>
-													<data key="40"></data>
-													<data key="41">false</data>
-													<data key="97">CONST_REF</data>
-												</node>
-											</graph>
-										</node>
-										<node id="106">
-											<data key="1">ReturnParameterGroup</data>
-											<data key="2">Return Parameters</data>
-											<data key="3">1</data>
-											<data key="10">{661f15e7-bfab-55ce-4398-ff504f6e26dc}</data>
-											<data key="11">true</data>
-											<data key="21"></data>
-											<data key="37">0</data>
-											<data key="38">1</data>
-											<graph id="g106">
-												<node id="107">
-													<data key="1">Member</data>
-													<data key="2">value</data>
-													<data key="3">0</data>
-													<data key="5">The String.</data>
-													<data key="10">{15a5ed8f-7ece-c98b-feb2-b8d3bfc536b0}</data>
-													<data key="11">true</data>
-													<data key="21">String</data>
-													<data key="22">String</data>
-													<data key="23"></data>
-													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
-													<data key="40"></data>
-													<data key="41">false</data>
-												</node>
-											</graph>
-										</node>
-									</graph>
-								</node>
-								<node id="108">
-									<data key="1">Function</data>
-									<data key="2">Connect</data>
-									<data key="3">2</data>
-									<data key="5">Connects to the DIS Service, uses the IP and port from the workers attributes</data>
-									<data key="10">{4b27fb75-cfad-b449-ebb3-ac61cc70432b}</data>
-									<data key="11">true</data>
-									<data key="27">Icons</data>
-									<data key="28">circlePlayTwoTone</data>
-									<data key="29">Connect</data>
-									<data key="35">Dis_Worker</data>
-									<graph id="g108">
-										<node id="109">
-											<data key="1">ReturnParameterGroup</data>
-											<data key="2">Return Parameters</data>
-											<data key="3">0</data>
-											<data key="10">{41eb92d1-8e4c-314a-b1da-ef7c3c4ea6a2}</data>
-											<data key="11">true</data>
-											<data key="21"></data>
-											<data key="37">0</data>
-											<data key="38">1</data>
-											<graph id="g109">
-												<node id="110">
-													<data key="1">Member</data>
-													<data key="2">value</data>
-													<data key="3">0</data>
-													<data key="5">Connection Succesful</data>
-													<data key="10">{5e722197-c358-8a48-1faa-b461c6c5d93f}</data>
-													<data key="11">true</data>
-													<data key="21">Boolean</data>
-													<data key="22">Boolean</data>
-													<data key="23"></data>
-													<data key="40"></data>
-													<data key="41">false</data>
-												</node>
-											</graph>
-										</node>
-									</graph>
-								</node>
-								<node id="111">
-									<data key="1">Function</data>
-									<data key="2">Disconnect</data>
-									<data key="3">3</data>
-									<data key="5">Disconnects from the DIS Service.</data>
-									<data key="10">{441e809b-6111-807a-263c-a38e6c51dd47}</data>
-									<data key="11">true</data>
-									<data key="27">Icons</data>
-									<data key="28">circlePauseTwoTone</data>
-									<data key="29">Disconnect</data>
-									<data key="35">Dis_Worker</data>
-								</node>
-								<node id="112">
-									<data key="1">ExternalType</data>
-									<data key="2">DIS_PDU_Header</data>
-									<data key="3">4</data>
-									<data key="10">{72e8b43f-2a9b-68a8-7c09-ab7624fa155c}</data>
-									<data key="11">true</data>
-									<data key="21">KDIS::PDU::Header</data>
-									<data key="22">KDIS::PDU::Header</data>
-									<data key="23"></data>
-								</node>
-								<node id="113">
-									<data key="1">Attribute</data>
-									<data key="2">ip_address</data>
-									<data key="3">5</data>
-									<data key="10">{7a5cf20d-5fde-c0d9-c002-226da977cf7a}</data>
-									<data key="11">true</data>
-									<data key="21">String</data>
-									<data key="27">Icons</data>
-									<data key="28">arrowsUpDownDark</data>
-									<data key="37">1</data>
-								</node>
-								<node id="114">
-									<data key="1">Attribute</data>
-									<data key="2">port</data>
-									<data key="3">6</data>
-									<data key="10">{2d47f10a-40e6-719c-7946-b8813dc72b63}</data>
-									<data key="11">true</data>
-									<data key="20">3000</data>
-									<data key="21">Integer</data>
-									<data key="27">Icons</data>
-									<data key="28">numberOne</data>
-									<data key="37">1</data>
-								</node>
-							</graph>
-						</node>
 						<node id="181">
 							<data key="1">Class</data>
 							<data key="2">Tcp_Worker</data>
@@ -4354,212 +5737,574 @@
 				</node>
 			</graph>
 		</node>
-		<edge id="464" source="406" target="359">
+		<edge id="1165" source="372" target="762">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1161" source="386" target="1157">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1160" source="730" target="1155">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1159" source="665" target="1153">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1158" source="1157" target="277">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="463" source="442" target="333">
+		<edge id="1156" source="1155" target="276">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="462" source="460" target="434">
+		<edge id="1154" source="1153" target="275">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="1152" source="1151" target="274">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="1150" source="1149" target="682">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="1148" source="886" target="898">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1147" source="437" target="897">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1146" source="665" target="809">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1145" source="369" target="805">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1143" source="971" target="1137">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1141" source="338" target="1135">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="1140" source="1139" target="366">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="1138" source="1137" target="364">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="1136" source="1135" target="362">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="1134" source="1133" target="360">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="1132" source="1131" target="358">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="972" source="971" target="224">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="970" source="969" target="223">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="968" source="967" target="947">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="966" source="965" target="937">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="964" source="963" target="257">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="962" source="961" target="252">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="960" source="959" target="246">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="958" source="957" target="240">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="956" source="955" target="234">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="954" source="953" target="231">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="952" source="951" target="228">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="950" source="949" target="225">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="948" source="947" target="222">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="946" source="945" target="219">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="944" source="943" target="215">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="942" source="941" target="211">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="940" source="939" target="206">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="938" source="937" target="205">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="933" source="372" target="930">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="896" source="644" target="882">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="895" source="894" target="214">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="893" source="892" target="213">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="891" source="890" target="212">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="889" source="888" target="832">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="887" source="886" target="287">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="885" source="884" target="286">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="883" source="882" target="285">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="881" source="880" target="284">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="879" source="878" target="868">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="877" source="876" target="858">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="875" source="874" target="296">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="873" source="872" target="291">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="871" source="870" target="288">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="869" source="868" target="283">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="867" source="866" target="278">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="865" source="864" target="273">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="863" source="862" target="267">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="861" source="860" target="261">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="859" source="858" target="260">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="857" source="856" target="828">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="855" source="854" target="257">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="853" source="852" target="252">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="851" source="850" target="246">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="849" source="848" target="240">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="847" source="846" target="234">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="845" source="844" target="231">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="843" source="842" target="228">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="841" source="840" target="225">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="839" source="838" target="222">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="837" source="836" target="219">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="835" source="834" target="215">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="833" source="832" target="211">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="831" source="830" target="206">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="829" source="828" target="205">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="818" source="817" target="628">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="816" source="815" target="626">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="814" source="813" target="624">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="812" source="811" target="622">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="810" source="809" target="620">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="808" source="807" target="618">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="806" source="805" target="398">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="804" source="803" target="396">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="802" source="801" target="394">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="778" source="372" target="775">
+			<data key="1">Edge_Data</data>
+		</edge>
+		<edge id="771" source="769" target="767">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="770" source="768" target="766">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="755" source="665" target="726">
+			<data key="1">Edge_Data</data>
+			<data key="302">175</data>
+			<data key="303">180</data>
+		</edge>
+		<edge id="731" source="730" target="287">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="729" source="728" target="286">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="727" source="726" target="285">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="725" source="724" target="284">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="723" source="722" target="686">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="695" source="694" target="676">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="693" source="692" target="296">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="691" source="690" target="291">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="689" source="688" target="288">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="687" source="686" target="283">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="685" source="684" target="278">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="683" source="682" target="273">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="681" source="680" target="267">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="679" source="678" target="261">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="677" source="676" target="260">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="674" source="673" target="604">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="672" source="671" target="602">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="670" source="669" target="600">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="668" source="667" target="598">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="666" source="665" target="541">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="664" source="663" target="540">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="653" source="652" target="640">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="651" source="650" target="638">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="649" source="648" target="636">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="647" source="646" target="634">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="645" source="644" target="632">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="643" source="642" target="630">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="641" source="640" target="616">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="639" source="638" target="614">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="637" source="636" target="612">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="635" source="634" target="610">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="633" source="632" target="608">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="631" source="630" target="606">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="629" source="628" target="616">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="627" source="626" target="614">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="625" source="624" target="612">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="623" source="622" target="610">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="621" source="620" target="608">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="619" source="618" target="606">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="617" source="616" target="604">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="615" source="614" target="602">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="613" source="612" target="600">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="611" source="610" target="598">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="609" source="608" target="541">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="607" source="606" target="540">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="605" source="604" target="320">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="603" source="602" target="319">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="601" source="600" target="318">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="599" source="598" target="317">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="523" source="521" target="519">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="522" source="520" target="518">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="517" source="462" target="464">
 			<data key="1">Edge_Assembly</data>
 		</edge>
-		<edge id="461" source="460" target="319">
+		<edge id="516" source="469" target="486">
+			<data key="1">Edge_Assembly</data>
+		</edge>
+		<edge id="515" source="492" target="511">
+			<data key="1">Edge_Assembly</data>
+		</edge>
+		<edge id="514" source="513" target="412">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="459" source="458" target="318">
+		<edge id="512" source="511" target="415">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="448" source="349" target="353">
-			<data key="1">Edge_Data</data>
-		</edge>
-		<edge id="447" source="346" target="328">
-			<data key="1">Edge_Data</data>
-		</edge>
-		<edge id="446" source="351" target="397">
-			<data key="1">Edge_Data</data>
-		</edge>
-		<edge id="445" source="347" target="396">
-			<data key="1">Edge_Data</data>
-		</edge>
-		<edge id="444" source="348" target="395">
-			<data key="1">Edge_Data</data>
-		</edge>
-		<edge id="443" source="349" target="329">
-			<data key="1">Edge_Data</data>
-		</edge>
-		<edge id="441" source="439" target="331">
+		<edge id="510" source="509" target="334">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="440" source="438" target="325">
+		<edge id="493" source="492" target="394">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="437" source="436" target="317">
+		<edge id="491" source="490" target="371">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="435" source="434" target="312">
+		<edge id="489" source="488" target="368">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="433" source="332" target="330">
-			<data key="1">Edge_Data</data>
+		<edge id="487" source="486" target="374">
+			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="432" source="319" target="307">
+		<edge id="485" source="484" target="331">
+			<data key="1">Edge_Definition</data>
+		</edge>
+		<edge id="483" source="464" target="469">
+			<data key="1">Edge_Assembly</data>
+		</edge>
+		<edge id="470" source="469" target="317">
 			<data key="1">Edge_Aggregate</data>
 		</edge>
-		<edge id="431" source="312" target="307">
+		<edge id="465" source="464" target="317">
 			<data key="1">Edge_Aggregate</data>
 		</edge>
-		<edge id="430" source="326" target="319">
+		<edge id="463" source="462" target="358">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="429" source="389" target="212">
+		<edge id="461" source="460" target="340">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="428" source="344" target="39">
+		<edge id="459" source="458" target="337">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="427" source="313" target="307">
+		<edge id="457" source="456" target="328">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="426" source="359" target="205">
+		<edge id="438" source="437" target="419">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="425" source="320" target="307">
+		<edge id="436" source="435" target="417">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="424" source="324" target="317">
+		<edge id="434" source="433" target="415">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="423" source="404" target="311">
+		<edge id="420" source="419" target="322">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="422" source="333" target="34">
+		<edge id="418" source="417" target="321">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="421" source="341" target="311">
+		<edge id="416" source="415" target="321">
+			<data key="1">Edge_Aggregate</data>
+		</edge>
+		<edge id="414" source="413" target="412">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="420" source="334" target="36">
+		<edge id="399" source="398" target="322">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="419" source="335" target="43">
+		<edge id="397" source="396" target="321">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="418" source="336" target="46">
+		<edge id="395" source="394" target="321">
+			<data key="1">Edge_Aggregate</data>
+		</edge>
+		<edge id="393" source="392" target="382">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="417" source="337" target="49">
+		<edge id="391" source="390" target="380">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="416" source="338" target="52">
+		<edge id="389" source="388" target="378">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="415" source="339" target="56">
+		<edge id="387" source="386" target="376">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="414" source="340" target="60">
+		<edge id="385" source="384" target="374">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="413" source="322" target="309">
+		<edge id="383" source="382" target="320">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="412" source="332" target="318">
+		<edge id="381" source="380" target="319">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="411" source="323" target="310">
+		<edge id="379" source="378" target="318">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="410" source="377" target="234">
+		<edge id="377" source="376" target="317">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="409" source="314" target="308">
+		<edge id="375" source="374" target="317">
+			<data key="1">Edge_Aggregate</data>
+		</edge>
+		<edge id="373" source="372" target="371">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="408" source="316" target="310">
+		<edge id="370" source="369" target="368">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="407" source="315" target="309">
+		<edge id="367" source="366" target="320">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="405" source="361" target="206">
+		<edge id="365" source="364" target="319">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="403" source="363" target="211">
+		<edge id="363" source="362" target="318">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="402" source="365" target="215">
+		<edge id="361" source="360" target="317">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="401" source="367" target="219">
+		<edge id="359" source="358" target="317">
+			<data key="1">Edge_Aggregate</data>
+		</edge>
+		<edge id="342" source="341" target="340">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="400" source="369" target="222">
+		<edge id="339" source="338" target="337">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="399" source="371" target="225">
+		<edge id="336" source="335" target="334">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="398" source="373" target="228">
+		<edge id="333" source="332" target="331">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="394" source="393" target="214">
+		<edge id="330" source="329" target="328">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="392" source="391" target="213">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="390" source="375" target="231">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="388" source="387" target="363">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="386" source="385" target="257">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="384" source="383" target="252">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="382" source="381" target="246">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="380" source="379" target="240">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="378" source="321" target="308">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="376" source="343" target="312">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="374" source="342" target="334">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="372" source="327" target="320">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="370" source="345" target="313">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="368" source="346" target="42">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="366" source="330" target="323">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="364" source="329" target="322">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="362" source="328" target="321">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="360" source="351" target="316">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="358" source="348" target="315">
-			<data key="1">Edge_Definition</data>
-		</edge>
-		<edge id="357" source="347" target="314">
-			<data key="1">Edge_Definition</data>
+		<edge id="324" source="452" target="19">
+			<data key="1">Edge_Deployment</data>
 		</edge>
 	</graph>
 </graphml>

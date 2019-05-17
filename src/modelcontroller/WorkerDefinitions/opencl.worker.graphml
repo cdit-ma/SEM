@@ -453,11 +453,15 @@
 					<data key="type">Integer</data>
 					<data key="label">device_id</data>
 					<data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">numberOne</data>
 				</node>
 				<node id="opencl::platform_id">
                     <data key="type">Integer</data>
 					<data key="label">platform_id</data>
 					<data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">numberOne</data>
 				</node>
             </graph>
         </node>

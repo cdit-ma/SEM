@@ -38,23 +38,14 @@
 	<key attr.name="x" attr.type="double" id="301"/>
 	<key attr.name="y" attr.type="double" id="302"/>
 	<key attr.name="isExpanded" attr.type="boolean" id="303"/>
-	<key attr.name="url" attr.type="string" id="304"/>
-	<key attr.name="root_path" attr.type="string" id="305"/>
-	<key attr.name="load_time" attr.type="string" id="306"/>
-	<key attr.name="is_online" attr.type="boolean" id="307"/>
-	<key attr.name="user_name" attr.type="string" id="308"/>
-	<key attr.name="is_available" attr.type="boolean" id="309"/>
-	<key attr.name="vendor" attr.type="string" id="310"/>
-	<key attr.name="memory_size" attr.type="long" id="311"/>
-	<key attr.name="clock_freq" attr.type="long" id="312"/>
-	<key attr.name="code" attr.type="string" id="313"/>
+	<key attr.name="code" attr.type="string" id="304"/>
 
 	<graph edgedefault="directed" id="g0">
 		<node id="12">
 			<data key="1">Model</data>
 			<data key="2">Model</data>
 			<data key="3">-1</data>
-			<data key="4">3.3.5</data>
+			<data key="4">3.3.8</data>
 			<data key="5"></data>
 			<graph id="g12">
 				<node id="13">
@@ -79,8 +70,8 @@
 							<data key="21">sender</data>
 							<data key="32"></data>
 							<data key="300"></data>
-							<data key="301">313.5</data>
-							<data key="302">297.1</data>
+							<data key="301">320</data>
+							<data key="302">240</data>
 						</node>
 					</graph>
 				</node>
@@ -146,7 +137,7 @@
 											<data key="1">Code</data>
 											<data key="2">Code</data>
 											<data key="3">1</data>
-											<data key="313">for(const auto&amp; c : p_message) {
+											<data key="304">for(const auto&amp; c : p_message) {
 std::cout &lt;&lt; c &lt;&lt; std::endl;
 }</data>
 										</node>
@@ -215,7 +206,7 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="3">0</data>
 											<data key="5">Binds a sending tcp worker to an ip address + port.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">spanner</data>
 											<data key="35">Tcp_Worker</data>
 											<graph id="g358">
 												<node id="360">
@@ -302,8 +293,8 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 									<data key="2">Tcp_Worker</data>
 									<data key="3">2</data>
 									<data key="21">Tcp_Worker</data>
-									<data key="27">EntityIcons</data>
-									<data key="28">Vector</data>
+									<data key="27">Icons</data>
+									<data key="28">transmission</data>
 									<data key="31">0.1.0</data>
 									<data key="33">true</data>
 									<data key="37">1</data>
@@ -315,7 +306,7 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="3">0</data>
 											<data key="5">Binds a sending tcp worker to an ip address + port.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">spanner</data>
 											<data key="29">Bind</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -325,7 +316,7 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="3">1</data>
 											<data key="5">Connects to a sending tcp endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">circlePlayTwoTone</data>
 											<data key="29">Connect</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -335,7 +326,7 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="3">2</data>
 											<data key="5">Disconnects the tcp worker from its bound or connected endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">circlePauseTwoTone</data>
 											<data key="29">Disconnect</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -355,7 +346,7 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="3">4</data>
 											<data key="5">Sends data to a tcp endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">arrowLineUp</data>
 											<data key="29">Send</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -365,7 +356,7 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="3">5</data>
 											<data key="5">Receives all data ready to be read from tcp socket.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">arrowLineDown</data>
 											<data key="29">Receive</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -374,6 +365,8 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="2">delimiter</data>
 											<data key="3">6</data>
 											<data key="21">Character</data>
+											<data key="27">Icons</data>
+											<data key="28">letterA</data>
 											<data key="37">1</data>
 											<data key="38">0</data>
 										</node>
@@ -382,6 +375,8 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="2">ip_address</data>
 											<data key="3">7</data>
 											<data key="21">String</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowsUpDownDark</data>
 											<data key="37">1</data>
 											<data key="38">0</data>
 										</node>
@@ -390,6 +385,8 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="2">port</data>
 											<data key="3">8</data>
 											<data key="21">String</data>
+											<data key="27">Icons</data>
+											<data key="28">numberOne</data>
 											<data key="37">1</data>
 											<data key="38">0</data>
 										</node>
@@ -564,7 +561,7 @@ std::cout &lt;&lt; c &lt;&lt; std::endl;
 											<data key="1">Code</data>
 											<data key="2">Code</data>
 											<data key="3">0</data>
-											<data key="313">g_send_vec.push_back(&apos;b&apos;);
+											<data key="304">g_send_vec.push_back(&apos;b&apos;);
 g_send_vec.push_back(&apos;b&apos;);
 g_send_vec.push_back(&apos;b&apos;);
 g_send_vec.push_back(&apos;a&apos;);</data>
@@ -575,7 +572,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="3">1</data>
 											<data key="5">Sends data to a tcp endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">arrowLineUp</data>
 											<data key="35">Tcp_Worker</data>
 											<graph id="g421">
 												<node id="423">
@@ -738,7 +735,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="3">1</data>
 											<data key="5">Connects to a sending tcp endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">circlePlayTwoTone</data>
 											<data key="35">Tcp_Worker</data>
 											<graph id="g474">
 												<node id="476">
@@ -864,8 +861,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="2">Tcp_Worker</data>
 									<data key="3">3</data>
 									<data key="21">Tcp_Worker</data>
-									<data key="27">EntityIcons</data>
-									<data key="28">Vector</data>
+									<data key="27">Icons</data>
+									<data key="28">transmission</data>
 									<data key="31">0.1.0</data>
 									<data key="33">true</data>
 									<data key="37">1</data>
@@ -877,7 +874,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="3">0</data>
 											<data key="5">Binds a sending tcp worker to an ip address + port.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">spanner</data>
 											<data key="29">Bind</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -887,7 +884,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="3">1</data>
 											<data key="5">Connects to a sending tcp endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">circlePlayTwoTone</data>
 											<data key="29">Connect</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -897,7 +894,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="3">2</data>
 											<data key="5">Disconnects the tcp worker from its bound or connected endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">circlePauseTwoTone</data>
 											<data key="29">Disconnect</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -917,7 +914,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="3">4</data>
 											<data key="5">Sends data to a tcp endpoint.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">arrowLineUp</data>
 											<data key="29">Send</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -927,7 +924,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="3">5</data>
 											<data key="5">Receives all data ready to be read from tcp socket.</data>
 											<data key="27">Icons</data>
-											<data key="28">circleInfo</data>
+											<data key="28">arrowLineDown</data>
 											<data key="29">Receive</data>
 											<data key="35">Tcp_Worker</data>
 										</node>
@@ -936,6 +933,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="2">delimiter</data>
 											<data key="3">6</data>
 											<data key="21">Character</data>
+											<data key="27">Icons</data>
+											<data key="28">letterA</data>
 											<data key="37">1</data>
 											<data key="38">0</data>
 										</node>
@@ -944,6 +943,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="2">ip_address</data>
 											<data key="3">7</data>
 											<data key="21">String</data>
+											<data key="27">Icons</data>
+											<data key="28">arrowsUpDownDark</data>
 											<data key="37">1</data>
 											<data key="38">0</data>
 										</node>
@@ -952,6 +953,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="2">port</data>
 											<data key="3">8</data>
 											<data key="21">String</data>
+											<data key="27">Icons</data>
+											<data key="28">numberOne</data>
 											<data key="37">1</data>
 											<data key="38">0</data>
 										</node>
@@ -1122,7 +1125,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 							<graph id="g17">
 								<node id="346">
 									<data key="1">ComponentInstance</data>
-									<data key="2">ComponentInstance</data>
+									<data key="2">rx</data>
 									<data key="3">0</data>
 									<data key="21">receiver</data>
 									<data key="300"></data>
@@ -1134,8 +1137,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="2">Tcp_Worker</data>
 											<data key="3">0</data>
 											<data key="21">Tcp_Worker</data>
-											<data key="27">EntityIcons</data>
-											<data key="28">Vector</data>
+											<data key="27">Icons</data>
+											<data key="28">transmission</data>
 											<data key="31">0.1.0</data>
 											<data key="33">true</data>
 											<data key="37">1</data>
@@ -1145,8 +1148,10 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="1">AttributeInstance</data>
 													<data key="2">delimiter</data>
 													<data key="3">0</data>
-													<data key="20">&apos;a&apos;</data>
+													<data key="20">a</data>
 													<data key="21">Character</data>
+													<data key="27">Icons</data>
+													<data key="28">letterA</data>
 													<data key="37">1</data>
 													<data key="38">0</data>
 												</node>
@@ -1154,8 +1159,10 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="1">AttributeInstance</data>
 													<data key="2">ip_address</data>
 													<data key="3">1</data>
-													<data key="20">&quot;192.168.111.216&quot;</data>
+													<data key="20">192.168.111.216</data>
 													<data key="21">String</data>
+													<data key="27">Icons</data>
+													<data key="28">arrowsUpDownDark</data>
 													<data key="37">1</data>
 													<data key="38">0</data>
 												</node>
@@ -1163,8 +1170,10 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="1">AttributeInstance</data>
 													<data key="2">port</data>
 													<data key="3">2</data>
-													<data key="20">&quot;50000&quot;</data>
+													<data key="20">50000</data>
 													<data key="21">String</data>
+													<data key="27">Icons</data>
+													<data key="28">numberOne</data>
 													<data key="37">1</data>
 													<data key="38">0</data>
 												</node>
@@ -1186,12 +1195,12 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 								</node>
 								<node id="480">
 									<data key="1">ComponentInstance</data>
-									<data key="2">ComponentInstance_1</data>
+									<data key="2">tx</data>
 									<data key="3">1</data>
 									<data key="21">sender</data>
 									<data key="300"></data>
-									<data key="301">311.49999999999994</data>
-									<data key="302">258.6</data>
+									<data key="301">310</data>
+									<data key="302">280</data>
 									<graph id="g480">
 										<node id="482">
 											<data key="1">PeriodicPortInstance</data>
@@ -1218,8 +1227,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 											<data key="2">Tcp_Worker</data>
 											<data key="3">1</data>
 											<data key="21">Tcp_Worker</data>
-											<data key="27">EntityIcons</data>
-											<data key="28">Vector</data>
+											<data key="27">Icons</data>
+											<data key="28">transmission</data>
 											<data key="31">0.1.0</data>
 											<data key="33">true</data>
 											<data key="37">1</data>
@@ -1229,8 +1238,10 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="1">AttributeInstance</data>
 													<data key="2">delimiter</data>
 													<data key="3">0</data>
-													<data key="20">&apos;a&apos;</data>
+													<data key="20">a</data>
 													<data key="21">Character</data>
+													<data key="27">Icons</data>
+													<data key="28">letterA</data>
 													<data key="37">1</data>
 													<data key="38">0</data>
 												</node>
@@ -1238,8 +1249,10 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="1">AttributeInstance</data>
 													<data key="2">ip_address</data>
 													<data key="3">1</data>
-													<data key="20">&quot;192.168.111.216&quot;</data>
+													<data key="20">192.168.111.216</data>
 													<data key="21">String</data>
+													<data key="27">Icons</data>
+													<data key="28">arrowsUpDownDark</data>
 													<data key="37">1</data>
 													<data key="38">0</data>
 												</node>
@@ -1247,8 +1260,10 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="1">AttributeInstance</data>
 													<data key="2">port</data>
 													<data key="3">2</data>
-													<data key="20">&quot;50000&quot;</data>
+													<data key="20">50000</data>
 													<data key="21">String</data>
+													<data key="27">Icons</data>
+													<data key="28">numberOne</data>
 													<data key="37">1</data>
 													<data key="38">0</data>
 												</node>
@@ -1285,108 +1300,6 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="9">x86_64</data>
 									<data key="10">{421aa90e-079f-a326-b649-4f812ad13e79}</data>
 									<data key="11">true</data>
-								</node>
-								<node id="373">
-									<data key="1">HardwareCluster</data>
-									<data key="2">cherry224</data>
-									<data key="3">1</data>
-									<data key="10">{0f27fc21-6722-70ad-2aa4-b259af2b19fb}</data>
-									<data key="11">true</data>
-									<data key="301">-65</data>
-									<data key="302">-70</data>
-									<data key="303">true</data>
-									<data key="304">http://192.168.111.224:8080/</data>
-									<data key="306">1557999540</data>
-									<data key="307">true</data>
-									<data key="308">admin</data>
-									<graph id="g373">
-										<node id="374">
-											<data key="1">HardwareNode</data>
-											<data key="2">cranberry01</data>
-											<data key="3">0</data>
-											<data key="5">centos7 re deploy_re builder_centos7 builder</data>
-											<data key="6">192.168.111.216</data>
-											<data key="7">Linux</data>
-											<data key="8">3.10.0-862.3.2.el7.x86_64</data>
-											<data key="9">amd64</data>
-											<data key="10">{c30a184e-1098-fda5-6eb2-9ad7a93182b4}</data>
-											<data key="11">true</data>
-											<data key="303">true</data>
-											<data key="304">http://192.168.111.224:8080/computer/cranberry01/</data>
-											<data key="305">/mnt/Jenkins</data>
-											<data key="306">1557999540</data>
-											<data key="307">true</data>
-											<graph id="g374">
-												<node id="375">
-													<data key="1">OpenCLPlatform</data>
-													<data key="2">AMD Accelerated Parallel Processing</data>
-													<data key="3">0</data>
-													<data key="10">{19416769-c75c-f2ac-5961-eacf62d36b62}</data>
-													<data key="11">true</data>
-													<data key="31">0.0.0</data>
-													<data key="310">Advanced Micro Devices, Inc.</data>
-													<graph id="g375">
-														<node id="376">
-															<data key="1">OpenCLDevice</data>
-															<data key="2">Intel(R) Xeon(R) CPU X5677 @ 3.47GHz</data>
-															<data key="3">0</data>
-															<data key="10">{f66fc1cb-782c-c1ef-9ddf-68c7fb64b692}</data>
-															<data key="11">true</data>
-															<data key="21">CL_DEVICE_TYPE_CPU</data>
-															<data key="31">0.0.0</data>
-															<data key="309">true</data>
-															<data key="310">1800.8 (sse2)</data>
-															<data key="311">3974205440</data>
-															<data key="312">3466</data>
-														</node>
-													</graph>
-												</node>
-											</graph>
-										</node>
-										<node id="384">
-											<data key="1">HardwareNode</data>
-											<data key="2">mandarin01</data>
-											<data key="3">1</data>
-											<data key="5">ubuntu18 re deploy_re builder_ubuntu18 builder</data>
-											<data key="6">192.168.111.242</data>
-											<data key="7">Linux</data>
-											<data key="8">4.15.0-43-generic</data>
-											<data key="9">amd64</data>
-											<data key="10">{d3190230-2269-316b-9985-75c88851a292}</data>
-											<data key="11">true</data>
-											<data key="303">true</data>
-											<data key="304">http://192.168.111.224:8080/computer/mandarin01/</data>
-											<data key="305">/mnt/Jenkins</data>
-											<data key="306">1557999540</data>
-											<data key="307">true</data>
-											<graph id="g384">
-												<node id="385">
-													<data key="1">OpenCLPlatform</data>
-													<data key="2">AMD Accelerated Parallel Processing</data>
-													<data key="3">0</data>
-													<data key="10">{e6a0d3a6-d046-3ca7-62f3-faad41a53bad}</data>
-													<data key="11">true</data>
-													<data key="31">0.0.0</data>
-													<data key="310">Advanced Micro Devices, Inc.</data>
-													<graph id="g385">
-														<node id="386">
-															<data key="1">OpenCLDevice</data>
-															<data key="2">Intel(R) Xeon(R) CPU X5677 @ 3.47GHz</data>
-															<data key="3">0</data>
-															<data key="10">{ed0890fc-48ae-ddfd-cea1-7640a947fb49}</data>
-															<data key="11">true</data>
-															<data key="21">CL_DEVICE_TYPE_CPU</data>
-															<data key="31">0.0.0</data>
-															<data key="309">true</data>
-															<data key="310">1800.8 (sse2)</data>
-															<data key="311">4136640512</data>
-															<data key="312">3466</data>
-														</node>
-													</graph>
-												</node>
-											</graph>
-										</node>
-									</graph>
 								</node>
 							</graph>
 						</node>
@@ -2194,7 +2107,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 							<data key="25">${RE_PATH}/src/workers/dis</data>
 							<data key="26">dis_worker</data>
 							<data key="27">Icons</data>
-							<data key="28">transmission</data>
+							<data key="28">waveEmit</data>
 							<data key="31">0.1.0</data>
 							<data key="32"></data>
 							<data key="33">true</data>
@@ -2376,6 +2289,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{7a5cf20d-5fde-c0d9-c002-226da977cf7a}</data>
 									<data key="11">true</data>
 									<data key="21">String</data>
+									<data key="27">Icons</data>
+									<data key="28">arrowsUpDownDark</data>
 									<data key="37">1</data>
 								</node>
 								<node id="114">
@@ -2386,6 +2301,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="11">true</data>
 									<data key="20">3000</data>
 									<data key="21">Integer</data>
+									<data key="27">Icons</data>
+									<data key="28">numberOne</data>
 									<data key="37">1</data>
 								</node>
 							</graph>
@@ -2539,49 +2456,57 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 							<data key="26">opencl_worker</data>
 							<data key="27">Icons</data>
 							<data key="28">gpu</data>
-							<data key="31">1.2.0</data>
+							<data key="31">1.3.0</data>
 							<data key="32"></data>
 							<data key="33">true</data>
 							<graph id="g127">
 								<node id="128">
 									<data key="1">ExternalType</data>
-									<data key="2">OpenCLBuffer::Integer</data>
+									<data key="2">Re::OpenCL::Buffer&lt;Integer&gt;</data>
 									<data key="3">0</data>
 									<data key="10">{a37f585c-59b9-d1c9-4817-d49ee15e1761}</data>
 									<data key="11">true</data>
-									<data key="21">OpenCLBuffer&lt;Integer&gt;</data>
+									<data key="21">Re::OpenCL::Buffer&lt;Integer&gt;</data>
 									<data key="22">Integer</data>
-									<data key="23">OpenCLBuffer</data>
+									<data key="23">Re::OpenCL::Buffer</data>
+									<data key="27">Icons</data>
+									<data key="28">buffer</data>
 								</node>
 								<node id="129">
 									<data key="1">ExternalType</data>
-									<data key="2">OpenCLBuffer::Float</data>
+									<data key="2">Re::OpenCL::Buffer&lt;Float&gt;</data>
 									<data key="3">1</data>
 									<data key="10">{dbe38eba-0db4-9562-4dc9-e4bd256c99b3}</data>
 									<data key="11">true</data>
-									<data key="21">OpenCLBuffer&lt;Float&gt;</data>
+									<data key="21">Re::OpenCL::Buffer&lt;Float&gt;</data>
 									<data key="22">Float</data>
-									<data key="23">OpenCLBuffer</data>
+									<data key="23">Re::OpenCL::Buffer</data>
+									<data key="27">Icons</data>
+									<data key="28">buffer</data>
 								</node>
 								<node id="130">
 									<data key="1">ExternalType</data>
-									<data key="2">OpenCLBuffer::Double</data>
+									<data key="2">Re::OpenCL::Buffer&lt;Double&gt;</data>
 									<data key="3">2</data>
 									<data key="10">{1a6b53fc-4c5a-70b4-e602-e813805ef9b3}</data>
 									<data key="11">true</data>
-									<data key="21">OpenCLBuffer&lt;Double&gt;</data>
+									<data key="21">Re::OpenCL::Buffer&lt;Double&gt;</data>
 									<data key="22">Double</data>
-									<data key="23">OpenCLBuffer</data>
+									<data key="23">Re::OpenCL::Buffer</data>
+									<data key="27">Icons</data>
+									<data key="28">buffer</data>
 								</node>
 								<node id="131">
 									<data key="1">ExternalType</data>
-									<data key="2">OpenCLBuffer::Character</data>
+									<data key="2">Re::OpenCL::Buffer&lt;Character&gt;</data>
 									<data key="3">3</data>
 									<data key="10">{606fc772-af5b-3817-594d-e925e080bfe6}</data>
 									<data key="11">true</data>
-									<data key="21">OpenCLBuffer&lt;Character&gt;</data>
+									<data key="21">Re::OpenCL::Buffer&lt;Character&gt;</data>
 									<data key="22">Character</data>
-									<data key="23">OpenCLBuffer</data>
+									<data key="23">Re::OpenCL::Buffer</data>
+									<data key="27">Icons</data>
+									<data key="28">buffer</data>
 								</node>
 								<node id="132">
 									<data key="1">Function</data>
@@ -2591,7 +2516,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{da005208-d491-cf34-3d9c-d695965c5be0}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circlePlus</data>
+									<data key="28">circlePlusThick</data>
 									<data key="29">CreateBuffer</data>
 									<data key="35">OpenCL_Worker</data>
 									<graph id="g132">
@@ -2616,7 +2541,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="22"></data>
 													<data key="23">Vector</data>
 													<data key="27">EntityIcons</data>
-													<data key="28">Vector</data>
+													<data key="28">Vector_Member</data>
 													<data key="125">true</data>
 													<data key="126">true</data>
 												</node>
@@ -2630,7 +2555,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="20">true</data>
 													<data key="21">Boolean</data>
 													<data key="27">Icons</data>
-													<data key="28">cancel</data>
+													<data key="28">halt</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 												</node>
@@ -2655,9 +2580,9 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="11">true</data>
 													<data key="21">Boolean</data>
 													<data key="22"></data>
-													<data key="23">OpenCLBuffer</data>
+													<data key="23">Re::OpenCL::Buffer</data>
 													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
+													<data key="28">buffer</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 													<data key="125">true</data>
@@ -2674,7 +2599,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{e075b282-c720-59af-838e-bb3fd01845e8}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circleMinus</data>
+									<data key="28">binCross</data>
 									<data key="29">ReleaseBuffer</data>
 									<data key="35">OpenCL_Worker</data>
 									<graph id="g138">
@@ -2697,9 +2622,9 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="11">true</data>
 													<data key="21">Boolean</data>
 													<data key="22"></data>
-													<data key="23">OpenCLBuffer</data>
+													<data key="23">Re::OpenCL::Buffer</data>
 													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
+													<data key="28">buffer</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 													<data key="125">true</data>
@@ -2717,7 +2642,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{d8e379e7-5593-955e-7970-0f31a6f2e800}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">arrowRight</data>
+									<data key="28">bufferWrite</data>
 									<data key="29">WriteBuffer</data>
 									<data key="35">OpenCL_Worker</data>
 									<graph id="g141">
@@ -2740,9 +2665,9 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="11">true</data>
 													<data key="21">Boolean</data>
 													<data key="22"></data>
-													<data key="23">OpenCLBuffer</data>
+													<data key="23">Re::OpenCL::Buffer</data>
 													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
+													<data key="28">buffer</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 													<data key="125">true</data>
@@ -2759,7 +2684,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="22"></data>
 													<data key="23">Vector</data>
 													<data key="27">EntityIcons</data>
-													<data key="28">Vector</data>
+													<data key="28">Vector_Member</data>
 													<data key="125">true</data>
 												</node>
 												<node id="145">
@@ -2772,7 +2697,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="20">true</data>
 													<data key="21">Boolean</data>
 													<data key="27">Icons</data>
-													<data key="28">cancel</data>
+													<data key="28">halt</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 												</node>
@@ -2784,11 +2709,11 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="1">Function</data>
 									<data key="2">Read Buffer</data>
 									<data key="3">7</data>
-									<data key="5">Write data to a buffer</data>
+									<data key="5">Read data from a buffer</data>
 									<data key="10">{ff675c62-f47a-e6d1-0a2f-6a70f1495206}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">arrowLeft</data>
+									<data key="28">bufferRead</data>
 									<data key="29">ReadBuffer</data>
 									<data key="35">OpenCL_Worker</data>
 									<graph id="g146">
@@ -2811,9 +2736,9 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="11">true</data>
 													<data key="21">Boolean</data>
 													<data key="22"></data>
-													<data key="23">OpenCLBuffer</data>
+													<data key="23">Re::OpenCL::Buffer</data>
 													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
+													<data key="28">buffer</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 													<data key="125">true</data>
@@ -2829,7 +2754,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="20">true</data>
 													<data key="21">Boolean</data>
 													<data key="27">Icons</data>
-													<data key="28">cancel</data>
+													<data key="28">halt</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 												</node>
@@ -2856,7 +2781,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="22"></data>
 													<data key="23">Vector</data>
 													<data key="27">EntityIcons</data>
-													<data key="28">Vector</data>
+													<data key="28">Vector_Member</data>
 													<data key="125">true</data>
 												</node>
 											</graph>
@@ -2871,7 +2796,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{b99ee97b-bbfd-4b4b-866f-597c9ea342b9}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circleTickDark</data>
+									<data key="28">shieldTick</data>
 									<data key="29">IsBufferValid</data>
 									<data key="35">OpenCL_Worker</data>
 									<graph id="g152">
@@ -2894,9 +2819,9 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="11">true</data>
 													<data key="21">Boolean</data>
 													<data key="22"></data>
-													<data key="23">OpenCLBuffer</data>
+													<data key="23">Re::OpenCL::Buffer</data>
 													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
+													<data key="28">buffer</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 													<data key="125">true</data>
@@ -3016,8 +2941,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="21">Boolean</data>
 													<data key="22">Float</data>
 													<data key="23">Vector</data>
-													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Vector_Member</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 												</node>
@@ -3056,9 +2981,9 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="11">true</data>
 													<data key="21">Boolean</data>
 													<data key="22">Float</data>
-													<data key="23">OpenCLBuffer</data>
+													<data key="23">Re::OpenCL::Buffer</data>
 													<data key="27">Icons</data>
-													<data key="28">memoryCard</data>
+													<data key="28">buffer</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 												</node>
@@ -3074,8 +2999,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{8b7df0ec-01d8-3021-91c0-c822f6f6e500}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">dice</data>
-									<data key="29">KMeans</data>
+									<data key="28">dots</data>
+									<data key="29">KmeansCluster</data>
 									<data key="35">OpenCL_Worker</data>
 									<graph id="g167">
 										<node id="168">
@@ -3128,8 +3053,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="21">Boolean</data>
 													<data key="22">Integer</data>
 													<data key="23">Vector</data>
-													<data key="27">Icons</data>
-													<data key="28">arrowRight</data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Vector_Member</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 												</node>
@@ -3212,8 +3137,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 													<data key="21">Boolean</data>
 													<data key="22">Float</data>
 													<data key="23">Vector</data>
-													<data key="27">Icons</data>
-													<data key="28">arrowRight</data>
+													<data key="27">EntityIcons</data>
+													<data key="28">Vector_Member</data>
 													<data key="40"></data>
 													<data key="41">false</data>
 												</node>
@@ -3228,6 +3153,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{dfae2d94-19f3-81d8-8a66-42ffe83fea3d}</data>
 									<data key="11">true</data>
 									<data key="21">Integer</data>
+									<data key="27">Icons</data>
+									<data key="28">numberOne</data>
 									<data key="37">1</data>
 								</node>
 								<node id="179">
@@ -3237,6 +3164,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{a1913e49-d67f-d6c1-30de-901360eeabed}</data>
 									<data key="11">true</data>
 									<data key="21">Integer</data>
+									<data key="27">Icons</data>
+									<data key="28">numberOne</data>
 									<data key="37">1</data>
 								</node>
 							</graph>
@@ -3252,8 +3181,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 							<data key="24">Tcp_Worker</data>
 							<data key="25">${RE_PATH}/src/workers/tcp</data>
 							<data key="26">tcp_worker</data>
-							<data key="27">EntityIcons</data>
-							<data key="28">Vector</data>
+							<data key="27">Icons</data>
+							<data key="28">transmission</data>
 							<data key="31">0.1.0</data>
 							<data key="32"></data>
 							<data key="33">true</data>
@@ -3266,7 +3195,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{3519669e-1815-f9b1-d283-6c6038d43d81}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circleInfo</data>
+									<data key="28">spanner</data>
 									<data key="29">Bind</data>
 									<data key="35">Tcp_Worker</data>
 									<graph id="g182">
@@ -3306,7 +3235,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{84c38d4b-abcb-ee9e-e85a-756362b47c19}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circleInfo</data>
+									<data key="28">circlePlayTwoTone</data>
 									<data key="29">Connect</data>
 									<data key="35">Tcp_Worker</data>
 									<graph id="g185">
@@ -3346,7 +3275,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{f0731b6e-2582-e54a-b6ed-2102868e44c1}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circleInfo</data>
+									<data key="28">circlePauseTwoTone</data>
 									<data key="29">Disconnect</data>
 									<data key="35">Tcp_Worker</data>
 								</node>
@@ -3411,7 +3340,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{892c7ee3-9a1d-5971-af72-89a63ea5acfb}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circleInfo</data>
+									<data key="28">arrowLineUp</data>
 									<data key="29">Send</data>
 									<data key="35">Tcp_Worker</data>
 									<graph id="g193">
@@ -3478,7 +3407,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{46f3996f-c7a0-8590-9846-019c3bdd02a5}</data>
 									<data key="11">true</data>
 									<data key="27">Icons</data>
-									<data key="28">circleInfo</data>
+									<data key="28">arrowLineDown</data>
 									<data key="29">Receive</data>
 									<data key="35">Tcp_Worker</data>
 									<graph id="g198">
@@ -3518,6 +3447,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{aeecc33f-7629-28ce-9fa8-2b0116915d0c}</data>
 									<data key="11">true</data>
 									<data key="21">Character</data>
+									<data key="27">Icons</data>
+									<data key="28">letterA</data>
 									<data key="37">1</data>
 								</node>
 								<node id="202">
@@ -3527,6 +3458,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{155b91cc-5366-4e78-2fc9-69e6ae6481c7}</data>
 									<data key="11">true</data>
 									<data key="21">String</data>
+									<data key="27">Icons</data>
+									<data key="28">arrowsUpDownDark</data>
 									<data key="37">1</data>
 								</node>
 								<node id="203">
@@ -3536,6 +3469,8 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 									<data key="10">{00d3ec50-d7a3-9ce5-3a4f-856cf81f5d16}</data>
 									<data key="11">true</data>
 									<data key="21">String</data>
+									<data key="27">Icons</data>
+									<data key="28">numberOne</data>
 									<data key="37">1</data>
 								</node>
 							</graph>
@@ -4892,9 +4827,6 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 		<edge id="501" source="498" target="425">
 			<data key="1">Edge_Data</data>
 		</edge>
-		<edge id="497" source="346" target="374">
-			<data key="1">Edge_Deployment</data>
-		</edge>
 		<edge id="496" source="438" target="246">
 			<data key="1">Edge_Definition</data>
 		</edge>
@@ -5063,6 +4995,9 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 		<edge id="378" source="377" target="205">
 			<data key="1">Edge_Definition</data>
 		</edge>
+		<edge id="373" source="346" target="19">
+			<data key="1">Edge_Deployment</data>
+		</edge>
 		<edge id="372" source="429" target="371">
 			<data key="1">Edge_Data</data>
 		</edge>
@@ -5102,7 +5037,7 @@ g_send_vec.push_back(&apos;a&apos;);</data>
 		<edge id="347" source="346" target="314">
 			<data key="1">Edge_Definition</data>
 		</edge>
-		<edge id="345" source="480" target="374">
+		<edge id="345" source="480" target="19">
 			<data key="1">Edge_Deployment</data>
 		</edge>
 		<edge id="344" source="315" target="314">

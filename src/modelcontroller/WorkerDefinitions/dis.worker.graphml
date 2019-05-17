@@ -25,7 +25,7 @@
             <data key="worker">Dis_Worker</data>
             <data key="label">Dis_Worker</data>
             <data key="icon_prefix">Icons</data>
-            <data key="icon">transmission</data>
+            <data key="icon">waveEmit</data>
             <data key="description">Provides DIS Support. Requires an IP address and Port attribute to be set</data>
             <data key="folder">${RE_PATH}/src/workers/dis</data>
             <data key="file">dis_worker</data>
@@ -130,12 +130,16 @@
 					<data key="type">String</data>
 					<data key="label">ip_address</data>
 					<data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">arrowsUpDownDark</data>
 				</node>
 				<node id="DIS::port">
                     <data key="type">Integer</data>
 					<data key="label">port</data>
 					<data key="kind">Attribute</data>
                     <data key="value">3000</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">numberOne</data>
 				</node>
             </graph>
         </node>

@@ -28,8 +28,8 @@
             <data key="version">0.1.0</data>
             <data key="worker">Tcp_Worker</data>
             <data key="label">Tcp Worker</data>
-            <data key="icon_prefix">EntityIcons</data>
-            <data key="icon">Vector</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">transmission</data>
             <data key="description">Provides low a low level tcp interface.</data>
             <data key="folder">${RE_PATH}/src/workers/tcp</data>
             <data key="file">tcp_worker</data>
@@ -40,7 +40,7 @@
                     <data key="label">Bind</data>
                     <data key="operation">Bind</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">circleInfo</data>
+                    <data key="icon">spanner</data>
                     <data key="description">Binds a sending tcp worker to an ip address + port.</data>
                     <graph id="tcpworker::bind:">
                         <node id="tcpworker::bind::out">
@@ -63,7 +63,7 @@
                     <data key="label">Connect</data>
                     <data key="operation">Connect</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">circleInfo</data>
+                    <data key="icon">circlePlayTwoTone</data>
                     <data key="description">Connects to a sending tcp endpoint.</data>
                     <graph id="tcpworker::connect:">
                         <node id="tcpworker::connect::out">
@@ -86,7 +86,7 @@
                     <data key="label">Disconnect</data>
                     <data key="operation">Disconnect</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">circleInfo</data>
+                    <data key="icon">circlePauseTwoTone</data>
                     <data key="description">Disconnects the tcp worker from its bound or connected endpoint.</data>
                 </node>
                 <node id="tcpworker::bind_callback">
@@ -123,7 +123,7 @@
                     <data key="label">Send</data>
                     <data key="operation">Send</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">circleInfo</data>
+                    <data key="icon">arrowLineUp</data>
                     <data key="description">Sends data to a tcp endpoint.</data>
                     <graph id="tcpworker::send:">
                         <node id="tcpworker::send::in">
@@ -160,7 +160,7 @@
                     <data key="label">Receive</data>
                     <data key="operation">Receive</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">circleInfo</data>
+                    <data key="icon">arrowLineDown</data>
                     <data key="description">Receives all data ready to be read from tcp socket.</data>
                     <graph id="tcpworker::receive:">
                         <node id="tcpworker::receive::out:">
@@ -183,16 +183,22 @@
                     <data key="type">Character</data>
                     <data key="label">delimiter</data>
                     <data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">letterA</data>
                 </node>
                 <node id="tcpworker::ip_address">
                     <data key="type">String</data>
                     <data key="label">ip_address</data>
                     <data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">arrowsUpDownDark</data>
                 </node>
                 <node id="tcpworker::port">
                     <data key="type">String</data>
                     <data key="label">port</data>
                     <data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">numberOne</data>
                 </node>
             </graph>
         </node>
