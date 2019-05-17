@@ -360,4 +360,16 @@
         <xsl:value-of select="o:nl(1)" />
     </xsl:function>
 
+    <!--
+        Sets the minimum CMake version required
+        
+        install(TARGETS ${PROJ_NAME} DESTINATION lib)
+    -->
+    <xsl:function name="cmake:install">
+        <xsl:param name="target" as="xs:string"/>
+        <xsl:param name="destination" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'install(TARGETS ', cmake:wrap_variable($target), ' DESTINATION ', $destination, ')', o:nl(1))" />
+    </xsl:function>
+
 </xsl:stylesheet>

@@ -2288,6 +2288,11 @@
         <xsl:value-of select="cmake:add_library('PROJ_NAME', $library_type, $args)" />
         <xsl:value-of select="o:nl(1)" />
 
+        <!-- Install -->
+        <xsl:value-of select="cmake:comment('Install', 0)" />
+        <xsl:value-of select="cmake:install('PROJ_NAME', 'lib', 0)" />
+        <xsl:value-of select="o:nl(1)" />
+
         <!-- Include -->
         <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />

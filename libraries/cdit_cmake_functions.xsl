@@ -490,6 +490,8 @@
         <xsl:value-of select="cmake:add_library('PROJ_NAME', 'STATIC', $args)" />
         <xsl:value-of select="o:nl(1)" />
 
+        
+
         <!-- Include -->
         <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PUBLIC', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />
@@ -596,6 +598,11 @@
         <xsl:value-of select="cmake:add_library('PROJ_NAME', 'MODULE', o:join_paths((cmake:current_source_dir_var(), 'libportexport.cpp')))" />
         <xsl:value-of select="o:nl(1)" />
 
+        <!-- Install -->
+        <xsl:value-of select="cmake:comment('Install', 0)" />
+        <xsl:value-of select="cmake:install('PROJ_NAME', 'lib', 0)" />
+        <xsl:value-of select="o:nl(1)" />
+
         <!-- Include Runtime Environment -->
         <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />
@@ -683,6 +690,11 @@
 
         <!-- Add the Library -->
         <xsl:value-of select="cmake:add_library('PROJ_NAME', 'MODULE', cmake:wrap_variable('SOURCE'))" />
+        <xsl:value-of select="o:nl(1)" />
+
+        <!-- Install -->
+        <xsl:value-of select="cmake:comment('Install', 0)" />
+        <xsl:value-of select="cmake:install('PROJ_NAME', 'lib', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Runtime Environment -->
@@ -780,8 +792,8 @@
 
         <!-- Fix for CentOS RPath MED-580 -->
         <xsl:value-of select="cmake:if_start('UNIX', 0)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_BUILD_WITH_INSTALL_RPATH', 'TRUE', 1)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_INSTALL_RPATH', '$ORIGIN/', 1)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_INSTALL_RPATH_USE_LINK_PATH', 'TRUE', 1)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_INSTALL_RPATH', '$ORIGIN/:$ORIGIN/../lib', 1)" />
         <xsl:value-of select="cmake:if_end('UNIX', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
