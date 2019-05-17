@@ -2,6 +2,9 @@
 sudo yum install epel-release git wget java-1.8.0-openjdk chrony && \
     sudo yum install centos-release-scl && \
     sudo yum install devtoolset-7 && \
+    sudo yum install yum-utils device-mapper-persistent-data lvm2 && \
+    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && \
+    sudo yum install docker-ce docker-ce-cli containerd.io && \
     sudo yum install ninja-build cmake3 ccache && \
     sudo ln -s /usr/bin/cmake3 /usr/bin/cmake && \
     . /opt/rh/devtoolset-7/enable
