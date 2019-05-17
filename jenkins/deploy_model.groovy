@@ -170,13 +170,15 @@ pipeline{
 
                                             unstash('codegen')
                                             dir("build"){
-                                                if(!utils.buildProject("Ninja", "")){
+                                                if(!utils.buildProject("Ninja", "-DCMAKE_INSTALL_PREFIX=../install", true)){
                                                     error("CMake failed on Builder Node: ${builder_name}")
                                                 }
                                             }
-                                            dir("lib"){
-                                                //Stash all built libraries
-                                                stash includes: '**', name: stash_name
+                                            dir("install"){
+                                                dir("lib"){
+                                                    //Stash all built libraries
+                                                    stash includes: '**', name: stash_name
+                                                }
                                             }
                                             deleteDir()
                                         }
