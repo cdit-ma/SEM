@@ -128,12 +128,16 @@
         <file alias="bell">Resources/Icons/bell.png</file>
         <file alias="bellExclamation">Resources/Icons/bellExclamation.png</file>
         <file alias="bin">Resources/Icons/bin.png</file>
+        <file alias="binCross">Resources/Icons/binCross.png</file>
         <file alias="blank">Resources/Icons/blank.png</file>
         <file alias="book">Resources/Icons/book.png</file>
         <file alias="bookmark">Resources/Icons/bookmark.png</file>
         <file alias="bracketsAngled">Resources/Icons/bracketsAngled.png</file>
         <file alias="bracketsCurly">Resources/Icons/bracketsCurly.png</file>
         <file alias="briefcase">Resources/Icons/briefcase.png</file>
+        <file alias="buffer">Resources/Icons/buffer.png</file>
+        <file alias="bufferRead">Resources/Icons/bufferRead.png</file>
+        <file alias="bufferWrite">Resources/Icons/bufferWrite.png</file>
         <file alias="bug">Resources/Icons/bug.png</file>
         <file alias="buildingPillared">Resources/Icons/buildingPillared.png</file>
         <file alias="camera">Resources/Icons/camera.png</file>
@@ -163,10 +167,10 @@
         <file alias="circleInfoDark">Resources/Icons/circleInfoDark.png</file>
         <file alias="circleMinus">Resources/Icons/circleMinus.png</file>
         <file alias="circleMinusDark">Resources/Icons/circleMinusDark.png</file>
-        <file alias="circlePauseTwoTone">Resources/Icons/circlePauseTwoTone.png</file>
-        <file alias="circlePlayTwoTone">Resources/Icons/circlePlayTwoTone.png</file>
         <file alias="circlePause">Resources/Icons/circlePause.png</file>
+        <file alias="circlePauseTwoTone">Resources/Icons/circlePauseTwoTone.png</file>
         <file alias="circlePlay">Resources/Icons/circlePlay.png</file>
+        <file alias="circlePlayTwoTone">Resources/Icons/circlePlayTwoTone.png</file>
         <file alias="circlePlus">Resources/Icons/circlePlus.png</file>
         <file alias="circlePlusDark">Resources/Icons/circlePlusDark.png</file>
         <file alias="circlePlusThick">Resources/Icons/circlePlusThick.png</file>
@@ -243,6 +247,7 @@
         <file alias="gridOutline">Resources/Icons/gridOutline.png</file>
         <file alias="gridOutlineStriked">Resources/Icons/gridOutlineStriked.png</file>
         <file alias="gridSelect">Resources/Icons/gridSelect.png</file>
+        <file alias="halt">Resources/Icons/halt.png</file>
         <file alias="hand">Resources/Icons/hand.png</file>
         <file alias="heart">Resources/Icons/heart.png</file>
         <file alias="home">Resources/Icons/home.png</file>
