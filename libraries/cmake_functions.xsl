@@ -277,11 +277,11 @@
     </xsl:function>
 
     <!--
-        Sets the required settings to force C++11 Compliance
+        Sets the required settings to force C++17 Compliance
     -->
-    <xsl:function name="cmake:set_cpp11">
-        <xsl:value-of select="cmake:comment('CMake C++11 Options', 0)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_CXX_STANDARD', '11', 0)" />
+    <xsl:function name="cmake:set_cpp17">
+        <xsl:value-of select="cmake:comment('CMake C++17 Options', 0)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_CXX_STANDARD', '17', 0)" />
         <xsl:value-of select="cmake:set_variable('CMAKE_CXX_STANDARD_REQUIRED', 'ON', 0)" />
         <xsl:value-of select="cmake:set_variable('CMAKE_CXX_EXTENSIONS', 'OFF', 0)" />
         <xsl:value-of select="cmake:set_variable('CMAKE_POSITION_INDEPENDENT_CODE', 'ON', 0)" />

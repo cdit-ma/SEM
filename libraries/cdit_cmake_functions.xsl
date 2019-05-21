@@ -776,7 +776,7 @@
     <xsl:function name="cmake:get_top_cmakelists">
         <xsl:value-of select="cmake:print_regen_version('cdit_cmake_functions.xsl', 'cdit:get_top_cmakelists', 0)" />
         <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
-        <xsl:value-of select="cmake:set_cpp11()" />
+        <xsl:value-of select="cmake:set_cpp17()" />
         
         <!-- Don't set if we have valid values already, If we aren't the top level, don't redefine -->
         <xsl:value-of select="concat('get_directory_property(IS_SUB_REPO PARENT_DIRECTORY)', o:nl(1))" />

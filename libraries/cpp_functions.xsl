@@ -1,5 +1,5 @@
 <!--
-    A set of XSLT2.0 Functions for outputting C++11 code.
+    A set of XSLT2.0 Functions for outputting C++17 code.
 -->
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
