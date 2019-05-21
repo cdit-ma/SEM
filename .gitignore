@@ -1,5 +1,19 @@
-*.user
-build/*
-.DS_Store
-.vscode
+# MEDEA Autosaves
+*.autosave.*
+
+# Build dirs
+/build/
+/lib/
+/bin/
+/cmake-build-*/
 test/bin/*
+
+# IDE Config
+/.vscode/
+/.idea/
+*.user
+
+# Other
+.sql
+.DS_Store
+
