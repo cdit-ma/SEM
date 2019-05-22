@@ -14,9 +14,10 @@ class Execution{
         std::condition_variable lock_condition_;
 
         std::vector<std::function<void()> > terminate_functions_;
+        std::vector<std::string> errors_;
 
     public:
-        void Start(){
+        int Start(){
             //Wait for the signal_handler to notify for exit
             {
                 std::unique_lock<std::mutex> lock(mutex_);
@@ -25,7 +26,22 @@ class Execution{
             for(auto func : terminate_functions_){
                 func();
             }
+
+            if(errors_.empty()) {
+                return 0;
+            }
+
+            for (const auto& error : errors_) {
+                std::cerr << error << std::endl;
+            }
+            return 1;
+
         };
+
+        void SetError(const std::string& error_string) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            errors_.emplace_back(error_string);
+        }
 
         void AddTerminateCallback(std::function<void()> callback_func){
             std::unique_lock<std::mutex> lock(mutex_);
