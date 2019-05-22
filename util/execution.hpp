@@ -29,14 +29,14 @@ class Execution{
 
             if(errors_.empty()) {
                 return 0;
+            } else {
+                return 1;
             }
-
-            for (const auto& error : errors_) {
-                std::cerr << error << std::endl;
-            }
-            return 1;
-
         };
+
+        auto GetErrors() -> std::vector<std::string> {
+            return errors_;
+        }
 
         void SetError(const std::string& error_string) {
             std::lock_guard<std::mutex> lock(mutex_);
@@ -46,13 +46,13 @@ class Execution{
         void AddTerminateCallback(std::function<void()> callback_func){
             std::unique_lock<std::mutex> lock(mutex_);
             terminate_functions_.push_back(callback_func);
-        };
+        }
 
         void Interrupt(){
             std::unique_lock<std::mutex> lock(mutex_);
             terminated = true;
             lock_condition_.notify_all();
-        };
+        }
 
         bool IsInterrupted(){
             std::unique_lock<std::mutex> lock(mutex_);
