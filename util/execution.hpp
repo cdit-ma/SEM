@@ -5,7 +5,6 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
-#include <numeric>
 #include <vector>
 
 class Execution {
@@ -42,7 +41,7 @@ public:
         }
     }
 
-    void SetError(std::unique_ptr<std::exception> error)
+    void AddException(std::unique_ptr<std::exception> error)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         errors_.emplace_back(std::move(error));
