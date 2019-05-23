@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
+#include <sstream>
 #include <vector>
 
 class Execution {
@@ -30,7 +31,7 @@ public:
                 // This is so that we are sure we've called all termination callbacks regardless of
                 // others failing.
                 func();
-            } catch (const std::exception& ex) {
+            } catch(const std::exception& ex) {
                 error_messages << ex.what() << std::endl;
                 std::cerr << ex.what() << std::endl;
             }
