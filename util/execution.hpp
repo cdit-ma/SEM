@@ -14,7 +14,6 @@ private:
     std::condition_variable lock_condition_;
 
     std::vector<std::function<void()>> terminate_functions_;
-    std::vector<std::unique_ptr<std::exception>> errors_;
 
 public:
     void Start()
@@ -24,33 +23,27 @@ public:
             std::unique_lock<std::mutex> lock(mutex_);
             lock_condition_.wait(lock, [this] { return terminated; });
         }
-        for(auto func : terminate_functions_) {
-            func();
-        }
-
-        // Re-acquire mutex while we populate our error message (if we have one)
-        std::lock_guard<std::mutex> lock(mutex_);
-        if(!errors_.empty()) {
-            auto message = std::string(errors_.front()->what());
-            for(auto it = std::next(errors_.begin()); it != errors_.end(); ++it) {
-                message += '\n';
-                message += (*it)->what();
+        std::ostringstream error_messages;
+        for(const auto& func : terminate_functions_) {
+            try {
+                // Catch, log and move on if we encounter any exceptions.
+                // This is so that we are sure we've called all termination callbacks regardless of
+                // others failing.
+                func();
+            } catch (const std::exception& ex) {
+                error_messages << ex.what() << std::endl;
+                std::cerr << ex.what() << std::endl;
             }
-
-            throw std::runtime_error(message);
+        }
+        if(!error_messages.str().empty()) {
+            throw std::logic_error(error_messages.str());
         }
     }
 
-    void AddException(std::unique_ptr<std::exception> error)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        errors_.emplace_back(std::move(error));
-    }
-
-    void AddTerminateCallback(std::function<void()> callback_func)
+    void AddTerminateCallback(const std::function<void()>& callback_func)
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        terminate_functions_.push_back(callback_func);
+        terminate_functions_.emplace_back(callback_func);
     }
 
     void Interrupt()
