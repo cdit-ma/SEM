@@ -163,8 +163,12 @@ int main(int argc, char **argv){
             return 1;
         }
     }
-    
 
-    execution.Start();
+    try {
+        execution.Start();
+    } catch (const std::exception& ex) {
+        std::cerr << ex.what() << std::endl;
+        return 1;
+    }
     return 0;
 }

@@ -6,7 +6,7 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 # Node manager library
 add_library(${LIB_NAME} SHARED "")
-target_compile_features(${LIB_NAME} PRIVATE cxx_std_11)
+target_compile_features(${LIB_NAME} PRIVATE cxx_std_17)
 target_compile_definitions(${LIB_NAME} PUBLIC BOOST_ALL_DYN_LINK)
 
 target_sources(${LIB_NAME} PRIVATE
