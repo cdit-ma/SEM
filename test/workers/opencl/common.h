@@ -11,27 +11,24 @@
 #include <workers/opencl/utilities.h>
 
 #define EPS 1e-6
-#define CHECK_FLOAT(x, y, eps) (fabs(x - y) < eps)
 
-#define EXPECT_NEAR_RELATIVE(expected, actual, thresh)       \
-    if(actual == 0) {                                        \
-        EXPECT_NEAR(expected, actual, thresh);               \
-    } else {                                                 \
-        EXPECT_NEAR(fabs((expected) / (actual)), 1, thresh); \
+namespace cditma::test::helpers {
+template<typename T>
+void expect_nearly_equal(const std::vector<T>& expected, const std::vector<T>& actual, float thresh)
+{
+    EXPECT_EQ(expected.size(), actual.size()) << "Array sizes differ.";
+    for(size_t idx = 0; idx < std::min(expected.size(), actual.size()); ++idx) {
+        if(actual[idx] == 0) {
+            EXPECT_NEAR(expected[idx], actual[idx], thresh) << "at index: " << idx;
+        } else {
+            EXPECT_NEAR(fabs((expected[idx]) / (actual[idx])), 1, thresh);
+        }
     }
-
-#define EXPECT_FLOATS_NEARLY_EQ(expected, actual, thresh)                           \
-    EXPECT_EQ(expected.size(), actual.size()) << "Array sizes differ.";             \
-    for(size_t idx = 0; idx < std::min(expected.size(), actual.size()); ++idx) {    \
-        if(actual[idx] == 0) {                                                      \
-            EXPECT_NEAR(expected[idx], actual[idx], thresh) << "at index: " << idx; \
-        } else {                                                                    \
-            EXPECT_NEAR(fabs((expected[idx]) / (actual[idx])), 1, thresh);          \
-        }                                                                           \
-    }
+}
+} // namespace cditma::test::helpers
 
 struct DeviceParam {
-    DeviceParam(){};
+    DeviceParam() = default;
 
     DeviceParam(int platform_id, int device_id)
     {
@@ -44,8 +41,10 @@ struct DeviceParam {
 };
 
 class OpenCL_WorkerConstructor {
-    public:
-    OpenCL_WorkerConstructor(DeviceParam device) : component_("component"), worker_(component_, "OpenCL_Worker")
+public:
+    OpenCL_WorkerConstructor(DeviceParam device) :
+        component_("component"),
+        worker_(component_, "OpenCL_Worker")
     {
         Print::Logger::get_logger().SetLogLevel(10);
         worker_.logger().AddLogger(Print::Logger::get_logger());
@@ -71,13 +70,14 @@ class OpenCL_WorkerConstructor {
 extern void PrintInfo(std::string str);
 extern std::vector<DeviceParam> getDevices();
 extern std::ostream& operator<<(std::ostream& os, const DeviceParam& d);
-extern std::vector<float> CPUMatrixMult(float* matrix_a, float* matrix_b, size_t m, size_t k, size_t n);
+extern std::vector<float>
+CPUMatrixMult(float* matrix_a, float* matrix_b, size_t m, size_t k, size_t n);
 
 extern std::string GetDeviceName(int platform_id, int device_id);
 extern std::string GetPlatformName(int platform_id);
 
 class DummyWorker : public Worker {
-    public:
+public:
     DummyWorker(Component& component);
     const std::string& get_version() const override;
 };

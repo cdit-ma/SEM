@@ -5,13 +5,15 @@
  * Matrix testing
  ****/
 
+using namespace cditma::test::helpers;
+
 struct Matrix {
     Matrix(size_t rows, size_t columns)
     {
         this->rows = rows;
         this->columns = columns;
     }
-    Matrix(size_t size) : Matrix(size, size){};
+    explicit Matrix(size_t size) : Matrix(size, size){};
     Matrix() = default;
 
     size_t GetElements() const { return rows * columns; }
@@ -21,7 +23,10 @@ struct Matrix {
 };
 
 struct MatrixMultParam {
-    MatrixMultParam(DeviceParam device, const Matrix& matrix_a, const Matrix& matrix_b, bool expect_success = true)
+    MatrixMultParam(DeviceParam device,
+                    const Matrix& matrix_a,
+                    const Matrix& matrix_b,
+                    bool expect_success = true)
     {
         this->device = device;
         this->matrix_a = matrix_a;
@@ -38,15 +43,16 @@ struct MatrixMultParam {
 std::ostream& operator<<(std::ostream& os, const Matrix& m)
 {
     return os << "[" << m.rows << " x " << m.columns << "]";
-};
+}
 
 std::ostream& operator<<(std::ostream& os, const MatrixMultParam& m)
 {
     return os << m.device << " - Matrix A: " << m.matrix_a << " x Matrix B: " << m.matrix_b;
-};
+}
 
-class MatrixMultFixture : public ::testing::TestWithParam<MatrixMultParam>, public OpenCL_WorkerConstructor {
-    public:
+class MatrixMultFixture : public ::testing::TestWithParam<MatrixMultParam>,
+                          public OpenCL_WorkerConstructor {
+public:
     MatrixMultFixture() : OpenCL_WorkerConstructor(GetParam().device)
     {
         if(!worker_.Configure()) {
@@ -62,7 +68,8 @@ TEST_P(MatrixMultFixture, ZeroMatrix)
 
     std::vector<float> matrix_a(m_a.rows * m_a.columns, 0.0f);
     std::vector<float> matrix_b(m_b.rows * m_b.columns, 0.0f);
-    std::vector<float> matrix_c(m_a.rows * m_b.columns, std::numeric_limits<float>::signaling_NaN());
+    std::vector<float> matrix_c(m_a.rows * m_b.columns,
+                                std::numeric_limits<float>::signaling_NaN());
 
     bool did_report_success = false;
     ASSERT_NO_THROW(did_report_success = worker_.MatrixMult(matrix_a, matrix_b, matrix_c));
@@ -70,8 +77,9 @@ TEST_P(MatrixMultFixture, ZeroMatrix)
 
     if(GetParam().expect_success) {
         // Calculate the expected result
-        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, EPS);
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows,
+                                             m_a.columns, m_b.columns);
+        expect_nearly_equal(matrix_c, expected_result, EPS);
     }
 }
 
@@ -82,7 +90,8 @@ TEST_P(MatrixMultFixture, IncrementalMatrix)
 
     std::vector<float> matrix_a(m_a.rows * m_a.columns);
     std::vector<float> matrix_b(m_b.rows * m_b.columns);
-    std::vector<float> matrix_c(m_a.rows * m_b.columns, std::numeric_limits<float>::signaling_NaN());
+    std::vector<float> matrix_c(m_a.rows * m_b.columns,
+                                std::numeric_limits<float>::signaling_NaN());
 
     for(size_t index = 0; index < matrix_a.size(); index++)
         matrix_a[index] = (float)index;
@@ -95,8 +104,9 @@ TEST_P(MatrixMultFixture, IncrementalMatrix)
 
     if(GetParam().expect_success) {
         // Calculate the expected result
-        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, EPS);
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows,
+                                             m_a.columns, m_b.columns);
+        expect_nearly_equal(matrix_c, expected_result, EPS);
     }
 }
 
@@ -107,7 +117,8 @@ TEST_P(MatrixMultFixture, DISABLED_RandomTest)
 
     std::vector<float> matrix_a(m_a.rows * m_a.columns);
     std::vector<float> matrix_b(m_b.rows * m_b.columns);
-    std::vector<float> matrix_c(m_a.rows * m_b.columns, std::numeric_limits<float>::signaling_NaN());
+    std::vector<float> matrix_c(m_a.rows * m_b.columns,
+                                std::numeric_limits<float>::signaling_NaN());
 
     std::default_random_engine random_generator;
     std::default_random_engine generator(testing::UnitTest::GetInstance()->random_seed());
@@ -124,12 +135,14 @@ TEST_P(MatrixMultFixture, DISABLED_RandomTest)
 
     if(GetParam().expect_success) {
         // Calculate the expected result
-        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, 1.2e-1);
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows,
+                                             m_a.columns, m_b.columns);
+        expect_nearly_equal(matrix_c, expected_result, 1.2e-1);
     }
 }
 
-// Quick test for NVIDIA to try to isolate apparent rounding errors during fused multiply addition operations
+// Quick test for NVIDIA to try to isolate apparent rounding errors during fused multiply addition
+// operations
 TEST_P(MatrixMultFixture, DISABLED_RandomIdentityTest)
 {
     auto& m_a = GetParam().matrix_a;
@@ -137,7 +150,8 @@ TEST_P(MatrixMultFixture, DISABLED_RandomIdentityTest)
 
     std::vector<float> matrix_a(m_a.rows * m_a.columns);
     std::vector<float> matrix_b(m_b.columns * m_b.columns);
-    std::vector<float> matrix_c(m_a.rows * m_b.columns, std::numeric_limits<float>::signaling_NaN());
+    std::vector<float> matrix_c(m_a.rows * m_b.columns,
+                                std::numeric_limits<float>::signaling_NaN());
 
     std::default_random_engine random_generator;
     std::default_random_engine generator(testing::UnitTest::GetInstance()->random_seed());
@@ -161,28 +175,31 @@ TEST_P(MatrixMultFixture, DISABLED_RandomIdentityTest)
 
     if(GetParam().expect_success) {
         // Calculate the expected result
-        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows, m_a.columns, m_b.columns);
-        EXPECT_FLOATS_NEARLY_EQ(matrix_c, expected_result, 1e-6);
+        auto expected_result = CPUMatrixMult(matrix_a.data(), matrix_b.data(), m_a.rows,
+                                             m_a.columns, m_b.columns);
+        expect_nearly_equal(matrix_c, expected_result, 1e-6);
     }
 }
 
-std::vector<MatrixMultParam>
-getMatrixTests(std::vector<DeviceParam> devices, std::vector<std::vector<int>> dimensions, bool expect_success = true)
+std::vector<MatrixMultParam> getMatrixTests(std::vector<DeviceParam> devices,
+                                            std::vector<std::vector<int>> dimensions,
+                                            bool expect_success = true)
 {
     std::vector<MatrixMultParam> params;
     for(auto device : devices) {
         for(auto dimension : dimensions) {
             if(dimension.size() == 4) {
-                params.emplace_back(device, Matrix(dimension[0], dimension[1]), Matrix(dimension[2], dimension[3]),
-                                    expect_success);
+                params.emplace_back(device, Matrix(dimension[0], dimension[1]),
+                                    Matrix(dimension[2], dimension[3]), expect_success);
             }
         }
     }
     return params;
 };
 
-std::vector<MatrixMultParam>
-getSquareMatrixTests(std::vector<DeviceParam> devices, std::vector<int> sizes, bool expect_success = true)
+std::vector<MatrixMultParam> getSquareMatrixTests(std::vector<DeviceParam> devices,
+                                                  std::vector<int> sizes,
+                                                  bool expect_success = true)
 {
     std::vector<std::vector<int>> dimensions;
     for(auto size : sizes)
@@ -204,7 +221,7 @@ std::vector<MatrixMultParam> getSquareTests()
     all_params.insert(all_params.end(), valid_params.begin(), valid_params.end());
     all_params.insert(all_params.end(), invalid_params.begin(), invalid_params.end());
     return all_params;
-};
+}
 
 std::vector<MatrixMultParam> getRectTests()
 {
@@ -247,7 +264,11 @@ std::vector<MatrixMultParam> getRectTests()
     all_params.insert(all_params.end(), valid_params.begin(), valid_params.end());
     all_params.insert(all_params.end(), invalid_params.begin(), invalid_params.end());
     return all_params;
-};
+}
 
-INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Square, MatrixMultFixture, ::testing::ValuesIn(getSquareTests()));
-INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Rect, MatrixMultFixture, ::testing::ValuesIn(getRectTests()));
+INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Square,
+                        MatrixMultFixture,
+                        ::testing::ValuesIn(getSquareTests()));
+INSTANTIATE_TEST_CASE_P(Re_Worker_OpenclWorker_Rect,
+                        MatrixMultFixture,
+                        ::testing::ValuesIn(getRectTests()));

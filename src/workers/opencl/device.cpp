@@ -23,7 +23,8 @@ std::string Device::GetName() const { return name_; }
 
 Queue& Device::AddQueue(const std::string& name)
 {
-    const auto&& emplace_result = queue_map_.emplace(name, std::make_unique<Queue>(manager_, *this));
+    const auto&& emplace_result = queue_map_.emplace(name,
+                                                     std::make_unique<Queue>(manager_, *this));
     // Check if emplace reported an insertion occurring
     if(emplace_result.second != true) {
         throw std::runtime_error("Failed to add Queue");
@@ -35,7 +36,15 @@ Queue& Device::AddQueue(const std::string& name)
 
 Queue& Device::GetQueue() const { return default_queue_; }
 
-Queue& Device::GetQueue(const std::string& name) const { return default_queue_; }
+Queue& Device::GetQueue(const std::string& name) const
+{
+    auto&& map_itr = queue_map_.find(name);
+    if(map_itr == queue_map_.end()) {
+        throw OpenCLException("Attempting to get non-existent Queue: " + name,
+                              CL_INVALID_COMMAND_QUEUE);
+    }
+    return *map_itr->second;
+}
 
 // May throw
 void Device::LoadKernelsFromSource(const std::vector<std::string>& filenames)
@@ -72,23 +81,26 @@ void Device::LoadKernelsFromSource(const std::vector<std::string>& filenames)
     std::vector<cl::Kernel> new_kernels;
     err = new_program.createKernels(&new_kernels);
     if(err != CL_SUCCESS) {
-        throw OpenCLException("An error occurred during the creation of OpenCL kernels from a built program", err);
+        throw OpenCLException("An error occurred during the creation of OpenCL kernels from a "
+                              "built program",
+                              err);
+    }
 
-        std::vector<std::string> kernel_names;
-        // std::vector<OpenCLDevice> all_devices = manager_.GetDevices(worker);
-        for(const auto& other_dev : manager_.GetDevices()) {
-            if(other_dev->GetName() == name_) {
-                for(const Kernel& kernel : other_dev->GetKernels()) {
-                    kernel_names.push_back(kernel.GetName());
-                }
+    std::vector<std::string> kernel_names;
+    // std::vector<OpenCLDevice> all_devices = manager_.GetDevices(worker);
+    for(const auto& other_dev : manager_.GetDevices()) {
+        if(other_dev.get() != this && other_dev->GetName() == name_) {
+            for(const Kernel& kernel : other_dev->GetKernels()) {
+                kernel_names.push_back(kernel.GetName());
             }
         }
-        for(const auto& kernel_name : kernel_names) {
-            new_kernels.emplace_back(new_program, kernel_name.c_str(), &err);
-            if(err != CL_SUCCESS) {
-                throw OpenCLException(
-                    "An error occurred during the fallback operation where kernels are created individually", err);
-            }
+    }
+    for(const auto& kernel_name : kernel_names) {
+        new_kernels.emplace_back(new_program, kernel_name.c_str(), &err);
+        if(err != CL_SUCCESS) {
+            throw OpenCLException("An error occurred during the fallback operation where "
+                                  "kernels are created individually",
+                                  err);
         }
     }
 
@@ -109,7 +121,9 @@ void Device::LoadKernelsFromBinary(const std::string& filename)
     try {
         binaries = ReadOpenCLBinaries(filenames);
     } catch(const std::exception& e) {
-        throw OpenCLException(std::string("An error occurred while trying to read OpenCL binaries:\n") + e.what(),
+        throw OpenCLException(std::string("An error occurred while trying to read OpenCL "
+                                          "binaries:\n")
+                                  + e.what(),
                               CL_INVALID_BINARY);
     }
 
@@ -119,8 +133,8 @@ void Device::LoadKernelsFromBinary(const std::string& filename)
 
     std::lock_guard<std::mutex> guard(kernel_list_mutex_);
 
-    programs_.emplace_back(
-        std::make_shared<cl::Program>(manager_.GetContext(), device_vec, binaries, &binary_success, &err));
+    programs_.emplace_back(std::make_shared<cl::Program>(manager_.GetContext(), device_vec,
+                                                         binaries, &binary_success, &err));
     if(err != CL_SUCCESS) {
         throw OpenCLException("Unable to create OpenCL program from OpenCL binary", err);
     }
@@ -141,7 +155,9 @@ void Device::LoadKernelsFromBinary(const std::string& filename)
     std::vector<cl::Kernel> new_kernels;
     err = new_program.createKernels(&new_kernels);
     if(err != CL_SUCCESS) {
-        throw OpenCLException("An error occurred during the creation of OpenCL kernels from a built program", err);
+        throw OpenCLException("An error occurred during the creation of OpenCL kernels from a "
+                              "built program",
+                              err);
     }
 
     bool did_errors_occur = false;
@@ -157,8 +173,8 @@ void Device::LoadKernelsFromBinary(const std::string& filename)
         }
         if(name_already_exists) {
             did_errors_occur = true;
-            error_string +=
-                "Attempting to add kernel named " + name + " when a kernel with that name already exists, skipping\n";
+            error_string += "Attempting to add kernel named " + name
+                            + " when a kernel with that name already exists, skipping\n";
         } else {
             kernels_.emplace_back(new Kernel(manager_, kernel));
         }
@@ -169,7 +185,7 @@ void Device::LoadKernelsFromBinary(const std::string& filename)
     }
 }
 
-const std::vector<std::reference_wrapper<Kernel>> Device::GetKernels()
+const std::vector<std::reference_wrapper<Kernel>> Device::GetKernels() const
 {
     std::lock_guard<std::mutex> guard(kernel_list_mutex_);
     std::vector<std::reference_wrapper<Kernel>> kernel_refs;
@@ -181,6 +197,7 @@ const std::vector<std::reference_wrapper<Kernel>> Device::GetKernels()
 
 Kernel& Device::GetKernel(const std::string& name) const
 {
+    std::lock_guard<std::mutex> guard(kernel_list_mutex_);
     for(const auto& kernel : kernels_) {
         if(kernel->GetName() == name) {
             return *kernel;
@@ -189,7 +206,10 @@ Kernel& Device::GetKernel(const std::string& name) const
     throw std::runtime_error("Device does not contain a kernel with name '" + name + "'");
 }
 
-void Device::LogError(const Worker& worker, std::string function_name, std::string error_message, cl_int cl_error_code)
+void Device::LogError(const Worker& worker,
+                      std::string function_name,
+                      std::string error_message,
+                      cl_int cl_error_code)
 {
     LogOpenCLError(worker, "Device::" + function_name, error_message, cl_error_code);
 }

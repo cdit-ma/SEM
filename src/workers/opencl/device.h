@@ -36,7 +36,7 @@ class Device {
 
     void LoadKernelsFromSource(const std::vector<std::string>& filenames);
     void LoadKernelsFromBinary(const std::string& filename);
-    const std::vector<std::reference_wrapper<Kernel>> GetKernels();
+    const std::vector<std::reference_wrapper<Kernel>> GetKernels() const;
     Kernel& GetKernel(const std::string& name) const;
 
     private:
@@ -53,7 +53,7 @@ class Device {
     std::list<std::shared_ptr<cl::Program>> programs_;
     std::list<std::unique_ptr<Kernel>> kernels_;
 
-    std::mutex kernel_list_mutex_;
+    mutable std::mutex kernel_list_mutex_;
 
     bool valid_ = false;
     int err_;

@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& os, const KMeansParam& kmp)
 {
     return os << kmp.device << "points: [" << print_vec(kmp.points) << "] - centroids: [" << print_vec(kmp.centroids)
               << "] - expected_classifications: [" << print_vec(kmp.expected_classifications)
-              << "] - expect_success: " << kmp.expect_success;
+              << "] - expect_success_: " << kmp.expect_success;
 }
 
 class KMeansFixture : public ::testing::TestWithParam<KMeansParam>, public OpenCL_WorkerConstructor {
@@ -115,7 +115,6 @@ struct ClusterData {
     float spread;
 };
 
-const double PI = 3.141592653589793;
 // Note: simple generator, don't let clusters overlap!! Will need to be extended to test overlaps
 KMeansData generateKMeansTuple(const std::vector<ClusterData>& clusters)
 {

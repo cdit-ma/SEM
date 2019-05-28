@@ -8,21 +8,20 @@
 
 #include <iostream>
 
-namespace Re {
-
-namespace OpenCL {
+namespace Re::OpenCL {
 
 class Manager;
 
 template<typename T> class Buffer : public BufferBase {
-    static_assert(std::is_pod<T>::value, "Can't have non-primitive data types buffered in current implementation");
+    static_assert(std::is_pod<T>::value,
+                  "Can't have non-primitive data types buffered in current implementation");
     static_assert(!std::is_same<T, bool>::value,
                   "std::vector<bool> is not guaranteed to conform to STL container requirements");
 
-    public:
+public:
     Buffer() = default;
     Buffer(const Manager& manager,
-           size_t num_bytes,
+           size_t num_elements,
            const std::optional<unsigned long>& flags = (std::nullopt_t)std::nullopt);
     Buffer(const Manager& manager,
            const std::vector<T>& data,
@@ -38,10 +37,13 @@ template<typename T> class Buffer : public BufferBase {
 };
 
 template<typename T>
-Buffer<T>::Buffer(const Manager& manager, size_t num_bytes, const std::optional<unsigned long>& flags) :
-    BufferBase(manager, num_bytes * sizeof(T), flags)
+Buffer<T>::Buffer(const Manager& manager,
+                  size_t num_elements,
+                  const std::optional<unsigned long>& flags) :
+    BufferBase(manager, num_elements * sizeof(T), flags)
 {
-    static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buffered in current implementation");
+    static_assert(!std::is_class<T>::value, "Can't have non-primitive data types buffered in "
+                                            "current implementation");
 }
 
 template<typename T>
@@ -55,25 +57,30 @@ Buffer<T>::Buffer(const Manager& manager,
     try {
         bool write_success = WriteData(data, device, blocking);
     } catch(const OpenCLException& ocle) {
-        throw OpenCLException(std::string("Unable to write data to buffer during creation:\n") + ocle.what(),
+        throw OpenCLException(std::string("Unable to write data to buffer during creation:\n")
+                                  + ocle.what(),
                               ocle.ErrorCode());
     }
 }
 
-template<typename T> bool Buffer<T>::WriteData(const std::vector<T>& data, const Device& device, bool blocking)
+template<typename T>
+bool Buffer<T>::WriteData(const std::vector<T>& data, const Device& device, bool blocking)
 {
     // Warn if size mismatch, abort if overflow would occur
     if(data.size() != GetNumElements()) {
         /*LogError(worker, __func__,
                  "Warning: Attempting to write vector data to a buffer of different length: "
-                     + std::to_string(data.size()) + " when expecting " + std::to_string(GetNumElements()));*/
+                     + std::to_string(data.size()) + " when expecting " +
+           std::to_string(GetNumElements()));*/
         if(data.size() > GetNumElements()) {
-            InvalidBufferSizeException(std::string("Attempting to write ") + std::to_string(data.size())
-                                       + std::string(" elements to a buffer containing ")
-                                       + std::to_string(GetNumElements()) + std::string(" elements"));
+            InvalidBufferSizeException(
+                std::string("Attempting to write ") + std::to_string(data.size())
+                + std::string(" elements to a buffer containing ")
+                + std::to_string(GetNumElements()) + std::string(" elements"));
         }
         /*LogError(worker, __func__,
-                 "Continuing on despite mismatch (requested size is smaller than available memory space)");*/
+                 "Continuing on despite mismatch (requested size is smaller than available memory
+           space)");*/
     }
     try {
         buffer_->WriteData(data.data(), buffer_->GetSize(), device, blocking);
@@ -83,14 +90,16 @@ template<typename T> bool Buffer<T>::WriteData(const std::vector<T>& data, const
     return true;
 }
 
-template<typename T> const std::vector<T> Buffer<T>::ReadData(const Device& device, bool blocking) const
+template<typename T>
+const std::vector<T> Buffer<T>::ReadData(const Device& device, bool blocking) const
 {
     std::vector<T> data(GetNumElements());
 
     try {
         buffer_->ReadData(data.data(), buffer_->GetSize(), device, blocking);
     } catch(const BufferException& be) {
-        throw BufferException(std::string("BufferException occurred while reading data:\n") + be.what(),
+        throw BufferException(std::string("BufferException occurred while reading data:\n")
+                                  + be.what(),
                               be.ErrorCode());
     }
 
@@ -105,8 +114,6 @@ template<typename T> size_t Buffer<T>::GetNumElements() const
     return buffer_->GetSize() / sizeof(T);
 }
 
-} // namespace OpenCL
-
-} // namespace Re
+} // namespace Re::OpenCL
 
 #endif // RE_OPENCL_BUFFER_H
