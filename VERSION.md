@@ -1,23 +1,25 @@
-# Runtime Environment v3.3.8
+# Runtime Environment v3.3.9
 
 ## Workers
-* Added TCP worker
-* Refactored OpenCL worker implementation to better support deployment to FPGA hardware
-* Fixed linking of classes and components and ports with RPath
+* Fixed OpenCL Worker FFT hang when running FPGAs
+* Improvements to OpenCL Worker error reporting
 
-## Tests:
-* Added TCP worker tests
+## Tests
+* Added tests for Execution class
 
 ## Logan
-* Rolled logan aggregation_server and aggregation_broker into mainline release
 
 ## Code Generation
-* Fixed multiple code generation bugs
+* Changed CMake generation to be C++17 compliant
+* Fixed an issue with worker libraries linking in Ubuntu
 
-## Resolved Jira Tickets:
-* RE-437
-* RE-436
-* RE-127
-* MED-580
-* RE-461
+## Jenkins
+* Fixed a bug where re_node_manager would fail but the build was still treated as a success
+
+## Resolved Jira Tickets
+* RE-456
+* RE-462
+* RE-464
+* RE-468
 * REGEN-97
+* REGEN-99
