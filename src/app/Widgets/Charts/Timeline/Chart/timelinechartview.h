@@ -24,6 +24,8 @@ enum class TIME_DISPLAY_FORMAT{VALUE, DATE_TIME, ELAPSED_TIME};
 
 class AxisWidget;
 class TimelineChart;
+
+
 class TimelineChartView : public QWidget
 {
     Q_OBJECT

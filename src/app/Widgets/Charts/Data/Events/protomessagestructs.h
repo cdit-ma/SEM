@@ -89,7 +89,6 @@ namespace AggServerResponse{
     };
     
 
-
     struct ExperimentRun {
         QString experiment_name;
         quint32 job_num;
@@ -106,6 +105,7 @@ namespace AggServerResponse{
     };
     
 };
+
 Q_DECLARE_METATYPE(AggServerResponse::ExperimentState);
 Q_DECLARE_METATYPE(AggServerResponse::ExperimentRun);
 

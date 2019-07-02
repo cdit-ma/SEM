@@ -800,6 +800,7 @@ bool EntityItem::isMoving() const
 
 int EntityItem::getGridSize() const
 {
+    //return 2;
     return 5;
 }
 

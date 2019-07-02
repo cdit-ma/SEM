@@ -78,6 +78,7 @@ private:
     static AggServerResponse::Port ConvertPort(const AggServer::Port& port);
     static AggServerResponse::Container ConvertContainer(const AggServer::Container& container);
     static AggServerResponse::WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
+
     static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
 
     static PortLifecycleEvent::PortKind ConvertPortKind(const AggServer::Port_Kind& kind);

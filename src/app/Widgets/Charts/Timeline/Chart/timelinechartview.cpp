@@ -621,6 +621,8 @@ void TimelineChartView::addedChartEvents(const MEDEA::ChartDataKind kind, const 
                           "\nJob number#:\t" + QString::number(experimentRun.job_num) +
                           "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(experimentRun.start_time).toString(DATE_TIME_FORMAT);
 
+    //qDebug() << "LAST UPDATED TIME: " << QDateTime::fromMSecsSinceEpoch(experimentRun.last_updated_time).toString(DATE_TIME_FORMAT);
+
     updateRangeForExperimentRun(experimentRunID, experimentRunStartTime, experimentRun.last_updated_time);
 
     // set the experiment info as the chart's tooltip
@@ -688,7 +690,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
     }
 
     if (series) {
-        // this needs to be set before the chart is constructed
+        // NOTE - this needs to be set before the chart is constructed
         series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
         series->setProperty(EXPERIMENT_RUN_START_TIME, experimentRun.start_time);
         constructChartForSeries(series, seriesID, seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
@@ -765,7 +767,7 @@ EntityChart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *seri
 /**
  * @brief TimelineChartView::removeChart
  * This removes the chart with the specified ID from the timeline
- * It also removes the corresponding axis item and contained series from the timeline and their hashes
+ * It also removes the corresponding axis item from the timeline and contained series from their hashes
  * @param ID
  * @param clearing
  */

@@ -149,10 +149,9 @@ void NodeView::scale(qreal sx, qreal sy)
         auto t = transform();
         auto zoom = t.m11() * sx;
 
-        //Limit to zoom 25% between 400%
-
-        //zoom = qMax(0.25, zoom);
+        // limits the max zoom to 500%
         zoom = qMin(zoom, 5.0);
+        //zoom = qMin(zoom, 10.0); // THIS IS ONLY USED FOR SCREENSHOTS!
 
         //m11 and m22 are x/y scaling respectively
         t.setMatrix(zoom, t.m12(), t.m13(), t.m21(), zoom, t.m23(), t.m31(), t.m32(), t.m33());

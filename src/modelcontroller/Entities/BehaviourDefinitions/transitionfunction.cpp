@@ -37,7 +37,7 @@ MEDEA::TransitionFunction::TransitionFunction(::EntityFactoryBroker& broker, boo
     broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
     auto data_type = broker.AttachData(this, "type", QVariant::String, ProtectedState::UNPROTECTED);
-    data_type->addValidValues({"Activate", "Configure", "Passivate", "Terminate"});
+    data_type->addValidValues({"Configure", "Activate", "Passivate", "Terminate"});
 
     connect(data_type, &Data::dataChanged, this, &MEDEA::TransitionFunction::updateLabel);
     updateLabel();
@@ -45,6 +45,11 @@ MEDEA::TransitionFunction::TransitionFunction(::EntityFactoryBroker& broker, boo
 
 
 void MEDEA::TransitionFunction::updateLabel(){
+    /*
+    QString new_label = "On";
+    new_label += getDataValue("type").toString();
+    setDataValue("label", new_label + "d");
+    */
     QString new_label = "Handle";
     new_label += getDataValue("type").toString();
     setDataValue("label", new_label);

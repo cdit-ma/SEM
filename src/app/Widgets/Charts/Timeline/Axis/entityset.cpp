@@ -17,6 +17,9 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     iconLabel_ = new QLabel(this);
     iconLabel_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
+    // TODO - hide icon label while we're not using the EntitySet parenting/grouping functionality
+    //iconLabel_->setVisible(false);
+
     textLabel_ = new QLabel(label, this);
     textLabel_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
@@ -35,6 +38,7 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     mainLayout->setMargin(0);
     mainLayout->setContentsMargins(0, 0, CHILD_TAB_WIDTH, 0);
     mainLayout->addWidget(iconLabel_);
+    //mainLayout->addSpacerItem(new QSpacerItem(CHILD_TAB_WIDTH, 5));
     mainLayout->addWidget(textLabel_, 1);
     mainLayout->addWidget(toolbar_);
 
@@ -311,6 +315,7 @@ void EntitySet::childEntityRemoved(EntitySet* child)
  */
 bool EntitySet::eventFilter(QObject* object, QEvent* event)
 {
+    // TODO - Why use eventFilter instead of mouseDoubleClickEvent?
     if (event->type() == QEvent::MouseButtonDblClick) {
         EntitySet* set = dynamic_cast<EntitySet*>(object);
         set->toggleExpanded();
