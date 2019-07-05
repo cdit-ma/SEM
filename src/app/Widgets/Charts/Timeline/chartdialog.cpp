@@ -124,6 +124,6 @@ void ChartDialog::snapShot()
  */
 void ChartDialog::clear()
 {
-    chartView_.clearTimelineChart();
+    chartView_.clearChartList();
 }
 

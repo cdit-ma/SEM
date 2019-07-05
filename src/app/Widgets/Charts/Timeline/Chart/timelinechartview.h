@@ -3,9 +3,9 @@
 
 #include "../../../../Controllers/ViewController/viewitem.h"
 #include "../../Timeline/Chart/hoverpopup.h"
-#include "../Axis/entityaxis.h"
-#include "../Axis/entityset.h"
-#include "entitychart.h"
+#include "../Axis/chartlabellist.h"
+#include "../Axis/chartlabel.h"
+#include "chart.h"
 
 #include "../../Data/Events/portlifecycleevent.h"
 #include "../../Data/Events/workloadevent.h"
@@ -23,8 +23,7 @@ enum class VALUE_TYPE{DOUBLE, DATE_TIME};
 enum class TIME_DISPLAY_FORMAT{VALUE, DATE_TIME, ELAPSED_TIME};
 
 class AxisWidget;
-class TimelineChart;
-
+class ChartList;
 
 class TimelineChartView : public QWidget
 {
@@ -45,8 +44,8 @@ public:
 
     void setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format);
 
-    void clearTimelineChart();
-    void updateTimelineChart();
+    void clearChartList();
+    void updateChartList();
 
 signals:
     void seriesLegendHovered(MEDEA::ChartDataKind kind);
@@ -57,7 +56,7 @@ public slots:
     void toggledSeriesLegend(bool checked);
 
     void entityAxisSizeChanged(QSizeF size);
-    void entityChartHovered(EntityChart* chart, bool hovered);
+    void entityChartHovered(MEDEA::Chart* chart, bool hovered);
     void entitySetClosed();
 
     void updateHoverDisplay();
@@ -74,7 +73,7 @@ private:
     void addedChartEvents(const MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun);
 
     MEDEA::EventSeries* constructSeriesForEventKind(const AggServerResponse::ExperimentRun &experimentRun, const MEDEA::ChartDataKind kind, const QString& ID, const QString& label);
-    EntityChart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
+    MEDEA::Chart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
     void removeChart(const QString& ID, bool clearing = false);
 
     void updateRangeForExperimentRun(const quint32 experimentRunID, const qint64 startTime, const qint64 lastUpdatedTime);
@@ -93,8 +92,8 @@ private:
     QLabel* emptyLabel_ = 0;
     QWidget* mainWidget_ = 0;
 
-    TimelineChart* _timelineChart;
-    EntityAxis* _entityAxis;
+    MEDEA::ChartList* chartList_;
+    MEDEA::ChartLabelList* chartLabelList_;
     AxisWidget* _dateTimeAxis;
     HoverPopup* _hoverDisplay;
 
@@ -116,9 +115,9 @@ private:
     QPair<qint64, qint64> totalTimeRange_;
 
     // MEDEA::Event related widgets/series
-    QHash<QString, EntitySet*> eventEntitySets;
-    QHash<QString, EntityChart*> eventEntityCharts;
-    QMultiHash<QString, MEDEA::EventSeries*> eventSeries;
+    QHash<QString, MEDEA::ChartLabel*> chartLabels_;
+    QHash<QString, MEDEA::Chart*> charts_;
+    QMultiHash<QString, MEDEA::EventSeries*> seriesList_;
 };
 
 #endif // TIMELINECHARTVIEW_H

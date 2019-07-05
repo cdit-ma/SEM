@@ -1,5 +1,5 @@
-#ifndef TIMELINECHART_H
-#define TIMELINECHART_H
+#ifndef CHARTLIST_H
+#define CHARTLIST_H
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -15,25 +15,33 @@ static const QString DATE_TIME_FORMAT = "MMM d, hh:mm:ss.zzz";
 static const QString TIME_FORMAT = "hh:mm:ss.zzz";
 static const QString DATE_FORMAT = "MMM d";
 
-class EntityChart;
-class TimelineChart : public QWidget
+namespace MEDEA {
+
+class Chart;
+
+/**
+ * @brief The ChartList class holds and displays an ordered list of Charts.
+ * This class holds the Chart widgets in order of insertion.
+ * It also sends signals to the TimelineChartView whenever the user performs any action that attemps to change the displayed range.
+ */
+class ChartList : public QWidget
 {
     Q_OBJECT
 
 public:
     enum DRAG_MODE{NONE, PAN, RUBBERBAND};
 
-    explicit TimelineChart(QWidget* parent = 0);
+    explicit ChartList(QWidget* parent = 0);
 
     void setAxisXVisible(bool visible);
     void setAxisYVisible(bool visible);
     void setAxisWidth(double width);
 
-    void addEntityChart(EntityChart* chart);
-    void insertEntityChart(int index, EntityChart* chart);
-    void removeEntityChart(EntityChart* chart);
+    void addChart(Chart* chart);
+    void insertChart(int index, Chart* chart);
+    void removeChart(Chart* chart);
 
-    const QList<EntityChart*>& getEntityCharts() const;
+    const QList<Chart*>& getCharts() const;
     const QRectF& getHoverRect() const;
 
     bool isPanning() const;
@@ -45,13 +53,13 @@ signals:
     void panned(double dx, double dy);
     void rubberbandUsed(double left, double right);
 
-    void entityChartHovered(EntityChart* chart, bool hovered_);
+    void chartHovered(Chart* chart, bool hovered_);
     void hoverLineUpdated(bool visible, QPointF pos);
 
 public slots:
     void themeChanged();
 
-    void setEntityChartHovered(EntityChart* chart, bool hovered_);
+    void setChartHovered(Chart* chart, bool hovered_);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
@@ -98,10 +106,11 @@ private:
     QRectF hoverRect_;
 
     QVBoxLayout* layout_;
-    QList<EntityChart*> entityCharts_;
+    QList<Chart*> charts_;
 
     QPointF hoverCursor_;
-
 };
 
-#endif // TIMELINECHART_H
+}
+
+#endif // CHARTLIST_H

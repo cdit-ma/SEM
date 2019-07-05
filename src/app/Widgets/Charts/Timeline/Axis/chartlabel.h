@@ -1,24 +1,30 @@
-#ifndef ENTITYSET_H
-#define ENTITYSET_H
+#ifndef CHARTLABEL_H
+#define CHARTLABEL_H
 
 #include <QWidget>
 #include <QLabel>
 #include <QToolBar>
 #include <QHBoxLayout>
+#include <QPen>
 
 #include "../../../../theme.h"
-#include "entityaxis.h"
+#include "chartlabellist.h"
 
-#include <QtCharts/QAbstractSeries>
+namespace MEDEA {
 
-class EntitySet : public QWidget
+/**
+ * @brief The ChartLabel class is used to display the label of a Chart.
+ * This class displays an icon (non-expandable/expanded/contracted), a label and a close button linked to a Chart.
+ * It can contain children ChartLabels to provide a visual hierarchy/grouping, and a close button that when triggered, sends a signal to close the corresponding chart.
+ */
+class ChartLabel : public QWidget
 {
-    friend class EntityAxis;
+    friend class ChartLabelList;
     Q_OBJECT
 
 public:
-    explicit EntitySet(QString label = "", QWidget* parent = 0);
-    ~EntitySet();
+    explicit ChartLabel(QString label = "", QWidget* parent = 0);
+    ~ChartLabel();
 
     int getAllDepthChildrenCount() const;
 
@@ -30,22 +36,22 @@ public:
     void setLabel(QString label);
     QString getLabel() const;
 
-    void addChildEntitySet(EntitySet* child);
-    void setParentEntitySet(EntitySet* parent);
-    const QList<EntitySet*>& getChildrenEntitySets() const;
+    void addChildChartLabel(ChartLabel* child);
+    void setParentChartLabel(ChartLabel* parent);
+    const QList<ChartLabel*>& getChildrenChartLabels() const;
 
     void setHovered(bool hovered);
 
 signals:
     void childAdded();
-    void childRemoved(EntitySet* child);
+    void childRemoved(ChartLabel* child);
 
     void setChildVisible(bool visible);
     void visibilityChanged(bool visible);
 
     void hovered(bool state);
 
-    void closeEntity();
+    void closeChart();
 
 public slots:
     void themeChanged(Theme *theme);
@@ -53,8 +59,8 @@ public slots:
     void toggleExpanded();
     void setVisible(bool visible);
 
-    void childEntityAdded();
-    void childEntityRemoved(EntitySet* child);
+    void childLabelAdded();
+    void childLabelRemoved(ChartLabel* child);
 
 protected:
     bool eventFilter(QObject* object, QEvent* event);
@@ -94,10 +100,10 @@ private:
     QString textColorStr_;
     QString highlighColorStr_;
 
-    EntitySet* parentEntitySet_ = 0;
-    QList<EntitySet*> childrenSets_;
-    QList<QtCharts::QAbstractSeries*> seriesList_;
-
+    ChartLabel* parentChartLabel_ = 0;
+    QList<ChartLabel*> childrenChartLabels_;
 };
 
-#endif // ENTITYSET_H
+}
+
+#endif // CHARTLABEL_H

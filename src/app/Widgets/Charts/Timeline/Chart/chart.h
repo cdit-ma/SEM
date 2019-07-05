@@ -1,7 +1,7 @@
-#ifndef ENTITYCHART_H
-#define ENTITYCHART_H
+#ifndef CHART_H
+#define CHART_H
 
-#include "../Chart/timelinechart.h"
+#include "../Chart/chartlist.h"
 #include "../../Data/Series/eventseries.h"
 #include "../../Data/Events/workloadevent.h"
 #include "../../../../Controllers/ViewController/viewitem.h"
@@ -10,28 +10,34 @@
 #include <QPen>
 #include <QBrush>
 
+namespace MEDEA {
 
-class EntityChart : public QWidget
+/**
+ * @brief The Chart class renders EventSeries based on their kind, which is determined by the kind of Events stored in them.
+ * This class can contain multiple EventSeries of different kinds and render them along a shared timeline (date-time) axis.
+ * Each kind of series has its own render function and hence, are visualised in different ways.
+ */
+class Chart : public QWidget
 {
-    friend class TimelineChart;
+    friend class ChartList;
     Q_OBJECT
 
 public:
-    explicit EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent = 0);
+    explicit Chart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent = 0);
 
     quint32 getExperimentRunID() const;
 
-    void addSeries(MEDEA::EventSeries *series);
-    void removeSeries(MEDEA::ChartDataKind kind);
+    void addSeries(EventSeries *series);
+    void removeSeries(ChartDataKind kind);
 
     bool isHovered();
 
-    const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& getSeries() const;
-    const QList<MEDEA::ChartDataKind> getHovereSeriesKinds() const;
-    const QPair<qint64, qint64> getHoveredTimeRange(MEDEA::ChartDataKind kind) const;
+    const QHash<ChartDataKind, EventSeries*>& getSeries() const;
+    const QList<ChartDataKind> getHovereSeriesKinds() const;
+    const QPair<qint64, qint64> getHoveredTimeRange(ChartDataKind kind) const;
 
-    void updateBinnedData(MEDEA::ChartDataKind kind);
-    void updateBinnedData(QSet<MEDEA::ChartDataKind> kinds = QSet<MEDEA::ChartDataKind>());
+    void updateBinnedData(ChartDataKind kind);
+    void updateBinnedData(QSet<ChartDataKind> kinds = QSet<ChartDataKind>());
 
     void updateVerticalMin(double min);
     void updateVerticalMax(double max);
@@ -46,8 +52,8 @@ public:
 public slots:
     void setHovered(bool visible);
     void setHoveredRect(QRectF rect);
-    void seriesKindHovered(MEDEA::ChartDataKind kind);
-    void setSeriesKindVisible(MEDEA::ChartDataKind kind, bool visible);
+    void seriesKindHovered(ChartDataKind kind);
+    void setSeriesKindVisible(ChartDataKind kind, bool visible);
 
 private slots:
     void themeChanged();
@@ -57,7 +63,7 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
-    void paintSeries(QPainter& painter, const MEDEA::ChartDataKind kind);
+    void paintSeries(QPainter& painter, const ChartDataKind kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
@@ -66,7 +72,7 @@ private:
 
     void paintPortLifecycleSeries(QPainter& painter);
 
-    bool rectHovered(MEDEA::ChartDataKind kind, const QRectF& hitRect);
+    bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
 
     void clearHoveredLists();
@@ -75,7 +81,7 @@ private:
     QColor getContrastingColor(const QColor& color);
 
     int getBinIndexForTime(double time);
-    QVector<QList<MEDEA::Event*>>& getBinnedData(MEDEA::ChartDataKind kind);
+    QVector<QList<Event*>>& getBinnedData(ChartDataKind kind);
 
     qint64 mapPixelToTime(double x);
     double mapTimeToPixel(double time);
@@ -135,19 +141,19 @@ private:
     double memorySeriesOpacity_ = 1.0;
     double markerSeriesOpacity_ = 1.0;
 
-    QHash<MEDEA::ChartDataKind, bool> seriesKindVisible_;
-    QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*> seriesList_;
+    QHash<ChartDataKind, bool> seriesKindVisible_;
+    QHash<ChartDataKind, EventSeries*> seriesList_;
 
-    //QHash<MEDEA::ChartDataKind, QVector< QList<MEDEA::Event*> >> binnedData_;
-    QVector<QList<MEDEA::Event*>> portLifecycleBinnedData_;
-    QVector<QList<MEDEA::Event*>> workloadBinnedData_;
-    QVector<QList<MEDEA::Event*>> cpuUtilisationBinnedData_;
-    QVector<QList<MEDEA::Event*>> memoryUtilisationBinnedData_;
-    QVector<QList<MEDEA::Event*>> markerBinnedData_;
-    QVector<QList<MEDEA::Event*>> emptyBinnedData_;
+    //QHash<ChartDataKind, QVector< QList<Event*> >> binnedData_;
+    QVector<QList<Event*>> portLifecycleBinnedData_;
+    QVector<QList<Event*>> workloadBinnedData_;
+    QVector<QList<Event*>> cpuUtilisationBinnedData_;
+    QVector<QList<Event*>> memoryUtilisationBinnedData_;
+    QVector<QList<Event*>> markerBinnedData_;
+    QVector<QList<Event*>> emptyBinnedData_;
 
-    QHash<MEDEA::ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
-    MEDEA::ChartDataKind hoveredSeriesKind_;
+    QHash<ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
+    ChartDataKind hoveredSeriesKind_;
     QList<QRectF> hoveredEllipseRects_;
     QList<QRectF> hoveredRects_;
 
@@ -156,12 +162,13 @@ private:
 
     /*
     struct Series{
-        MEDEA::DataSeries* series = 0;
+        DataSeries* series = 0;
         bool is_visible = false;
     }
-    QHash<MEDEA::ChartDataKind, Series> series_;
+    QHash<ChartDataKind, Series> series_;
     */
-
 };
 
-#endif // ENTITYCHART_H
+}
+
+#endif // CHART_H

@@ -1,15 +1,17 @@
-#include "entityset.h"
+#include "chartlabel.h"
 
 #include <QPainter>
 
 #define CHILD_TAB_WIDTH 15
 
+using namespace MEDEA;
+
 /**
- * @brief EntitySet::EntitySet
+ * @brief ChartLabel::ChartLabel
  * @param label
  * @param parent
  */
-EntitySet::EntitySet(QString label, QWidget* parent)
+ChartLabel::ChartLabel(QString label, QWidget* parent)
     : QWidget(parent),
       depth_(1),
       ID_(-1)
@@ -17,7 +19,7 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     iconLabel_ = new QLabel(this);
     iconLabel_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    // TODO - hide icon label while we're not using the EntitySet parenting/grouping functionality
+    // TODO - hide icon label while we're not using the ChartLabel parenting/grouping functionality
     //iconLabel_->setVisible(false);
 
     textLabel_ = new QLabel(label, this);
@@ -28,7 +30,7 @@ EntitySet::EntitySet(QString label, QWidget* parent)
     closeAction_ = toolbar_->addAction("");
     closeAction_->setToolTip("Close " + label + "'s chart");
 
-    connect(closeAction_, &QAction::triggered, this, &EntitySet::closeEntity);
+    connect(closeAction_, &QAction::triggered, this, &ChartLabel::closeChart);
 
     tickLength_ = fontMetrics().height() / 4;
     axisLineVisible_ = false;
@@ -51,70 +53,70 @@ EntitySet::EntitySet(QString label, QWidget* parent)
 
 
 /**
- * @brief EntitySet::~EntitySet
+ * @brief ChartLabel::~ChartLabel
  */
-EntitySet::~EntitySet()
+ChartLabel::~ChartLabel()
 {
     emit childRemoved(this);
 }
 
 
 /**
- * @brief EntitySet::getAllDepthChildrenCount
+ * @brief ChartLabel::getAllDepthChildrenCount
  * This returns this set's total number of children all the way down to the lowest depth.
  * @return
  */
-int EntitySet::getAllDepthChildrenCount() const
+int ChartLabel::getAllDepthChildrenCount() const
 {
     return allDepthChildrenCount_;
 }
 
 
 /**
- * @brief EntitySet::isExpanded
+ * @brief ChartLabel::isExpanded
  * @return
  */
-bool EntitySet::isExpanded()
+bool ChartLabel::isExpanded()
 {
     return isExpanded_;
 }
 
 
 /**
- * @brief EntitySet::setDepth
+ * @brief ChartLabel::setDepth
  * @param depth
  */
-void EntitySet::setDepth(int depth)
+void ChartLabel::setDepth(int depth)
 {
     depth_ = depth;
 }
 
 
 /**
- * @brief EntitySet::getDepth
+ * @brief ChartLabel::getDepth
  * @return
  */
-int EntitySet::getDepth() const
+int ChartLabel::getDepth() const
 {
     return depth_;
 }
 
 
 /**
- * @brief EntitySet::getLabel
+ * @brief ChartLabel::getLabel
  * @return
  */
-QString EntitySet::getLabel() const
+QString ChartLabel::getLabel() const
 {
     return label_;
 }
 
 
 /**
- * @brief EntitySet::setLabel
+ * @brief ChartLabel::setLabel
  * @param label
  */
-void EntitySet::setLabel(QString label)
+void ChartLabel::setLabel(QString label)
 {
     label_ = label;
     textLabel_->setText(label);
@@ -123,57 +125,57 @@ void EntitySet::setLabel(QString label)
 
 
 /**
- * @brief EntitySet::addChildEntitySet
+ * @brief ChartLabel::addChildChartLabel
  * This sets up the child's layout and visibility based on this parent.
  * It also connects this parent's change of visibility to the child.
  * @param child
  */
-void EntitySet::addChildEntitySet(EntitySet* child)
+void ChartLabel::addChildChartLabel(ChartLabel* child)
 {
     if (child) {
 
-        child->setParentEntitySet(this);
+        child->setParentChartLabel(this);
         child->setDepth(depth_ + 1);
         child->setContentsMargins(CHILD_TAB_WIDTH * child->getDepth(), 0, 0, 0);
         child->setVisible(isExpanded_);
-        childrenSets_.append(child);
+        childrenChartLabels_.append(child);
 
-        connect(child, &EntitySet::childAdded, this, &EntitySet::childEntityAdded);
-        connect(child, &EntitySet::childRemoved, this, &EntitySet::childEntityRemoved);
-        connect(this, &EntitySet::setChildVisible, child, &EntitySet::setVisible);
+        connect(child, &ChartLabel::childAdded, this, &ChartLabel::childLabelAdded);
+        connect(child, &ChartLabel::childRemoved, this, &ChartLabel::childLabelRemoved);
+        connect(this, &ChartLabel::setChildVisible, child, &ChartLabel::setVisible);
 
         // update allDepthChildrenCount and propagate signal to the ancestor
-        childEntityAdded();
+        childLabelAdded();
     }
 }
 
 
 /**
- * @brief EntitySet::setParentEntitySet
+ * @brief ChartLabel::setParentChartLabel
  * @param parent
  */
-void EntitySet::setParentEntitySet(EntitySet* parent)
+void ChartLabel::setParentChartLabel(ChartLabel* parent)
 {
     if (parent)
-        parentEntitySet_ = parent;
+        parentChartLabel_ = parent;
 }
 
 
 /**
- * @brief EntitySet::getChildrenEntitySets
+ * @brief ChartLabel::getChildrenChartLabels
  * @return
  */
-const QList<EntitySet *> &EntitySet::getChildrenEntitySets() const
+const QList<ChartLabel *> &ChartLabel::getChildrenChartLabels() const
 {
-    return childrenSets_;
+    return childrenChartLabels_;
 }
 
 
 /**
- * @brief EntitySet::setHovered
+ * @brief ChartLabel::setHovered
  * @param hovered
  */
-void EntitySet::setHovered(bool hovered)
+void ChartLabel::setHovered(bool hovered)
 {
     if (hovered) {
         textLabel_->setStyleSheet("color: " + highlighColorStr_ + ";");
@@ -190,10 +192,10 @@ void EntitySet::setHovered(bool hovered)
 
 
 /**
- * @brief EntitySet::themeChanged
+ * @brief ChartLabel::themeChanged
  * @param theme
  */
-void EntitySet::themeChanged(Theme* theme)
+void ChartLabel::themeChanged(Theme* theme)
 {
     setStyleSheet(theme->getLabelStyleSheet() +
                   theme->getToolTipStyleSheet() +
@@ -232,9 +234,9 @@ void EntitySet::themeChanged(Theme* theme)
 
 
 /**
- * @brief EntitySet::toggleExpanded
+ * @brief ChartLabel::toggleExpanded
  */
-void EntitySet::toggleExpanded()
+void ChartLabel::toggleExpanded()
 {
     isExpanded_ = !isExpanded_;
     isChildrenVisible_ = isExpanded_;
@@ -246,10 +248,10 @@ void EntitySet::toggleExpanded()
 
 
 /**
- * @brief EntitySet::setVisible
+ * @brief ChartLabel::setVisible
  * @param visible
  */
-void EntitySet::setVisible(bool visible)
+void ChartLabel::setVisible(bool visible)
 {
     QWidget::setVisible(visible);
     if (visible != isVisible_) {
@@ -265,11 +267,11 @@ void EntitySet::setVisible(bool visible)
 
 
 /**
- * @brief EntitySet::childEntityAdded
+ * @brief ChartLabel::childLabelAdded
  * This is called when a new child has been added to a child's tree.
- * A child added to this child's tree means that a child has been added to this set's tree.
+ * A child added to this child's tree means that a child has been added to this label's tree.
  */
-void EntitySet::childEntityAdded()
+void ChartLabel::childLabelAdded()
 {
     // if this is the first child, update the icon to show that it can be expanded
     if (allDepthChildrenCount_ == 0) {
@@ -283,18 +285,18 @@ void EntitySet::childEntityAdded()
 
 
 /**
- * @brief EntitySet::childEntityRemoved
+ * @brief ChartLabel::childLabelRemoved
  * This is called when a child has been destructed.
  * @param child
  */
-void EntitySet::childEntityRemoved(EntitySet* child)
+void ChartLabel::childLabelRemoved(ChartLabel* child)
 {
     if (!child)
         return;
 
     int totalChildrenToRemove = 1 + child->getAllDepthChildrenCount();
     allDepthChildrenCount_ -= totalChildrenToRemove;
-    childrenSets_.removeAll(child);
+    childrenChartLabels_.removeAll(child);
 
     // update the icon to show that it can't be expanded
     if (allDepthChildrenCount_ == 0) {
@@ -308,16 +310,16 @@ void EntitySet::childEntityRemoved(EntitySet* child)
 
 
 /**
- * @brief EntitySet::eventFilter
+ * @brief ChartLabel::eventFilter
  * @param object
  * @param event
  * @return
  */
-bool EntitySet::eventFilter(QObject* object, QEvent* event)
+bool ChartLabel::eventFilter(QObject* object, QEvent* event)
 {
     // TODO - Why use eventFilter instead of mouseDoubleClickEvent?
     if (event->type() == QEvent::MouseButtonDblClick) {
-        EntitySet* set = dynamic_cast<EntitySet*>(object);
+        ChartLabel* set = dynamic_cast<ChartLabel*>(object);
         set->toggleExpanded();
         return true;
     }
@@ -326,32 +328,30 @@ bool EntitySet::eventFilter(QObject* object, QEvent* event)
 
 
 /**
- * @brief EntitySet::enterEvent
+ * @brief ChartLabel::enterEvent
  * @param event
  */
-void EntitySet::enterEvent(QEvent* event)
+void ChartLabel::enterEvent(QEvent* event)
 {
-    setHovered(true);
     emit hovered(true);
 }
 
 
 /**
- * @brief EntitySet::leaveEvent
+ * @brief ChartLabel::leaveEvent
  * @param event
  */
-void EntitySet::leaveEvent(QEvent* event)
+void ChartLabel::leaveEvent(QEvent* event)
 {
-    setHovered(false);
     emit hovered(false);
 }
 
 
 /**
- * @brief EntitySet::paintEvent
+ * @brief ChartLabel::paintEvent
  * @param event
  */
-void EntitySet::paintEvent(QPaintEvent* event)
+void ChartLabel::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
     painter.setPen(tickPen_);
@@ -367,10 +367,10 @@ void EntitySet::paintEvent(QPaintEvent* event)
 
 
 /**
- * @brief EntitySet::setAxisLineVisible
+ * @brief ChartLabel::setAxisLineVisible
  * @param visible
  */
-void EntitySet::setAxisLineVisible(bool visible)
+void ChartLabel::setAxisLineVisible(bool visible)
 {
     axisLineVisible_ = visible;
     update();
@@ -378,10 +378,10 @@ void EntitySet::setAxisLineVisible(bool visible)
 
 
 /**
- * @brief EntitySet::setTickVisible
+ * @brief ChartLabel::setTickVisible
  * @param visible
  */
-void EntitySet::setTickVisible(bool visible)
+void ChartLabel::setTickVisible(bool visible)
 {
     tickVisible_ = visible;
     update();

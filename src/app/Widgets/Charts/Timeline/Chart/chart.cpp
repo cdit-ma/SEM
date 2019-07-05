@@ -1,4 +1,4 @@
-#include "entitychart.h"
+#include "chart.h"
 #include "../../../../theme.h"
 #include "../../Data/Events/portlifecycleevent.h"
 #include "../../Data/Events/cpuutilisationevent.h"
@@ -20,107 +20,108 @@
 
 #define PRINT_RENDER_TIMES false
 
+using namespace MEDEA;
 
 /**
- * @brief EntityChart::EntityChart
+ * @brief Chart::Chart
  * @param experimentRunID
  * @param experimentStartTime
  * @param parent
  */
-EntityChart::EntityChart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent)
+Chart::Chart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent)
     : QWidget(parent)
 {
     setMouseTracking(true);
 
     experimentRunID_ = experimentRunID;
     experimentRunStartTime_ = experimentStartTime;
-    hoveredSeriesKind_ = MEDEA::ChartDataKind::DATA;
+    hoveredSeriesKind_ = ChartDataKind::DATA;
 
     dataMinX_ = DBL_MAX;
     dataMaxX_ = DBL_MIN;
     dataMinY_ = DBL_MAX;
     dataMaxY_ = DBL_MIN;
 
-    connect(Theme::theme(), &Theme::theme_Changed, this, &EntityChart::themeChanged);
+    connect(Theme::theme(), &Theme::theme_Changed, this, &Chart::themeChanged);
     themeChanged();
 }
 
 
 /**
- * @brief EntityChart::getExperimentRunID
+ * @brief Chart::getExperimentRunID
  * @return
  */
-quint32 EntityChart::getExperimentRunID() const
+quint32 Chart::getExperimentRunID() const
 {
     return experimentRunID_;
 }
 
 
 /**
- * @brief EntityChart::addSeries
+ * @brief Chart::addSeries
  * @param series
  */
-void EntityChart::addSeries(MEDEA::EventSeries* series)
+void Chart::addSeries(EventSeries* series)
 {
     if (series) {
         seriesList_[series->getKind()] = series;
-        if (series->getKind() == MEDEA::ChartDataKind::CPU_UTILISATION ||
-                series->getKind() == MEDEA::ChartDataKind::MEMORY_UTILISATION) {
+        if (series->getKind() == ChartDataKind::CPU_UTILISATION ||
+                series->getKind() == ChartDataKind::MEMORY_UTILISATION) {
             containsYRange_ = true;
         }
-        connect(series, &MEDEA::EventSeries::minYValueChanged, this, &EntityChart::updateVerticalMin);
-        connect(series, &MEDEA::EventSeries::maxYValueChanged, this, &EntityChart::updateVerticalMax);
+        connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
+        connect(series, &EventSeries::maxYValueChanged, this, &Chart::updateVerticalMax);
     }
 }
 
 
 /**
- * @brief EntityChart::removeSeries
+ * @brief Chart::removeSeries
  * @param kind
  */
-void EntityChart::removeSeries(MEDEA::ChartDataKind kind)
+void Chart::removeSeries(ChartDataKind kind)
 {
     seriesList_.remove(kind);
 }
 
 
 /**
- * @brief EntityChart::getSeries
+ * @brief Chart::getSeries
  * @return
  */
-const QHash<MEDEA::ChartDataKind, MEDEA::EventSeries*>& EntityChart::getSeries() const
+const QHash<ChartDataKind, EventSeries*>& Chart::getSeries() const
 {
     return seriesList_;
 }
 
 
 /**
- * @brief EntityChart::getHovereSeriesKinds
+ * @brief Chart::getHovereSeriesKinds
  * @return
  */
-const QList<MEDEA::ChartDataKind> EntityChart::getHovereSeriesKinds() const
+const QList<ChartDataKind> Chart::getHovereSeriesKinds() const
 {
     return hoveredSeriesTimeRange_.keys();
 }
 
 
 /**
- * @brief EntityChart::getHoveredTimeRange
+ * @brief Chart::getHoveredTimeRange
  * @param kind
  * @return
  */
-const QPair<qint64, qint64> EntityChart::getHoveredTimeRange(MEDEA::ChartDataKind kind) const
+const QPair<qint64, qint64> Chart::getHoveredTimeRange(ChartDataKind kind) const
 {
     return hoveredSeriesTimeRange_.value(kind, {-1, -1});
 }
 
 
 /**
- * @brief EntityChart::setRange
+ * @brief Chart::setRange
  * @param min
  * @param max
  */
-void EntityChart::setRange(double min, double max)
+void Chart::setRange(double min, double max)
 {
     // add 1% on either side to include border values
     auto range = max - min;
@@ -138,10 +139,10 @@ void EntityChart::setRange(double min, double max)
 
 
 /**
- * @brief EntityChart::setDisplayMinRatio
+ * @brief Chart::setDisplayMinRatio
  * @param ratio
  */
-void EntityChart::setDisplayMinRatio(double ratio)
+void Chart::setDisplayMinRatio(double ratio)
 {
     minRatio_ = ratio;
     displayMin_ = (dataMaxX_ - dataMinX_) * ratio + dataMinX_;
@@ -150,10 +151,10 @@ void EntityChart::setDisplayMinRatio(double ratio)
 
 
 /**
- * @brief EntityChart::setDisplayMaxRatio
+ * @brief Chart::setDisplayMaxRatio
  * @param ratio
  */
-void EntityChart::setDisplayMaxRatio(double ratio)
+void Chart::setDisplayMaxRatio(double ratio)
 {
     maxRatio_ = ratio;
     displayMax_ = (dataMaxX_ - dataMinX_) * ratio + dataMinX_;
@@ -162,11 +163,11 @@ void EntityChart::setDisplayMaxRatio(double ratio)
 
 
 /**
- * @brief EntityChart::setDisplayRangeRatio
+ * @brief Chart::setDisplayRangeRatio
  * @param minRatio
  * @param maxRatio
  */
-void EntityChart::setDisplayRangeRatio(double minRatio, double maxRatio)
+void Chart::setDisplayRangeRatio(double minRatio, double maxRatio)
 {
     minRatio_ = minRatio;
     maxRatio_ = maxRatio;
@@ -177,11 +178,11 @@ void EntityChart::setDisplayRangeRatio(double minRatio, double maxRatio)
 
 
 /**
- * @brief EntityChart::updateRange
+ * @brief Chart::updateRange
  * @param startTime
  * @param duration
  */
-void EntityChart::updateRange(double startTime, double duration)
+void Chart::updateRange(double startTime, double duration)
 {
     if (startTime == 0.0) {
         startTime = experimentRunStartTime_;
@@ -193,10 +194,10 @@ void EntityChart::updateRange(double startTime, double duration)
 
 
 /**
- * @brief EntityChart::updateBinnedData
+ * @brief Chart::updateBinnedData
  * @param kinds
  */
-void EntityChart::updateBinnedData(QSet<MEDEA::ChartDataKind> kinds)
+void Chart::updateBinnedData(QSet<ChartDataKind> kinds)
 {
     return;
 
@@ -212,10 +213,10 @@ void EntityChart::updateBinnedData(QSet<MEDEA::ChartDataKind> kinds)
 
 
 /**
- * @brief EntityChart::updateVerticalMin
+ * @brief Chart::updateVerticalMin
  * @param min
  */
-void EntityChart::updateVerticalMin(double min)
+void Chart::updateVerticalMin(double min)
 {
     dataMinY_ = min;
     update();
@@ -223,10 +224,10 @@ void EntityChart::updateVerticalMin(double min)
 
 
 /**
- * @brief EntityChart::updateChartHeight
+ * @brief Chart::updateChartHeight
  * @param max
  */
-void EntityChart::updateVerticalMax(double max)
+void Chart::updateVerticalMax(double max)
 {
     dataMaxY_ = max;
     update();
@@ -234,30 +235,30 @@ void EntityChart::updateVerticalMax(double max)
 
 
 /**
- * @brief EntityChart::isHovered
+ * @brief Chart::isHovered
  * @return
  */
-bool EntityChart::isHovered()
+bool Chart::isHovered()
 {
     return hovered_;
 }
 
 
 /**
- * @brief EntityChart::setHovered
+ * @brief Chart::setHovered
  * @param visible
  */
-void EntityChart::setHovered(bool visible)
+void Chart::setHovered(bool visible)
 {
     hovered_ = visible;
 }
 
 
 /**
- * @brief EntityChart::setHoveredRect
+ * @brief Chart::setHoveredRect
  * @param rect
  */
-void EntityChart::setHoveredRect(QRectF rect)
+void Chart::setHoveredRect(QRectF rect)
 {
     if (rect != hoveredRect_) {
         QPoint pos = mapFromParent(rect.topLeft().toPoint());
@@ -268,11 +269,11 @@ void EntityChart::setHoveredRect(QRectF rect)
 
 
 /**
- * @brief EntityChart::setSeriesKindVisible
+ * @brief Chart::setSeriesKindVisible
  * @param kind
  * @param visible
  */
-void EntityChart::setSeriesKindVisible(MEDEA::ChartDataKind kind, bool visible)
+void Chart::setSeriesKindVisible(ChartDataKind kind, bool visible)
 {
     seriesKindVisible_[kind] = visible;
     update();
@@ -280,10 +281,10 @@ void EntityChart::setSeriesKindVisible(MEDEA::ChartDataKind kind, bool visible)
 
 
 /**
- * @brief EntityChart::seriesKindHovered
+ * @brief Chart::seriesKindHovered
  * @param kind
  */
-void EntityChart::seriesKindHovered(MEDEA::ChartDataKind kind)
+void Chart::seriesKindHovered(ChartDataKind kind)
 {
     if (kind == hoveredSeriesKind_)
         return;
@@ -302,27 +303,27 @@ void EntityChart::seriesKindHovered(MEDEA::ChartDataKind kind)
     markerSeriesOpacity_ = alpha;
 
     switch (kind) {
-    case MEDEA::ChartDataKind::PORT_LIFECYCLE: {
+    case ChartDataKind::PORT_LIFECYCLE: {
         portLifecycleColor_ = defaultPortLifecycleColor_;
         portSeriesOpacity_ = 1.0;
         break;
     }
-    case MEDEA::ChartDataKind::WORKLOAD: {
+    case ChartDataKind::WORKLOAD: {
         workloadColor_ = defaultWorkloadColor_;
         workloadSeriesOpacity_ = 1.0;
         break;
     }
-    case MEDEA::ChartDataKind::CPU_UTILISATION: {
+    case ChartDataKind::CPU_UTILISATION: {
         utilisationColor_ = defaultUtilisationColor_;
         cpuSeriesOpacity_ = 1.0;
         break;
     }
-    case MEDEA::ChartDataKind::MEMORY_UTILISATION: {
+    case ChartDataKind::MEMORY_UTILISATION: {
         memoryColor_ = defaultMemoryColor_;
         memorySeriesOpacity_ = 1.0;
         break;
     }
-    case MEDEA::ChartDataKind::MARKER: {
+    case ChartDataKind::MARKER: {
         markerColor_ = defaultMarkerColor_;
         markerSeriesOpacity_ = 1.0;
         break;
@@ -350,9 +351,9 @@ void EntityChart::seriesKindHovered(MEDEA::ChartDataKind kind)
 
 
 /**
- * @brief EntityChart::themeChanged
+ * @brief Chart::themeChanged
  */
-void EntityChart::themeChanged()
+void Chart::themeChanged()
 {
     Theme* theme = Theme::theme();
     setFont(theme->getSmallFont());
@@ -397,10 +398,10 @@ void EntityChart::themeChanged()
 
 
 /**
- * @brief EntityChart::resizeEvent
+ * @brief Chart::resizeEvent
  * @param event
  */
-void EntityChart::resizeEvent(QResizeEvent* event)
+void Chart::resizeEvent(QResizeEvent* event)
 {
     updateBinnedData();
     update();
@@ -409,10 +410,10 @@ void EntityChart::resizeEvent(QResizeEvent* event)
 
 
 /**
- * @brief EntityChart::paintEvent
+ * @brief Chart::paintEvent
  * @param event
  */
-void EntityChart::paintEvent(QPaintEvent* event)
+void Chart::paintEvent(QPaintEvent* event)
 {
     /*
      * NOTE - This assumes that the data is ordered in ascending order time-wise
@@ -486,33 +487,33 @@ void EntityChart::paintEvent(QPaintEvent* event)
 
 
 /**
- * @brief EntityChart::paintSeries
+ * @brief Chart::paintSeries
  * @param painter
  * @param kind
  */
-void EntityChart::paintSeries(QPainter &painter, const MEDEA::ChartDataKind kind)
+void Chart::paintSeries(QPainter &painter, const ChartDataKind kind)
 {
     if (!seriesKindVisible_.value(kind, false))
         return;
 
     switch (kind) {
-    case MEDEA::ChartDataKind::PORT_LIFECYCLE:
+    case ChartDataKind::PORT_LIFECYCLE:
         paintPortLifecycleEventSeries(painter);
         break;
-    case MEDEA::ChartDataKind::WORKLOAD:
+    case ChartDataKind::WORKLOAD:
         paintWorkloadEventSeries(painter);
         break;
-    case MEDEA::ChartDataKind::CPU_UTILISATION:
+    case ChartDataKind::CPU_UTILISATION:
         paintCPUUtilisationEventSeries(painter);
         break;
-    case MEDEA::ChartDataKind::MEMORY_UTILISATION:
+    case ChartDataKind::MEMORY_UTILISATION:
         paintMemoryUtilisationEventSeries(painter);
         break;
-    case MEDEA::ChartDataKind::MARKER:
+    case ChartDataKind::MARKER:
         paintMarkerEventSeries(painter);
         break;
     default:
-        qWarning("EntityChart::paintSeries - Series kind not handled");
+        qWarning("Chart::paintSeries - Series kind not handled");
         break;
     }
 }
@@ -533,14 +534,14 @@ inline uint qHash(const LifecycleType& key, uint seed)
 
 
 /**
- * @brief EntityChart::paintPortLifecycleEventSeries
+ * @brief Chart::paintPortLifecycleEventSeries
  * @param painter
  */
-void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
+void Chart::paintPortLifecycleEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::PORT_LIFECYCLE, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::PORT_LIFECYCLE, 0);
     if (!eventSeries)
         return;
 
@@ -551,7 +552,7 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
     barWidth = (double) width() / barCount;
 
-    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector< QList<Event*> > buckets(barCount);
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
@@ -637,14 +638,14 @@ void EntityChart::paintPortLifecycleEventSeries(QPainter &painter)
 
 
 /**
- * @brief EntityChart::paintWorkloadEventSeries
+ * @brief Chart::paintWorkloadEventSeries
  * @param painter
  */
-void EntityChart::paintWorkloadEventSeries(QPainter &painter)
+void Chart::paintWorkloadEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::WORKLOAD, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::WORKLOAD, 0);
     if (!eventSeries)
         return;
 
@@ -654,7 +655,7 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
     // because barCount needed to be rounded up, the barWidth also needs to be recalculated
     barWidth = (double) width() / barCount;
 
-    QVector< QList<MEDEA::Event*> > buckets(barCount);
+    QVector< QList<Event*> > buckets(barCount);
     QVector<double> bucket_endTimes;
     bucket_endTimes.reserve(barCount);
 
@@ -739,14 +740,14 @@ void EntityChart::paintWorkloadEventSeries(QPainter &painter)
 
 
 /**
- * @brief EntityChart::paintCPUUtilisationEventSeries
+ * @brief Chart::paintCPUUtilisationEventSeries
  * @param painter
  */
-void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
+void Chart::paintCPUUtilisationEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::CPU_UTILISATION, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::CPU_UTILISATION, 0);
     if (!eventSeries)
         return;
 
@@ -762,10 +763,10 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
     barWidth = (double) width() / barCount;
 
     // get the iterators to the left and right of the display range
-    auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const MEDEA::Event* e, const qint64 &time) {
+    auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const Event* e, const qint64 &time) {
         return e->getTimeMS() < time;
     });
-    auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const MEDEA::Event* e) {
+    auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const Event* e) {
         return time < e->getTimeMS();
     });
 
@@ -921,14 +922,14 @@ void EntityChart::paintCPUUtilisationEventSeries(QPainter &painter)
 
 
 /**
- * @brief EntityChart::paintMemoryUtilisationEventSeries
+ * @brief Chart::paintMemoryUtilisationEventSeries
  * @param painter
  */
-void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
+void Chart::paintMemoryUtilisationEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::MEMORY_UTILISATION, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::MEMORY_UTILISATION, 0);
     if (!eventSeries)
         return;
 
@@ -944,10 +945,10 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
     barWidth = (double) width() / barCount;
 
     // get the iterators to the left and right of the display range
-    auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const MEDEA::Event* e, const qint64 &time) {
+    auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const Event* e, const qint64 &time) {
         return e->getTimeMS() < time;
     });
-    auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const MEDEA::Event* e) {
+    auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const Event* e) {
         return time < e->getTimeMS();
     });
 
@@ -1103,14 +1104,14 @@ void EntityChart::paintMemoryUtilisationEventSeries(QPainter &painter)
 
 
 /**
- * @brief EntityChart::paintMarkerEventSeries
+ * @brief Chart::paintMarkerEventSeries
  * @param painter
  */
-void EntityChart::paintMarkerEventSeries(QPainter &painter)
+void Chart::paintMarkerEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(MEDEA::ChartDataKind::MARKER, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::MARKER, 0);
     if (!eventSeries)
         return;
 
@@ -1224,10 +1225,10 @@ void EntityChart::paintMarkerEventSeries(QPainter &painter)
 
 
 /**
- * @brief EntityChart::paintPortLifecycleSeries
+ * @brief Chart::paintPortLifecycleSeries
  * @param painter
  */
-void EntityChart::paintPortLifecycleSeries(QPainter &painter)
+void Chart::paintPortLifecycleSeries(QPainter &painter)
 {
     if (portLifecycleBinnedData_.size() == 0)
         return;
@@ -1247,13 +1248,13 @@ void EntityChart::paintPortLifecycleSeries(QPainter &painter)
         qDebug() << "i[" << i << "] - rect x: " << rect.x();
         if (count == 1) {
             auto event = (PortLifecycleEvent*) portLifecycleBinnedData_[i][0];
-            if (rectHovered(MEDEA::ChartDataKind::PORT_LIFECYCLE, rect))
+            if (rectHovered(ChartDataKind::PORT_LIFECYCLE, rect))
                 painter.fillRect(rect, highlightColor_);
             painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
         } else {
             QColor color = seriesColor.darker(100 + (50 * (count - 1)));
             painter.setPen(Qt::lightGray);
-            if (rectHovered(MEDEA::ChartDataKind::PORT_LIFECYCLE, rect)) {
+            if (rectHovered(ChartDataKind::PORT_LIFECYCLE, rect)) {
                 painter.setPen(highlightTextColor_);
                 color = highlightColor_;
             }
@@ -1266,12 +1267,12 @@ void EntityChart::paintPortLifecycleSeries(QPainter &painter)
 
 
 /**
- * @brief EntityChart::rectHovered
+ * @brief Chart::rectHovered
  * @param kind
  * @param hitRect
  * @return
  */
-bool EntityChart::rectHovered(MEDEA::ChartDataKind kind, const QRectF& hitRect)
+bool Chart::rectHovered(ChartDataKind kind, const QRectF& hitRect)
 {
     auto painterRect = hitRect.adjusted(-PEN_WIDTH / 2.0, 0, PEN_WIDTH / 2.0, 0);
     if (rectHovered(painterRect)) {
@@ -1281,9 +1282,9 @@ bool EntityChart::rectHovered(MEDEA::ChartDataKind kind, const QRectF& hitRect)
             timeRange.first = hoveredSeriesTimeRange_.value(kind).first;
         }
         hoveredSeriesTimeRange_[kind] = timeRange;
-        if (kind == MEDEA::ChartDataKind::CPU_UTILISATION || kind == MEDEA::ChartDataKind::MEMORY_UTILISATION) {
+        if (kind == ChartDataKind::CPU_UTILISATION || kind == ChartDataKind::MEMORY_UTILISATION) {
             hoveredEllipseRects_.append(hitRect);
-        } else { //if (kind != MEDEA::ChartDataKind::MARKER) {
+        } else { //if (kind != ChartDataKind::MARKER) {
             hoveredRects_.append(hitRect);
         }
         return true;
@@ -1293,20 +1294,20 @@ bool EntityChart::rectHovered(MEDEA::ChartDataKind kind, const QRectF& hitRect)
 
 
 /**
- * @brief EntityChart::rectHovered
+ * @brief Chart::rectHovered
  * @param hitRect
  * @return
  */
-bool EntityChart::rectHovered(const QRectF &hitRect)
+bool Chart::rectHovered(const QRectF &hitRect)
 {
     return hoveredRect_.intersects(hitRect);
 }
 
 
 /**
- * @brief EntityChart::clearHoveredLists
+ * @brief Chart::clearHoveredLists
  */
-void EntityChart::clearHoveredLists()
+void Chart::clearHoveredLists()
 {
     // clear previously hovered series kinds
     hoveredSeriesTimeRange_.clear();
@@ -1316,10 +1317,10 @@ void EntityChart::clearHoveredLists()
 
 
 /**
- * @brief EntityChart::updateBinnedData
+ * @brief Chart::updateBinnedData
  * @param kind
  */
-void EntityChart::updateBinnedData(MEDEA::ChartDataKind kind)
+void Chart::updateBinnedData(ChartDataKind kind)
 {
     if (!seriesList_.contains(kind))
         return;
@@ -1338,7 +1339,7 @@ void EntityChart::updateBinnedData(MEDEA::ChartDataKind kind)
     //binTimeWidth_ = binRatio * displayRange;
     //binCount_ = /*ceil*/(dataRange / binTimeWidth_);
 
-    if (kind == MEDEA::ChartDataKind::PORT_LIFECYCLE) {
+    if (kind == ChartDataKind::PORT_LIFECYCLE) {
         int firstIndex = getBinIndexForTime(displayMin_);
         int lastIndex = getBinIndexForTime(displayMax_);
         qDebug() << "width(): " << width();
@@ -1363,7 +1364,7 @@ void EntityChart::updateBinnedData(MEDEA::ChartDataKind kind)
     // calculate the bin end times for the whole data range
     auto currentTime = dataMinX_;
     for (auto i = 0; i < binCount_; i++) {
-        /*if (kind == MEDEA::ChartDataKind::PORT_LIFECYCLE)
+        /*if (kind == ChartDataKind::PORT_LIFECYCLE)
             qDebug() << "CURRENT time: " << QDateTime::fromMSecsSinceEpoch(currentTime).toString(TIME_FORMAT);*/
         binEndTimes.append(currentTime + binTimeWidth_);
         currentTime = binEndTimes.last();
@@ -1391,7 +1392,7 @@ void EntityChart::updateBinnedData(MEDEA::ChartDataKind kind)
                 }
             }
             if (currentBin < binCount_) {
-                if (kind == MEDEA::ChartDataKind::PORT_LIFECYCLE)
+                if (kind == ChartDataKind::PORT_LIFECYCLE)
                     qDebug() << "--- bin data at: " << currentBin;
                 binnedData[currentBin].append(*eventItr);
             }
@@ -1401,24 +1402,24 @@ void EntityChart::updateBinnedData(MEDEA::ChartDataKind kind)
 
 
 /**
- * @brief EntityChart::updateSeriesPixmaps
+ * @brief Chart::updateSeriesPixmaps
  */
-void EntityChart::updateSeriesPixmaps()
+void Chart::updateSeriesPixmaps()
 {
     Theme* theme = Theme::theme();
     bool colorPortPixmaps = false;
     bool colorWorkerPixmaps = false;
 
     switch (hoveredSeriesKind_) {
-    case MEDEA::ChartDataKind::DATA: {
+    case ChartDataKind::DATA: {
         colorPortPixmaps = true;
         colorWorkerPixmaps = true;
         break;
     }
-    case MEDEA::ChartDataKind::PORT_LIFECYCLE:
+    case ChartDataKind::PORT_LIFECYCLE:
         colorPortPixmaps = true;
         break;
-    case MEDEA::ChartDataKind::WORKLOAD:
+    case ChartDataKind::WORKLOAD:
         colorWorkerPixmaps = true;
         break;
     default:
@@ -1458,11 +1459,11 @@ void EntityChart::updateSeriesPixmaps()
 
 
 /**
- * @brief EntityChart::getContrastingColor
+ * @brief Chart::getContrastingColor
  * @param color
  * @return
  */
-QColor EntityChart::getContrastingColor(const QColor &color)
+QColor Chart::getContrastingColor(const QColor &color)
 {
     auto hue = color.hue();
     auto saturation = color.saturation() < 128 ? 255 : 0;
@@ -1475,11 +1476,11 @@ QColor EntityChart::getContrastingColor(const QColor &color)
 
 
 /**
- * @brief EntityChart::getBinIndexForTime
+ * @brief Chart::getBinIndexForTime
  * @param time
  * @return
  */
-int EntityChart::getBinIndexForTime(double time)
+int Chart::getBinIndexForTime(double time)
 {
     auto index = (time - dataMinX_) / binTimeWidth_;
     //qDebug() << "index: " << index << " @ time " << (time - dataMinX_);
@@ -1488,22 +1489,22 @@ int EntityChart::getBinIndexForTime(double time)
 
 
 /**
- * @brief EntityChart::getBinnedData
+ * @brief Chart::getBinnedData
  * @param kind
  * @return
  */
-QVector<QList<MEDEA::Event*>> &EntityChart::getBinnedData(MEDEA::ChartDataKind kind)
+QVector<QList<Event*>> &Chart::getBinnedData(ChartDataKind kind)
 {
     switch (kind) {
-    case MEDEA::ChartDataKind::PORT_LIFECYCLE:
+    case ChartDataKind::PORT_LIFECYCLE:
         return portLifecycleBinnedData_;
-    case MEDEA::ChartDataKind::WORKLOAD:
+    case ChartDataKind::WORKLOAD:
         return workloadBinnedData_;
-    case MEDEA::ChartDataKind::CPU_UTILISATION:
+    case ChartDataKind::CPU_UTILISATION:
         return cpuUtilisationBinnedData_;
-    case MEDEA::ChartDataKind::MEMORY_UTILISATION:
+    case ChartDataKind::MEMORY_UTILISATION:
         return memoryUtilisationBinnedData_;
-    case MEDEA::ChartDataKind::MARKER:
+    case ChartDataKind::MARKER:
         return markerBinnedData_;
     default:
         return emptyBinnedData_;
@@ -1512,11 +1513,11 @@ QVector<QList<MEDEA::Event*>> &EntityChart::getBinnedData(MEDEA::ChartDataKind k
 
 
 /**
- * @brief EntityChart::mapPixelToTime
+ * @brief Chart::mapPixelToTime
  * @param x
  * @return
  */
-qint64 EntityChart::mapPixelToTime(double x)
+qint64 Chart::mapPixelToTime(double x)
 {
     auto timeRange = displayMax_ - displayMin_;
     auto ratio = x / width();
@@ -1525,11 +1526,11 @@ qint64 EntityChart::mapPixelToTime(double x)
 
 
 /**
- * @brief EntityChart::mapTimeToPixel
+ * @brief Chart::mapTimeToPixel
  * @param time
  * @return
  */
-double EntityChart::mapTimeToPixel(double time)
+double Chart::mapTimeToPixel(double time)
 {
     auto timeRange = displayMax_ - displayMin_;
     auto adjustedTime = time - displayMin_;
@@ -1543,7 +1544,7 @@ double EntityChart::mapTimeToPixel(double time)
  * @param seed
  * @return
  */
-inline uint qHash(MEDEA::ChartDataKind key, uint seed)
+inline uint qHash(ChartDataKind key, uint seed)
 {
     return ::qHash(static_cast<uint>(key), seed);
 }

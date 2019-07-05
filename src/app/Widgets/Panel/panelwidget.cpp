@@ -19,6 +19,8 @@
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
 
+using namespace MEDEA;
+
 int PanelWidget::tab_ID = 0;
 
 /**
@@ -437,7 +439,7 @@ void PanelWidget::clearActiveTab()
     if (widget) {
         auto view = qobject_cast<TimelineChartView*>(widget);
         if (view)
-            view->clearTimelineChart();
+            view->clearChartList();
     }
 }
 
@@ -642,7 +644,7 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
  * @brief PanelWidget::connectChartViewToAggreagtionProxy
  * @param view
  */
-void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView* view)
+void PanelWidget::connectChartViewToAggreagtionProxy(TimelineChartView *view)
 {
     /*if (view && viewController) {
         connect(&viewController->getAggregationProxy(), &AggregationProxy::clearPreviousEvents, view, &TimelineChartView::clearTimelineChart);

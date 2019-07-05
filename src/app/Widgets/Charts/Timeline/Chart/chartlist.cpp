@@ -1,6 +1,6 @@
-#include "timelinechart.h"
+#include "chartlist.h"
 #include "../../../../theme.h"
-#include "entitychart.h"
+#include "chart.h"
 
 #include <QPainter>
 #include <QWheelEvent>
@@ -10,12 +10,13 @@
 #define BACKGROUND_OPACITY 0.25
 #define HOVER_LINE_WIDTH 2.0
 
+using namespace MEDEA;
 
 /**
- * @brief TimelineChart::TimelineChart
+ * @brief ChartList::ChartList
  * @param parent
  */
-TimelineChart::TimelineChart(QWidget* parent)
+ChartList::ChartList(QWidget* parent)
     : QWidget(parent)
 {
     setMouseTracking(true);
@@ -27,36 +28,36 @@ TimelineChart::TimelineChart(QWidget* parent)
 
     hoverRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
 
-    connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChart::themeChanged);
+    connect(Theme::theme(), &Theme::theme_Changed, this, &ChartList::themeChanged);
     themeChanged();
 }
 
 
 /**
- * @brief TimelineChart::setAxisXVisible
+ * @brief ChartList::setAxisXVisible
  * @param visible
  */
-void TimelineChart::setAxisXVisible(bool visible)
+void ChartList::setAxisXVisible(bool visible)
 {
     axisXVisible_ = visible;
 }
 
 
 /**
- * @brief TimelineChart::setAxisYVisible
+ * @brief ChartList::setAxisYVisible
  * @param visible
  */
-void TimelineChart::setAxisYVisible(bool visible)
+void ChartList::setAxisYVisible(bool visible)
 {
     axisYVisible_ = visible;
 }
 
 
 /**
- * @brief TimelineChart::setAxisWidth
+ * @brief ChartList::setAxisWidth
  * @param width
  */
-void TimelineChart::setAxisWidth(double width)
+void ChartList::setAxisWidth(double width)
 {
     axisWidth_ = width;
     axisLinePen_.setWidthF(width);
@@ -65,24 +66,24 @@ void TimelineChart::setAxisWidth(double width)
 
 
 /**
- * @brief TimelineChartWidget::addEntityChart
+ * @brief ChartListWidget::addChart
  * @param chart
  */
-void TimelineChart::addEntityChart(EntityChart* chart)
+void ChartList::addChart(Chart* chart)
 {
-    insertEntityChart(-1, chart);
+    insertChart(-1, chart);
 }
 
 
 /**
- * @brief TimelineChart::insertEntityChart
+ * @brief ChartList::insertChart
  * @param index
  * @param chart
  */
-void TimelineChart::insertEntityChart(int index, EntityChart* chart)
+void ChartList::insertChart(int index, Chart* chart)
 {
     if (chart) {
-        entityCharts_.append(chart);
+        charts_.append(chart);
         layout_->insertWidget(index, chart);
         chart->installEventFilter(this);
     }
@@ -90,52 +91,52 @@ void TimelineChart::insertEntityChart(int index, EntityChart* chart)
 
 
 /**
- * @brief TimelineChart::removeEntityChart
+ * @brief ChartList::removeChart
  * @param chart
  */
-void TimelineChart::removeEntityChart(EntityChart* chart)
+void ChartList::removeChart(Chart* chart)
 {
     if (chart) {
         layout_->removeWidget(chart);
-        entityCharts_.removeAll(chart);
+        charts_.removeAll(chart);
     }
 }
 
 
 /**
- * @brief TimelineChart::getEntityCharts
+ * @brief ChartList::getCharts
  * @return
  */
-const QList<EntityChart*>& TimelineChart::getEntityCharts() const
+const QList<Chart*>& ChartList::getCharts() const
 {
-    return entityCharts_;
+    return charts_;
 }
 
 
 /**
- * @brief TimelineChart::getHoverRect
+ * @brief ChartList::getHoverRect
  * @return
  */
-const QRectF& TimelineChart::getHoverRect() const
+const QRectF& ChartList::getHoverRect() const
 {
     return hoverRect_;
 }
 
 
 /**
- * @brief TimelineChart::isPanning
+ * @brief ChartList::isPanning
  * @return
  */
-bool TimelineChart::isPanning() const
+bool ChartList::isPanning() const
 {
     return dragMode_ == DRAG_MODE::PAN || dragMode_ == DRAG_MODE::RUBBERBAND;
 }
 
 
 /**
- * @brief TimelineChart::themeChanged
+ * @brief ChartList::themeChanged
  */
-void TimelineChart::themeChanged()
+void ChartList::themeChanged()
 {
     Theme* theme = Theme::theme();
     highlightColor_ = theme->getHighlightColor();
@@ -154,17 +155,22 @@ void TimelineChart::themeChanged()
 
 
 /**
- * @brief TimelineChart::setEntityChartHovered
- * This is called
+ * @brief ChartList::setChartHovered
+ * This is called when the cursor was moved over/off the provided chart.
+ * It is also called when the provided chart's label was hovered on/off.
  * @param chart
  * @param hovered
  */
-void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
+void ChartList::setChartHovered(Chart* chart, bool hovered)
 {
     if (chart) {
+        hovered_ = hovered;
         hoveredChartRect_ = hovered ? chart->rect() : QRectF();
         hoveredChartRect_.moveTo(chart->pos());
         chart->setHovered(hovered);
+        // the signal below is used to tell the TimelineChartView which chart was hovered on/off
+        // it sets the corresponding ChartLabel's hovered state
+        emit chartHovered(chart, hovered);
     } else {
         hoveredChartRect_ = QRectF();
     }
@@ -173,33 +179,28 @@ void TimelineChart::setEntityChartHovered(EntityChart* chart, bool hovered)
 
 
 /**
- * @brief TimelineChart::eventFilter
+ * @brief ChartList::eventFilter
  * @param watched
  * @param event
  * @return
  */
-bool TimelineChart::eventFilter(QObject* watched, QEvent *event)
+bool ChartList::eventFilter(QObject* watched, QEvent *event)
 {
-    // the signal below is used to tell the entity axis which chart was hovered
-    // it's not sent from the setEntityChartHovered to avoid duplicated signals
-    // because the entity axis uses that slot to hover on a chart
-    EntityChart* chart = qobject_cast<EntityChart*>(watched);
+    Chart* chart = qobject_cast<Chart*>(watched);
     if (event->type() == QEvent::Enter) {
-        setEntityChartHovered(chart, true);
-        emit entityChartHovered(chart, true);
+        setChartHovered(chart, true);
     } else if (event->type() == QEvent::Leave) {
-        setEntityChartHovered(chart, false);
-        emit entityChartHovered(chart, false);
+        setChartHovered(chart, false);
     }
     return QWidget::eventFilter(watched, event);
 }
 
 
 /**
- * @brief TimelineChart::mousePressEvent
+ * @brief ChartList::mousePressEvent
  * @param event
  */
-void TimelineChart::mousePressEvent(QMouseEvent *event)
+void ChartList::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton) {
         dragMode_ = PAN;
@@ -216,10 +217,10 @@ void TimelineChart::mousePressEvent(QMouseEvent *event)
 
 
 /**
- * @brief TimelineChart::mouseReleaseEvent
+ * @brief ChartList::mouseReleaseEvent
  * @param event
  */
-void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
+void ChartList::mouseReleaseEvent(QMouseEvent* event)
 {
     if (dragMode_ == RUBBERBAND && !rubberBandRect_.isNull()) {
         // send a signal to update the axis' displayed range
@@ -236,10 +237,10 @@ void TimelineChart::mouseReleaseEvent(QMouseEvent* event)
 
 
 /**
- * @brief TimelineChart::mouseMoveEvent
+ * @brief ChartList::mouseMoveEvent
  * @param event
  */
-void TimelineChart::mouseMoveEvent(QMouseEvent *event)
+void ChartList::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
     cursorPoint_ = mapFromGlobal(cursor().pos());
@@ -264,10 +265,10 @@ void TimelineChart::mouseMoveEvent(QMouseEvent *event)
 
 
 /**
- * @brief TimelineChart::wheelEvent
+ * @brief ChartList::wheelEvent
  * @param event
  */
-void TimelineChart::wheelEvent(QWheelEvent *event)
+void ChartList::wheelEvent(QWheelEvent *event)
 {
     // need to accept the event here so that it doesn't scroll the timeline chart
     emit zoomed(event->delta());
@@ -276,10 +277,10 @@ void TimelineChart::wheelEvent(QWheelEvent *event)
 
 
 /**
- * @brief TimelineChart::keyReleaseEvent
+ * @brief ChartList::keyReleaseEvent
  * @param event
  */
-void TimelineChart::keyReleaseEvent(QKeyEvent *event)
+void ChartList::keyReleaseEvent(QKeyEvent *event)
 {
     if (dragMode_ == RUBBERBAND) {
         if (event->key() == Qt::Key_Control) {
@@ -291,10 +292,10 @@ void TimelineChart::keyReleaseEvent(QKeyEvent *event)
 
 
 /**
- * @brief TimelineChart::enterEvent
+ * @brief ChartList::enterEvent
  * @param event
  */
-void TimelineChart::enterEvent(QEvent *event)
+void ChartList::enterEvent(QEvent *event)
 {
     QWidget::enterEvent(event);
     setCursor(Qt::BlankCursor);
@@ -307,10 +308,10 @@ void TimelineChart::enterEvent(QEvent *event)
 
 
 /**
- * @brief TimelineChart::leaveEvent
+ * @brief ChartList::leaveEvent
  * @param event
  */
-void TimelineChart::leaveEvent(QEvent *event)
+void ChartList::leaveEvent(QEvent *event)
 {
     QWidget::leaveEvent(event);
     hovered_ = false;
@@ -320,10 +321,10 @@ void TimelineChart::leaveEvent(QEvent *event)
 
 
 /**
- * @brief TimelineChart::paintEvent
+ * @brief ChartList::paintEvent
  * @param event
  */
-void TimelineChart::paintEvent(QPaintEvent *event)
+void ChartList::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     QRect visibleRect = visibleRegion().boundingRect();
@@ -367,17 +368,17 @@ void TimelineChart::paintEvent(QPaintEvent *event)
 
 
 /**
- * @brief TimelineChart::hoverRectUpdated
+ * @brief ChartList::hoverRectUpdated
  * @param repaintRequired
  */
-void TimelineChart::hoverRectUpdated(bool repaintRequired)
+void ChartList::hoverRectUpdated(bool repaintRequired)
 {
     if (hoverRect_.isNull()) {
-        for (EntityChart* chart : entityCharts_) {
+        for (Chart* chart : charts_) {
             chart->setHoveredRect(hoverRect_);
         }
     } else {
-        for (EntityChart* chart : entityCharts_) {
+        for (Chart* chart : charts_) {
             if (!chart->isVisible()) {
                 continue;
             }
@@ -402,9 +403,9 @@ void TimelineChart::hoverRectUpdated(bool repaintRequired)
 
 
 /**
- * @brief TimelineChart::clearDragMode
+ * @brief ChartList::clearDragMode
  */
-void TimelineChart::clearDragMode()
+void ChartList::clearDragMode()
 {
     dragMode_ = NONE;
     rubberBandRect_ = QRectF();
