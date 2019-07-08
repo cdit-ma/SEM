@@ -265,7 +265,7 @@ void TimelineChartView::updateChartList()
  */
 void TimelineChartView::setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format)
 {
-    _dateTimeAxis->setDisplayFormat(format);
+    timelineAxis_->setDisplayFormat(format);
     timeDisplayFormat_ = format;
     updateTimelineRange();
     update();
@@ -304,15 +304,15 @@ void TimelineChartView::themeChanged()
 
     chartList_->setStyleSheet("background: " + Theme::QColorToHex(bgColor) + ";");
 
-    _legendToolbar->setFixedHeight(theme->getLargeIconSize().height());
-    _legendToolbar->setStyleSheet(theme->getToolTipStyleSheet() +
+    legendToolbar_->setFixedHeight(theme->getLargeIconSize().height());
+    legendToolbar_->setStyleSheet(theme->getToolTipStyleSheet() +
                                   theme->getToolBarStyleSheet() +
                                   "QToolButton{ border: 0px; color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
                                                                                                                      "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
                                                                                                                                                                                         "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
-    for (auto action : _legendToolbar->actions()) {
-        auto widget = _legendToolbar->widgetForAction(action);
+    for (auto action : legendToolbar_->actions()) {
+        auto widget = legendToolbar_->widgetForAction(action);
         widget->setMinimumSize(theme->getLargeIconSize());
     }
 
@@ -337,10 +337,10 @@ void TimelineChartView::themeChanged()
         default:
             continue;
         }
-        auto button = _hoverDisplayButtons.value(kind, 0);
+        auto button = hoverDisplayButtons_.value(kind, 0);
         if (button)
             button->setIcon(buttonIcon);
-        auto action = _legendActions.value(kind, 0);
+        auto action = legendActions_.value(kind, 0);
         if (action)
             action->setIcon(theme->getIcon("ToggleIcons", MEDEA::Event::GetChartDataKindString(kind)));
     }
@@ -373,9 +373,9 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
             if (chart) {
                 chart->setVisible(checked);
             }
-            auto set = chartLabels_.value(ID, 0);
-            if (set) {
-                set->setVisible(checked);
+            auto chartLabel = chartLabels_.value(ID, 0);
+            if (chartLabel) {
+                chartLabel->setVisible(checked);
             }
         }
     }
@@ -386,21 +386,21 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
 
 
 /**
- * @brief TimelineChartView::entityAxisSizeChanged
+ * @brief TimelineChartView::chartLabelListSizeChanged
  * This is called when the entity axis is resized
  * It resizes the invisible filler widgets above and below it to match its width
  * @param size
  */
-void TimelineChartView::entityAxisSizeChanged(QSizeF size)
+void TimelineChartView::chartLabelListSizeChanged(QSizeF size)
 {
-    qreal chartHeight = height() - _dateTimeAxis->height() - _legendToolbar->height() - SPACING * 3;
+    qreal chartHeight = height() - timelineAxis_->height() - legendToolbar_->height() - SPACING * 3;
 
     if (size.height() > chartHeight) {
         size.setWidth(size.width() + SCROLLBAR_WIDTH);
     }
 
-    _topFillerWidget->setFixedWidth(size.width());
-    _bottomFillerWidget->setFixedWidth(size.width());
+    topFillerWidget_->setFixedWidth(size.width());
+    bottomFillerWidget_->setFixedWidth(size.width());
 
     //auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
     //setMinimumWidth(size.width() + minTimeAxisWidth + SPACING * 2);
@@ -408,32 +408,32 @@ void TimelineChartView::entityAxisSizeChanged(QSizeF size)
 
 
 /**
- * @brief TimelineChartView::entityChartHovered
+ * @brief TimelineChartView::chartHovered
  * All this slot does is set the corresponding axis item's hovered state to hovered
  * @param chart
  * @param hovered
  */
-void TimelineChartView::entityChartHovered(Chart* chart, bool hovered)
+void TimelineChartView::chartHovered(Chart* chart, bool hovered)
 {
     if (!chart)
         return;
 
     QString path = charts_.key(chart, "");
-    MEDEA::ChartLabel* set = chartLabels_.value(path, 0);
-    if (set)
-        set->setHovered(hovered);
+    MEDEA::ChartLabel* chartLabel = chartLabels_.value(path, 0);
+    if (chartLabel)
+        chartLabel->setHovered(hovered);
 }
 
 
 /**
- * @brief TimelineChartView::entitySetClosed
- * This is called when a user has closed a chart (entity set/chart)
+ * @brief TimelineChartView::chartClosed
+ * This is called when a user has closed a chart by clicking on a chart label's close button
  */
-void TimelineChartView::entitySetClosed()
+void TimelineChartView::chartClosed()
 {
-    auto set = qobject_cast<MEDEA::ChartLabel*>(sender());
-    if (set) {
-        removeChart(chartLabels_.key(set, ""));
+    auto chartLabel = qobject_cast<MEDEA::ChartLabel*>(sender());
+    if (chartLabel) {
+        removeChart(chartLabels_.key(chartLabel, ""));
     }
 }
 
@@ -445,7 +445,7 @@ void TimelineChartView::entitySetClosed()
  */
 void TimelineChartView::updateHoverDisplay()
 {
-    _hoverDisplay->hide();
+    hoverDisplay_->hide();
 
     if (chartList_->isPanning())
         return;
@@ -461,7 +461,7 @@ void TimelineChartView::updateHoverDisplay()
             if (!s)
                 continue;
             const auto& kind = s->getKind();
-            const auto& action = _legendActions.value(kind, 0);
+            const auto& action = legendActions_.value(kind, 0);
             if (!action || !action->isChecked())
                 continue;
             if (!hoveredKinds.contains(kind))
@@ -483,8 +483,8 @@ void TimelineChartView::updateHoverDisplay()
     if (hoveredData.isEmpty())
         return;
 
-    for (auto kind : _hoverDisplayButtons.keys()) {
-        auto button = _hoverDisplayButtons.value(kind, 0);
+    for (auto kind : hoverDisplayButtons_.keys()) {
+        auto button = hoverDisplayButtons_.value(kind, 0);
         if (!button)
             continue;
         bool hasData = hoveredData.contains(kind);
@@ -496,26 +496,26 @@ void TimelineChartView::updateHoverDisplay()
     }
 
     // adjust the hover's size before calculating its position
-    _hoverDisplay->adjustChildrenSize();
+    hoverDisplay_->adjustChildrenSize();
 
     auto globalPos = mapToGlobal(pos());
-    auto hoverPos = mapTo(this, cursor().pos()) - QPoint(0, _hoverDisplay->height() / 2.0);
-    auto bottom = globalPos.y() + height() - _dateTimeAxis->height();
+    auto hoverPos = mapTo(this, cursor().pos()) - QPoint(0, hoverDisplay_->height() / 2.0);
+    auto bottom = globalPos.y() + height() - timelineAxis_->height();
 
     // adjust the hover display's position to make sure that it is fully visible
     if (hoverPos.x() >= (globalPos.x() + width() / 2.0)) {
-        hoverPos.setX(hoverPos.x() - _hoverDisplay->width() - 25);
+        hoverPos.setX(hoverPos.x() - hoverDisplay_->width() - 25);
     } else {
         hoverPos.setX(hoverPos.x() + 25);
     }
-    if ((hoverPos.y() + _hoverDisplay->height()) > bottom) {
-        hoverPos.setY(bottom - _hoverDisplay->height());
+    if ((hoverPos.y() + hoverDisplay_->height()) > bottom) {
+        hoverPos.setY(bottom - hoverDisplay_->height());
     } else if (hoverPos.y() < globalPos.y()){
         hoverPos.setY(globalPos.y());
     }
 
-    _hoverDisplay->move(hoverPos);
-    _hoverDisplay->show();
+    hoverDisplay_->move(hoverPos);
+    hoverDisplay_->show();
 }
 
 
@@ -552,7 +552,7 @@ void TimelineChartView::maxSliderMoved(const double ratio)
 void TimelineChartView::timelineZoomed(const int delta)
 {
     double factor = delta < 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
-    _dateTimeAxis->zoom(factor);
+    timelineAxis_->zoom(factor);
 }
 
 
@@ -563,10 +563,10 @@ void TimelineChartView::timelineZoomed(const int delta)
  */
 void TimelineChartView::timelinePanned(const double dx, const double dy)
 {
-    auto displayRange = _dateTimeAxis->getDisplayedRange();
-    auto actualRange = _dateTimeAxis->getRange();
+    auto displayRange = timelineAxis_->getDisplayedRange();
+    auto actualRange = timelineAxis_->getRange();
     auto ratio = (displayRange.second - displayRange.first) / (actualRange.second - actualRange.first);
-    _dateTimeAxis->pan(dx * ratio, dy * ratio);
+    timelineAxis_->pan(dx * ratio, dy * ratio);
 }
 
 
@@ -592,14 +592,14 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
     // set the new display min/max
     auto minRatio = left / timelineWidth;
     auto maxRatio = right / timelineWidth;
-    auto displayRange = _dateTimeAxis->getDisplayedRange();
+    auto displayRange = timelineAxis_->getDisplayedRange();
     auto displayDist = displayRange.second - displayRange.first;
     auto min = displayDist * minRatio + displayRange.first;
     auto max = displayDist * maxRatio + displayRange.first;
-    _dateTimeAxis->setDisplayRange(min, max);
+    timelineAxis_->setDisplayRange(min, max);
 
     // update the entity charts' display range
-    auto actualRange = _dateTimeAxis->getRange();
+    auto actualRange = timelineAxis_->getRange();
     auto actualDist = actualRange.second - actualRange.first;
     minRatio = actualDist > 0 ? (min - actualRange.first) / actualDist : 0.0;
     maxRatio = actualDist > 0 ? (max - actualRange.first) / actualDist : 0.0;
@@ -734,26 +734,26 @@ Chart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, co
     chartList_->addChart(chart);
     charts_[seriesID] = chart;
 
-    MEDEA::ChartLabel* set = new ChartLabel(seriesLabel, this);
-    set->setMinimumHeight(MIN_ENTITY_HEIGHT);
-    set->themeChanged(Theme::theme());
-    chartLabelList_->appendChartLabel(set);
-    chartLabels_[seriesID] = set;
+    MEDEA::ChartLabel* chartLabel = new ChartLabel(seriesLabel, this);
+    chartLabel->setMinimumHeight(MIN_ENTITY_HEIGHT);
+    chartLabel->themeChanged(Theme::theme());
+    chartLabelList_->appendChartLabel(chartLabel);
+    chartLabels_[seriesID] = chartLabel;
 
     connect(this, &TimelineChartView::seriesLegendHovered, chart, &Chart::seriesKindHovered);
-    connect(set, &ChartLabel::visibilityChanged, chart, &Chart::setVisible);
-    connect(set, &ChartLabel::closeChart, this, &TimelineChartView::entitySetClosed);
-    connect(set, &ChartLabel::hovered, [=] (bool hovered) {
+    connect(chartLabel, &ChartLabel::visibilityChanged, chart, &Chart::setVisible);
+    connect(chartLabel, &ChartLabel::closeChart, this, &TimelineChartView::chartClosed);
+    connect(chartLabel, &ChartLabel::hovered, [=] (bool hovered) {
         chartList_->setChartHovered(chart, hovered);
     });
 
-    // set the initial visibility state of the chart/axis item
-    for (auto& action : _legendActions.values()) {
-        auto kind = _legendActions.key(action, MEDEA::ChartDataKind::DATA);
+    // set the initial visibility state of the chart/chart label
+    for (auto& action : legendActions_.values()) {
+        auto kind = legendActions_.key(action, MEDEA::ChartDataKind::DATA);
         if (kind == series->getKind()) {
             chart->setSeriesKindVisible(kind, true);
             chart->setVisible(action->isChecked());
-            set->setVisible(action->isChecked());
+            chartLabel->setVisible(action->isChecked());
         }
     }
 
@@ -799,21 +799,21 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
         }
     }
 
-    // remove entity set
-    auto set = chartLabels_.value(ID, 0);
-    if (set) {
-        auto childrenSets = set->getChildrenChartLabels();
-        if (!childrenSets.isEmpty()) {
-            // remove/delete entity set's children sets
-            auto childItr = childrenSets.begin();
-            while (childItr != childrenSets.end()) {
+    // remove chart label
+    auto label = chartLabels_.value(ID, 0);
+    if (label) {
+        auto childrenLabels = label->getChildrenChartLabels();
+        if (!childrenLabels.isEmpty()) {
+            // remove/delete chart label's children labels
+            auto childItr = childrenLabels.begin();
+            while (childItr != childrenLabels.end()) {
                 (*childItr)->deleteLater();
-                childItr = childrenSets.erase(childItr);
+                childItr = childrenLabels.erase(childItr);
             }
         }
-        chartLabelList_->removeChartLabel(set);
+        chartLabelList_->removeChartLabel(label);
         chartLabels_.remove(ID);
-        set->deleteLater();
+        label->deleteLater();
     }
 
     if (!clearing) {
@@ -924,7 +924,7 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
         chart->updateRange(startTime, duration);
     }
 
-    _dateTimeAxis->setRange(startTime, startTime + duration, updateDisplayRange);
+    timelineAxis_->setRange(startTime, startTime + duration, updateDisplayRange);
 }
 
 
@@ -956,25 +956,25 @@ void TimelineChartView::setupLayout()
      */
     chartLabelList_ = new ChartLabelList(this);
     chartLabelList_->setAxisLineVisible(false);
-    connect(chartLabelList_, &ChartLabelList::sizeChanged, this, &TimelineChartView::entityAxisSizeChanged);
+    connect(chartLabelList_, &ChartLabelList::sizeChanged, this, &TimelineChartView::chartLabelListSizeChanged);
 
-    _dateTimeAxis = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, VALUE_TYPE::DATE_TIME, this);
-    _dateTimeAxis->setZoomFactor(ZOOM_FACTOR);
+    timelineAxis_ = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, VALUE_TYPE::DATE_TIME, this);
+    timelineAxis_->setZoomFactor(ZOOM_FACTOR);
 
-    connect(_dateTimeAxis, &AxisWidget::minRatioChanged, this, &TimelineChartView::minSliderMoved);
-    connect(_dateTimeAxis, &AxisWidget::maxRatioChanged, this, &TimelineChartView::maxSliderMoved);
+    connect(timelineAxis_, &AxisWidget::minRatioChanged, this, &TimelineChartView::minSliderMoved);
+    connect(timelineAxis_, &AxisWidget::maxRatioChanged, this, &TimelineChartView::maxSliderMoved);
 
     chartList_ = new MEDEA::ChartList(this);
     chartList_->setAxisWidth(AXIS_LINE_WIDTH);
     chartList_->setAxisYVisible(true);
 
-    connect(chartList_, &MEDEA::ChartList::panning, _dateTimeAxis, &AxisWidget::setPanning);
-    connect(chartList_, &MEDEA::ChartList::hoverLineUpdated, _dateTimeAxis, &AxisWidget::hoverLineUpdated);
+    connect(chartList_, &MEDEA::ChartList::panning, timelineAxis_, &AxisWidget::setPanning);
+    connect(chartList_, &MEDEA::ChartList::hoverLineUpdated, timelineAxis_, &AxisWidget::hoverLineUpdated);
 
     connect(chartList_, &MEDEA::ChartList::zoomed, this, &TimelineChartView::timelineZoomed);
     connect(chartList_, &MEDEA::ChartList::panned, this, &TimelineChartView::timelinePanned);
     connect(chartList_, &MEDEA::ChartList::rubberbandUsed, this, &TimelineChartView::timelineRubberbandUsed);
-    connect(chartList_, &MEDEA::ChartList::chartHovered, this, &TimelineChartView::entityChartHovered);
+    connect(chartList_, &MEDEA::ChartList::chartHovered, this, &TimelineChartView::chartHovered);
     if (HOVER_DISPLAY_ON) {
         connect(chartList_, &MEDEA::ChartList::hoverLineUpdated, this, &TimelineChartView::updateHoverDisplay);
     }
@@ -982,28 +982,28 @@ void TimelineChartView::setupLayout()
     /*
      *  TOP (LEGEND) LAYOUT
      */
-    _topFillerWidget = new QWidget(this);
-    _legendToolbar = new QToolBar(this);
-    //_legendToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    topFillerWidget_ = new QWidget(this);
+    legendToolbar_ = new QToolBar(this);
+    legendToolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     QHBoxLayout* topLayout = new QHBoxLayout();
     topLayout->setMargin(0);
     topLayout->setSpacing(0);
-    topLayout->addWidget(_topFillerWidget);
-    topLayout->addWidget(_legendToolbar, 1, Qt::AlignCenter);
+    topLayout->addWidget(topFillerWidget_);
+    topLayout->addWidget(legendToolbar_, 1, Qt::AlignCenter);
 
     /*
      * HOVER LAYOUT
      */
-    _hoverWidget = new QWidget(this);
-    _hoverWidget->setStyleSheet("background: rgba(0,0,0,0);");
+    hoverWidget_ = new QWidget(this);
+    hoverWidget_->setStyleSheet("background: rgba(0,0,0,0);");
 
-    QVBoxLayout* hoverLayout = new QVBoxLayout(_hoverWidget);
+    QVBoxLayout* hoverLayout = new QVBoxLayout(hoverWidget_);
     hoverLayout->setSpacing(SPACING * 2);
     hoverLayout->setMargin(SPACING);
 
-    _hoverDisplay = new HoverPopup(this);
-    _hoverDisplay->setWidget(_hoverWidget);
+    hoverDisplay_ = new HoverPopup(this);
+    hoverDisplay_->setWidget(hoverWidget_);
 
     /*
      * HOVER AND LEGEND CHART DATA KIND WIDGETS
@@ -1013,8 +1013,8 @@ void TimelineChartView::setupLayout()
             continue;
 
         // construct legend widgets
-        QAction* action = _legendToolbar->addAction(MEDEA::Event::GetChartDataKindString(kind));
-        _legendActions[kind] = action;
+        QAction* action = legendToolbar_->addAction(MEDEA::Event::GetChartDataKindString(kind));
+        legendActions_[kind] = action;
         action->setToolTip("Show/Hide " + action->text() + " Series");
         action->setCheckable(true);
         action->setChecked(true);
@@ -1022,7 +1022,7 @@ void TimelineChartView::setupLayout()
         action->setProperty(CHART_DATA_KIND, (uint)kind);
         connect(action, &QAction::toggled, this, &TimelineChartView::toggledSeriesLegend);
 
-        QWidget* actionWidget = _legendToolbar->widgetForAction(action);
+        QWidget* actionWidget = legendToolbar_->widgetForAction(action);
         actionWidget->setProperty(CHART_DATA_KIND, (uint)kind);
         actionWidget->installEventFilter(this);
 
@@ -1030,7 +1030,7 @@ void TimelineChartView::setupLayout()
         QPushButton* button = new QPushButton(this);
         button->setStyleSheet("QPushButton{ text-align: left; }");
         hoverLayout->addWidget(button);
-        _hoverDisplayButtons[kind] = button;
+        hoverDisplayButtons_[kind] = button;
     }
 
     /*
@@ -1043,22 +1043,22 @@ void TimelineChartView::setupLayout()
     scrollLayout->addWidget(chartList_, 1);
     scrollLayout->addWidget(chartLabelList_);
 
-    _scrollArea = new QScrollArea(this);
-    _scrollArea->setWidget(scrollWidget);
-    _scrollArea->setWidgetResizable(true);
-    _scrollArea->setLayoutDirection(Qt::RightToLeft);
-    _scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    _scrollArea->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
+    scrollArea_ = new QScrollArea(this);
+    scrollArea_->setWidget(scrollWidget);
+    scrollArea_->setWidgetResizable(true);
+    scrollArea_->setLayoutDirection(Qt::RightToLeft);
+    scrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea_->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
 
     /*
      * BOTTOM (TIME AXIS) LAYOUT
      */
-    _bottomFillerWidget = new QWidget(this);
+    bottomFillerWidget_ = new QWidget(this);
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->setMargin(0);
     bottomLayout->setSpacing(0);
-    bottomLayout->addWidget(_bottomFillerWidget);
-    bottomLayout->addWidget(_dateTimeAxis, 1);
+    bottomLayout->addWidget(bottomFillerWidget_);
+    bottomLayout->addWidget(timelineAxis_, 1);
 
     /*
      * MAIN LAYOUT
@@ -1079,7 +1079,7 @@ void TimelineChartView::setupLayout()
     mainLayout->setContentsMargins(SPACING, SPACING, SPACING, SPACING);
     mainLayout->addLayout(topLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, SPACING));
-    mainLayout->addWidget(_scrollArea, 1);
+    mainLayout->addWidget(scrollArea_, 1);
     mainLayout->addLayout(bottomLayout);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -1087,9 +1087,9 @@ void TimelineChartView::setupLayout()
     layout->addWidget(mainWidget_);
     layout->addWidget(emptyLabel_);
 
-    _scrollArea->verticalScrollBar()->setTracking(true);
-    connect(_scrollArea->verticalScrollBar(), &QScrollBar::valueChanged, [=]() {
-        verticalScrollValue = _scrollArea->verticalScrollBar()->value();
+    scrollArea_->verticalScrollBar()->setTracking(true);
+    connect(scrollArea_->verticalScrollBar(), &QScrollBar::valueChanged, [=]() {
+        verticalScrollValue = scrollArea_->verticalScrollBar()->value();
     });
 
     auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));

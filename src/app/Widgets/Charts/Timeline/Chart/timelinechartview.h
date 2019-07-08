@@ -55,9 +55,9 @@ public slots:
 
     void toggledSeriesLegend(bool checked);
 
-    void entityAxisSizeChanged(QSizeF size);
-    void entityChartHovered(MEDEA::Chart* chart, bool hovered);
-    void entitySetClosed();
+    void chartLabelListSizeChanged(QSizeF size);
+    void chartHovered(MEDEA::Chart* chart, bool hovered);
+    void chartClosed();
 
     void updateHoverDisplay();
 
@@ -94,20 +94,20 @@ private:
 
     MEDEA::ChartList* chartList_;
     MEDEA::ChartLabelList* chartLabelList_;
-    AxisWidget* _dateTimeAxis;
-    HoverPopup* _hoverDisplay;
+    AxisWidget* timelineAxis_;
+    HoverPopup* hoverDisplay_;
 
-    QToolBar* _legendToolbar;
-    QScrollArea* _scrollArea;
+    QToolBar* legendToolbar_;
+    QScrollArea* scrollArea_;
 
-    QWidget* _topFillerWidget;
-    QWidget* _bottomFillerWidget;
-    QWidget* _hoverWidget;
+    QWidget* topFillerWidget_;
+    QWidget* bottomFillerWidget_;
+    QWidget* hoverWidget_;
 
     TIME_DISPLAY_FORMAT timeDisplayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 
-    QHash<MEDEA::ChartDataKind, QAction*> _legendActions;
-    QHash<MEDEA::ChartDataKind, QPushButton*> _hoverDisplayButtons;
+    QHash<MEDEA::ChartDataKind, QAction*> legendActions_;
+    QHash<MEDEA::ChartDataKind, QPushButton*> hoverDisplayButtons_;
 
     QHash<quint32, int> experimentRunSeriesCount_;
     QHash<quint32, QPair<qint64, qint64>> experimentRunTimeRange_;

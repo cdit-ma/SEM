@@ -50,7 +50,7 @@ public:
     void setDisplayRangeRatio(double minRatio, double maxRatio);
 
 public slots:
-    void setHovered(bool visible);
+    void setHovered(bool hovered);
     void setHoveredRect(QRectF rect);
     void seriesKindHovered(ChartDataKind kind);
     void setSeriesKindVisible(ChartDataKind kind, bool visible);
@@ -118,10 +118,13 @@ private:
 
     QColor gridColor_;
     QColor textColor_;
-    QColor backgroundColor_;
     QColor highlightColor_;
     QColor highlightTextColor_;
     QColor hoveredRectColor_;
+
+    QColor backgroundColor_;
+    QColor backgroundDefaultColor_;
+    QColor backgroundHighlightColor_;
 
     QColor defaultPortLifecycleColor_ = Qt::gray;
     QColor defaultWorkloadColor_ = Qt::gray;

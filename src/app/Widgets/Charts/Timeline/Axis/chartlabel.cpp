@@ -48,7 +48,6 @@ ChartLabel::ChartLabel(QString label, QWidget* parent)
     setContentsMargins(0, 0, 0, 0);
     setLayoutDirection(Qt::LeftToRight);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    setObjectName("#MAIN_FRAME");
 }
 
 
@@ -63,7 +62,7 @@ ChartLabel::~ChartLabel()
 
 /**
  * @brief ChartLabel::getAllDepthChildrenCount
- * This returns this set's total number of children all the way down to the lowest depth.
+ * This returns this label's total number of children all the way down to the lowest depth.
  * @return
  */
 int ChartLabel::getAllDepthChildrenCount() const
@@ -180,10 +179,6 @@ void ChartLabel::setHovered(bool hovered)
     if (hovered) {
         textLabel_->setStyleSheet("color: " + highlighColorStr_ + ";");
         closeAction_->setIcon(closeIcon_);
-        /*auto mappedCursor = mapFromGlobal(cursor().pos());
-        if (geometry().contains(mappedCursor)) {
-            closeAction->setVisible(true);
-        }*/
     } else {
         textLabel_->setStyleSheet("color: " + textColorStr_ + ";");
         closeAction_->setIcon(QIcon());
@@ -198,12 +193,7 @@ void ChartLabel::setHovered(bool hovered)
 void ChartLabel::themeChanged(Theme* theme)
 {
     setStyleSheet(theme->getLabelStyleSheet() +
-                  theme->getToolTipStyleSheet() +
-                  "QFrame#MAIN_FRAME {"
-                  "border: 1px solid " + theme->getAltTextColorHex() + ";"
-                  "border-left: 0px;"
-                  "border-right: 0px;"
-                  "}");
+                  theme->getToolTipStyleSheet());
 
     unExpandablePixmap_ = theme->getImage("Icons", "circleDark", theme->getIconSize(), theme->getMenuIconColor());
     expandedPixmap_ = theme->getImage("Icons", "triangleDown", theme->getIconSize(), theme->getMenuIconColor());
@@ -319,8 +309,8 @@ bool ChartLabel::eventFilter(QObject* object, QEvent* event)
 {
     // TODO - Why use eventFilter instead of mouseDoubleClickEvent?
     if (event->type() == QEvent::MouseButtonDblClick) {
-        ChartLabel* set = dynamic_cast<ChartLabel*>(object);
-        set->toggleExpanded();
+        ChartLabel* label = dynamic_cast<ChartLabel*>(object);
+        label->toggleExpanded();
         return true;
     }
     return QWidget::eventFilter(object, event);

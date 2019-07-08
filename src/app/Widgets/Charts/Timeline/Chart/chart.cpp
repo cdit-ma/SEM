@@ -246,11 +246,17 @@ bool Chart::isHovered()
 
 /**
  * @brief Chart::setHovered
- * @param visible
+ * @param hovered
  */
-void Chart::setHovered(bool visible)
+void Chart::setHovered(bool hovered)
 {
-    hovered_ = visible;
+    hovered_ = hovered;
+    if (hovered) {
+        backgroundColor_ = backgroundHighlightColor_;
+    } else {
+        backgroundColor_ = backgroundDefaultColor_;
+    }
+    update();
 }
 
 
@@ -378,11 +384,15 @@ void Chart::themeChanged()
     //defaultMarkerColor_ = QColor(240,128,128);
     markerColor_ = defaultMarkerColor_;
 
+    backgroundDefaultColor_ = theme->getAltBackgroundColor();
+    backgroundDefaultColor_.setAlphaF(BACKGROUND_OPACITY);
+    backgroundHighlightColor_ = theme->getActiveWidgetBorderColor();
+    backgroundHighlightColor_.setAlphaF(BACKGROUND_OPACITY * 2.0);
+
     textColor_ = theme->getTextColor();
     gridColor_ = theme->getAltTextColor();
     highlightTextColor_ = theme->getTextColor(ColorRole::SELECTED);
-    backgroundColor_ = theme->getAltBackgroundColor();
-    backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
+    backgroundColor_ = backgroundDefaultColor_;
     highlightColor_ = theme->getHighlightColor();
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
@@ -426,6 +436,8 @@ void Chart::paintEvent(QPaintEvent* event)
     painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
     painter.setFont(font());
 
+    painter.fillRect(rect(), backgroundColor_);
+
     clearHoveredLists();
 
     // NOTE - If we decide to display multiple kinds of event series in one chart, we'll need to render the hovered one last
@@ -460,8 +472,8 @@ void Chart::paintEvent(QPaintEvent* event)
             QString maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
             int h = fontMetrics().height();
             int w = qMax(fontMetrics().width(minStr), fontMetrics().width(maxStr)) + 5;
-            QRectF maxRect(width() - w, BORDER_WIDTH, w, h);
-            QRectF minRect(width() - w, height() - h - BORDER_WIDTH, w, h);
+            QRectF maxRect(width() - w, 0, w, h);
+            QRectF minRect(width() - w, height() - h, w, h);
             painter.setPen(textColor_);
             painter.setBrush(hoveredRectColor_);
             painter.drawRect(maxRect);

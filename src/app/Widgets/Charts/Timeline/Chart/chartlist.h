@@ -42,7 +42,7 @@ public:
     void removeChart(Chart* chart);
 
     const QList<Chart*>& getCharts() const;
-    const QRectF& getHoverRect() const;
+    const QRectF& getHoverLineRect() const;
 
     bool isPanning() const;
 
@@ -90,7 +90,6 @@ private:
     bool rangeSet_ = false;
 
     QColor backgroundColor_;
-    QColor backgroundHighlightColor_;
     QColor highlightColor_;
     QColor hoveredRectColor_;
 
@@ -103,7 +102,7 @@ private:
     QPointF panOrigin_;
     QRectF rubberBandRect_;
     QRectF hoveredChartRect_;
-    QRectF hoverRect_;
+    QRectF hoverLineRect_;
 
     QVBoxLayout* layout_;
     QList<Chart*> charts_;

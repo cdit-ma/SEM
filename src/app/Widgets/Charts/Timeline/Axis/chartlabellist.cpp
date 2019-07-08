@@ -10,7 +10,7 @@ using namespace MEDEA;
  * @brief ChartLabelList::ChartLabelList
  * @param parent
  */
-ChartLabelList::ChartLabelList(QWidget *parent)
+ChartLabelList::ChartLabelList(QWidget* parent)
     : QWidget(parent)
 {
     mainLayout_ = new QVBoxLayout(this);
@@ -45,7 +45,7 @@ int ChartLabelList::appendChartLabel(ChartLabel* chartLabel)
 
 
 /**
- * @brief ChartLabelList::insertEntity
+ * @brief ChartLabelList::insertChartLabel
  * @param prevChartLabel
  * @param chartLabel
  * @return
@@ -67,7 +67,7 @@ int ChartLabelList::insertChartLabel(ChartLabel* prevChartLabel, ChartLabel* cha
 
 
 /**
- * @brief ChartLabelList::removeEntity
+ * @brief ChartLabelList::removeChartLabel
  * @param chartLabel
  * @return
  */
@@ -99,9 +99,9 @@ int ChartLabelList::getChartLabelIndex(ChartLabel* chartLabel) const
  */
 void ChartLabelList::setAxisLineVisible(bool visible)
 {
-    QList<ChartLabel*> childrenSets = findChildren<ChartLabel*>();
-    for (ChartLabel* set : childrenSets) {
-        set->setAxisLineVisible(visible);
+    QList<ChartLabel*> childrenLabels = findChildren<ChartLabel*>();
+    for (ChartLabel* label : childrenLabels) {
+        label->setAxisLineVisible(visible);
     }
     axisLineVisible_ = visible;
 }
@@ -113,9 +113,9 @@ void ChartLabelList::setAxisLineVisible(bool visible)
  */
 void ChartLabelList::setTickVisible(bool visible)
 {
-    QList<ChartLabel*> childrenSets = findChildren<ChartLabel*>();
-    for (ChartLabel* set : childrenSets) {
-        set->setTickVisible(visible);
+    QList<ChartLabel*> childrenLabels = findChildren<ChartLabel*>();
+    for (ChartLabel* label : childrenLabels) {
+        label->setTickVisible(visible);
     }
     tickVisible_ = visible;
 }
@@ -127,9 +127,9 @@ void ChartLabelList::setTickVisible(bool visible)
 void ChartLabelList::themeChanged()
 {
     Theme* theme = Theme::theme();
-    QList<ChartLabel*> childrenSets = findChildren<ChartLabel*>();
-    for (ChartLabel* set : childrenSets) {
-        set->themeChanged(theme);
+    QList<ChartLabel*> childrenLabels = findChildren<ChartLabel*>();
+    for (ChartLabel* label : childrenLabels) {
+        label->themeChanged(theme);
     }
 }
 
@@ -138,7 +138,7 @@ void ChartLabelList::themeChanged()
  * @brief ChartLabelList::resizeEvent
  * @param event
  */
-void ChartLabelList::resizeEvent(QResizeEvent *event)
+void ChartLabelList::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
     emit sizeChanged(size());

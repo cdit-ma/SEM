@@ -12,6 +12,8 @@
 
 using namespace MEDEA;
 
+//QColor ChartList::backgroundColor_ = QColor(0,0,0);
+
 /**
  * @brief ChartList::ChartList
  * @param parent
@@ -26,7 +28,7 @@ ChartList::ChartList(QWidget* parent)
     layout_->setMargin(0);
     layout_->setSpacing(0);
 
-    hoverRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
+    hoverLineRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartList::themeChanged);
     themeChanged();
@@ -114,12 +116,12 @@ const QList<Chart*>& ChartList::getCharts() const
 
 
 /**
- * @brief ChartList::getHoverRect
+ * @brief ChartList::getHoverLineRect
  * @return
  */
-const QRectF& ChartList::getHoverRect() const
+const QRectF& ChartList::getHoverLineRect() const
 {
-    return hoverRect_;
+    return hoverLineRect_;
 }
 
 
@@ -144,8 +146,6 @@ void ChartList::themeChanged()
 
     backgroundColor_ = theme->getAltBackgroundColor();
     backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
-    backgroundHighlightColor_ = theme->getActiveWidgetBorderColor();
-    backgroundHighlightColor_.setAlphaF(BACKGROUND_OPACITY * 2.0);
 
     cursorPen_ = QPen(theme->getTextColor(), 8);
     axisLinePen_ = QPen(theme->getAltTextColor(), axisWidth_);
@@ -164,16 +164,12 @@ void ChartList::themeChanged()
 void ChartList::setChartHovered(Chart* chart, bool hovered)
 {
     if (chart) {
-        hovered_ = hovered;
-        hoveredChartRect_ = hovered ? chart->rect() : QRectF();
-        hoveredChartRect_.moveTo(chart->pos());
-        chart->setHovered(hovered);
         // the signal below is used to tell the TimelineChartView which chart was hovered on/off
         // it sets the corresponding ChartLabel's hovered state
         emit chartHovered(chart, hovered);
-    } else {
-        hoveredChartRect_ = QRectF();
+        chart->setHovered(hovered);
     }
+    hovered_ = hovered;
     update();
 }
 
@@ -244,7 +240,7 @@ void ChartList::mouseMoveEvent(QMouseEvent *event)
 {
     QWidget::mouseMoveEvent(event);
     cursorPoint_ = mapFromGlobal(cursor().pos());
-    hoverRect_.moveCenter(cursorPoint_);
+    hoverLineRect_.moveCenter(cursorPoint_);
     hoverRectUpdated(true);
 
     switch (dragMode_) {
@@ -301,8 +297,8 @@ void ChartList::enterEvent(QEvent *event)
     setCursor(Qt::BlankCursor);
     hovered_ = true;
 
-    hoverRect_ = visibleRegion().boundingRect();
-    hoverRect_.setWidth(HOVER_LINE_WIDTH);
+    hoverLineRect_ = visibleRegion().boundingRect();
+    hoverLineRect_.setWidth(HOVER_LINE_WIDTH);
     hoverRectUpdated();
 }
 
@@ -315,8 +311,9 @@ void ChartList::leaveEvent(QEvent *event)
 {
     QWidget::leaveEvent(event);
     hovered_ = false;
-    hoverRect_ = QRectF();
+    hoverLineRect_ = QRectF();
     hoverRectUpdated();
+    cursorPoint_.setX(-10);
 }
 
 
@@ -352,12 +349,6 @@ void ChartList::paintEvent(QPaintEvent *event)
     }
     default:
         if (hovered_) {
-            if (!hoveredChartRect_.isNull()) {
-                // highlight the hovered child rect's background
-                painter.setPen(axisLinePen_);
-                painter.setBrush(backgroundHighlightColor_);
-                painter.drawRect(hoveredChartRect_.adjusted(-axisLinePen_.widthF(), 0, axisLinePen_.widthF(), 0));
-            }
             // paint the hover line
             painter.setPen(hoverLinePen_);
             painter.drawLine(cursorPoint_.x(), rect().top(), cursorPoint_.x(), rect().bottom());
@@ -373,9 +364,9 @@ void ChartList::paintEvent(QPaintEvent *event)
  */
 void ChartList::hoverRectUpdated(bool repaintRequired)
 {
-    if (hoverRect_.isNull()) {
+    if (hoverLineRect_.isNull()) {
         for (Chart* chart : charts_) {
-            chart->setHoveredRect(hoverRect_);
+            chart->setHoveredRect(hoverLineRect_);
         }
     } else {
         for (Chart* chart : charts_) {
@@ -384,7 +375,7 @@ void ChartList::hoverRectUpdated(bool repaintRequired)
             }
             QRect childRect(chart->x(), chart->y(), chart->width(), chart->height());
             if (visibleRegion().contains(childRect)) {
-                chart->setHoveredRect(hoverRect_);
+                chart->setHoveredRect(hoverLineRect_);
             }
         }
     }
@@ -398,7 +389,7 @@ void ChartList::hoverRectUpdated(bool repaintRequired)
         update();
     }
 
-    emit hoverLineUpdated(hoverRect_.isValid(), mapToGlobal(hoverRect_.center().toPoint()));
+    emit hoverLineUpdated(hoverLineRect_.isValid(), mapToGlobal(hoverLineRect_.center().toPoint()));
 }
 
 
