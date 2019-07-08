@@ -1,0 +1,13 @@
+# Default build directories
+/build/
+/lib/
+/bin/
+/cmake-build-*/
+
+# IDE config directories
+/.vscode/
+/.idea/
+
+# Scripts and other output files
+.DS_Store
+.sql
