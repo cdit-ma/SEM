@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
-SET(PROJ_NAME MEDEA)
-PROJECT(${PROJ_NAME})
+project(MEDEA_PROJECT
+        VERSION 3.3.9
+        LANGUAGES CXX)
 
 #Set CMake Options
 set(CMAKE_CXX_STANDARD 11)
@@ -30,8 +31,7 @@ endif()
 
 #Set MEDEA Options
 #VERSION in form X.Y.Z(-P?)
-#SET(VERSION_NO "3.3.5")
-SET(VERSION_NO "3.3.8")
+SET(VERSION_NO "3.3.9")
 SET(VERSION "${VERSION_NO}-VIS-1")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "MEDEAv${VERSION}")
@@ -43,6 +43,7 @@ set(CMAKE_AUTORCC ON)
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
 option(BUILD_TEST "Build MEDEA Test" OFF)
+option(BUILD_DOCS "Build MEDEA Developer documentation" ON)
 
 if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
     message(STATUS "Building MEDEA Core")
@@ -68,6 +69,11 @@ if(BUILD_TEST)
     message(STATUS "Building MEDEA Tests")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif(BUILD_TEST)
+
+if(BUILD_DOCS)
+    message(STATUS "Building MEDEA Documentation")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/docs")
+endif(BUILD_DOCS)
 
 SET(CPACK_GENERATOR "IFW;ZIP")
 # Set CPACK generic info
