@@ -14,6 +14,12 @@ void signal_handler(int sig)
 }
 
 int main(int ac, char** av){
+
+    // Set up string constants inside execution context
+    const std::string program_name = "logan_managedserver";
+    // Pull logan version from cmakevars.h
+    const std::string pretty_program_name = program_name + LOGAN_VERSION;
+
     //Connect the SIGINT/SIGTERM signals to our handler.
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
@@ -22,7 +28,7 @@ int main(int ac, char** av){
     std::string environment_manager_endpoint;
     std::string ip_address;
 
-    boost::program_options::options_description options(LONG_VERSION " Options");
+    boost::program_options::options_description options(pretty_program_name + " Options");
     options.add_options()("address,a", boost::program_options::value<std::string>(&ip_address)->required(), "Node manager ip address.");
     options.add_options()("experiment-name,n", boost::program_options::value<std::string>(&experiment_name)->required(), "Name of experiment.");
     options.add_options()("environment-manager,e", boost::program_options::value<std::string>(&environment_manager_endpoint)->required(), "Environment manager fully qualified endpoint ie. (tcp://192.168.111.230:20000).");

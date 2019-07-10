@@ -34,6 +34,12 @@ void signal_handler (int signal_value){
 
 
 int main(int ac, char** av){
+
+    // Set up string constants inside execution context
+    const std::string program_name = "logan_server";
+    // Pull logan version from cmakevars.h
+    const std::string pretty_program_name = program_name + LOGAN_VERSION;
+
     //Handle the SIGINT/SIGTERM signal
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
@@ -44,7 +50,7 @@ int main(int ac, char** av){
     double log_frequency = 1.0;
     std::string address;
     std::string port;
-    boost::program_options::options_description desc(LONG_VERSION " Options");
+    boost::program_options::options_description desc(pretty_program_name + " Options");
     desc.add_options()("address,a", boost::program_options::value<std::string>(&address), "IP address of logging client node.");
     desc.add_options()("port,p", boost::program_options::value<std::string>(&port), "Local port to attach logging client to.");
     desc.add_options()("frequency,f", boost::program_options::value<double>(&log_frequency)->default_value(log_frequency), "Logging frequency (Hz)");
@@ -87,7 +93,7 @@ int main(int ac, char** av){
         log_controller.Start(logger_endpoint, log_frequency, processes, live_mode);
      
         //Print output
-        std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
+        std::cout << "-------[ " + pretty_program_name + " ]-------" << std::endl;
         std::cout << "* Logging Endpoint: " << logger_endpoint << std::endl;
         std::cout << "* Logging Frequency: " << log_frequency << "Hz" << std::endl;
         std::cout << "* Logging Mode: " << (live_mode ? "Live" : "Cached") << std::endl;

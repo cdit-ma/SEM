@@ -16,9 +16,6 @@ endif()
 
 add_subdirectory("aggregationbroker")
 
-#Pass Version info into cmakevars.h
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
-
 set(SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/aggregationprotohandler.cpp

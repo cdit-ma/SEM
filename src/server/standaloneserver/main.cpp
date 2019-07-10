@@ -29,13 +29,8 @@
 
 #include "../server.h"
 
-
-
-
 std::mutex mutex_;
 std::condition_variable lock_condition_;
-
-std::string DEFAULT_FILE = "out.sql";
 
 void signal_handler(int sig)
 {
@@ -46,6 +41,12 @@ void signal_handler(int sig)
 
 int main(int ac, char** av)
 {
+    // Set up string constants inside execution context
+    const std::string program_name = "logan_server";
+    // Pull logan version from cmakevars.h
+    const std::string pretty_program_name = program_name + LOGAN_VERSION;
+    const std::string default_db_file_name = "out.sql";
+
     //Connect the SIGINT/SIGTERM signals to our handler.
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
@@ -56,9 +57,9 @@ int main(int ac, char** av)
     std::vector<std::string> client_addresses;
 
     //Parse command line options
-    boost::program_options::options_description desc(LONG_VERSION " Options");
+    boost::program_options::options_description desc(pretty_program_name + " Options");
     desc.add_options()("clients,c", boost::program_options::value<std::vector<std::string> >(&client_addresses)->multitoken()->required(), "logan_client endpoints to register against (ie tcp://192.168.1.1:5555)");
-    desc.add_options()("database,d", boost::program_options::value<std::string>(&database_path)->default_value(DEFAULT_FILE), "Output SQLite Database file path.");
+    desc.add_options()("database,d", boost::program_options::value<std::string>(&database_path)->default_value(default_db_file_name), "Output SQLite Database file path.");
     desc.add_options()("help,h", "Display help");
 
     //Construct a variable_map
@@ -75,7 +76,7 @@ int main(int ac, char** av)
     }
 
     //Print output
-    std::cout << "-------[ " LONG_VERSION " ]-------" << std::endl;
+    std::cout << "-------[ " + pretty_program_name + " ]-------" << std::endl;
     std::cout << "* Database: " << database_path << std::endl;
     for(int i = 0; i < client_addresses.size(); i++){
         if(i == 0){

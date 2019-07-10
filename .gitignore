@@ -27,7 +27,7 @@
 *.exe
 *.out
 *.app
-bin
+/bin/
 
 # CMake
 CMakeCache.txt
@@ -53,7 +53,7 @@ Makefile
 CMakeCache.txt
 CMakeFiles
 
-#Generated binarys
+#Generated binaries
 LogServer
 *.out
 
@@ -63,3 +63,4 @@ build
 
 #CLion generated files
 .idea/*
+/cmake-build-*/
