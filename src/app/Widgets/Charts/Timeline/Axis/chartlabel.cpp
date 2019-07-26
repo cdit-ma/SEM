@@ -16,11 +16,11 @@ ChartLabel::ChartLabel(QString label, QWidget* parent)
       depth_(1),
       ID_(-1)
 {
-    iconLabel_ = new QLabel(this);
-    iconLabel_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    expandedIconLabel_ = new QLabel(this);
+    expandedIconLabel_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    // TODO - hide icon label while we're not using the ChartLabel parenting/grouping functionality
-    //iconLabel_->setVisible(false);
+    // hide expandedIconLabel while we're not using the ChartLabel parenting/grouping functionality
+    expandedIconLabel_->setVisible(false);
 
     textLabel_ = new QLabel(label, this);
     textLabel_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -36,11 +36,11 @@ ChartLabel::ChartLabel(QString label, QWidget* parent)
     axisLineVisible_ = false;
 
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
-    mainLayout->setSpacing(3); //CHILD_TAB_WIDTH / 3);
+    mainLayout->setSpacing(3);
     mainLayout->setMargin(0);
     mainLayout->setContentsMargins(0, 0, CHILD_TAB_WIDTH, 0);
-    mainLayout->addWidget(iconLabel_);
-    //mainLayout->addSpacerItem(new QSpacerItem(CHILD_TAB_WIDTH, 5));
+    mainLayout->addWidget(expandedIconLabel_);
+    mainLayout->addSpacerItem(new QSpacerItem(CHILD_TAB_WIDTH, 5)); // remove this if the expandIconLabel is visible
     mainLayout->addWidget(textLabel_, 1);
     mainLayout->addWidget(toolbar_);
 
@@ -212,11 +212,14 @@ void ChartLabel::themeChanged(Theme* theme)
     closeIcon_ = theme->getIcon("Icons", "cross");
     closeAction_->setIcon(closeIcon_);
 
-    if (allDepthChildrenCount_ <= 0) {
-        iconLabel_->setPixmap(unExpandablePixmap_);
-    } else {
-        QPixmap pixmap = isExpanded_ ? expandedPixmap_ : contractedPixmap_;
-        iconLabel_->setPixmap(pixmap);
+    // if it's visible, update the icon based on whether its expandable and is expanded/contracted
+    if (expandedIconLabel_->isVisible()) {
+        if (allDepthChildrenCount_ <= 0) {
+            expandedIconLabel_->setPixmap(unExpandablePixmap_);
+        } else {
+            QPixmap pixmap = isExpanded_ ? expandedPixmap_ : contractedPixmap_;
+            expandedIconLabel_->setPixmap(pixmap);
+        }
     }
 
     setHovered(false);
@@ -224,7 +227,7 @@ void ChartLabel::themeChanged(Theme* theme)
 
 
 /**
- * @brief ChartLabel::toggleExpanded
+ * @brief ChartLabel::toggleExpanded is called when a ChildLabel with children ChildLabels is double-clicked
  */
 void ChartLabel::toggleExpanded()
 {
@@ -233,12 +236,12 @@ void ChartLabel::toggleExpanded()
     emit setChildVisible(isExpanded_);
 
     QPixmap pixmap = isExpanded_ ? expandedPixmap_ : contractedPixmap_;
-    iconLabel_->setPixmap(pixmap);
+    expandedIconLabel_->setPixmap(pixmap);
 }
 
 
 /**
- * @brief ChartLabel::setVisible
+ * @brief ChartLabel::setVisible sets the visibility of this ChartLabel and its children ChartLabels
  * @param visible
  */
 void ChartLabel::setVisible(bool visible)
@@ -257,15 +260,14 @@ void ChartLabel::setVisible(bool visible)
 
 
 /**
- * @brief ChartLabel::childLabelAdded
- * This is called when a new child has been added to a child's tree.
+ * @brief ChartLabel::childLabelAdded is called when a new child has been added to a child's tree.
  * A child added to this child's tree means that a child has been added to this label's tree.
  */
 void ChartLabel::childLabelAdded()
 {
     // if this is the first child, update the icon to show that it can be expanded
     if (allDepthChildrenCount_ == 0) {
-        iconLabel_->setPixmap(contractedPixmap_);
+        expandedIconLabel_->setPixmap(contractedPixmap_);
         installEventFilter(this);
     }
 
@@ -275,8 +277,8 @@ void ChartLabel::childLabelAdded()
 
 
 /**
- * @brief ChartLabel::childLabelRemoved
- * This is called when a child has been destructed.
+ * @brief ChartLabel::childLabelRemoved is called when a child has been destructed.
+ * It updates the total number of children and removes the child's  pointer from the list.
  * @param child
  */
 void ChartLabel::childLabelRemoved(ChartLabel* child)
@@ -290,7 +292,7 @@ void ChartLabel::childLabelRemoved(ChartLabel* child)
 
     // update the icon to show that it can't be expanded
     if (allDepthChildrenCount_ == 0) {
-        iconLabel_->setPixmap(unExpandablePixmap_);
+        expandedIconLabel_->setPixmap(unExpandablePixmap_);
         isExpanded_ = false;
         removeEventFilter(this);
     }
@@ -300,14 +302,15 @@ void ChartLabel::childLabelRemoved(ChartLabel* child)
 
 
 /**
- * @brief ChartLabel::eventFilter
+ * @brief ChartLabel::eventFilter is used to capture a mouse double-click
+ * This is used instead of a mouseDoubleClickEvent as it limits the call to toggleExpanded for only ChildLabels with children,
+ * without requiring an additional member variable stating whether a ChildLabel has children or not.
  * @param object
  * @param event
  * @return
  */
 bool ChartLabel::eventFilter(QObject* object, QEvent* event)
 {
-    // TODO - Why use eventFilter instead of mouseDoubleClickEvent?
     if (event->type() == QEvent::MouseButtonDblClick) {
         ChartLabel* label = dynamic_cast<ChartLabel*>(object);
         label->toggleExpanded();
@@ -318,7 +321,8 @@ bool ChartLabel::eventFilter(QObject* object, QEvent* event)
 
 
 /**
- * @brief ChartLabel::enterEvent
+ * @brief ChartLabel::enterEvent sends a signal to the TimelineChartView when this ChartLabel is hovered over
+ * It inherently tells the ChartList to set the corresponding Chart's hovered state, which then updates this ChartLabel's style.
  * @param event
  */
 void ChartLabel::enterEvent(QEvent* event)
@@ -328,7 +332,8 @@ void ChartLabel::enterEvent(QEvent* event)
 
 
 /**
- * @brief ChartLabel::leaveEvent
+ * @brief ChartLabel::leaveEvent sends a signal to the TimelineChartView when this ChartLabel is no longer hovered over
+ * It inherently tells the ChartList to set the corresponding Chart's hovered state, which then updates this ChartLabel's style.
  * @param event
  */
 void ChartLabel::leaveEvent(QEvent* event)
