@@ -27,7 +27,10 @@ zmq::ProtoRequester::ProtoRequester(const std::string& connect_address):
     context_{new zmq::context_t(1)}
 {
     assert(context_);
-    assert(connect_address_.length() > 0);
+    //assert(connect_address_.length() > 0);'
+    if (connect_address_.empty()) {
+        throw std::invalid_argument("Attempting to construct ProtoRequester with an empty connect address");
+    }
     std::lock_guard<std::mutex> future_lock(future_mutex_);
     requester_future_ = std::async(std::launch::async, &zmq::ProtoRequester::ProcessRequests, this);
 }
@@ -50,6 +53,7 @@ zmq::ProtoRequester::~ProtoRequester(){
             requester_future_.get();
         }
     }catch(const std::exception& ex){
+        std::cerr << "Failed to kill all futures when destroying zmq::ProtoRequester: " << ex.what() << std::endl;
     }
 }
 
@@ -110,7 +114,7 @@ void zmq::ProtoRequester::ProcessRequests(){
                 break;
             }
 
-            if(request_queue_.size()){
+            if(!request_queue_.empty()){
                 request = std::move(request_queue_.front());
                 request_queue_.pop_front();
             }
@@ -118,6 +122,8 @@ void zmq::ProtoRequester::ProcessRequests(){
         try{
             ProcessRequest(*socket, *request);
         }catch(const std::exception& ex){
+            std::cerr << "zmq::Protorequester encountered an error while trying to process a request; spooling up a new socket. "
+                      << "Exception: " << ex.what() << std::endl;
             socket = GetRequestSocket();
         }
     }
@@ -130,7 +136,7 @@ void zmq::ProtoRequester::ProcessRequest(zmq::socket_t& socket, RequestStruct& r
         socket.send(String2Zmq(request.type_name), ZMQ_SNDMORE);
         socket.send(String2Zmq(request.data));
             
-        int events = zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, request.timeout.count());
+        int events = zmq::poll({{socket, 0, ZMQ_POLLIN, 0}}, (long)request.timeout.count());
 
         if(events > 0){
             zmq::message_t zmq_result;
@@ -173,7 +179,7 @@ void zmq::ProtoRequester::ProcessRequest(zmq::socket_t& socket, RequestStruct& r
             std::runtime_error error("ZMQ ProtoRequester was shutdown during request handling");
             request.promise.set_exception(std::make_exception_ptr(error));
         }
-    }catch(const std::exception& ex){
+    }catch(const std::exception&){
         //Catch all exceptions and pass them up the to the promise
         request.promise.set_exception(std::current_exception());
     }

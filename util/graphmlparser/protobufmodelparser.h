@@ -5,7 +5,14 @@
 #include <unordered_map>
 #include <list>
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
 #include <proto/controlmessage/controlmessage.pb.h>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 class ProtobufModelParser{
     public:

@@ -2,7 +2,14 @@
 #ifndef RE_COMMON_CONTROL_MESSAGE_HELPER_H
 #define RE_COMMON_CONTROL_MESSAGE_HELPER_H
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
 #include <proto/controlmessage/controlmessage.pb.h>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 #include <string>
 #include <vector>
 
@@ -21,6 +28,6 @@ namespace NodeManager{
     NodeManager::Attribute& SetDoubleAttribute(PbAttrMap* map, const std::string& attribute_key, const double value);
     NodeManager::Attribute& SetIntegerAttribute(PbAttrMap* map, const std::string& attribute_key, const int value);
     NodeManager::Attribute& SetBooleanAttribute(PbAttrMap* map, const std::string& attribute_key, const bool value);
-};
+}
 
 #endif //RE_COMMON_CONTROL_MESSAGE_HELPER_H

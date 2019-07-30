@@ -1,7 +1,14 @@
 #include "environmentcontroller.h"
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
 #include <proto/environmentcontrol/environmentcontrol.pb.h>
-#include <util/graphmlparser/protobufmodelparser.h>
 #include <google/protobuf/util/json_util.h>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
+#include <util/graphmlparser/protobufmodelparser.h>
 
 EnvironmentManager::EnvironmentController::EnvironmentController(const std::string& environment_manager_endpoint):
     requester_(environment_manager_endpoint)

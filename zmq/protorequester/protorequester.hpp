@@ -31,7 +31,14 @@
 
 #include <zmq.hpp>
 
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
 #include <google/protobuf/message_lite.h>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 #include "../zmqutils.hpp"
 #include "../protoregister/protoregister.hpp"
 
@@ -73,7 +80,7 @@ namespace zmq{
             std::unique_ptr<zmq::context_t> context_;
             std::list<std::unique_ptr<RequestStruct> > request_queue_;
     };
-};
+}
 
 template<class RequestType, class ReplyType>
 std::future<std::unique_ptr<ReplyType> > zmq::ProtoRequester::SendRequest(const std::string& function_name, const RequestType& request, const int timeout_ms){
@@ -109,7 +116,7 @@ std::future<std::unique_ptr<ReplyType> > zmq::ProtoRequester::SendRequest(const 
                         }
                     }
                 }catch(const std::future_error& ex){
-                    throw std::runtime_error("ProtoRequester destroyed with pending requests");
+                    throw std::runtime_error(std::string("ProtoRequester destroyed with pending requests: ") + ex.what());
                 }
             }else{
                 throw zmq::TimeoutException("Request timed out in queue");
@@ -117,6 +124,6 @@ std::future<std::unique_ptr<ReplyType> > zmq::ProtoRequester::SendRequest(const 
         }
         throw std::runtime_error("Invalid Future");
     }, std::move(future));
-};
+}
 
 #endif //RE_COMMON_ZMQ_PROTOREQUESTER_H

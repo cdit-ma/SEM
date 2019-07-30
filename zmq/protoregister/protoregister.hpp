@@ -27,7 +27,14 @@
 #include <unordered_map>
 #include <memory>
 #include <zmq.hpp>
+#ifdef _WIN32
+#pragma warning(push)
+#pragma warning(disable:4251)
+#endif
 #include <google/protobuf/message_lite.h>
+#ifdef _WIN32
+#pragma warning(pop)
+#endif
 
 namespace zmq{
     class ProtoRegister{
