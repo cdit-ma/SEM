@@ -92,6 +92,14 @@ bool Key::forceDataValue(Data* data, QVariant value){
     return result;
 }
 
+/**
+ * TODO: Figure out the safety/consistency considerations in relation to
+ * QVariant usage and conversion
+ * @brief Key::validateDataChange
+ * @param data
+ * @param new_value
+ * @return
+ */
 QVariant Key::validateDataChange(Data *data, QVariant new_value)
 {
     if(!data || data->getKey() != this){

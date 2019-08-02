@@ -52,11 +52,11 @@ private:
     void updateMinSliderRatio(double min);
     void updateMaxSliderRatio(double max);
 
-    AxisSlider slider_;
-    AxisDisplay display_;
-
     Qt::Orientation orientation_;
     Qt::Alignment alignment_;
+
+    AxisSlider slider_;
+    AxisDisplay display_;
 
     double min_;
     double max_;

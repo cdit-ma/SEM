@@ -143,7 +143,6 @@ QVariant DataEditWidget::getValue()
 void DataEditWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-
     
     if(toolbar){
         auto icon_size = theme->getIconSize();
@@ -151,13 +150,16 @@ void DataEditWidget::themeChanged()
         toolbar->setStyleSheet(theme->getToolBarStyleSheet());
         toolbar->setIconSize(icon_size);
     }
+
     auto label_ss = "color: " + theme->getTextColorHex() + ";";
-    
-    
-    if(isHighlighted){
+    if (isHighlighted) {
         label_ss = "color: " + theme->getHighlightColorHex() + "; text-decoration:underline;";
     }
-    setStyleSheet("QLabel{" + label_ss + "}");
+
+    // set the children QLabel's stylesheets - simply setting it for this widget doesn't work
+    for (auto l : findChildren<QLabel*>()) {
+        l->setStyleSheet(label_ss);
+    }
 
     auto line_edit = qobject_cast<QLineEdit*>(editWidget_1);
     auto spin_box = qobject_cast<QSpinBox*>(editWidget_1);
@@ -171,7 +173,7 @@ void DataEditWidget::themeChanged()
         editWidget_1->setStyleSheet(theme->getSliderStyleSheet());
     }else if(editWidget_1){
         auto style = label_ss;
-        if(type != SETTING_TYPE::BOOL){
+        if (type != SETTING_TYPE::BOOL) {
             style += "background:" + Theme::theme()->getAltBackgroundColorHex() + "; border: 1px solid " + theme->getAltBackgroundColorHex() + ";";
         }
         editWidget_1->setStyleSheet(style);
@@ -343,7 +345,7 @@ void DataEditWidget::setupLayout()
     icon_action->setVisible(false);
 
     label = new QLabel(name, this);
-    auto label_action = toolbar->addWidget(label);
+    toolbar->addWidget(label);
 
     bool needs_label = true;
     bool uses_button = false;

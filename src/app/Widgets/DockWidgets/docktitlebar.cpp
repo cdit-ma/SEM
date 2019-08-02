@@ -26,13 +26,6 @@ DockTitleBar::DockTitleBar(QWidget* parent)
     themeChanged();
 }
 
-
-/**
- * @brief DockTitleBar::~DockTitleBar
- */
-DockTitleBar::~DockTitleBar() {}
-
-
 /**
  * @brief DockTitleBar::setActive
  * @param active

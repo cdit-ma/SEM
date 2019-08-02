@@ -524,6 +524,19 @@ QString Theme::getWindowStyleSheet(bool show_background_image)
     return str;
 }
 
+
+/**
+ * @brief Theme::getScrollAreaStyleSheet
+ * @return
+ */
+QString Theme::getScrollAreaStyleSheet()
+{
+    return "QScrollArea {"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "background:" % getBackgroundColorHex() % ";"
+           "}";
+}
+
 QString Theme::getScrollBarStyleSheet()
 {
     int marginSize = 1;
@@ -541,11 +554,10 @@ QString Theme::getScrollBarStyleSheet()
            "}"
            "QScrollBar:vertical{width:" % size % "; padding-left: 1px;}"
            "QScrollBar:horizontal{height:" % size % "; padding-top: 1px;}"
-           "QScrollBar::handle{background: " % getAltBackgroundColorHex() % " ;}"
+           "QScrollBar::handle{background: " % getAltBackgroundColorHex() % " ; margin:" % margin % ";}"
            "QScrollBar::handle:active{background: " % getHighlightColorHex() % ";}"
            "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
            "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
-           "QScrollBar::handle{margin:" % margin % ";}" // Allow nice space.
             ;
 }
 
@@ -632,16 +644,14 @@ QString Theme::getTabbedWidgetStyleSheet()
 {
     return "QTabBar::tab{ background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % "; border-radius:" % getCornerRadius() % "; border: 1px solid " % getBackgroundColorHex() % ";}"
            "QTabBar::tab:top{ border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; margin: 1px 0px; padding: 5px 10px; }"
-           "QTabBar::tab:right{ border-top-right-radius: 0px; border-bottom-right-radius: 0px; margin: 0px 1px; padding: 10px 5px; }"
+           "QTabBar::tab:left{ border-top-right-radius: 0px; border-bottom-right-radius: 0px; margin: 0px 1px; padding: 10px 5px; }"
+           "QTabBar::tab:right{ border-top-left-radius: 0px; border-bottom-left-radius: 0px; margin: 0px 1px; padding: 10px 5px; }"
            "QTabBar::tab:selected{ background:" % getActiveWidgetBorderColorHex() % "; border-color:" % getDisabledBackgroundColorHex() % ";}"
            "QTabBar::tab:hover{ background:" % getHighlightColorHex() % "; color: " % getTextColorHex(ColorRole::SELECTED) % ";}"
            "QTabBar, QTabWidget::tab-bar{ alignment: center; qproperty-drawBase: 0; border: 0px; }"
-           "QTabWidget::pane, QTabBar::pane{ background:" % getBackgroundColorHex() % ";}"
+           "QTabWidget::pane, QTabBar::pane{ background:" % getBackgroundColorHex() % ";}";
            //"QTabBar::close-button{ background: rgba(0,0,0,0); border: 0px solid " % getDisabledBackgroundColorHex() % "; image: url(:/Images/Icons/cross);}"
            //"QTabBar::close-button:hover:!selected{ border-radius:" % getCornerRadius() % "; border-width: 1px; background:" % getHighlightColorHex() % ";}"
-           ;
-    ;
-
 }
 
 QString Theme::getNodeViewStyleSheet(bool isActive)
@@ -751,13 +761,13 @@ QString Theme::getMenuStyleSheet(int icon_size_int)
            "background: " % getHighlightColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
-           "QMenu::icon {"
-           /*"position: relative;"
+           /*"QMenu::icon {"
+           "position: relative;"
            "top: 2px;"
            "right: 2px;"
-           "bottom: 2px;"*/
+           "bottom: 2px;"
            "left: 2px;"
-           "}"
+           "}"*/
            "QMenu::right-arrow{"
                "width:4px;"
                "height:4px;"
@@ -985,7 +995,7 @@ QString Theme::getProgressBarStyleSheet()
 
 QString Theme::getLabelStyleSheet()
 {
-    return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}";
+    return "QLabel{ background: rgba(0,250,0,0); color:" % getTextColorHex() % ";}";
 }
 
 QString Theme::getTitleLabelStyleSheet()

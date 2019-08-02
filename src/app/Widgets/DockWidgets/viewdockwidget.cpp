@@ -6,10 +6,6 @@ ViewDockWidget::ViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetAre
     nodeView = 0;
 }
 
-ViewDockWidget::~ViewDockWidget()
-{
-}
-
 SelectionHandler *ViewDockWidget::getSelectionHandler()
 {
     if(nodeView){

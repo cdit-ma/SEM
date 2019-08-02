@@ -4,9 +4,11 @@
 #include <QDateTime>
 #include <iostream>
 
+std::unique_ptr<AggregationProxy> AggregationProxy::proxySingleton_ = nullptr;
 
 /**
  * @brief AggregationProxy::AggregationProxy
+ * @throws NoRequesterException
  */
 AggregationProxy::AggregationProxy()
 {
@@ -18,6 +20,20 @@ AggregationProxy::AggregationProxy()
     });
 
     SetServerEndpoint(settings->getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT).toString());
+}
+
+
+/**
+ * @brief AggregationProxy::singleton
+ * @throws NoRequesterException
+ * @return
+ */
+AggregationProxy& AggregationProxy::singleton()
+{
+    if (!proxySingleton_) {
+        proxySingleton_ = std::unique_ptr<AggregationProxy>(new AggregationProxy());
+    }
+    return *proxySingleton_;
 }
 
 
@@ -101,10 +117,15 @@ QFuture< QVector<MarkerEvent*> > AggregationProxy::RequestMarkerEvents(const Mar
 /**
  * @brief AggregationProxy::SetServerEndpoint
  * @param endpoint
+ * @throws NoRequesterException
  */
 void AggregationProxy::SetServerEndpoint(const QString &endpoint)
 {
-    requester_.reset(new AggServer::Requester(endpoint.toStdString()));
+    try {
+        requester_.reset(new AggServer::Requester(endpoint.toStdString()));
+    } catch (const std::invalid_argument& ia) {
+        throw NoRequesterException(ia.what());
+    }
 }
 
 
@@ -127,7 +148,7 @@ void AggregationProxy::CheckRequester() const
 QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experiment_name) const
 {
     CheckRequester();
-    
+
     try {
         QVector<AggServerResponse::ExperimentRun> runs;
         AggServer::ExperimentRunRequest request;
@@ -401,11 +422,8 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
         auto results = requester_->GetMarkers(agg_request);
         for (const auto& nameSet : results->marker_name_sets()) {
             const auto& name = ConstructQString(nameSet.name());
-            //qDebug() << "MARKER NAME SET: " << name;
-            //qDebug() << "ID SET#: " << nameSet.marker_id_set_size();
             for (const auto& idSet : nameSet.marker_id_set()) {
                 const auto& id = idSet.id();
-                //qDebug() << "MARKER ID SET: " << id;
                 for (const auto& e : idSet.events()) {
                     const auto& compInst = ConvertComponentInstance(e.component_instance());
                     const auto& time = ConstructQDateTime(e.timestamp());

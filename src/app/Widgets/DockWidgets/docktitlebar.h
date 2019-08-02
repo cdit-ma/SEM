@@ -14,7 +14,6 @@ public:
     enum DOCK_ACTION{DA_CLOSE, DA_MAXIMIZE, DA_POPOUT, DA_PROTECT, DA_HIDE, DA_ICON};
 
     explicit DockTitleBar(QWidget *parent=0);
-    ~DockTitleBar();
 
     void setActive(bool active);
     void setIcon(QString iconPath, QString iconName);

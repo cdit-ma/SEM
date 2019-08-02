@@ -15,8 +15,8 @@ ChartLabelList::ChartLabelList(QWidget* parent)
 {
     mainLayout_ = new QVBoxLayout(this);
     mainLayout_->setSpacing(0);
-    mainLayout_->setMargin(0);
-    mainLayout_->setContentsMargins(5, 0, 0, 0);
+    mainLayout_->setMargin(10);
+    mainLayout_->setContentsMargins(0, 0, 0, 0);
     mainLayout_->setAlignment(Qt::AlignCenter);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartLabelList::themeChanged);

@@ -6,6 +6,8 @@
 #include <QVector>
 #include <QtConcurrent/QtConcurrentRun>
 
+#include <memory>
+
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
@@ -18,23 +20,33 @@
 
 
 class NoRequesterException : public QException{
-    public:
-        void raise() const { throw *this; }
-        NoRequesterException *clone() const { return new NoRequesterException(*this); }
+public:
+    NoRequesterException() = default;
+    NoRequesterException(const QString& error) :
+        error_(error) {}
+
+    QString What() const{
+        return error_;
+    }
+    void raise() const { throw *this; }
+    NoRequesterException *clone() const { return new NoRequesterException(*this); }
+
+private:
+    QString error_;
 };
 
 class RequestException : public QException{
-    public:
-        RequestException(const QString& error) : 
-            error_(error) {}
+public:
+    RequestException(const QString& error) :
+        error_(error) {}
 
-        QString What() const{
-            return error_;
-        }
-        void raise() const { throw *this; }
-        RequestException *clone() const { return new RequestException(*this); }
-    private:
-        QString error_;
+    QString What() const{
+        return error_;
+    }
+    void raise() const { throw *this; }
+    RequestException *clone() const { return new RequestException(*this); }
+private:
+    QString error_;
 };
 
 
@@ -43,7 +55,7 @@ class AggregationProxy : public QObject
     Q_OBJECT
 
 public:
-    AggregationProxy();
+    static AggregationProxy& singleton();
     
     QFuture<QVector<AggServerResponse::ExperimentRun>> RequestExperimentRuns(const QString& experiment_name) const;
     QFuture<AggServerResponse::ExperimentState> RequestExperimentState(const quint32 experiment_run_id) const;
@@ -55,6 +67,8 @@ public:
     QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request) const;
 
 private:
+    AggregationProxy();
+
     void SetServerEndpoint(const QString& endpoint);
     void CheckRequester() const;
 
@@ -85,6 +99,7 @@ private:
     static AggServerResponse::LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
 
+    static std::unique_ptr<AggregationProxy> proxySingleton_;
     std::unique_ptr<AggServer::Requester> requester_;
 };
 

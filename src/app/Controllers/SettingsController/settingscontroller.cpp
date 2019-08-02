@@ -11,7 +11,7 @@
 
 SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
-    intializeSettings();
+    initializeSettings();
 
     settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
 
@@ -95,7 +95,7 @@ QList<SETTINGS> SettingsController::getSettingsKeys(QString category, QString se
     return keys;
 }
 
-void SettingsController::intializeSettings()
+void SettingsController::initializeSettings()
 {
     //General
     createSetting(SETTINGS::GENERAL_MODEL_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
@@ -258,6 +258,8 @@ void SettingsController::intializeSettings()
 
     _getSetting(SETTINGS::GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
     _getSetting(SETTINGS::JENKINS_JOBNAME)->setDefaultValue("deploy_model");
+
+    _getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT)->setDefaultValue("tcp://localhost:12345");
 }
 
 QString getSettingKey(Setting* setting){
@@ -405,10 +407,5 @@ SettingsController *SettingsController::settings()
 {
     static SettingsController controller;
     return &controller;
-}
-
-void SettingsController::initializeSettings()
-{
-    settings();
 }
 

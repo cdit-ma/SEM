@@ -135,31 +135,32 @@ bool MainWindow::isWelcomeScreenVisible(){
     return centralWidget() == welcomeScreen;
 }
 
-QMenu* MainWindow::createPopupMenu(){
+QMenu* MainWindow::createPopupMenu()
+{
     QMenu* menu = new QMenu(this);
-    if(isWelcomeScreenVisible()){
+    if (isWelcomeScreenVisible()) {
         return menu;
     }
 
     auto inner_docks = innerWindow->getDockWidgets();
     std::sort(inner_docks.begin(), inner_docks.end(), &WindowManager::Sort);
 
-    for(auto dock_widget : inner_docks){
+    for (auto dock_widget : inner_docks) {
         menu->addAction(dock_widget->toggleViewAction());
     }
+
     menu->addSeparator();
-    
     menu->addAction(dockwidget_Dock->toggleViewAction());
     
     auto tool_docks = rightWindow->getDockWidgets();
     tool_docks.append(dockwidget_Dock);
 
     std::sort(tool_docks.begin(), tool_docks.end(), &WindowManager::Sort);
-    for(auto dock_widget : tool_docks){
+    for (auto dock_widget : tool_docks) {
         menu->addAction(dock_widget->toggleViewAction());
     }
-    menu->addAction(applicationToolbar->toggleViewAction());
 
+    menu->addAction(applicationToolbar->toggleViewAction());
     menu->addSeparator();
     menu->addAction(reset_action);
     return menu;
@@ -193,10 +194,10 @@ void MainWindow::themeChanged()
         }
     }
 
-    
-    applicationToolbar->toggleViewAction()->setIcon(theme->getIcon("WindowIcon", applicationToolbar->windowTitle()));
+    // TODO - trying to fix bug with checkable toggle view actions (MED-710)
+    //applicationToolbar->toggleViewAction()->setIcon(theme->getIcon("WindowIcon", applicationToolbar->windowTitle()));
 
-    restore_toolbutton->setStyleSheet("QToolButton::menu-indicator{image: none; }");
+    restore_toolbutton->setStyleSheet("QToolButton::menu-indicator{ image: none; }" + theme->getMenuStyleSheet());
     restore_toolbutton->setIcon(theme->getIcon("Icons", "spanner"));
     
     if(reset_action){
@@ -623,7 +624,6 @@ void MainWindow::setupDockablePanels()
     dockwidget_Notification->setProtected(true);
 
     // Charts Panel
-    //dockwidget_Charts = window_manager->constructChartDockWidget("Charts", new ChartDialog(view_controller, dockwidget_Charts), this);
     dockwidget_Charts = window_manager->constructChartDockWidget("Charts", &ChartManager::manager()->getChartDialog(), this);
     dockwidget_Charts->setIconVisible(true);
     dockwidget_Charts->setProtected(true);

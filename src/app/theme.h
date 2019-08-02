@@ -131,6 +131,7 @@ public:
 
     // Default StyleSheets
     QString getWindowStyleSheet(bool show_background_image);
+    QString getScrollAreaStyleSheet();
     QString getScrollBarStyleSheet();
     QString getDialogStyleSheet();
     QString getSplitterStyleSheet();

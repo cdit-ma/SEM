@@ -53,7 +53,6 @@ public:
 
     SelectionController* getSelectionController();
     ActionController* getActionController();
-    const AggregationProxy &getAggregationProxy() const;
 
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
 
@@ -268,8 +267,6 @@ private:
     void ResetViewItems();
 
     ViewItem* getActiveSelectedItem() const;
-
-    AggregationProxy proxy;
 
     NodeViewItem* getNodeViewItem(int ID) const;
 

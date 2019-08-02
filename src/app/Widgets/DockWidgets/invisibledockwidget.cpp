@@ -10,7 +10,3 @@ InvisibleDockWidget::InvisibleDockWidget(QString title, QWidget* parent) : BaseD
     setTitle(title);
 }
 
-InvisibleDockWidget::~InvisibleDockWidget()
-{
-}
-

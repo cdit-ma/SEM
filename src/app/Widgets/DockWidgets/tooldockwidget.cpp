@@ -13,10 +13,6 @@ ToolDockWidget::ToolDockWidget(QString title, QWidget* parent) : BaseDockWidget(
     themeChanged();
 }
 
-ToolDockWidget::~ToolDockWidget()
-{
-}
-
 void ToolDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();

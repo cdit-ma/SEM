@@ -13,8 +13,8 @@ using namespace MEDEA;
  */
 ChartLabel::ChartLabel(QString label, QWidget* parent)
     : QWidget(parent),
-      depth_(1),
-      ID_(-1)
+      ID_(-1),
+      depth_(1)
 {
     expandedIconLabel_ = new QLabel(this);
     expandedIconLabel_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -27,9 +27,9 @@ ChartLabel::ChartLabel(QString label, QWidget* parent)
 
     toolbar_ = new QToolBar(this);
     toolbar_->setToolButtonStyle(Qt::ToolButtonIconOnly);
+
     closeAction_ = toolbar_->addAction("");
     closeAction_->setToolTip("Close " + label + "'s chart");
-
     connect(closeAction_, &QAction::triggered, this, &ChartLabel::closeChart);
 
     tickLength_ = fontMetrics().height() / 4;
@@ -37,7 +37,6 @@ ChartLabel::ChartLabel(QString label, QWidget* parent)
 
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
     mainLayout->setSpacing(3);
-    mainLayout->setMargin(0);
     mainLayout->setContentsMargins(0, 0, CHILD_TAB_WIDTH, 0);
     mainLayout->addWidget(expandedIconLabel_);
     mainLayout->addSpacerItem(new QSpacerItem(CHILD_TAB_WIDTH, 5)); // remove this if the expandIconLabel is visible

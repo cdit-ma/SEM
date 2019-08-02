@@ -136,7 +136,7 @@ public slots:
 
     void saveSettings();
 private:
-    void intializeSettings();
+    void initializeSettings();
     void loadSettingsFromFile();
     void writeSetting(Setting* setting, QVariant value);
 
@@ -151,7 +151,6 @@ private:
 
 public:
     static SettingsController* settings();
-    static void initializeSettings();
 };
 
 inline uint qHash(SETTINGS key, uint seed)
