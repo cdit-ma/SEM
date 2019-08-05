@@ -56,14 +56,14 @@
 #define IDL_FILE_SUFFIX ".idl"
 
 
-ViewController::ViewController(){
+ViewController::ViewController()
+{
     root_item = new ViewItem(this, GRAPHML_KIND::NONE);
 
     //Setup nodes
     setupEntityKindItems();
 
     //Initialize Settings
-    SettingsController::initializeSettings();
     auto settings_controller = SettingsController::settings();
     connect(settings_controller, &SettingsController::settingChanged, this, &ViewController::SettingChanged);
 
@@ -249,8 +249,6 @@ ViewController::~ViewController()
     delete root_item;
 }
 
-
-
 SelectionController *ViewController::getSelectionController()
 {
     return selectionController;
@@ -261,16 +259,9 @@ ActionController *ViewController::getActionController()
     return actionController;
 }
 
-const AggregationProxy& ViewController::getAggregationProxy() const
-{
-    return proxy;
-}
-
-
 bool ViewController::isWelcomeScreenShowing(){
     return showingWelcomeScreen;
 }
-
 
 void ViewController::welcomeScreenToggled(bool visible){
     showingWelcomeScreen = visible;

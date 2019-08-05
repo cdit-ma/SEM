@@ -16,7 +16,6 @@ class ToolDockWidget;
 class InvisibleDockWidget;
 class DockReparenterPopup;
 
-
 class BaseWindow;
 class ViewController;
 class ViewManagerWidget;
@@ -27,8 +26,10 @@ class WindowManager : public QObject
     friend class BaseWindow;
     friend class BaseDockWidget;
     Q_OBJECT
+
 public:
     static bool Sort(const BaseDockWidget *a, const BaseDockWidget *b);
+
     //Public Static functions.
     static WindowManager* manager();
     static void teardown();
@@ -41,15 +42,9 @@ public:
     BaseWindow* getCentralWindow();
     ViewManagerWidget* getViewManagerGUI();
     BaseWindow* getActiveWindow();
-protected:
-    WindowManager();
-    ~WindowManager();
-    
-    DockReparenterPopup* getDockPopup();
-    void destructWindow(BaseWindow* window);
-public:
+
     void destructDockWidget(BaseDockWidget* widget);
-public:
+
     //Factory constructor Functions
     BaseWindow* constructMainWindow(ViewController* vc);
     BaseWindow* constructSubWindow(QString title, BaseWindow* parent_window);
@@ -67,6 +62,17 @@ public:
     bool reparentDockWidget(BaseDockWidget* dockWidget);
     bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);
     
+    //Getters
+    ViewDockWidget* getActiveViewDockWidget();
+
+    void setActiveViewDockWidget(ViewDockWidget *view = 0);
+
+    BaseWindow* getWindow(int ID);
+    QList<BaseWindow*> getWindows();
+    QList<BaseDockWidget*> getDockWidgets();
+    QList<ViewDockWidget*> getViewDockWidgets();
+    ViewDockWidget* getViewDockWidget(ViewItem* item);
+
 signals:
     void windowConstructed(BaseWindow* window);
     void windowDestructed(int ID);
@@ -75,23 +81,18 @@ signals:
     void dockWidgetDestructed(int ID);
     
     void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevWidget = 0);
-public:
-    //Getters
-    ViewDockWidget* getActiveViewDockWidget();
 
-    void setActiveViewDockWidget(ViewDockWidget *view = 0);
-    
-
-
-    BaseWindow* getWindow(int ID);
-    QList<BaseWindow*> getWindows();
-    QList<BaseDockWidget*> getDockWidgets();
-    QList<ViewDockWidget*> getViewDockWidgets();
-    ViewDockWidget* getViewDockWidget(ViewItem* item);
 private slots:
     void dockWidget_Close(int ID);
     void dockWidget_PopOut(int ID);
     void activeDockWidgetVisibilityChanged();
+
+protected:
+    WindowManager();
+    ~WindowManager();
+
+    DockReparenterPopup* getDockPopup();
+    void destructWindow(BaseWindow* window);
 
 private:
     void focusChanged(QWidget* prev, QWidget* now);

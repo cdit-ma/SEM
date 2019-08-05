@@ -185,6 +185,7 @@ void NotificationDialog::themeChanged()
     
     setStyleSheet("NotificationDialog {background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
                   "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
+                  theme->getScrollBarStyleSheet() +
                   "QLabel {color:" + theme->getTextColorHex() + ";} " +
                   theme->getToolBarStyleSheet() +
                   theme->getSplitterStyleSheet() +
@@ -202,7 +203,6 @@ void NotificationDialog::themeChanged()
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
     clock_action->setIcon(theme->getIcon("Icons", "clock"));
     
-    //info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
     info_label->setFont(QFont(theme->getFont().family(), 12));
     info_label->setStyleSheet("background: rgba(0,0,0,0); color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
 

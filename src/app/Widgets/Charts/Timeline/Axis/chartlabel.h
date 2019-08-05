@@ -91,7 +91,7 @@ private:
     QIcon closeIcon_;
 
     QLabel* textLabel_;
-    QLabel* iconLabel_;
+    QLabel* expandedIconLabel_;
 
     QPixmap unExpandablePixmap_;
     QPixmap expandedPixmap_;

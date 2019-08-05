@@ -9,15 +9,17 @@ class ViewDockWidget : public DefaultDockWidget
 {
     friend class WindowManager;
     Q_OBJECT
+
 protected:
-    ViewDockWidget(QString title, QWidget* parent = 0, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    ~ViewDockWidget();
+    ViewDockWidget(QString title, QWidget* parent = nullptr, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+
 public:
     SelectionHandler* getSelectionHandler();
     NodeView* getNodeView();
     void setWidget(QWidget* widget);
+
 private:
-    NodeView* nodeView = 0;
+    NodeView* nodeView = nullptr;
 };
 
 #endif // NODEVIEWDOCKWIDGET_H

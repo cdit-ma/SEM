@@ -10,12 +10,7 @@ enum class BaseDockType{DOCK, TOOL, INVISIBLE};
 class BaseDockWidget : public QDockWidget
 {
     Q_OBJECT
-public:
     friend class WindowManager;
-    
-protected:
-    BaseDockWidget(BaseDockType type, QWidget* parent = 0);
-    ~BaseDockWidget();
 
 public:
     int getID() const;
@@ -46,7 +41,6 @@ public:
 
     virtual void setActive(bool focussed);
     bool isActive();
-
 
     void setFocusEnabled(bool enabled);
 
@@ -79,6 +73,12 @@ private slots:
     void destruct();
     void showContextMenu(const QPoint &point);
 
+protected:
+    BaseDockWidget(BaseDockType type, QWidget* parent = nullptr);
+
+    bool eventFilter(QObject *object, QEvent *event);
+    void resizeEvent(QResizeEvent *event);
+
 private:
     void closeOrHide();
 
@@ -90,7 +90,7 @@ private:
     QAction* addAction(QString text, QString iconPath = "", QString iconName = "", Qt::Alignment a = Qt::AlignRight);
 
     QString title;
-    DockTitleBar* titleBar = 0;
+    DockTitleBar* titleBar = nullptr;
     Qt::DockWidgetArea initialArea;
 
     BaseWindow* sourceWindow;
@@ -100,10 +100,6 @@ private:
 
     QFrame* borderFrame;
 
-protected:
-    bool eventFilter(QObject *object, QEvent *event);
-
-private:
     BaseDockType type;
     bool _isProtected;
     bool _isActive;
@@ -111,11 +107,6 @@ private:
     QString highlightedTextColor;
     int ID;
     static int _DockWidgetID;
-
-
-    // QWidget interface
-protected:
-    void resizeEvent(QResizeEvent *event);
 };
 
 

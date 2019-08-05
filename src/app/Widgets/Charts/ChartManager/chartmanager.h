@@ -33,6 +33,8 @@ protected:
 
 private:
     ChartManager(const ViewController &vc);
+    AggregationProxy& aggregationProxy();
+    TimelineChartView& timelineChartView();
 
     void experimentRunStateReceived(AggServerResponse::ExperimentRun experimentRun, AggServerResponse::ExperimentState experimentState);
     void requestEventsForExperimentRun(const AggServerResponse::ExperimentRun &experimentRun);
@@ -47,13 +49,12 @@ private:
     void requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
     void requestMarkerEvents(const MarkerRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
 
-    void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
+    static void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
 
     QString getItemLabel(const ViewItem* item);
 
-    ChartDialog chartDialog_;
+    ChartDialog* chartDialog_ = nullptr;
     ChartInputPopup chartPopup_;
-    TimelineChartView& chartView_;
 
     QVector<ViewItem*> selectedViewItems_;
     QList<MEDEA::ChartDataKind> selectedDataKinds_;

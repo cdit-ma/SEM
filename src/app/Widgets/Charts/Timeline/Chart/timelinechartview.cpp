@@ -285,31 +285,14 @@ void TimelineChartView::themeChanged()
     handleColor.setAlphaF(1 - OPACITY);
     highlightColor.setAlphaF(handleColor.alphaF());
 
-    setStyleSheet("QScrollBar:vertical {"
-                  "width:" + QString::number(SCROLLBAR_WIDTH) + ";"
-                  "background:" + Theme::QColorToHex(bgColor) + ";"
-                  "border-radius:" + theme->getCornerRadius() + ";"
-                  "border: 2px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "margin: 0px;"
-                  "padding: 0px;"
-                  "}"
-                  "QScrollBar::handle {"
-                  "background:" + Theme::QColorToHex(handleColor) + ";"
-                  "border-radius:" + theme->getSharpCornerRadius() + ";"
-                  "border: 0px;"
-                  "margin: 0px;"
-                  "padding: 0px;"
-                  "}"
-                  "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}");
-
-    chartList_->setStyleSheet("background: " + Theme::QColorToHex(bgColor) + ";");
+    setStyleSheet(theme->getScrollBarStyleSheet());
 
     legendToolbar_->setFixedHeight(theme->getLargeIconSize().height());
     legendToolbar_->setStyleSheet(theme->getToolTipStyleSheet() +
                                   theme->getToolBarStyleSheet() +
                                   "QToolButton{ border: 0px; color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
-                                                                                                                     "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
-                                                                                                                                                                                        "QToolButton:!hover{ background: rgba(0,0,0,0); }");
+                                  "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
+                                  "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
     for (auto action : legendToolbar_->actions()) {
         auto widget = legendToolbar_->widgetForAction(action);
@@ -346,11 +329,14 @@ void TimelineChartView::themeChanged()
     }
 
     emptyLabel_->setFont(QFont(theme->getFont().family(), 12));
-    emptyLabel_->setStyleSheet("background: rgba(0,0,0,0);"
+    emptyLabel_->setStyleSheet("QLabel {"
+                               "background:" + theme->getBackgroundColorHex() + ";"
                                "color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";"
-                                                                                        "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
+                               "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}");
 
-    mainWidget_->setStyleSheet("QWidget #MAIN_WIDGET{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}");
+    mainWidget_->setStyleSheet("QWidget #MAIN_WIDGET {"
+                               "background:" + theme->getBackgroundColorHex() + ";"
+                               "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}");
 }
 
 
@@ -983,6 +969,8 @@ void TimelineChartView::setupLayout()
      *  TOP (LEGEND) LAYOUT
      */
     topFillerWidget_ = new QWidget(this);
+    topFillerWidget_->setStyleSheet("background: rgba(0,0,0,0);");
+
     legendToolbar_ = new QToolBar(this);
     legendToolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
@@ -1037,6 +1025,8 @@ void TimelineChartView::setupLayout()
      * MID (SCROLL AREA) LAYOUT
      */
     QWidget* scrollWidget = new QWidget(this);
+    scrollWidget->setStyleSheet("background: rgba(0,0,0,0);");
+
     QHBoxLayout* scrollLayout = new QHBoxLayout(scrollWidget);
     scrollLayout->setMargin(0);
     scrollLayout->setSpacing(0);
@@ -1047,6 +1037,7 @@ void TimelineChartView::setupLayout()
     scrollArea_->setWidget(scrollWidget);
     scrollArea_->setWidgetResizable(true);
     scrollArea_->setLayoutDirection(Qt::RightToLeft);
+    //scrollArea_->setStyleSheet("background: rgba(0,0,0,0);");
     scrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea_->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
 
@@ -1054,6 +1045,8 @@ void TimelineChartView::setupLayout()
      * BOTTOM (TIME AXIS) LAYOUT
      */
     bottomFillerWidget_ = new QWidget(this);
+    bottomFillerWidget_->setStyleSheet("background: rgba(0,0,0,0);");
+
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->setMargin(0);
     bottomLayout->setSpacing(0);

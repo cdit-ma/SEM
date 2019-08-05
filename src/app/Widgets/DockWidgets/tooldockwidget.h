@@ -2,13 +2,14 @@
 #define TOOLDOCKWIDGET_H
 
 #include "basedockwidget.h"
+
 class ToolDockWidget : public BaseDockWidget
 {
     friend class WindowManager;
     Q_OBJECT
+
 protected:
-    ToolDockWidget(QString title, QWidget* parent = 0);
-    ~ToolDockWidget();
+    ToolDockWidget(QString title, QWidget* parent = nullptr);
     void themeChanged();
 };
 

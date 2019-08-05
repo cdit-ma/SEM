@@ -157,7 +157,7 @@ InvisibleDockWidget* WindowManager::constructInvisibleDockWidget(QString title, 
 DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartDialog* dialog, QWidget *parent, Qt::DockWidgetArea area)
 {
     if (!dialog)
-        return 0;
+        return nullptr;
 
     auto dockWidget = new DefaultDockWidget(title, parent, area);
     dockWidget->setWidget(dialog);
@@ -167,10 +167,6 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
     QAction* clearChartsAction = dockWidget->addAction("Clear Charts", "Icons", "clearList", Qt::AlignCenter);
     QAction* timeAction = dockWidget->addAction("Toggle Time Display", "ToggleIcons", "axisTimeToggle", Qt::AlignCenter);
     QAction* snapShotAction = dockWidget->addAction("Take Snapshot", "Icons", "camera", Qt::AlignCenter);
-
-    /*QAction* spacerAction = dockWidget->addAction("", "", "", Qt::AlignCenter);
-    spacerAction->setEnabled(false);
-    dockWidget->getTitleBar()->widgetForAction(spacerAction)->setFixedWidth(8);*/
 
     timeAction->setCheckable(true);
     timeAction->setChecked(false);

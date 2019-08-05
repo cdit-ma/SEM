@@ -82,6 +82,7 @@ void SearchDialog::themeChanged()
     setStyleSheet("SearchDialog {background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
                   "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
                   "QLabel {color:" + theme->getTextColorHex() + ";} " +
+                  theme->getScrollBarStyleSheet() +
                   theme->getToolBarStyleSheet() +
                   theme->getSplitterStyleSheet()
                   );
@@ -98,7 +99,6 @@ void SearchDialog::themeChanged()
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
 
     query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
-    //info_label->setStyleSheet("color:" + theme->getAltBackgroundColorHex() + ";");
 
     info_label->setFont(QFont(theme->getFont().family(), 12));
     info_label->setStyleSheet("background: rgba(0,0,0,0); color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");

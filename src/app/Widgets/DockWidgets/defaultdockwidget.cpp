@@ -18,10 +18,6 @@ DefaultDockWidget::DefaultDockWidget(QString title, QWidget* parent, Qt::DockWid
     themeChanged();
 }
 
-DefaultDockWidget::~DefaultDockWidget()
-{
-}
-
 DefaultDockType DefaultDockWidget::getDefaultDockType(){
     return type;
 }

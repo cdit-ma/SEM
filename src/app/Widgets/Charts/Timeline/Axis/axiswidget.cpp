@@ -4,7 +4,7 @@
 #include <QDebug>
 
 #define MARGIN 0
-#define INNER_MARGIN 3
+#define INNER_MARGIN 0
 
 /**
  * @brief AxisWidget::AxisWidget
@@ -20,11 +20,6 @@ AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, VAL
       slider_(orientation, alignment),
       display_(slider_, type)
 {
-    /*
-     * TODO: Instead of resizing the filler widgets and the slider widget, resize the chart view instead
-     * This should stop the jumping around of sliders and displayed values
-     */
-
     QBoxLayout* mainLayout;
     if (orientation_ == Qt::Horizontal) {
         mainLayout = new QVBoxLayout(this);
@@ -49,9 +44,9 @@ AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, VAL
         }
     }
 
-    mainLayout->setMargin(0);
+    mainLayout->setMargin(10);
     mainLayout->setSpacing(INNER_MARGIN);
-    mainLayout->setContentsMargins(0,0,0,0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
 
     connect(&slider_, &AxisSlider::minRatioChanged, this, &AxisWidget::minRatioChanged);
     connect(&slider_, &AxisSlider::maxRatioChanged, this, &AxisWidget::maxRatioChanged);

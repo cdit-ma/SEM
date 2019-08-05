@@ -52,11 +52,6 @@ BaseDockWidget::BaseDockWidget(BaseDockType type, QWidget* parent):QDockWidget(p
     connect(this, &BaseDockWidget::topLevelChanged, borderFrame, &QFrame::setVisible);
 }
 
-BaseDockWidget::~BaseDockWidget()
-{
-
-}
-
 void BaseDockWidget::themeChanged(){
     
     setIcon(titleIcon.first, titleIcon.second);
@@ -157,12 +152,12 @@ void BaseDockWidget::setIcon(QString prefix, QString alias)
         titleIcon.first = prefix;
         titleIcon.second = alias;
         titleBar->setIcon(prefix, alias);
-
         
         emit iconChanged(); 
 
-        auto action = toggleViewAction();
-        action->setIcon(Theme::theme()->getIcon(prefix, alias));
+        // TODO - trying to fix bug with checkable toggle view actions (MED-710)
+        //auto action = toggleViewAction();
+        //action->setIcon(Theme::theme()->getIcon(prefix, alias));
     }
 }
 

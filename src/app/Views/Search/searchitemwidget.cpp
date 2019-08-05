@@ -250,11 +250,11 @@ void SearchItemWidget::mouseReleaseEvent(QMouseEvent* event)
         // toggle the item's selected state
         setSelected(!selected_);
         emit searchItemClicked(ID);
-        if (selected_) {
-            // when selected, flash the linked entity item
-            // unfortunately, this is also triggered when the item is expanded/contracted
-            emit flashEntityItem(ID);
-        }
+
+        // when clicked, flash the linked entity item
+        // unfortunately, this is also triggered when the item is expanded/contracted
+        emit flashEntityItem(ID);
+
     } else if (event->button() == Qt::MiddleButton) {
         // center on the linked entity item
         emit centerEntityItem(ID);

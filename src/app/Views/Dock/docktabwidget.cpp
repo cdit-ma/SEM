@@ -69,22 +69,22 @@ void DockTabWidget::themeChanged()
     parts_action->setIcon(partIcon);
     deploy_action->setIcon(hardwareIcon);
 
-    setStyleSheet(
-        theme->getToolBarStyleSheet() +
-        "QScrollArea {"
-        "border: 1px solid " + theme->getAltBackgroundColorHex() + ";"
-        "background: transparent;"
-        "}"
-        "QToolButton {"
-        "border-radius: " + theme->getCornerRadius() + ";"
-        "border-bottom-left-radius: 0px;"
-        "border-bottom-right-radius: 0px;"
-        "}"
-        "QToolButton::checked:!hover {"
-        "background:" + theme->getActiveWidgetBorderColorHex() + ";"
-        "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
-        "}"
+    // setting it individually because adding the stylesheet to the QStackedWidget doesn't work
+    parts_dock->setStyleSheet(theme->getScrollAreaStyleSheet());
+    deploy_dock->setStyleSheet(theme->getScrollAreaStyleSheet());
+
+    setStyleSheet(theme->getToolBarStyleSheet() +
+                "QToolButton {"
+                "border-radius: " + theme->getCornerRadius() + ";"
+                "border-bottom-left-radius: 0px;"
+                "border-bottom-right-radius: 0px;"
+                "}"
+                "QToolButton::checked:!hover {"
+                "background:" + theme->getActiveWidgetBorderColorHex() + ";"
+                "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
+                "}"
     );
+
     toolbar->setIconSize(icon_size);
 }
 
@@ -188,7 +188,7 @@ void DockTabWidget::setupDocks()
     deploy_dock->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     deploy_dock->setWidgetResizable(true);
     deploy_dock->setWidget(deploy_menu);
-    
+
     stack_widget->addWidget(parts_dock);
     stack_widget->addWidget(deploy_dock);
 

@@ -68,16 +68,21 @@ void AppSettings::themeChanged()
     Theme* theme = Theme::theme();
 
     tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet() +
+                             theme->getScrollBarStyleSheet() +
                              "QTabBar::tab:selected{ background:" % theme->getPressedColorHex() % "; color:" % theme->getTextColorHex(ColorRole::SELECTED) % ";}"
                              "QTabBar::tab:hover{ background:" % theme->getHighlightColorHex() % ";}");
-
 
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");
 
-    setStyleSheet(theme->getWidgetStyleSheet("AppSettings") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
-                  "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
-                  );
+    setStyleSheet(theme->getWidgetStyleSheet("AppSettings") %
+                  theme->getGroupBoxStyleSheet() %
+                  theme->getLabelStyleSheet());
+
+    // set the stylesheets for each of the children QScrollArea widgets - setting it above doesn't do anything
+    for (auto childScroll : findChildren<QScrollArea*>()) {
+        childScroll->setStyleSheet(theme->getScrollAreaStyleSheet() % theme->getScrollBarStyleSheet());
+    }
     
     clearSettingsAction->setIcon(theme->getIcon("Icons", "cross"));
     applySettingsAction->setIcon(theme->getIcon("Icons", "tick"));
@@ -209,7 +214,6 @@ void AppSettings::setupLayout()
     layout->setMargin(5);
 
     tabWidget = new QTabWidget(this);
-    //tabWidget->setTabPosition(QTabWidget::West);
     tabWidget->setTabPosition(QTabWidget::North);
     tabWidget->setContentsMargins(QMargins(5,5,5,5));
 
@@ -223,7 +227,6 @@ void AppSettings::setupLayout()
     warningAction = toolbar->addWidget(warningLabel);
     clearSettingsAction = toolbar->addAction("Clear");
     applySettingsAction = toolbar->addAction("Apply");
-    //layout->addSpacing(2);
     layout->addWidget(toolbar, 0, Qt::AlignRight);
 
     connect(applySettingsAction, &QAction::triggered, this, &AppSettings::applySettings);
@@ -279,7 +282,7 @@ QVBoxLayout *AppSettings::getCategoryLayout(QString category)
         area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
         QWidget* widget = new QWidget(area);
-        widget->setObjectName("BACKGROUND_WIDGET");
+        widget->setStyleSheet("background: transparent;");
         area->setWidgetResizable(true);
         area->setWidget(widget);
 
