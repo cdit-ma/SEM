@@ -10,6 +10,4 @@
 [submodule "logan"]
 	path = logan
 	url = https://github.com/cdit-ma/logan
-[submodule "re_common"]
-	path = re_common
-	url = https://github.com/cdit-ma/re_common
+
