@@ -1,0 +1,352 @@
+syntax="proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package NodeManager;
+message ControlMessage{
+    enum Type{
+        NO_TYPE = 0;
+        STARTUP = 1;        //Construct the NodeContainer; Setup all ports and topics for ALL Components/ports
+        TEARDOWN = 2;       //Destruct the NodeContainer; Implicitly tears down all components and ports.
+        CONFIGURE = 3;
+        ACTIVATE = 4;       //Start executing a Component, Requires Startup first
+        PASSIVATE = 5;      //Stop executing a Component, Requires Startup and Passivate
+        TERMINATE = 6;      //Terminate Node Manager on Slaves
+        SET_ATTRIBUTE = 7;  //Set the Attribute of Components, requires Startup
+    }
+
+    Type type = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    string host_name = 3;
+    repeated Node nodes = 4;
+    string experiment_id = 5;
+    map<string, Attribute> attributes = 6;
+}
+
+message Experiment {
+    string name = 1;
+    repeated Cluster clusters = 2;
+    repeated ExternalPort external_ports = 3;
+}
+message Cluster {
+    Info info = 1;
+    repeated Node nodes = 2;
+    repeated Container containers = 3;
+    repeated Logger loggers = 4;
+}
+
+message Node{
+    Info info = 1;
+    string ip_address = 2;
+    repeated Container containers = 3;
+}
+
+message Container {
+    enum ContainerType {
+        GENERIC = 0;
+        DOCKER = 1;
+    }
+    Info info = 1;
+    ContainerType type = 2;
+    repeated Component components = 3;
+    repeated Logger loggers = 4;
+    bool implicit = 5;
+    bool is_late_joiner = 6;
+}
+
+enum Middleware{
+    NO_MIDDLEWARE = 0;
+    ZMQ = 1;
+    RTI = 2;
+    OSPL = 3;
+    QPID = 4;
+    TAO = 5;
+}
+
+message RequestId{
+    string experiment_name = 1;
+    string ip_address = 2;
+    string host_name = 3;
+}
+
+message AggregationServerRegistrationRequest{
+    RequestId id = 1;
+}
+
+message AggregationServerRegistrationReply{
+    string publisher_endpoint = 1;
+}
+
+message LoganRegistrationRequest{
+    RequestId id = 1;
+}
+
+message LoganRegistrationReply{
+    string heartbeat_endpoint = 1;
+    repeated Logger logger = 2;
+}
+
+message NodeManagerRegistrationRequest{
+    RequestId id = 1;
+    string container_id = 2;
+}
+
+message NodeManagerRegistrationReply{
+    enum Type{
+        SLAVE = 0;
+        MASTER = 1;
+    }
+    repeated Type types = 1;
+    string heartbeat_endpoint = 2;
+    string master_publisher_endpoint = 3;
+    string master_registration_endpoint = 4;
+    string experiment_logger_endpoint = 5;
+}
+
+message NodeManagerDeregistrationRequest{
+    RequestId id = 1;
+    string container_id = 2;
+}
+
+message NodeManagerDeregistrationReply{
+}
+
+message HardwareId{
+    string host_name = 1;
+    string ip_address = 2;
+}
+
+
+message ContainerId{
+    string id = 1;
+    bool is_master = 2;
+    bool is_docker = 3;
+}
+
+message NodeDeployment{
+    HardwareId id = 1;
+    repeated ContainerId container_ids = 2;
+    bool has_logan_server = 3;
+}
+
+message RegisterExperimentRequest{
+    RequestId id = 1;
+    Experiment experiment = 2;
+}
+
+message RegisterExperimentReply{
+    repeated NodeDeployment deployments = 1;
+}
+
+message EnvironmentMessage{
+    enum Type{
+        NO_TYPE = 0;
+        //Sent from NodeManager -> Environment Manager
+        GET_EXPERIMENT_INFO = 1;
+        HEARTBEAT = 2;
+        END_HEARTBEAT = 3;
+
+        //Sent from Environment Manager -> NodeManager
+        HEARTBEAT_ACK = 4;
+        CONFIGURE_EXPERIMENT = 5;
+        SHUTDOWN_EXPERIMENT = 6;
+        SHUTDOWN_LOGAN_SERVER = 7;
+    }
+    Type type = 1;
+    ControlMessage control_message = 2;
+}
+
+message Info{
+    string name = 1;
+    string id = 2;
+    string type = 3;
+    repeated string namespaces = 4;
+}
+
+message ExternalPort{
+    enum Kind{
+        NO_KIND = 0;
+        PUBSUB = 1;
+        SERVER = 2;
+    }
+
+    Info info = 1;
+    Kind kind = 2;
+    Middleware middleware = 3;
+    map<string, Attribute> attributes = 4;
+    repeated string connected_ports = 5;
+    bool is_blackbox = 6;
+}
+
+message Component{
+    Info info = 1;
+    repeated Port ports = 2;
+    map<string, Attribute> attributes = 3;
+    repeated Worker workers = 4;
+
+    repeated int32 replicate_indices = 5;
+    repeated string location = 6;
+}
+
+message Port{
+    enum Kind{
+        NO_KIND = 0;
+        PERIODIC = 1;
+        PUBLISHER = 2;
+        SUBSCRIBER = 3;
+        REQUESTER = 4;
+        REPLIER = 5;
+    }
+
+    Info info = 1;
+    Kind kind = 2;
+    Middleware middleware = 3;
+    map<string, Attribute> attributes = 4;
+    repeated string connected_ports = 5;
+    repeated string connected_external_ports = 6;
+    repeated string server_name = 7;
+}
+
+message Worker{
+    Info info = 1;
+    map<string, Attribute> attributes = 2;
+}
+
+message Attribute{
+    enum Kind{
+        STRING = 0;
+        INTEGER = 1;
+        CHARACTER = 2;
+        BOOLEAN = 3;
+        DOUBLE = 4;
+        FLOAT = 5;
+        STRINGLIST = 6;
+    }
+    Info info = 1;
+    Kind kind = 2;
+    repeated string s = 3;
+    int64 i = 4;
+    double d = 5;
+}
+
+message Logger{
+    enum Mode{
+        OFF = 0;
+        LIVE = 1;
+        CACHED = 2;
+    }
+
+    enum Type{
+        NONE = 0;
+        MODEL = 1;
+        CLIENT = 2;
+        SERVER = 3;
+        EXPERIMENT = 4;
+    }
+    
+    Type type = 1;
+    string id = 2;
+
+    //client args
+    string publisher_address = 3;
+    string publisher_port = 4;
+    Mode mode = 5;
+    double frequency = 6;
+
+    //server args
+    repeated string client_ids = 7;
+    string db_file_name = 8;
+    repeated string client_addresses = 9;
+
+    //processes to log
+    repeated string processes = 10;
+}
+
+message SlaveId{
+    string ip_address = 1;
+    string container_id = 2;
+}
+
+message SlaveStartupRequest{
+    SlaveId id = 1;
+}
+
+message SlaveStartupReply{
+    string host_name = 1;
+    Container configuration = 2;
+}
+
+message SlaveConfiguredRequest{
+    SlaveId id = 1;
+    bool success = 2;
+    repeated string error_messages = 3;
+}
+
+message SlaveConfiguredReply{
+
+}
+
+
+message SlaveTerminatedRequest{
+    SlaveId id = 1;
+}
+
+message SlaveTerminatedReply{
+
+}
+
+message SlaveStartup{
+    string slave_host_name = 1;
+    Node configuration = 2;
+}
+
+message SlaveStartupResponse{
+    string slave_ip = 1;
+    bool success = 2;
+    repeated string error_codes = 3;
+}
+
+message SlaveStartupMessage{
+    enum Type{
+        REQUEST = 0;
+        STARTUP = 1;
+        RESPONSE = 2;
+        ACKNOWLEDGE = 3;
+        TERMINATED = 4;
+    }
+    Type type = 1;
+    SlaveStartupRequest request = 2;
+    SlaveStartup startup = 3;
+    SlaveStartupResponse response = 4;
+}
+
+message MEDEAInterfaceRequest{
+
+}
+
+message MEDEAInterfaceReply{
+    repeated string experiment_names = 1;
+
+    repeated ExternalPort external_ports = 2;
+}
+
+message InspectExperimentRequest{
+    string experiment_name = 1;
+}
+
+message InspectExperimentReply{
+    EnvironmentMessage environment_message = 1;
+}
+
+message SlaveHeartbeatRequest{
+    enum Type{
+        HEARBEAT = 0;
+        END_HEARTBEAT = 1;
+    }
+    SlaveId id = 1;
+    Type type = 2;
+}
+
+message SlaveHeartbeatReply{
+
+}

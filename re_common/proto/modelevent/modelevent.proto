@@ -1,0 +1,118 @@
+/* re_common
+ * Copyright (C) 2016-2017 The University of Adelaide
+ *
+ * This file is part of "re_common"
+ *
+ * "re_common" is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * "re_common" is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
+syntax="proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package ModelEvent;
+
+message Info{
+    google.protobuf.Timestamp timestamp = 1;
+    string hostname = 2;
+    string experiment_name = 3;
+    string container_name = 4;
+    string container_id = 5;
+}
+
+message Component{
+    string id = 1;
+    string name = 2;
+    string type = 3;
+}
+
+message Worker{
+    string id = 1;
+    string name = 2;
+    string type = 3;
+}
+
+message Port{
+    enum Kind{
+        NONE = 0;
+        PERIODIC = 1;
+        PUBLISHER = 2;
+        SUBSCRIBER = 3;
+        REQUESTER = 4;
+        REPLIER = 5;
+    }
+
+    string id = 1;          //Id of instance
+    string name = 2;        //Name of port instance
+    string type = 3;        //Name of port's data type
+    Kind kind = 4;          //direction of port/periodic event
+    string middleware = 5;  //middleware of port
+}
+
+
+message LifecycleEvent{
+    enum Type{
+        NONE = 0;
+        CONFIGURED = 1;
+        ACTIVATED = 2;
+        PASSIVATED = 3;
+        TERMINATED = 4;
+    }
+    Info info = 1;
+    Type type = 2;
+
+    Component component = 3;
+    Port port = 4;
+    Worker worker = 5;
+}
+
+message WorkloadEvent{
+    enum Type{
+        STARTED = 0;
+        FINISHED = 1;
+        MESSAGE = 2;
+        WARNING = 3;
+        ERROR = 4;
+        MARKER = 5;
+    }
+    Info info = 1;
+    Type event_type = 2;
+    Component component = 3;        //Instance id of component impl
+    Worker worker = 4;
+
+    uint64 workload_id = 5;                  //Implementation's work id
+    string function_name = 6;            //Workers Function Name
+    string args = 7;
+    uint32 log_level = 8;
+}
+
+message UtilizationEvent{
+    Info info = 1;
+    Component component = 2;
+    Port port = 3;
+
+    uint64 port_event_id = 4;
+    enum Type{
+        SENT = 0;
+        RECEIVED = 1;
+        STARTED_FUNC = 2;
+        FINISHED_FUNC = 3;
+        IGNORED = 4;
+        EXCEPTION = 5;
+        MESSAGE = 6;
+    }
+    Type type = 5;
+    string message = 6;
+}
