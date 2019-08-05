@@ -1,6 +1,3 @@
-[submodule "cmake_modules"]
-	path = cmake_modules
-	url = https://github.com/cdit-ma/cmake_modules
 [submodule "test/googletest"]
 	path = test/googletest
 	url = https://github.com/google/googletest
