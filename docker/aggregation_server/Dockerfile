@@ -2,10 +2,10 @@ ARG base_image=minimal_deps
 FROM $base_image
 
 #Set up code and env vars
-COPY . /logan/
+COPY . /re/
 
 #Install re
-RUN     cd logan && \
+RUN     cd re && \
         rm -rf build && \
         mkdir build && \
         cd build && \

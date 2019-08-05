@@ -32,7 +32,7 @@ pipeline{
 
                     if (docker_registry_endpoint) {
                         docker.image("${docker_registry_endpoint}/logan").inside("--network host") {
-                            if (utils.runScript("/logan/bin/aggregation_server ${args}") != 0) {
+                            if (utils.runScript("/re/bin/aggregation_server ${args}") != 0) {
                                 error('Running aggregation server failed on node: ${node_name} : ${container_id}')
                             }
                         }
