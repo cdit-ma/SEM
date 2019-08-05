@@ -1,9 +1,3 @@
-[submodule "re_common"]
-	path = re_common
-	url = https://github.com/cdit-ma/re_common
-[submodule "cmake_modules"]
-	path = cmake_modules
-	url = https://github.com/cdit-ma/cmake_modules
 [submodule "src/client/sigar"]
 	path = src/client/sigar
 	url = https://github.com/cdit-ma/sigar
