@@ -1,4 +1,4 @@
-ARG base_image=minimal_deps
+ARG base_image=cdit-ma/minimal_deps
 FROM $base_image
 
 #Set up code and env vars
@@ -9,7 +9,7 @@ ENV PUGIXML_PATH /usr/local
 
 #Install re
 RUN     cd re && \
-        mkdir build && \
+        mkdir -p build && \
         cd build && \
         cmake  -G Ninja ..  && \
         cmake --build .  && \

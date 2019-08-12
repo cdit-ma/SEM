@@ -1,4 +1,5 @@
-FROM minimal_deps
+ARG base_image=cdit-ma/minimal_deps
+FROM $base_image
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y expect sed python-minimal uuid-dev ruby bison && rm -rf /var/lib/apt/lists/*
 COPY docker/full_deps/install_rti.exp /opt/install_rti.exp
