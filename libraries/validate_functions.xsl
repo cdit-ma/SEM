@@ -1137,7 +1137,7 @@
             <xsl:for-each select="$eventport_instances">
                 <xsl:if test="graphml:get_data_value(., 'middleware') = 'OSPL'">
                     <xsl:variable name="port_definition" select="graphml:get_definition(.)" />
-                    <xsl:sequence select="graphml:get_definition(graphml:get_child_node($port_definition, 1))" />
+                    <xsl:sequence select="graphml:get_definition(graphml:get_child_node_by_index($port_definition, 1))" />
                 </xsl:if>
             </xsl:for-each>
         </xsl:variable>

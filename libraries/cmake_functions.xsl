@@ -10,6 +10,7 @@
 
     <!--
         Places the text (handles newlines) in a comment, can be tabbed
+        # ${test}
     -->
     <xsl:function name="cmake:comment">
         <xsl:param name="text" as="xs:string*" />
@@ -24,7 +25,7 @@
 
     <!--
         Wraps the string provided in cmake variable syntax
-        ie. ${variable}
+        ${variable_name}
     -->
     <xsl:function name="cmake:wrap_variable" as="xs:string">
         <xsl:param name="variable_name" as="xs:string" />
@@ -33,7 +34,7 @@
 
     <!--
         Sets a compiler definition for a particular target (will wrap target using cmake:wrap_variable)
-        ie. target_compile_definitions(${target} ${scope} ${args})
+        target_compile_definitions(${target} ${scope} "${args}")
     -->
     <xsl:function name="cmake:target_compile_definitions" as="xs:string">
         <xsl:param name="target" as="xs:string" />
@@ -45,7 +46,7 @@
 
     <!--
         Includes a directory for a particular target (will wrap target using cmake:wrap_variable)
-        target_include_directories(${target} ${scope} ${directory})
+        target_include_directories(${target} ${scope} "${directory}")
     -->
     <xsl:function name="cmake:target_include_directories" as="xs:string">
         <xsl:param name="target" as="xs:string" />
@@ -69,6 +70,7 @@
 
     <!--
         Adds a subdirectory
+        add_subdirectory("${directory}")
     -->
     <xsl:function name="cmake:add_subdirectory">
         <xsl:param name="directory" as="xs:string" />
@@ -78,24 +80,24 @@
     <!--
         Finds a library
 
-        # Find library re_core
-        find_library(${libary_variable} ${library_name} "${library_path}")
+        # Find library ${library_name}
+        find_library(${library_variable} ${library_name} "${library_path}")
     -->
     <xsl:function name="cmake:find_library">
-        <xsl:param name="libary_variable" as="xs:string" />
+        <xsl:param name="library_variable" as="xs:string" />
         <xsl:param name="library_name" as="xs:string" />
         <xsl:param name="library_path" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:value-of select="cmake:comment(concat('Find library ', $library_name), $tab)" />
-        <xsl:value-of select="concat(o:t($tab), 'find_library(', $libary_variable, ' ', $library_name, ' ', o:wrap_dblquote($library_path), ')', o:nl(1))" />
+        <xsl:value-of select="concat(o:t($tab), 'find_library(', $library_variable, ' ', $library_name, ' ', o:wrap_dblquote($library_path), ')', o:nl(1))" />
     </xsl:function>
 
     <!--
         Produces a find_package line
 
-        # Find package re_core
-        find_package(${package_name} ${args})
+        # Find ${package_name}
+        find_package(${package_name} ${args})   
     -->
     <xsl:function name="cmake:find_package">
         <xsl:param name="package_name" as="xs:string" />
@@ -108,7 +110,7 @@
 
     <!--
         Sets a variable
-        ie. set(${variable} ${value})
+        set(${variable} "${value}")
     -->
     <xsl:function name="cmake:set_variable" as="xs:string">
         <xsl:param name="variable" as="xs:string" />
@@ -121,25 +123,25 @@
 
     <!--
         Sets a variable
-        ie. set(${variable} ${value})
+        if(NOT ${variable})
+            set(${variable} "${value}")
+        endif(NOT ${variable})
     -->
-    <xsl:function name="cmake:set_variable_if_not_set" as="xs:string*">
+    <xsl:function name="cmake:set_variable_if_not_set">
         <xsl:param name="variable" as="xs:string" />
         <xsl:param name="value" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:sequence select="cmake:if_start(concat('NOT ', $variable), $tab)" />
-        <xsl:sequence select="cmake:set_variable($variable, $value, $tab + 1)" />
-        <xsl:sequence select="cmake:if_end(concat('NOT ', $variable), $tab)" />
+        <xsl:value-of select="cmake:if_start(concat('NOT ', $variable), $tab)" />
+        <xsl:value-of select="cmake:set_variable($variable, $value, $tab + 1)" />
+        <xsl:value-of select="cmake:if_end(concat('NOT ', $variable), $tab)" />
     </xsl:function>
-
-    
 
     <!--
         Sets the project name
 
-        ie. set(PROJ_NAME ${project_name})
-        project(${project_name)
+        set(PROJ_NAME "${proj_name}")
+        project(${PROJ_NAME})
     -->
     <xsl:function name="cmake:set_project_name">
         <xsl:param name="project_name" as="xs:string" />
@@ -150,7 +152,7 @@
 
     <!--
         Adds a shared library (MODULE/SHARED)
-        ie. add_library(${library_name} ${library_type} ${args})
+        add_library(${library_name} ${library_type} ${args})
     -->
     <xsl:function name="cmake:add_library" as="xs:string">
         <xsl:param name="library_name" as="xs:string" />
@@ -162,7 +164,7 @@
 
     <!--
         Defines an if statement
-        ie. if(${condition})
+        if(${condition})
     -->
     <xsl:function name="cmake:if_start">
         <xsl:param name="condition" as="xs:string"/>
@@ -172,7 +174,7 @@
 
     <!--
         Defines an else if statement
-        ie. elseif(${condition})
+        elseif(${condition})
     -->
     <xsl:function name="cmake:if_elseif">
         <xsl:param name="condition" as="xs:string"/>
@@ -183,7 +185,7 @@
 
     <!--
         Defines an else statement
-        ie. else()
+        else()
     -->
     <xsl:function name="cmake:if_else">
         <xsl:param name="tab" as="xs:integer"/>
@@ -192,7 +194,7 @@
 
     <!--
         Ends an if statement
-        ie. endif(${condition})
+        endif(${condition})
     -->
     <xsl:function name="cmake:if_end">
         <xsl:param name="condition" as="xs:string"/>
@@ -203,6 +205,7 @@
 
     <!--
         Prints a CMake message when processed
+        message(STATUS ${message})
     -->
     <xsl:function name="cmake:message">
         <xsl:param name="message" as="xs:string"/>
@@ -213,6 +216,7 @@
 
     <!--
         Returns out of a CMake function
+        return()
     -->
     <xsl:function name="cmake:return">
         <xsl:param name="tab" as="xs:integer"/>
@@ -221,6 +225,7 @@
 
     <!--
         Copys a file into a directory
+        configure_file(${input_file} ${output_dir} COPYONLY)
     -->
     <xsl:function name="cmake:configure_file">
         <xsl:param name="input_file" as="xs:string"/>
@@ -230,7 +235,7 @@
 
     <!--
         Gets the current binary directory variable
-        ie. ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
     -->
     <xsl:function name="cmake:current_binary_dir_var">
         <xsl:value-of select="cmake:wrap_variable('CMAKE_CURRENT_BINARY_DIR')" />
@@ -238,7 +243,7 @@
 
     <!--
         Gets the current source directory variable
-        ie. ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
     -->
     <xsl:function name="cmake:current_source_dir_var">
         <xsl:value-of select="cmake:wrap_variable('CMAKE_CURRENT_SOURCE_DIR')" />
@@ -246,6 +251,7 @@
 
     <!--
         Gets CMakeLists.txt
+        CMakeLists.txt
     -->
     <xsl:function name="cmake:cmake_file" as="xs:string">
         <xsl:value-of select="'CMakeLists.txt'" />
@@ -253,9 +259,8 @@
 
     <!--
         Adds a list of sub_directories, will prepend on the current source dir
-        ie.
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${sub_directories}[1])
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${sub_directories}[2])
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/${sub_directory_1}")
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/${sub_directory_2}")
     -->
     <xsl:function name="cmake:add_subdirectories">
         <xsl:param name="sub_directories" as="xs:string*"/>
@@ -269,7 +274,7 @@
 
     <!--
         Sets the minimum CMake version required
-        ie. cmake_minimum_required(VERSION 3.1)
+        cmake_minimum_required(VERSION ${version})
     -->
     <xsl:function name="cmake:cmake_minimum_required">
         <xsl:param name="version" as="xs:string"/>
@@ -277,6 +282,12 @@
     </xsl:function>
 
     <!--
+        Sets the required settings to force C++17 Compliance
+        # CMake C++17 Options
+        set(CMAKE_CXX_STANDARD "17")
+        set(CMAKE_CXX_STANDARD_REQUIRED "ON")
+        set(CMAKE_CXX_EXTENSIONS "OFF")
+        set(CMAKE_POSITION_INDEPENDENT_CODE "ON")
         Sets the required settings to force C++17 Compliance
     -->
     <xsl:function name="cmake:set_cpp17">
@@ -306,6 +317,11 @@
 
     <!--
         Sets the runtime output directory to the provided ${output_directory}
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${output_directory}")
+        if(MSVC)
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+        endif(MSVC)
     -->
     <xsl:function name="cmake:set_runtime_output_directory">
         <xsl:param name="output_directory" as="xs:string"/>
@@ -315,6 +331,11 @@
 
     <!--
         Sets the library output directory to the provided ${output_directory}
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${output_directory}")
+        if(MSVC)
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+        endif(MSVC)
     -->
     <xsl:function name="cmake:set_library_output_directory">
         <xsl:param name="output_directory" as="xs:string"/>
@@ -324,6 +345,11 @@
 
     <!--
         Sets the archive output directory to the provided ${output_directory}
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${output_directory}")
+        if(MSVC)
+            set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
+            set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
+        endif(MSVC)
     -->
     <xsl:function name="cmake:set_archive_output_directory">
         <xsl:param name="output_directory" as="xs:string"/>
@@ -331,6 +357,10 @@
         <xsl:value-of select="cmake:set_output_directory('CMAKE_ARCHIVE_OUTPUT_DIRECTORY', $output_directory, $tab)" />
     </xsl:function>
 
+    <!--
+        Sets a cmake property
+        set_property(${property})
+    -->
     <xsl:function name="cmake:set_property">
         <xsl:param name="property" as="xs:string"/>
         <xsl:param name="tab" as="xs:integer" />
@@ -339,7 +369,7 @@
 
     <!--
         Gets a system environment variable
-        ie. $env{variable_name}
+        $ENV{variable_name}
     -->
     <xsl:function name="cmake:get_env_var" as="xs:string">
         <xsl:param name="variable_name" as="xs:string" />
@@ -348,6 +378,12 @@
 
     <!--
         Sets a project to use ccache if available
+        # Using CCache speeds up repeat compilation time
+        find_program(CCACHE_FOUND ccache)
+        if(CCACHE_FOUND)
+            set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+            set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+        endif(CCACHE_FOUND)
     -->
     <xsl:function name="cmake:use_ccache">
         <xsl:param name="tab" as="xs:integer" />
@@ -362,7 +398,6 @@
 
     <!--
         Sets the minimum CMake version required
-        
         install(TARGETS ${PROJ_NAME} DESTINATION lib)
     -->
     <xsl:function name="cmake:install">
@@ -371,5 +406,4 @@
         <xsl:param name="tab" as="xs:integer" />
         <xsl:value-of select="concat(o:t($tab), 'install(TARGETS ', cmake:wrap_variable($target), ' DESTINATION ', $destination, ')', o:nl(1))" />
     </xsl:function>
-
 </xsl:stylesheet>

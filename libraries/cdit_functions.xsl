@@ -402,7 +402,7 @@
                 <xsl:value-of select="'void'" />
             </xsl:when>
             <xsl:when test="$kind = 'Variable'">
-                <xsl:variable name="child" select="graphml:get_child_node($node, 1)" />
+                <xsl:variable name="child" select="graphml:get_child_node_by_index($node, 1)" />
                 <xsl:choose>
                     <xsl:when test="$child">
                         <xsl:value-of select="cpp:get_qualified_type($child)" />
@@ -826,7 +826,7 @@
         <xsl:variable name="model" select="graphml:get_ancestor_nodes_of_kind($aggregate, 'Model')" />
         
         <xsl:for-each select="graphml:get_descendant_nodes_of_kind($model, ('PublisherPort', 'SubscriberPort'))">
-            <xsl:variable name="aggregate_instance" select="graphml:get_child_node(., 1)" />
+            <xsl:variable name="aggregate_instance" select="graphml:get_child_node_by_index(., 1)" />
             <xsl:variable name="aggregate_definition" select="graphml:get_definition($aggregate_instance)" />
 
             <xsl:if test="$aggregate_definition = $aggregate">
@@ -1080,7 +1080,7 @@
                 </xsl:when>
                 <xsl:when test="$kind = 'EnumInstance'">
                     <xsl:variable name="enum_def" select="graphml:get_definition($aggregate)" />
-                    <xsl:variable name="enum_member" select="graphml:get_child_node($enum_def, 1)" />
+                    <xsl:variable name="enum_member" select="graphml:get_child_node_by_index($enum_def, 1)" />
                     <xsl:if test="$enum_member">
                         <xsl:value-of select="cdit:get_qualified_enum_member_type($enum_member)" />
                     </xsl:if>
@@ -1088,7 +1088,7 @@
                 <xsl:when test="$kind = 'MemberInstance' or $kind = 'Member' or $kind = 'Variable'">
                     <xsl:variable name="member_def" select="graphml:get_definition($aggregate)" />
                     <xsl:variable name="member_type" select="graphml:get_type($member_def)" />
-                    <xsl:variable name="child" select="graphml:get_child_node($member_def, 1)" />
+                    <xsl:variable name="child" select="graphml:get_child_node_by_index($member_def, 1)" />
                     <xsl:if test="not($child)">
                         <xsl:value-of select="cdit:get_default_primitive_value($member_type)" />
                     </xsl:if>
