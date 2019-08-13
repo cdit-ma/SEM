@@ -60,7 +60,7 @@
         <xsl:variable name="input_parameters">
             <xsl:choose>
                 <xsl:when test="$kind = 'SubscriberPortImpl'">
-                    <xsl:variable name="aggregate_instance" select="graphml:get_child_node($entity, 1)" />
+                    <xsl:variable name="aggregate_instance" select="graphml:get_child_node_by_index($entity, 1)" />
                     <xsl:variable name="parameter_type" select="cpp:get_qualified_type($aggregate_instance)" />
                     <xsl:variable name="parameter_label" select="cdit:get_variable_name($aggregate_instance)" />
 

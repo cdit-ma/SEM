@@ -1,5 +1,5 @@
 <!--
-    A set of XSLT2.0 Functions for interpretting and reading GraphML XML documents used by MEDEA
+    A set of XSLT2.0 Functions for interpretting and reading GraphML XML documents as used by MEDEA
 -->
 <xsl:stylesheet version="2.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -18,7 +18,7 @@
     <xsl:key name="get_edge_by_target_id" match="gml:edge" use="@target"/>
 
     <!--
-        Gets the id attribute from the entity
+        Gets the id attribute for an entity
     -->
     <xsl:function name="graphml:get_id" as="xs:string">
         <xsl:param name="entity" as="element()?" />
@@ -26,7 +26,7 @@
     </xsl:function>
 
     <!--
-        Gets a Graphml Node entity by id
+        Gets a node entity (by id) from the graphml document
     -->
     <xsl:function name="graphml:get_node_by_id" as="element(gml:node)?">
         <xsl:param name="entity" as="element()?" />
@@ -35,7 +35,7 @@
     </xsl:function>
 
     <!--
-        Gets a Graphml Edge entity by id
+        Gets a edge entity (by id) from the graphml document
     -->
     <xsl:function name="graphml:get_edge_by_id" as="element(gml:edge)?">
         <xsl:param name="entity" as="element()?" />
@@ -44,7 +44,8 @@
     </xsl:function>
 
     <!--
-        Gets the top level graphml model entity
+        Gets the model entity from the graphml document
+        (The model is the top level node in the graph)
     -->
     <xsl:function name="graphml:get_model" as="element(gml:node)?">
         <xsl:param name="entity" as="element(gml:graphml)" />
@@ -52,7 +53,7 @@
     </xsl:function>
 
     <!--
-        Gets a Graphml Key id, by looking up it's name
+        Gets a key id by looking up it's name attribute
     -->
     <xsl:function name="graphml:get_key_id"  as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -62,7 +63,7 @@
     </xsl:function>
 
     <!--
-        Gets the data value from the entity, by it's key name
+        Gets a data value for an entity by it's key name
     -->
     <xsl:function name="graphml:get_data_value" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -73,7 +74,7 @@
     </xsl:function>
 
     <!--
-        Checks if the data value exists, by it's key name
+        Tests if a entity has attached data by it's key name
     -->
     <xsl:function name="graphml:got_data" as="xs:boolean">
         <xsl:param name="entity" as="element()?" />
@@ -84,7 +85,7 @@
     </xsl:function>
 
     <!--
-        Gets the data value from all entities, by its keyname
+        Gets a list of entities data values by key name
     -->
     <xsl:function name="graphml:get_data_values" as="xs:string*">
         <xsl:param name="entities" as="element()*" />
@@ -96,7 +97,7 @@
     </xsl:function>
 
     <!--
-        Gets the 'kind' data value from the entity
+        Gets the data value 'kind' for an entity
     -->
     <xsl:function name="graphml:get_kind" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -104,7 +105,7 @@
     </xsl:function>
 
     <!--
-        Gets the 'label' data value from the entity
+        Gets the data value 'label' for an entity
     -->
     <xsl:function name="graphml:get_label" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -112,7 +113,7 @@
     </xsl:function>
 
     <!--
-        Gets the 'middleware' data value from the entity
+        Gets the data value 'middleware' for an entity
     -->
     <xsl:function name="graphml:get_middleware" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -120,7 +121,7 @@
     </xsl:function>
     
     <!--
-        Gets the 'type' data value from the entity
+        Gets the data value 'type' for an entity
     -->
     <xsl:function name="graphml:get_type" as="xs:string">
         <xsl:param name="entity" as="element()?" />
@@ -128,7 +129,7 @@
     </xsl:function>
 
     <!--
-        Gets the 'value' data value from the entity
+        Gets the data value 'value' for an entity
     -->
     <xsl:function name="graphml:get_value" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -136,7 +137,7 @@
     </xsl:function>
 
     <!--
-        Gets the 'namespace' data value from the entity
+        Gets the data value 'namespace' for an entity
     -->
     <xsl:function name="graphml:get_namespace_data" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -145,7 +146,7 @@
     </xsl:function>
 
     <!--
-        Gets the 'index' data value from the entity, casts as an integer
+        Gets the data value 'index' for an entity, cast as an integer
     -->
     <xsl:function name="graphml:get_index" as="xs:integer?">
         <xsl:param name="entity" as="element()?" />
@@ -153,19 +154,18 @@
     </xsl:function>
 
     <!--
-        Gets the 'index' data value from the entity, casts as an integer
+        Gets the data value 'row' for an entity, cast as an integer
+        defaults to 0
     -->
     <xsl:function name="graphml:get_row" as="xs:integer?">
         <xsl:param name="entity" as="element()?" />
         <xsl:variable name="row" select="graphml:get_data_value($entity, 'row')" />
-
-
         <xsl:value-of select="if($row) then number($row) else 0" />
     </xsl:function>
 
 
     <!--
-        Gets the 'is_key' data value from the entity, converts it to a boolean
+        Gets the data value 'key' for an entity, cast as a boolean
     -->
     <xsl:function name="graphml:is_key" as="xs:boolean?">
         <xsl:param name="entity" as="element()?" />
@@ -173,7 +173,7 @@
     </xsl:function>
 
     <!--
-        Gets the children of the entity, which are key's converts it to a boolean
+        Gets the list of children entities which are tagged as a 'key'
     -->
     <xsl:function name="graphml:get_keys" as="element(gml:node)*">
         <xsl:param name="aggregate" as="element(gml:node)?" />
@@ -185,7 +185,7 @@
     </xsl:function>
 
     <!--
-        Gets the data value from the entity, by it's key name, and compares it against a string boolean
+        Gets the data value for an entity, by it's key name, and converts it to a boolean
     -->
     <xsl:function name="graphml:evaluate_data_value_as_boolean" as="xs:boolean?">
         <xsl:param name="entity" as="element()" />
@@ -194,7 +194,8 @@
     </xsl:function>
 
     <!--
-        Gets the child nodes of the node provided. Sorted by 'index'
+        Gets the direct children nodes of the node(/s) provided
+        * Sorted by 'index'
     -->
     <xsl:function name="graphml:get_child_nodes" as="element(gml:node)*">
         <xsl:param name="nodes" as="element(gml:node)*" />
@@ -207,40 +208,52 @@
     </xsl:function>
 
     <!--
-        Gets child nodes of the node of the node provided, of a particular 'kind'(s). Sorted by 'index'
+        Gets the direct children nodes of a particular list of 'kinds' of the node(/s) provided
+        * Sorted by 'index'
     -->
     <xsl:function name="graphml:get_child_nodes_of_kind" as="element(gml:node)*">
         <xsl:param name="nodes" as="element(gml:node)*" />
         <xsl:param name="kind" as="xs:string*" />
 
         <xsl:if test="count($nodes)">
+            <!-- Get the key id of the 'kind' -->
             <xsl:variable name="kind_id" select="graphml:get_key_id($nodes[1], 'kind')" />
+            <!-- Get the all children nodes and return the list which 'kind' key matches any kind -->
             <xsl:sequence select="graphml:get_child_nodes($nodes)/gml:data[@key=$kind_id and text() = $kind]/.." />
         </xsl:if>
     </xsl:function>
 
     <!--
-        Gets a child node of the node provided, by 'index' (Starting at 1)
+        Gets a direct children node by index of the ordered children
+        * Index starting at 1
     -->
-    <xsl:function name="graphml:get_child_node" as="element(gml:node)?">
+    <xsl:function name="graphml:get_child_node_by_index" as="element(gml:node)?">
         <xsl:param name="node" as="element(gml:node)?" />
         <xsl:param name="index" as="xs:integer" />
-        <xsl:sequence select="graphml:get_child_nodes($node)[$index]" />
+
+        <xsl:variable name="children" select="graphml:get_child_nodes($node)" />
+
+        <xsl:if test="$index > 0 and not($index > count($children))">
+            <xsl:sequence select="$children[$index]" />
+        </xsl:if>
     </xsl:function>
 
     <!--
-        Gets the parent node of the entity provided (Looks two levels up)
+        Gets the parent node of the entity provided
     -->
     <xsl:function name="graphml:get_parent_node" as="element(gml:node)?">
         <xsl:param name="entity" as="element()?" />
+
+        <!-- Step up through the graph into the node hence two steps -->
         <xsl:variable name="parent" select="$entity/../.." />
+        <!-- Test if the parent is a node -->
         <xsl:if test="local-name($parent) = 'node'">
             <xsl:sequence select="$parent" />
         </xsl:if>
     </xsl:function>
 
     <!--
-        Gets the parent node of the entity provided (Looks two levels up)
+        Gets the 'kind' of the parent node of the entity provided
     -->
     <xsl:function name="graphml:get_parent_kind" as="xs:string?">
         <xsl:param name="entity" as="element()?" />
@@ -248,21 +261,22 @@
     </xsl:function>
 
     <!--
-        Gets the parent node of the entity provided (Looks two levels up)
+        Gets a sequence of parent nodes for the entity provided
+        * Recursive (Top-most parent first)
     -->
     <xsl:function name="graphml:get_ancestor_nodes" as="element(gml:node)*">
         <xsl:param name="entity" as="element()?" />
     
         <xsl:variable name="parent" select="graphml:get_parent_node($entity)" />
         <xsl:if test="$parent">
+            <!-- Recurse up and append to sequence -->
             <xsl:sequence select="graphml:get_ancestor_nodes($parent)" />
             <xsl:sequence select="$parent" />
         </xsl:if>
-        
     </xsl:function>
 
     <!--
-        Gets the parent node of the entity provided (Looks two levels up)
+        Gets a sequence of parent nodes for the entity provided which are all descendants of the provided top_ancestor
     -->
     <xsl:function name="graphml:get_ancestor_nodes_until" as="element(gml:node)*">
         <xsl:param name="entity" as="element()?" />
@@ -276,8 +290,9 @@
         </xsl:for-each>
     </xsl:function>
 
-      <!--
-        Gets the siblings node of the entity provided (Looks two levels up)
+    <!--
+        Gets a sequence of siblings node of the entity provided
+        * Includes the entity provided
     -->
     <xsl:function name="graphml:get_siblings" as="element(gml:node)*">
         <xsl:param name="entity" as="element(gml:node)?" />
@@ -286,7 +301,7 @@
     </xsl:function>
 
     <!--
-        Gets descendant nodes of the node provided
+        Gets a sequence of all descendant nodes of the node provided
     -->
     <xsl:function name="graphml:get_descendant_nodes" as="element(gml:node)*">
         <xsl:param name="node" as="element(gml:node)*" />
@@ -294,17 +309,18 @@
     </xsl:function>
 
     <!--
-        Checks to see if node1 is a descendant of $node2
+        Tests if node_1 is a descendant of node_2
     -->
     <xsl:function name="graphml:is_descendant_of" as="xs:boolean">
-        <xsl:param name="node1" as="element(gml:node)" />
-        <xsl:param name="node2" as="element(gml:node)" />
+        <xsl:param name="node_1" as="element(gml:node)" />
+        <xsl:param name="node_2" as="element(gml:node)" />
 
-        <xsl:value-of select="$node1 = graphml:get_descendant_nodes($node2)" />
+        <xsl:value-of select="$node_1 = graphml:get_descendant_nodes($node_2)" />
     </xsl:function>
 
     <!--
-        Gets descendant edges of the node provided, of a particular 'kind'(s)
+        Gets all edges of a particular 'kind'
+        * Looks in entire model
     -->
     <xsl:function name="graphml:get_edges_of_kind" as="element(gml:edge)*">
         <xsl:param name="node" as="element(gml:node)?" />
@@ -315,7 +331,8 @@
     </xsl:function>
 
     <!--
-        Gets descendant edges of the node provided, of a particular 'kind'(s)
+        Gets all nodes of a particular 'kind'
+        * Looks in entire model
     -->
     <xsl:function name="graphml:get_nodes_of_kind" as="element(gml:node)*">
         <xsl:param name="node" as="element(gml:node)+" />
@@ -327,7 +344,7 @@
 
 
     <!--
-        Gets descendant nodes of the node provided, of a particular 'kind'(s)
+        Gets a all of descendant nodes of a particular set of 'kinds' of the node provided
     -->
     <xsl:function name="graphml:get_descendant_nodes_of_kind" as="element(gml:node)*">
         <xsl:param name="node" as="element(gml:node)*" />
@@ -338,7 +355,7 @@
     </xsl:function>
 
     <!--
-        Gets ancestors nodes of the node provided, of a particular 'kind'(s)
+        Gets a all of ancestors nodes of a particular set of 'kinds' of the node provided
     -->
     <xsl:function name="graphml:get_ancestor_nodes_of_kind" as="element(gml:node)*">
         <xsl:param name="node" as="element(gml:node)?" />
@@ -349,22 +366,22 @@
     </xsl:function>
 
     <!--
-        Gets ancestors nodes of the node provided, of a particular 'kind'(s)
+        Finds the shared ancestor of two nodes
     -->
     <xsl:function name="graphml:get_shared_ancestor" as="element(gml:node)*">
-        <xsl:param name="node1" as="element(gml:node)?" />
-        <xsl:param name="node2" as="element(gml:node)?" />
+        <xsl:param name="node_1" as="element(gml:node)?" />
+        <xsl:param name="node_2" as="element(gml:node)?" />
 
-        <xsl:variable name="node1_anc" select="graphml:get_ancestor_nodes($node1)" />
-        <xsl:variable name="node2_anc" select="graphml:get_ancestor_nodes($node2)" />
+        <xsl:variable name="node_1_anc" select="graphml:get_ancestor_nodes($node_1)" />
+        <xsl:variable name="node_2_anc" select="graphml:get_ancestor_nodes($node_2)" />
 
-        <xsl:variable name="shared_anc" select="$node1_anc intersect $node2_anc" />
+        <xsl:variable name="shared_anc" select="$node_1_anc intersect $node_2_anc" />
         <xsl:sequence select="$shared_anc[last()]" />
     </xsl:function>
 
-
     <!--
-        Gets any edge that terminate at the node provided, of a particular 'kind'(s)
+        Finds all edges of a particular 'kind' which terminate on a provided node.
+        * Returns a sequence of all 'source' of the edges
     -->
     <xsl:function name="graphml:get_sources" as="element(gml:node)*">
         <xsl:param name="node" as="element(gml:node)?" />
@@ -379,7 +396,8 @@
     </xsl:function>
 
     <!--
-        Gets any edge that start at the node provided, of a particular 'kind'(s)
+        Finds all edges of a particular 'kind' which originate from a provided node.
+        * Returns a sequence of all 'target' of the edges
     -->
     <xsl:function name="graphml:get_targets" as="element(gml:node)*">
         <xsl:param name="node" as="element(gml:node)?" />
@@ -394,10 +412,8 @@
     </xsl:function>
 
     <!--
-        Gets all targets that start at the node provided, of a particualr 'kind'(s)
-        Recurses to each target and find's their matching targets
+        Gets the sequence of all nodes that recursively originate from the provided node.
     -->
-
     <xsl:function name="graphml:get_targets_recurse">
         <xsl:param name="node" as="element(gml:node)?" />
         <xsl:param name="edge_kinds" as="xs:string+" />
@@ -408,6 +424,9 @@
         </xsl:for-each>
    </xsl:function>
 
+    <!--
+        Gets all nodes from the provided sequence that have a particular data value for a particular key
+    -->
    <xsl:function name="graphml:filter_nodes_which_have_data_value" as="element(gml:node)*">
         <xsl:param name="nodes" as="element(gml:node)*" />
         <xsl:param name="data_key" as="xs:string" />
@@ -422,7 +441,9 @@
 
 
     <!--
-        Gets the definition of the node provided, will recurse to the first definition
+        Gets the definition of the node provided
+        * Recurses through the definitions definitions
+        * Will return node if it has no definitions
     -->
     <xsl:function name="graphml:get_definition" as="element(gml:node)?">
         <xsl:param name="node" as="element(gml:node)?" />
@@ -432,6 +453,7 @@
         <!-- Recurse all the way until we don't have any definitions -->
         <xsl:for-each select="$targets">
             <xsl:variable name="definition" select="graphml:get_definition(.)" />
+            
             <xsl:if test="count($definition) > 0">
                 <xsl:sequence select="$definition" />
             </xsl:if>
@@ -444,7 +466,8 @@
     </xsl:function>
 
     <!--
-        Gets the Impl of the node provided, will recurse to the first definition
+        Gets the impl of the node provided
+        * Will get the impl of the definition
     -->
     <xsl:function name="graphml:get_impl" as="element(gml:node)?">
         <xsl:param name="node" as="element(gml:node)?" />
@@ -461,21 +484,26 @@
     </xsl:function>
 
     <!--
-        Gets the definition of the node provided, will recurse to the first definition
+        Gets the first definition of the node provided
     -->
     <xsl:function name="graphml:get_first_definition" as="element(gml:node)?">
         <xsl:param name="node" as="element(gml:node)?" />
-
+        
+        <!-- 
+            We get targets because 'Edge_Definition' are connected s.t
+            node is instance of definition
+            e.g source is instance of target
+            -->
         <xsl:variable name="targets" select="graphml:get_targets($node, 'Edge_Definition')" />
 
-        <!-- Recurse all the way until we don't have any definitions -->
-        <xsl:for-each select="$targets">
-            <xsl:sequence select="." />
-        </xsl:for-each>
+        <!-- Gets the first definition of the node -->
+        <xsl:if test="count($targets) > 0">
+            <xsl:sequence select="$targets[1]" />
+        </xsl:if>
     </xsl:function>
 
     <!--
-        Gets the set of definitions of the nodes provided, no duplicates.
+        Gets all definitions of a provided sequence of nodes
     -->
     <xsl:function name="graphml:get_definitions" as="element(gml:node)*">
         <xsl:param name="nodes" as="element(gml:node)*" />
@@ -497,17 +525,17 @@
     </xsl:function>
 
     <!--
-        Gets the child of the vector node's definition
+        Gets the first child of a node of kind 'Vector' definition
     -->
     <xsl:function name="graphml:get_vector_child" as="element(gml:node)?">
         <xsl:param name="vector" as="element(gml:node)?" />
 
         <xsl:variable name="definition" select="graphml:get_definition($vector)" />
-        <xsl:sequence select="graphml:get_child_node($definition, 1)" />
+        <xsl:sequence select="graphml:get_child_node_by_index($definition, 1)" />
     </xsl:function>
 
     <!--
-        Gets the kind of the vector, by inspecting the vectors child node
+        Gets the kind of the vector, by returning the kind of the vector_child
     -->
     <xsl:function name="graphml:get_vector_kind" as="xs:string">
         <xsl:param name="vector" as="element(gml:node)?" />
@@ -515,21 +543,24 @@
     </xsl:function>
 
     <!--
-        Gets the Aggregate entity, used by a port, by returning the port's definition's child
+        Gets the 'Aggregate' entity, used by a port, by returning the port's definition's child
     -->
     <xsl:function name="graphml:get_port_aggregate" as="element(gml:node)?">
         <xsl:param name="port" as="element(gml:node)?" />
-
         <xsl:variable name="port_definition" select="graphml:get_definition($port)" />
-        <!-- Check for an Aggregate Edge -->
-
+        
+        <!-- Get the aggregate edges for the definition -->
         <xsl:variable name="aggregates" select="graphml:get_targets($port_definition, 'Edge_Aggregate')" />
 
+        <!-- Return the first -->
         <xsl:if test="count($aggregates) = 1">
             <xsl:sequence select="$aggregates[1]" />
         </xsl:if>
     </xsl:function>
 
+    <!--
+        Tests if a 'ClassInstance' node is a worker
+    -->
     <xsl:function name="graphml:is_class_instance_worker" as="xs:boolean">
         <xsl:param name="class_instance" as="element()"  />
 
@@ -538,7 +569,9 @@
     </xsl:function>
 
     <!--
-        Gets the The Worker Instances
+        Tests if a 'ClassInstance' node should be ignored as a worker
+        Vector_Operations and Component_Info workers aren't actually implemented as compiled workers
+        and are implemented by code-gen inline in the model
     -->
     <xsl:function name="graphml:is_ignored_worker_type" as="xs:boolean">
         <xsl:param name="class" as="element()"  />
@@ -547,9 +580,8 @@
         <xsl:value-of select="$worker_type = 'Vector_Operations' or $worker_type = 'Component_Info'" />
     </xsl:function>
 
-
     <!--
-        Gets the The Worker Instances
+        Gets the The 'ClassInstance' children of a 'ComponentImpl' node which are MEDEA provided workers
     -->
     <xsl:function name="graphml:get_worker_instances" as="element(gml:node)*">
         <xsl:param name="component" as="element(gml:node)?" />
@@ -558,7 +590,7 @@
     </xsl:function>
 
     <!--
-        Gets the The Custom Class Instances
+        Gets the The 'ClassInstance' children of a 'ComponentImpl' node which are custom 'Class'
     -->
     <xsl:function name="graphml:get_custom_class_instances" as="element(gml:node)*">
         <xsl:param name="component" as="element(gml:node)?" />
@@ -566,7 +598,8 @@
     </xsl:function>
 
     <!--
-        Gets the 'namespace' from the aggregate/
+        Gets the 'namespace' of an the Aggregate
+        * Steps up all ancestors of an Aggregate and produces a full namespace sequence
     -->
     <xsl:function name="graphml:get_namespace" as="xs:string*">
         <xsl:param name="entity" as="element()?" />
@@ -582,25 +615,28 @@
     </xsl:function>
 
     <!--
-        Checks to see if the entity is deployed
+        Tests to see if the entity provided is deployed
     -->
     <xsl:function name="graphml:is_deployed" as="xs:boolean">
         <xsl:param name="entity" as="element(gml:node)" />
-        
         <xsl:variable name="deployed_nodes" select="graphml:get_targets($entity, 'Edge_Deployment')" />
-        <xsl:variable name="parent_deployed_nodes" as="element()*">
-            <xsl:for-each select="graphml:get_ancestor_nodes_of_kind($entity, 'ComponentAssembly')">
-                <xsl:for-each select="graphml:get_targets(., 'Edge_Deployment')">
-                    <xsl:sequence select="." />
-                </xsl:for-each>
-            </xsl:for-each>
-        </xsl:variable>
+        <xsl:variable name="parent_node" select="graphml:get_parent_node($entity)" />
 
-        <xsl:value-of select="count(($deployed_nodes, $parent_deployed_nodes)) > 0" />
+        <xsl:choose>
+            <xsl:when test="count($deployed_nodes) > 0">
+                <xsl:value-of select="true()" />
+            </xsl:when>
+            <xsl:when test="graphml:get_kind($parent_node) = 'ComponentAssembly'">
+                <xsl:value-of select="graphml:is_deployed($parent_node)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="false()" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <!--
-        Gets a child node of the node provided, by 'index' (Starting at 1)
+        Gets the node which is the source of a provide edge
     -->
     <xsl:function name="graphml:get_edges_source" as="element(gml:node)?">
         <xsl:param name="edge" as="element(gml:edge)?" />
@@ -608,60 +644,67 @@
     </xsl:function>
 
     <!--
-
+        Gets the node which is the target of a provide edge
     -->
     <xsl:function name="graphml:get_edges_target" as="element(gml:node)?">
         <xsl:param name="edge" as="element(gml:edge)?" />
         <xsl:sequence select="graphml:get_node_by_id($edge, $edge/@target)" />
     </xsl:function>
 
+    <!--
+        Gets all port instance 'kind's
+    -->
     <xsl:function name="graphml:get_port_instance_kinds" as="xs:string*">
         <xsl:sequence select="graphml:get_pubsub_port_instance_kinds() , graphml:get_reqrep_port_instance_kinds()" />
     </xsl:function>
 
-    <xsl:function name="graphml:get_pubsub_port_instance_kinds" as="xs:string*">
-        <xsl:sequence select="'SubscriberPortInstance', 'PublisherPortInstance'"/>
-    </xsl:function>
-
+    <!--
+        Gets all pub/sub port definition 'kind's
+    -->
     <xsl:function name="graphml:get_pubsub_port_kinds" as="xs:string*">
         <xsl:sequence select="'SubscriberPort', 'PublisherPort'"/>
     </xsl:function>
 
+    <!--
+        Gets all pub/sub port instance 'kind's
+    -->
+    <xsl:function name="graphml:get_pubsub_port_instance_kinds" as="xs:string*">
+        <xsl:sequence select="'SubscriberPortInstance', 'PublisherPortInstance'"/>
+    </xsl:function>
+
+    <!--
+        Gets all req/rep port definition 'kind's
+    -->
     <xsl:function name="graphml:get_reqrep_port_kinds" as="xs:string*">
         <xsl:sequence select="'RequesterPort', 'ReplierPort'"/>
     </xsl:function>
     
+    <!--
+        Gets all req/rep port instance 'kind's
+    -->
     <xsl:function name="graphml:get_reqrep_port_instance_kinds" as="xs:string*">
         <xsl:sequence select="'RequesterPortInstance', 'ReplierPortInstance'"/>
     </xsl:function>
 
     <!--
-        Gets a list of Deployed Component Instances
+        Gets a list of all deployed 'ComponentInstance' entities
     -->
     <xsl:function name="graphml:get_deployed_component_instances" as="element(gml:node)*">
         <xsl:param name="model" as="element(gml:node)" />
-        
-        
-        <!-- Get all Component Instances -->
-        <xsl:for-each select="graphml:get_nodes_of_kind($model, 'ComponentInstance')">
-            <xsl:if test="graphml:is_deployed(.)">
-                <xsl:sequence select="." />
-            </xsl:if>
-        </xsl:for-each>
+        <xsl:sequence select="graphml:get_nodes_of_kind($model, 'ComponentInstance')[graphml:is_deployed(.)]" />
     </xsl:function>
 
     <!--
-        Gets a list of Deployed Port Instances
+        Gets a list of all deployed 'ComponentInstance' entities children port instances
     -->
     <xsl:function name="graphml:get_deployed_port_instances" as="element(gml:node)*">
         <xsl:param name="model" as="element(gml:node)" />
-        
         <xsl:variable name="deployed_components" select="graphml:get_deployed_component_instances($model)" />
         <xsl:sequence select="graphml:get_child_nodes_of_kind($deployed_components, graphml:get_port_instance_kinds())"/>
     </xsl:function>
 
     <!--
-        Gets the Worker Type of a Class
+        Gets the 'type' of a 'Class' entity
     -->
     <xsl:function name="graphml:get_class_worker_type" as="xs:string?">
         <xsl:param name="class" as="element()"  />
@@ -673,7 +716,7 @@
     </xsl:function>
 
     <!--
-        Checks if a Class is a Worker
+        Tests if a 'Class' entity is a worker
     -->
     <xsl:function name="graphml:is_class_a_worker" as="xs:boolean">
         <xsl:param name="class" as="element(gml:node)"  />
@@ -681,8 +724,4 @@
         <xsl:variable name="class_def" select="graphml:get_definition($class)" />
         <xsl:value-of select="graphml:got_data($class_def, 'worker')" />
     </xsl:function>
-
-    
-
-   
 </xsl:stylesheet>

@@ -10,8 +10,17 @@
     >
 
     <!--
+        Uses the cpp comment
+    -->
+    <xsl:function name="idl:comment">
+        <xsl:param name="text" as="xs:string*" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="cpp:comment($text, $tab)" />
+    </xsl:function>
+
+    <!--
         Produces an include statement
-        (Same as CPP)
+        #include <${idl_file}>
     -->
     <xsl:function name="idl:include" as="xs:string">
         <xsl:param name="idl_file" as="xs:string" />
@@ -21,7 +30,7 @@
 
     <!--
         Produces a module element
-        ie. module ${label} {
+        module ${namespace}{
     -->
     <xsl:function name="idl:module_start" as="xs:string">
         <xsl:param name="namespace" as="xs:string" />
@@ -43,7 +52,7 @@
 
     <!--
         Produces an enum definition
-        ie. enum ${label} {
+        enum ${label}{
     -->
     <xsl:function name="idl:enum" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -53,7 +62,7 @@
 
     <!--
         Produces an enum value definition
-        ie. ${label},
+        ${label},
     -->
     <xsl:function name="idl:enum_value" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -64,7 +73,7 @@
 
     <!--
         Produces a struct definition
-        ie. struct ${label} {
+        struct ${label}{
     -->
     <xsl:function name="idl:struct" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -74,7 +83,7 @@
 
     <!--
         Produces a struct definition
-        ie. typedef ${type} ${label};
+        typedef ${type} ${label};
     -->
     <xsl:function name="idl:typedef" as="xs:string">
         <xsl:param name="type" as="xs:string" />
@@ -84,8 +93,19 @@
     </xsl:function>
 
     <!--
+        Produces a union definition
+        union ${label} switch(${union_type}){
+    -->
+    <xsl:function name="idl:union" as="xs:string">
+        <xsl:param name="label" as="xs:string" />
+        <xsl:param name="union_type" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+        <xsl:value-of select="concat(o:t($tab), 'union ', $label, ' switch', o:wrap_bracket($union_type), cpp:scope_start(0))" />
+    </xsl:function>
+
+    <!--
         Produces a union member definition
-        ie. case ${case_index}: ${type} ${label};
+        case ${case_index}: ${type} ${label};
     -->
     <xsl:function name="idl:union_member" as="xs:string">
         <xsl:param name="case_index" as="xs:string" />
@@ -97,21 +117,8 @@
     </xsl:function>
 
     <!--
-        Produces a union definition
-        ie. union ${label} switch(long) {
-    -->
-    <xsl:function name="idl:union" as="xs:string">
-        <xsl:param name="label" as="xs:string" />
-        <xsl:param name="union_type" as="xs:string" />
-        <xsl:param name="tab" as="xs:integer" />
-        <xsl:value-of select="concat(o:t($tab), 'union ', $label, ' switch', o:wrap_bracket($union_type), cpp:scope_start(0))" />
-    </xsl:function>
-
-    
-
-    <!--
         Produces a interface definition
-        ie. interface ${label} {
+        interface ${label}{
     -->
     <xsl:function name="idl:interface" as="xs:string">
         <xsl:param name="label" as="xs:string" />
@@ -121,7 +128,7 @@
 
     <!--
         Produces a interface definition
-        ie. interface ${label} {
+        ${return_type} ${function_name}(${input_parameters});
     -->
     <xsl:function name="idl:function" as="xs:string">
         <xsl:param name="function_name" as="xs:string" />
@@ -129,12 +136,12 @@
         <xsl:param name="input_parameters" as="xs:string" />
         <xsl:param name="one_way" as="xs:boolean" />
         <xsl:param name="tab" as="xs:integer" />
-        <xsl:value-of select="concat(o:t($tab), if($one_way) then 'oneway' else '', $return_type, ' ', $function_name, o:wrap_bracket($input_parameters), cpp:nl())" />
+        <xsl:value-of select="concat(o:t($tab), if($one_way) then 'oneway ' else '', $return_type, ' ', $function_name, o:wrap_bracket($input_parameters), cpp:nl())" />
     </xsl:function>
 
     <!--
         Produces key pragma for RTI
-        ie. // @key
+         //@key
     -->
     <xsl:function name="idl:key" as="xs:string">
         <xsl:param name="is_key" as="xs:boolean" />
@@ -143,7 +150,7 @@
 
     <!--
         Produces key pragma for OSPL
-        ie. #pragma keylist ${type} ${key}
+        #pragma keylist ${type} ${key}
     -->
     <xsl:function name="idl:key_pragma" as="xs:string">
         <xsl:param name="type" as="xs:string" />
@@ -155,7 +162,7 @@
 
     <!--
         Produces a member definition
-        ie. ${type} ${label} = ${index}; //@key
+        ${type} ${label}; //@key
     -->
     <xsl:function name="idl:member" as="xs:string">
         <xsl:param name="type" as="xs:string" />
@@ -169,7 +176,7 @@
 
     <!--
         Produces a sequence member definition
-        ie. sequence<${type}, ${size}> ${label}; //@key
+        sequence<${inner_type}, ${size}>
     -->
     <xsl:function name="idl:sequence_type" as="xs:string">
         <xsl:param name="inner_type" as="xs:string" />
