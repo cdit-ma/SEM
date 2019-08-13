@@ -1,0 +1,5 @@
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/modelevent")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/systemevent")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/controlmessage")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/aggregationmessage")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/environmentcontrol")

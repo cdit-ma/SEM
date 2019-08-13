@@ -1,4 +1,4 @@
-ARG base_image=full_deps
+ARG base_image=cdit-ma/full_deps
 FROM $base_image
 
 #Set up code and env vars
@@ -13,7 +13,7 @@ RUN     cd re && \
         . /opt/HDE/x86_64.linux/release.com && \
         . /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && \
         rm -rf build && \
-        mkdir build && \
+        mkdir -p build && \
         cd build && \
         cmake -G Ninja .. && \
         cmake --build .

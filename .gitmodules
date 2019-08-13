@@ -1,15 +1,4 @@
-[submodule "cmake_modules"]
-	path = cmake_modules
-	url = https://github.com/cdit-ma/cmake_modules
 [submodule "test/googletest"]
 	path = test/googletest
 	url = https://github.com/google/googletest
-[submodule "re_gen"]
-	path = re_gen
-	url = https://github.com/cdit-ma/re_gen
-[submodule "logan"]
-	path = logan
-	url = https://github.com/cdit-ma/logan
-[submodule "re_common"]
-	path = re_common
-	url = https://github.com/cdit-ma/re_common
+

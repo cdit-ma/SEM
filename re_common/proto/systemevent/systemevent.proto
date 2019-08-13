@@ -1,0 +1,140 @@
+/* re_common
+ * Copyright (C) 2016-2017 The University of Adelaide
+ *
+ * This file is part of "re_common"
+ *
+ * "re_common" is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * "re_common" is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
+syntax="proto3";
+
+package SystemEvent;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+
+message ProcessStatus{
+	enum State{
+		PROC_ERROR = 0;
+		PROC_RUNNING = 1;
+		PROC_SLEEPING = 2;
+		PROC_IDLE = 3;
+		PROC_STOPPED = 4;
+		PROC_ZOMBIE = 5;
+		PROC_DEAD = 6;
+	}
+
+	uint32 pid = 1;
+	string name = 2;
+
+	uint32 cpu_core_id = 3;
+	double cpu_utilization = 4;
+	double phys_mem_utilization = 5;
+	uint64 phys_mem_used_kB = 6;
+
+	uint32 thread_count = 7;
+	uint64 disk_read_kilobytes = 8;
+	uint64 disk_written_kilobytes = 9;
+	uint64 disk_total_kilobytes = 10;
+
+	google.protobuf.Duration cpu_time = 11;
+	State state = 12;
+	google.protobuf.Timestamp start_time = 13;
+}
+
+message ProcessInfo{
+	uint32 pid = 1;
+	string cwd = 2;
+	string name = 3;
+	string args = 4;
+	google.protobuf.Timestamp start_time = 5;
+}
+
+message FileSystemStatus{
+	string name = 1;
+	double utilization = 3;
+}
+
+message FileSystemInfo{
+	enum Type{
+		FS_UNKNOWN = 0;
+		FS_LOCAL_DISK = 1;
+		FS_NETWORK = 2;
+		FS_RAM_DISK = 3;
+		FS_CDROM = 4;
+		FS_SWAP = 5;
+	}
+	string name = 1;
+	Type type = 2;
+	uint64 size_kilobytes = 3;
+}
+
+message InterfaceStatus{
+	string name = 1;
+	uint64 rx_packets = 3;
+	uint64 rx_bytes = 4;
+	uint64 tx_packets = 5;
+	uint64 tx_bytes = 6;
+}
+
+message InterfaceInfo{
+	string name = 1;
+	string type = 2;
+	string description = 3;
+	string ipv4_addr = 4;
+	string ipv6_addr = 5;
+	string mac_addr = 6;
+	uint64 speed = 7;
+}
+
+
+message StatusEvent{
+	string hostname = 1;
+	google.protobuf.Timestamp timestamp = 2;
+	int64 message_id = 3;
+
+	repeated double cpu_core_utilization = 4;
+	double cpu_utilization = 5;
+	double phys_mem_utilization = 6;
+
+	repeated ProcessInfo process_info = 8;
+	repeated ProcessStatus processes = 9;
+	repeated InterfaceStatus interfaces = 10;
+	repeated FileSystemStatus file_systems = 11;
+}
+
+message InfoEvent{
+	string hostname = 1;
+	google.protobuf.Timestamp timestamp = 2;
+	int64 message_id = 3;
+	//OS
+	string os_name = 4;
+	string os_arch = 5;
+	string os_description = 6;
+	string os_version = 7;
+	string os_vendor = 8;
+	string os_vendor_name = 9;
+
+	//CPU
+	string cpu_model = 10;
+	string cpu_vendor = 11;
+	uint64 cpu_frequency_hz = 12;
+
+	//RAM
+	uint64 physical_memory_kilobytes = 13;
+
+	repeated FileSystemInfo file_system_info = 14;
+	repeated InterfaceInfo interface_info = 15;
+}
