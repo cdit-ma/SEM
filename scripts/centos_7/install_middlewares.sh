@@ -62,6 +62,17 @@ sudo ln -s /lib64/librt.so.1 /usr/lib/librt.so && \
     cd ~ && \
     rm -rf ACE*
 
+# KDIS
+wget http://192.168.111.1/raid/software_share/Middlewares/KDIS/kdis.tar.gz -q && \
+    tar xf kdis.tar.gz && \
+    cd kdis && \
+    mkdir build && \
+    cd build && \
+    cmake -G Ninja .. && \
+    sudo cmake --build . --target install && \
+    cd ~ && \
+    rm -rf kdis*
+
 # OpenCL
 wget http://192.168.111.1/raid/software_share/Drivers/OpenCL/AMD-APP-SDKInstaller-v3.0.130.136-GA-linux64.tar.bz2 && \
     tar xf AMD-APP-SDKInstaller-v3.0.130.136-GA-linux64.tar.bz2 && \

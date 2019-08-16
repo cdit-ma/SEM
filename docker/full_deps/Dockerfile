@@ -38,5 +38,15 @@ RUN wget http://192.168.111.1/raid/software_share/Middlewares/QpidPb/qpid-cpp-1.
         cd / && \
         rm -rf /opt/qpid*
 
+RUN wget http://192.168.111.1/raid/software_share/Middlewares/KDIS/kdis.tar.gz && \
+        tar xf kdis.tar.gz && \
+        cd kdis && \
+        mkdir build && \
+        cd build && \
+        cmake -G Ninja .. && \
+        cmake --build . --target install && \
+        cd / && \
+        rm -rf kdis*
+
 ENV QPID_ROOT=/opt/QpidPb
 ENV RTI_DDS_HOST=x64Linux3gcc5.4.0

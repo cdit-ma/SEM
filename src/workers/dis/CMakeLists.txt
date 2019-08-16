@@ -2,13 +2,12 @@ set(PROJ_NAME dis_worker)
 project(${PROJ_NAME})
 
 set(DIS_VERSION 7)
-add_subdirectory("kdis")
 set(KDIS_LIB "kdis")
 
-add_subdirectory("tester")
+find_package(KDIS)
 
 # If kdis doesn't exist on this machine we can bail out
-if(NOT KDIS_LIB)
+if(NOT KDIS_FOUND)
     message(STATUS "Not Found KDIS - Not building kdis_worker")
     return()
 endif()
@@ -27,8 +26,8 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/dis_worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dis_worker_impl.h
 )
-target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/kdis)
+target_include_directories(${PROJ_NAME} PUBLIC ${KDIS_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJ_NAME} PUBLIC re_core)
 target_link_libraries(${PROJ_NAME} PUBLIC re_loggers)
-target_link_libraries(${PROJ_NAME} PUBLIC ${KDIS_LIB})
+target_link_libraries(${PROJ_NAME} PUBLIC ${KDIS_LIBRARIES})

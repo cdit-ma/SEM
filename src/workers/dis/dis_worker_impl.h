@@ -16,14 +16,14 @@
 // Necessary for cxx_std_17 compliance
 #if __cplusplus > 201703L
 #define throw(...) throw()
-#include <kdis/KDIS/Extras/PDU_Factory.h>
-#include <kdis/KDIS/Network/Connection.h>
-#include <kdis/KDIS/Network/ConnectionSubscriber.h>
+#include <KDIS/Extras/PDU_Factory.h>
+#include <KDIS/Network/Connection.h>
+#include <KDIS/Network/ConnectionSubscriber.h>
 #undef throw
 #else
-#include <kdis/KDIS/Extras/PDU_Factory.h>
-#include <kdis/KDIS/Network/Connection.h>
-#include <kdis/KDIS/Network/ConnectionSubscriber.h>
+#include <KDIS/Extras/PDU_Factory.h>
+#include <KDIS/Network/Connection.h>
+#include <KDIS/Network/ConnectionSubscriber.h>
 #endif //__cplusplus > 201703L
 
 class Dis_Worker_Impl{
