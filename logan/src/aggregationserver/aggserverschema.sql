@@ -1,76 +1,76 @@
 -- ****************** SqlDBM: Modified for postgres ******************;
 -- ***************************************************;
 
-DROP TABLE PortLifecycleEvent;
+DROP TABLE IF EXISTS PortLifecycleEvent;
 
 
-DROP TABLE WorkloadEvent;
+DROP TABLE IF EXISTS WorkloadEvent;
 
 
-DROP TABLE PortEvent;
+DROP TABLE IF EXISTS PortEvent;
 
 
-DROP TABLE ComponentLifecycleEvent;
+DROP TABLE IF EXISTS ComponentLifecycleEvent;
 
 
-DROP TABLE UserEvent;
+DROP TABLE IF EXISTS UserEvent;
 
 
-DROP TABLE WorkerInstance;
+DROP TABLE IF EXISTS WorkerInstance;
 
 
-DROP TABLE Port;
+DROP TABLE IF EXISTS Port;
 
 
-DROP TABLE ComponentInstance;
+DROP TABLE IF EXISTS ComponentInstance;
 
 
-DROP TABLE Hardware.SystemStatus;
+DROP TABLE IF EXISTS Hardware.SystemStatus;
 
 
-DROP TABLE Hardware.ProcessStatus;
+DROP TABLE IF EXISTS Hardware.ProcessStatus;
 
 
-DROP TABLE Hardware.InterfaceStatus;
+DROP TABLE IF EXISTS Hardware.InterfaceStatus;
 
 
-DROP TABLE Hardware.FilesystemStatus;
+DROP TABLE IF EXISTS Hardware.FilesystemStatus;
 
 
-DROP TABLE Hardware.System;
+DROP TABLE IF EXISTS Hardware.System;
 
 
-DROP TABLE Hardware.CPUStatus;
+DROP TABLE IF EXISTS Hardware.CPUStatus;
 
 
-DROP TABLE Hardware.Process;
+DROP TABLE IF EXISTS Hardware.Process;
 
 
-DROP TABLE Hardware.Interface;
+DROP TABLE IF EXISTS Hardware.Interface;
 
 
-DROP TABLE Hardware.Filesystem;
+DROP TABLE IF EXISTS Hardware.Filesystem;
 
 
-DROP TABLE Container;
+DROP TABLE IF EXISTS Container;
 
 
-DROP TABLE Worker;
+DROP TABLE IF EXISTS Worker;
 
 
-DROP TABLE Component;
+DROP TABLE IF EXISTS Component;
 
 
-DROP TABLE Node;
+DROP TABLE IF EXISTS Node;
 
 
-DROP TABLE ExperimentRun;
+DROP TABLE IF EXISTS ExperimentRun;
 
 
-DROP TABLE Experiment;
+DROP TABLE IF EXISTS Experiment;
 
 
-DROP SCHEMA Hardware;
+DROP SCHEMA IF EXISTS Hardware;
 
 
 CREATE SCHEMA Hardware;
@@ -404,9 +404,8 @@ CREATE TABLE Hardware.FilesystemStatus
  FilesystemID       INT NOT NULL ,
  SampleTime          TIMESTAMP NOT NULL ,
  Utilisation         DECIMAL NOT NULL ,
- FilesystemID      INT NOT NULL ,
 
-PRIMARY KEY (FilesytemStatusID),
+PRIMARY KEY (FilesystemStatusID),
 CONSTRAINT FK_Filesystem_FileSystem_ID_FileSystem_FilsystemID FOREIGN KEY (FilesystemID) REFERENCES Hardware.Filesystem (FilesystemID)
 );
 

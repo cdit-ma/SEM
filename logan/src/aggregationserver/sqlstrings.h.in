@@ -1,0 +1,12 @@
+#include <string>
+
+
+namespace re::logan::sqlstrings {
+
+const std::string& init_db_schema()
+{
+    static std::string init_db_schema_string = R"(@SQL_INIT_DB_SCHEMA@)";
+    return init_db_schema_string;
+};
+
+} // namespace re::logan::sqlstrings

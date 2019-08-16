@@ -16,6 +16,11 @@ endif()
 
 add_subdirectory("aggregationbroker")
 
+
+# Inject SQL database initialisation file into AggServer source
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/aggserverschema.sql SQL_INIT_DB_SCHEMA)
+configure_file(sqlstrings.h.in sqlstrings.h @ONLY)
+
 set(SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/aggregationprotohandler.cpp
@@ -36,6 +41,9 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experimenttracker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/sqlstrings.h.in
+    
+    ${CMAKE_CURRENT_BINARY_DIR}/sqlstrings.h
 )
 
 
@@ -52,7 +60,6 @@ else()
 	target_link_libraries(${PROJ_NAME} pthread)
     target_link_libraries(${PROJ_NAME} dl)
 endif()
-
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
