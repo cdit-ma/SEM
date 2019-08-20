@@ -307,6 +307,43 @@ int DatabaseClient::GetID(const std::string& table_name, const std::string& quer
         "Did not find ID amongst returned database columns when calling GetID on " + table_name);
 }
 
+std::optional<int> DatabaseClient::GetMaxValue(const std::string& table_name,
+                                               const std::string& column,
+                                               const std::string& where_query)
+{
+    std::stringstream query_stream;
+
+    query_stream << "SELECT max(" << column << ") as maxval FROM " << table_name;
+    query_stream << "WHERE (" << where_query << ");";
+
+    std::lock_guard<std::mutex> conn_guard(conn_mutex_);
+
+    try {
+        pqxx::work transaction(connection_, "GetMaxValueTransaction");
+        const auto& pg_result = transaction.exec(query_stream.str());
+        transaction.commit();
+
+        if(pg_result.empty()) {
+            return std::optional<int>();
+        }
+
+        if(pg_result.size() > 1) {
+            throw std::runtime_error("Returned multiple max results in table '" + table_name
+                                     + "' matching query '" + where_query
+                                     + "'; only one was expected.");
+        }
+
+        for(const auto& row : pg_result) {
+            return row["maxval"].as<int>();
+        }
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while querying values from the database: " << std::endl;
+        std::cerr << query_stream.str() << std::endl;
+        std::cerr << e.what() << std::endl;
+        throw;
+    }
+}
+
 const pqxx::result
 DatabaseClient::GetPortLifecycleEventInfo(int experiment_run_id,
                                           std::string start_time,
@@ -639,7 +676,10 @@ void DatabaseClient::UpdateLastSampleTime(int experiment_run_id, const std::stri
     }
 }
 
-std::string DatabaseClient::EscapeString(const std::string& str) { return connection_.quote(str); }
+std::string DatabaseClient::EscapeString(const std::string& str)
+{
+    return connection_.quote(str);
+}
 
 std::string DatabaseClient::StringToPSQLTimestamp(const std::string& str)
 {

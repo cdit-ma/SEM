@@ -2,6 +2,7 @@
 #define LOGAN_DATABASECLIENT_H
 
 #include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -46,6 +47,10 @@ public:
                                      const std::string& query = "");
 
     int GetID(const std::string& table_name, const std::string& query);
+
+    std::optional<int> GetMaxValue(const std::string& table_name,
+                                   const std::string& column,
+                                   const std::string& where_query);
 
     std::string EscapeString(const std::string& str);
 

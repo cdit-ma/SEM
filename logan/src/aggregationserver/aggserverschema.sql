@@ -577,3 +577,19 @@ PRIMARY KEY (ReqPortID, RepPortID),
 CONSTRAINT FK_PubSubConnection_ReqPortID_Port_PortID FOREIGN KEY (ReqPortID) REFERENCES Port (PortID),
 CONSTRAINT FK_PubSubConnection_RepPortID_Port_PortID FOREIGN KEY (RepPortID) REFERENCES Port (PortID)
 );
+
+
+
+
+
+-- FUNCITONS
+
+-- getPortFromGraphml(ExperimentRunID, GraphmlID)
+CREATE FUNCTION getPortFromGraphml(int, text) RETURNS integer
+    AS 'SELECT PortID
+        FROM Port
+            INNER JOIN ComponentInstance ON Port.ComponentInstanceID = ComponentInstance.ComponentInstanceID
+            INNER JOIN Component ON Component.ComponentID = ComponentInstance.ComponentID
+        WHERE (Component.ExperimentRunID=$1 AND Port.GraphmlID=$2);'
+    LANGUAGE SQL
+    IMMUTABLE;
