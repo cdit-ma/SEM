@@ -8,7 +8,7 @@ sudo apt-get update && sudo apt-get install -y \
     ninja-build \
     openjdk-11-jre-headless \
     ccache \
-    libpq-dev \
+    libpq-dev postgresql-server-dev-all \
     chrony
 
 # Install Boost

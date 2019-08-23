@@ -314,7 +314,7 @@ std::optional<int> DatabaseClient::GetMaxValue(const std::string& table_name,
     std::stringstream query_stream;
 
     query_stream << "SELECT max(" << column << ") as maxval FROM " << table_name;
-    query_stream << "WHERE (" << where_query << ");";
+    query_stream << " WHERE (" << where_query << ");";
 
     std::lock_guard<std::mutex> conn_guard(conn_mutex_);
 
@@ -334,7 +334,11 @@ std::optional<int> DatabaseClient::GetMaxValue(const std::string& table_name,
         }
 
         for(const auto& row : pg_result) {
-            return row["maxval"].as<int>();
+            const auto& result = row["maxval"];
+            if(result.is_null()) {
+                return std::optional<int>();
+            }
+            return result.as<int>();
         }
     } catch(const std::exception& e) {
         std::cerr << "An exception occurred while querying values from the database: " << std::endl;

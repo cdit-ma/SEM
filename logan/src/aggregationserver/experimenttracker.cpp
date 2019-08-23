@@ -52,11 +52,15 @@ int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
     if(active_experiment_ids_.count(experiment_id)) {
         return active_experiment_ids_.at(experiment_id);
     } else {
-        const auto& max_val = database_->GetMaxValue("ExperimentRun", "JobNum",
-                                                     "ExperimentID=" + experiment_id);
+        const auto& max_val = database_->GetMaxValue(
+            "ExperimentRun", "JobNum", "ExperimentID=" + std::to_string(experiment_id));
         ExperimentRunInfo new_run;
         new_run.name = experiment_name;
-        new_run.job_num = max_val.value_or(0);
+        if(max_val.has_value()) {
+            new_run.job_num = *max_val + 1;
+        } else {
+            new_run.job_num = 0;
+        }
         new_run.running = true;
 
         new_run.experiment_run_id = database_->InsertValues(

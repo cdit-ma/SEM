@@ -31,7 +31,7 @@ pipeline{
                     }
 
                     if (docker_registry_endpoint) {
-                        docker.image("${docker_registry_endpoint}/logan").inside("--network host") {
+                        docker.image("${docker_registry_endpoint}/cdit-ma/re_minimal").inside("--network host") {
                             if (utils.runScript("/re/bin/aggregation_server ${args}") != 0) {
                                 error('Running aggregation server failed on node: ${node_name} : ${container_id}')
                             }

@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
         build-essential \
         wget \
         ninja-build \
-        libpq-dev \
+        libpq-dev postgresql-server-dev-all \
     && rm -rf /var/lib/apt/lists/*
 
 #Install Boost
@@ -68,7 +68,7 @@ RUN wget http://192.168.111.1/raid/software_share/UtilityLibraries/libpqxx7-0-0.
     mkdir build && \
     cd build && \
     cmake -G Ninja .. && \
-    sudo cmake --build . --target install && \
+    cmake --build . --target install && \
     cd ~ && \
     rm libpqxx7-0-0.tar.gz libpqxx -rf
 
