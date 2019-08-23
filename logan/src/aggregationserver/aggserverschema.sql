@@ -1,7 +1,10 @@
 -- ****************** SqlDBM: Modified for postgres ******************;
 -- ***************************************************;
 
-DROP TABLE IF EXISTS PortLifecycleEvent;
+DROP TABLE IF EXISTS ReqRepConnection;
+
+
+DROP TABLE IF EXISTS PubSubConnection;
 
 
 DROP TABLE IF EXISTS WorkloadEvent;
@@ -11,6 +14,9 @@ DROP TABLE IF EXISTS PortEvent;
 
 
 DROP TABLE IF EXISTS ComponentLifecycleEvent;
+
+
+DROP TABLE IF EXISTS PortLifecycleEvent;
 
 
 DROP TABLE IF EXISTS UserEvent;
@@ -585,6 +591,7 @@ CONSTRAINT FK_PubSubConnection_RepPortID_Port_PortID FOREIGN KEY (RepPortID) REF
 -- FUNCITONS
 
 -- getPortFromGraphml(ExperimentRunID, GraphmlID)
+DROP FUNCTION getPortFromGraphml;
 CREATE FUNCTION getPortFromGraphml(int, text) RETURNS integer
     AS 'SELECT PortID
         FROM Port
