@@ -26,11 +26,12 @@ private:
                           int experiment_run_id,
                           int container_id);
     void ProcessPort(const NodeManager::Port& message,
+                     int experiment_run_id,
                      int component_instance_id,
                      const std::string& component_instance_location);
     void ProcessPortConnection(int from_port_id,
-                               const std::string& to_port_graphml,
-                               int experiment_run_id);
+                               int experiment_run_id,
+                               const std::string& to_port_graphml);
     void ProcessWorker(const NodeManager::Worker& message,
                        int experiment_run_id,
                        int component_instance_id,

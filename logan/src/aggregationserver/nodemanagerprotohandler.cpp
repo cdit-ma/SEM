@@ -164,7 +164,7 @@ void NodeManagerProtoHandler::ProcessComponent(const NodeManager::Component& mes
     );
 
     for(const auto& port : message.ports()) {
-        ProcessPort(port, component_instance_id, full_location);
+        ProcessPort(port, experiment_run_id, component_instance_id, full_location);
     }
 
     for(const auto& worker : message.workers()) {
@@ -173,6 +173,7 @@ void NodeManagerProtoHandler::ProcessComponent(const NodeManager::Component& mes
 }
 
 void NodeManagerProtoHandler::ProcessPort(const NodeManager::Port& message,
+                                          int experiment_run_id,
                                           int component_instance_id,
                                           const std::string& component_instance_location)
 {
@@ -190,7 +191,22 @@ void NodeManagerProtoHandler::ProcessPort(const NodeManager::Port& message,
         {"Name", "ComponentInstanceID"});
 
     for(const auto& connected_port : message.connected_ports()) {
-        // ProcessPortConnection(port_id, connected_port);
+        ProcessPortConnection(port_id, experiment_run_id, connected_port);
+    }
+}
+
+// TODO: Make tolerant of the fact that the to_port may not be in the DB yet
+void NodeManagerProtoHandler::ProcessPortConnection(int from_port_id,
+                                                    int experiment_run_id,
+                                                    const std::string& to_port_graphml)
+{
+    std::string to_port_lookup = "getPortFromGraphml(" + std::to_string(experiment_run_id) + ","
+                                 + to_port_graphml + ")";
+    try {
+        database_->InsertValues("PubSubConnection", {"PubPortID", "SubPortID"},
+                                {std::to_string(from_port_id), to_port_lookup});
+    } catch(const std::runtime_error& rte) {
+        std::cerr << "Failed to insert a Port Connection:\n" << rte.what() << std::endl;
     }
 }
 
