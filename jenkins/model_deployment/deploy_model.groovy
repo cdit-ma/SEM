@@ -193,10 +193,10 @@ pipeline{
                                         dir("${workspace_dir}/${stash_name}"){
                                             print("Building on docker image for docker image")
 
-                                            docker.image("${docker_registry_endpoint}/re_full").inside("--network host"){
+                                            docker.image("${docker_registry_endpoint}/cdit-ma/re_full").inside("--network host"){
                                                 unstash('codegen')
                                                 dir("build"){
-                                                    utils.runScript("export NDDSHOME=/opt/RTI/rti_connext_dds-5.3.0 && . /opt/HDE/x86_64.linux/release.com && bash /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release && cmake --build . --config Release")
+                                                    utils.runScript(". configure.sh && cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release && cmake --build . --config Release")
                                                 }
                                                 dir("lib"){
                                                     //Stash all built libraries
@@ -314,8 +314,8 @@ pipeline{
 
                                                 if(is_docker) {
                                                     if(docker_registry_endpoint) {
-                                                        docker.image("${docker_registry_endpoint}/re_full").inside("--network host") {
-                                                            if(utils.runScript("export NDDSHOME=/opt/RTI/rti_connext_dds-5.3.0 && . /opt/HDE/x86_64.linux/release.com && bash /opt/RTI/rti_connext_dds-5.3.0/resource/scripts/rtisetenv_x64Linux3gcc5.4.0.bash && /re/bin/re_node_manager ${args}") != 0) {
+                                                        docker.image("${docker_registry_endpoint}/cdit-ma/re_full").inside("--network host") {
+                                                            if(utils.runScript(". configure.sh && /re/bin/re_node_manager ${args}") != 0) {
                                                                 error("re_node_manager failed on Node: ${node_name} : ${container_id}")
                                                             }
                                                         }

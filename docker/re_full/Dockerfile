@@ -3,6 +3,8 @@ FROM $base_image
 
 #Set up code and env vars
 COPY . /re/
+COPY docker/re_full/configure.sh configure.sh
+RUN chmod +x configure.sh
 ENV CMAKE_MODULE_PATH /re/cmake_modules/
 ENV RE_PATH /re
 

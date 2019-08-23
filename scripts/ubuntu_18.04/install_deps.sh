@@ -11,6 +11,22 @@ sudo apt-get update && sudo apt-get install -y \
     libpq-dev postgresql-server-dev-all \
     chrony
 
+# Install Docker
+sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
+    sudo add-apt-repository \
+        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) \
+        stable" && \
+    sudo apt update && \
+    sudo apt install docker-ce docker-ce-cli containerd.io
+
+
 # Install Boost
 wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz -q && \
     tar xf boost_1_67_0.tar.gz && \
