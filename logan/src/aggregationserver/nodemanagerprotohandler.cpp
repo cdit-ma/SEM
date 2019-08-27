@@ -47,12 +47,15 @@ void NodeManagerProtoHandler::ProcessConfigureControlMessage(
 {
     switch(message.type()) {
         case NodeManager::ControlMessage::CONFIGURE: {
-            int experiment_run_id = experiment_tracker_.RegisterExperimentRun(
+            ExpStateCreationInfo exp_info;
+            exp_info.experiment_run_id = experiment_tracker_.RegisterExperimentRun(
                 message.experiment_id(), message.timestamp());
 
             for(const auto& node : message.nodes()) {
-                ProcessNode(node, experiment_run_id);
+                ProcessNode(node, exp_info);
             }
+
+            ProcessPortConnections(exp_info);
             break;
         }
         default:
@@ -76,7 +79,8 @@ void NodeManagerProtoHandler::ProcessShutdownControlMessage(
     }
 }
 
-void NodeManagerProtoHandler::ProcessNode(const NodeManager::Node& message, int experiment_run_id)
+void NodeManagerProtoHandler::ProcessNode(const NodeManager::Node& message,
+                                          ExpStateCreationInfo& exp_info)
 {
     std::string hostname = message.info().name();
     std::string ip = message.ip_address();
@@ -84,15 +88,16 @@ void NodeManagerProtoHandler::ProcessNode(const NodeManager::Node& message, int 
 
     int node_id = database_->InsertValuesUnique(
         "Node", {"ExperimentRunID", "IP", "Hostname", "GraphmlID"},
-        {std::to_string(experiment_run_id), ip, hostname, graphml_id}, {"IP", "ExperimentRunID"});
+        {std::to_string(exp_info.experiment_run_id), ip, hostname, graphml_id},
+        {"IP", "ExperimentRunID"});
 
     for(const auto& container : message.containers()) {
-        ProcessContainer(container, experiment_run_id, node_id);
+        ProcessContainer(container, exp_info, node_id);
     }
 }
 
 void NodeManagerProtoHandler::ProcessContainer(const NodeManager::Container& message,
-                                               int experiment_run_id,
+                                               ExpStateCreationInfo& exp_info,
                                                int node_id)
 {
     std::string name = message.info().name();
@@ -104,25 +109,25 @@ void NodeManagerProtoHandler::ProcessContainer(const NodeManager::Container& mes
         {std::to_string(node_id), name, graphml_id, type}, {"NodeID", "GraphmlID"});
 
     for(const auto& component : message.components()) {
-        ProcessComponent(component, experiment_run_id, container_id);
+        ProcessComponent(component, exp_info, container_id);
     }
 
     for(const auto& logger : message.loggers()) {
-        ProcessLogger(logger, experiment_run_id);
+        ProcessLogger(logger, exp_info);
     }
 }
 
 void NodeManagerProtoHandler::ProcessLogger(const NodeManager::Logger& message,
-                                            int experiment_run_id)
+                                            ExpStateCreationInfo& exp_info)
 {
     const auto& endpoint = zmq::TCPify(message.publisher_address(), message.publisher_port());
     switch(message.type()) {
         case NodeManager::Logger::CLIENT: {
-            experiment_tracker_.RegisterSystemEventProducer(experiment_run_id, endpoint);
+            experiment_tracker_.RegisterSystemEventProducer(exp_info.experiment_run_id, endpoint);
             break;
         }
         case NodeManager::Logger::MODEL: { // Logger_Type::Logger_Type_MODEL:{
-            experiment_tracker_.RegisterModelEventProducer(experiment_run_id, endpoint);
+            experiment_tracker_.RegisterModelEventProducer(exp_info.experiment_run_id, endpoint);
             break;
         }
         default:
@@ -133,7 +138,7 @@ void NodeManagerProtoHandler::ProcessLogger(const NodeManager::Logger& message,
 }
 
 void NodeManagerProtoHandler::ProcessComponent(const NodeManager::Component& message,
-                                               int experiment_run_id,
+                                               ExpStateCreationInfo& exp_info,
                                                int container_id)
 {
     if(message.location_size() != message.replicate_indices_size()) {
@@ -145,7 +150,7 @@ void NodeManagerProtoHandler::ProcessComponent(const NodeManager::Component& mes
 
     int component_id = database_->InsertValuesUnique(
         "Component", {"Name", "ExperimentRunID", "GraphmlID"},
-        {message.info().type(), std::to_string(experiment_run_id), message.info().id()},
+        {message.info().type(), std::to_string(exp_info.experiment_run_id), message.info().id()},
         {"Name", "ExperimentRunID"});
 
     std::string full_location;
@@ -164,16 +169,16 @@ void NodeManagerProtoHandler::ProcessComponent(const NodeManager::Component& mes
     );
 
     for(const auto& port : message.ports()) {
-        ProcessPort(port, experiment_run_id, component_instance_id, full_location);
+        ProcessPort(port, exp_info, component_instance_id, full_location);
     }
 
     for(const auto& worker : message.workers()) {
-        ProcessWorker(worker, experiment_run_id, component_instance_id, full_location);
+        ProcessWorker(worker, exp_info, component_instance_id, full_location);
     }
 }
 
 void NodeManagerProtoHandler::ProcessPort(const NodeManager::Port& message,
-                                          int experiment_run_id,
+                                          ExpStateCreationInfo& exp_info,
                                           int component_instance_id,
                                           const std::string& component_instance_location)
 {
@@ -190,34 +195,33 @@ void NodeManagerProtoHandler::ProcessPort(const NodeManager::Port& message,
          port_type, middleware, message.info().id()},
         {"Name", "ComponentInstanceID"});
 
-    for(const auto& connected_port : message.connected_ports()) {
-        ProcessPortConnection(port_id, experiment_run_id, connected_port);
+    switch(message.kind()) {
+        case NodeManager::Port::PUBLISHER:
+            // case NodeManager::Port::SUBSCRIBER:
+            for(const auto& to_port_graphml : message.connected_ports()) {
+                exp_info.pubsub_connections.emplace_back(port_id, to_port_graphml);
+            }
+            break;
+        case NodeManager::Port::REQUESTER:
+            // case NodeManager::Port::REPLIER:
+            for(const auto& to_port_graphml : message.connected_ports()) {
+                exp_info.reqrep_connections.emplace_back(port_id, to_port_graphml);
+            }
+            break;
     }
-}
-
-// TODO: Make tolerant of the fact that the to_port may not be in the DB yet
-void NodeManagerProtoHandler::ProcessPortConnection(int from_port_id,
-                                                    int experiment_run_id,
-                                                    const std::string& to_port_graphml)
-{
-    std::string to_port_lookup = "getPortFromGraphml(" + std::to_string(experiment_run_id) + ","
-                                 + to_port_graphml + ")";
-    try {
-        database_->InsertValues("PubSubConnection", {"PubPortID", "SubPortID"},
-                                {std::to_string(from_port_id), to_port_lookup});
-    } catch(const std::runtime_error& rte) {
-        std::cerr << "Failed to insert a Port Connection:\n" << rte.what() << std::endl;
-    }
+    /*for(const auto& connected_port : message.connected_ports()) {
+        ProcessPortConnections(port_id, exp_info, connected_port);
+    }*/
 }
 
 void NodeManagerProtoHandler::ProcessWorker(const NodeManager::Worker& message,
-                                            int experiment_run_id,
+                                            ExpStateCreationInfo& exp_info,
                                             int component_id,
                                             const std::string& component_path)
 {
     int worker_id = database_->InsertValuesUnique(
         "Worker", {"Name", "ExperimentRunID", "GraphmlID"},
-        {message.info().type(), std::to_string(experiment_run_id), message.info().id()},
+        {message.info().type(), std::to_string(exp_info.experiment_run_id), message.info().id()},
         {"Name", "ExperimentRunID"});
 
     std::string worker_path = component_path + "/" + message.info().name();
@@ -227,4 +231,39 @@ void NodeManagerProtoHandler::ProcessWorker(const NodeManager::Worker& message,
         {message.info().name(), std::to_string(worker_id), std::to_string(component_id),
          worker_path, message.info().id()},
         {"Name", "ComponentInstanceID"});
+}
+
+void NodeManagerProtoHandler::ProcessPortConnections(const ExpStateCreationInfo& exp_info)
+{
+    for(const auto& pubsub_con : exp_info.pubsub_connections) {
+        ProcessPubSubConnection(pubsub_con.first, exp_info.experiment_run_id, pubsub_con.second);
+    }
+
+    for(const auto& reqrep_con : exp_info.reqrep_connections) {
+        ProcessReqRepConnection(reqrep_con.first, exp_info.experiment_run_id, reqrep_con.second);
+    }
+}
+
+void NodeManagerProtoHandler::ProcessPubSubConnection(int from_port_id,
+                                                      int experiment_run_id,
+                                                      const std::string& to_port_graphml)
+{
+    std::string to_port_lookup = "getPortFromGraphml(" + database_->quote(experiment_run_id) + ","
+                                 + database_->quote(to_port_graphml) + ")";
+    try {
+        database_->InsertPubSubValues(from_port_id, to_port_graphml, experiment_run_id);
+    } catch(const std::runtime_error& rte) {
+        std::cerr << "Failed to insert a Port Connection:\n" << rte.what() << std::endl;
+    }
+}
+
+void NodeManagerProtoHandler::ProcessReqRepConnection(int from_port_id,
+                                                      int experiment_run_id,
+                                                      const std::string& to_port_graphml)
+{
+    try {
+        database_->InsertReqRepValues(from_port_id, to_port_graphml, experiment_run_id);
+    } catch(const std::runtime_error& rte) {
+        std::cerr << "Failed to insert a Port Connection:\n" << rte.what() << std::endl;
+    }
 }

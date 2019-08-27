@@ -14,29 +14,42 @@ public:
     void BindCallbacks(zmq::ProtoReceiver& ProtoReceiver);
 
 private:
+    struct ExpStateCreationInfo {
+        int experiment_id;
+        int experiment_run_id;
+        std::vector<std::pair<int, std::string>> pubsub_connections;
+        std::vector<std::pair<int, std::string>> reqrep_connections;
+    };
+
     // Process environment manager callbacks
     void ProcessEnvironmentMessage(const NodeManager::EnvironmentMessage& message);
     void ProcessGetInfoControlMessage(const NodeManager::ControlMessage& message);
     void ProcessConfigureControlMessage(const NodeManager::ControlMessage& message);
     void ProcessShutdownControlMessage(const NodeManager::ControlMessage& message);
-    void ProcessNode(const NodeManager::Node& message, int experiment_run_id);
-    void
-    ProcessContainer(const NodeManager::Container& message, int experiment_run_id, int node_id);
+    void ProcessNode(const NodeManager::Node& message, ExpStateCreationInfo& exp_info);
+    void ProcessContainer(const NodeManager::Container& message,
+                          ExpStateCreationInfo& exp_info,
+                          int node_id);
     void ProcessComponent(const NodeManager::Component& message,
-                          int experiment_run_id,
+                          ExpStateCreationInfo& exp_info,
                           int container_id);
     void ProcessPort(const NodeManager::Port& message,
-                     int experiment_run_id,
+                     ExpStateCreationInfo& exp_info,
                      int component_instance_id,
                      const std::string& component_instance_location);
-    void ProcessPortConnection(int from_port_id,
-                               int experiment_run_id,
-                               const std::string& to_port_graphml);
     void ProcessWorker(const NodeManager::Worker& message,
-                       int experiment_run_id,
+                       ExpStateCreationInfo& exp_info,
                        int component_instance_id,
                        const std::string& worker_path);
-    void ProcessLogger(const NodeManager::Logger& message, int experiment_run_id);
+    void ProcessLogger(const NodeManager::Logger& message, ExpStateCreationInfo& exp_info);
+
+    void ProcessPortConnections(const ExpStateCreationInfo& exp_info);
+    void ProcessPubSubConnection(int from_port_id,
+                                 int experiment_run_id,
+                                 const std::string& to_port_graphml);
+    void ProcessReqRepConnection(int from_port_id,
+                                 int experiment_run_id,
+                                 const std::string& to_port_graphml);
 };
 
 #endif

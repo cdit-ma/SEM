@@ -27,7 +27,7 @@ int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
     // TODO: quick fix for demo, should drive time value off of message once it is being populated
     using google::protobuf::util::TimeUtil;
     // std::string start_time = TimeUtil::ToString(TimeUtil::GetCurrentTime());
-    std::string start_time = TimeUtil::ToString(timestamp);
+    std::string start_time = database_->quote(TimeUtil::ToString(timestamp));
 
     std::cout << "Registering experiment with name " << experiment_name << " @ time " << timestamp
               << std::endl;
@@ -53,7 +53,7 @@ int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
         return active_experiment_ids_.at(experiment_id);
     } else {
         const auto& max_val = database_->GetMaxValue(
-            "ExperimentRun", "JobNum", "ExperimentID=" + std::to_string(experiment_id));
+            "ExperimentRun", "JobNum", "ExperimentID=" + database_->quote(experiment_id));
         ExperimentRunInfo new_run;
         new_run.name = experiment_name;
         if(max_val.has_value()) {
@@ -65,7 +65,7 @@ int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
 
         new_run.experiment_run_id = database_->InsertValues(
             "ExperimentRun", {"ExperimentID", "JobNum", "StartTime"},
-            {std::to_string(experiment_id), std::to_string(new_run.job_num), start_time});
+            {database_->quote(experiment_id), database_->quote(new_run.job_num), start_time});
 
         new_run.receiver = std::unique_ptr<zmq::ProtoReceiver>(new zmq::ProtoReceiver());
         new_run.system_handler = std::unique_ptr<SystemEventProtoHandler>(
@@ -140,7 +140,7 @@ int ExperimentTracker::GetNodeIDFromHostname(int experiment_run_id, const std::s
     } catch(const std::out_of_range& oor_exception) {
         // If we can't find anything then go back to the database
         std::stringstream condition_stream;
-        condition_stream << "Hostname = " << database_->EscapeString(hostname)
+        condition_stream << "Hostname = " << database_->quote(hostname)
                          << " AND ExperimentRunID = " << experiment_run_id;
         const auto& node_id = database_->GetID("Node", condition_stream.str());
         AddNodeIDWithHostname(experiment_run_id, hostname, node_id);

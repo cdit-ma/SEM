@@ -129,9 +129,9 @@ AggServer::AggregationReplier::ProcessExperimentRunRequest(
             "Name LIKE " + database_->EscapeString("%"+exp_name+"%")
         );
         exp_name_id_pairs.emplace_back(std::make_pair(exp_name, id));*/
-        const auto& results =
-            database_->GetValues("Experiment", {"Name", "ExperimentID"},
-                                 "Name LIKE " + database_->EscapeString("%" + exp_name + "%"));
+        const auto& results = database_->GetValues("Experiment", {"Name", "ExperimentID"},
+                                                   "Name LIKE "
+                                                       + database_->quote("%" + exp_name + "%"));
         for(const auto& row : results) {
             const auto& name = row.at("Name").as<std::string>();
             const auto& id = row.at("ExperimentID").as<int>();
