@@ -591,7 +591,7 @@ CONSTRAINT FK_PubSubConnection_RepPortID_Port_PortID FOREIGN KEY (RepPortID) REF
 -- FUNCITONS
 
 -- getPortFromGraphml(ExperimentRunID, GraphmlID)
-DROP FUNCTION getPortFromGraphml;
+DROP FUNCTION IF EXISTS getPortFromGraphml;
 CREATE FUNCTION getPortFromGraphml(int, text) RETURNS integer
     AS 'SELECT PortID
         FROM Port
