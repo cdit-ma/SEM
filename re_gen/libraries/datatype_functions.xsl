@@ -1419,12 +1419,13 @@
         <!-- Define the Interface -->
         <xsl:value-of select="idl:interface($interface_name, $tab)" />
 
-        <xsl:variable name="aggregate_instances" select="graphml:get_definitions(($server_requests, $server_replies))" />
+        <xsl:variable name="request_definition" select="graphml:get_definition($server_requests[1])" />
+        <xsl:variable name="reply_definition" select="graphml:get_definition($server_replies[1])" />
 
         <xsl:variable name="qualified_reply_type" as="xs:string">
             <xsl:choose>
-                <xsl:when test="count($server_replies) = 1">
-                    <xsl:value-of select="idl:get_aggregate_qualified_type($server_replies[1])" />
+                <xsl:when test="count($reply_definition) = 1">
+                    <xsl:value-of select="idl:get_aggregate_qualified_type($reply_definition)" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="'void'" />
@@ -1434,8 +1435,8 @@
 
         <xsl:variable name="qualified_request_type" as="xs:string">
             <xsl:choose>
-                <xsl:when test="count($server_requests) = 1">
-                    <xsl:value-of select="idl:get_aggregate_qualified_type($server_requests[1])" />
+                <xsl:when test="count($request_definition) = 1">
+                    <xsl:value-of select="idl:get_aggregate_qualified_type($request_definition)" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="''" />
