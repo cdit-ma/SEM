@@ -1,5 +1,6 @@
 set(PROJ_NAME ospl_dds_helper)
-project(${PROJ_NAME})
+project(${PROJ_NAME}
+        VERSION ${PROJECT_VERSION})
 
 find_package(OSPL_DDS)
 

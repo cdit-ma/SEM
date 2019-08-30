@@ -1,5 +1,6 @@
 set(PROJ_NAME opencl_worker)
-project(${PROJ_NAME})
+project(${PROJ_NAME}
+        VERSION ${PROJECT_VERSION})
 
 # Set OpenCL Root / Lib Path
 set(OPENCL_ROOT $ENV{OPENCL_ROOT})

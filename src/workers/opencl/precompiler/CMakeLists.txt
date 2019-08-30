@@ -1,5 +1,6 @@
 set(PROJ_NAME precompile_opencl)
-project(${PROJ_NAME})
+project(${PROJ_NAME}
+        VERSION ${PROJECT_VERSION})
 
 find_package(Boost 1.30.0 COMPONENTS filesystem REQUIRED)
 

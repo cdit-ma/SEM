@@ -1,5 +1,6 @@
 set(PROJ_NAME dis_worker)
-project(${PROJ_NAME})
+project(${PROJ_NAME}
+        VERSION ${PROJECT_VERSION})
 
 set(DIS_VERSION 7)
 set(KDIS_LIB "kdis")

@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 3.0)
 project(re_top_level_project)
 
+project("re"
+		VERSION 3.3.9
+		LANGUAGES CXX)
+
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
@@ -11,7 +15,7 @@ elseif(UNIX)
 	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
 endif()
 
-#Use CCache where possible
+# Use CCache where possible
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
@@ -20,22 +24,23 @@ endif(CCACHE_FOUND)
 
 set(RE_VERSION "3.3.9")
 
+option(BUILD_DOCS "Build re developer documentation" ON)
 option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
 
-#Get the RE_PATHRE_PATH
+# Get the RE_PATHRE_PATH
 set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
-#Set the RE_GEN_PATH
+# Set the RE_GEN_PATH
 set(REGEN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re_gen")
 
 set(RE_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(LOGAN_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/logan/src")
 
 set(RE_COMMON_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
-#Use the local submoduled cmake_modules if we don't have a global one set
+# Use the local submoduled cmake_modules if we don't have a global one set
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
-#Set the binary and library locations
+# Set the binary and library locations
 set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}/lib")
@@ -49,15 +54,22 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4267")
 endif()
 
-#Build re_common
+# Configure cmakevars.h to have correct string replaced vars
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/cmakevars.h @ONLY)
+
+# Build re_common
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
-#Build Logan
+# Build Logan
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
 
-#Build the source
+# Build the source
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
+# Build documentation
+if(BUILD_DOCS)
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/docs")
+endif()
 
 if(BUILD_TEST)
 	message(STATUS "Building re tests")

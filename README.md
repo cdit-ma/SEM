@@ -1,7 +1,9 @@
 # re
 "Runtime Environment"
 
-**_re_** aims to provide users with an easy to use runtime environment for system modeling. **_re_** is best used in conjunction with [MEDEA](https://github.com/cdit-ma/MEDEA.git) for graphical modeling and supported by [logan](https://github.com/cdit-ma/logan.git) for realtime perfomance metric gathering.
+**_re_** aims to provide users with an easy to use runtime environment for system modeling. 
+**_re_** is best used in conjunction with [MEDEA](https://github.com/cdit-ma/MEDEA.git) for graphical modeling and 
+ supported by [logan](https://github.com/cdit-ma/logan.git) for realtime performance metric gathering.
 
 ## Supported Operating Systems:
 * Windows 7 (> Visual Studio 2015)
@@ -25,7 +27,7 @@ See [Installation Guide](INSTALL.md)
 | Flag                                  | Description                           |
 |---------------------------------------|---------------------------------------|
 | -h, --help                            | Displays this help                    |
-| -d, --deployment [arg]                | Path to model graphml file            |
+| -d, --deployment [arg]                | Path to model GraphML file            |
 | -l, --library [arg]                   | Path to runtime libraries             |
 | -t, --time [arg]                      | Deployment duration (in seconds)      |
 | -s, --slave [arg]                     | Slave endpoint, including port        |
