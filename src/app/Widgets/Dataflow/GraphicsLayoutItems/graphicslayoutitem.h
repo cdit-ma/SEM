@@ -1,0 +1,29 @@
+#ifndef GRAPHICSLAYOUTITEM_H
+#define GRAPHICSLAYOUTITEM_H
+
+#include <QGraphicsLayoutItem>
+
+namespace MEDEA {
+
+class GraphicsLayoutItem : public QGraphicsLayoutItem
+{
+protected:
+    GraphicsLayoutItem();
+
+    // Required for QGraphicsLayoutItem
+    virtual void setGeometry(const QRectF &geom) override = 0;
+    virtual QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override = 0;
+
+    int getDefaultWidth() const;
+    int getDefaultHeight() const;
+    int getPadding() const;
+
+public:
+    static const int DEFAULT_GRAPHICS_ITEM_WIDTH = 170;
+    static const int DEFAULT_GRAPHICS_ITEM_HEIGHT = 70;
+    static const int DEFAULT_GRAPHICS_ITEM_PADDING = 2;
+};
+
+}
+
+#endif // GRAPHICSLAYOUTITEM_H

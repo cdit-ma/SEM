@@ -7,6 +7,7 @@
 #include "../Timeline/chartdialog.h"
 #include "../Timeline/chartinputpopup.h"
 #include "../Timeline/Chart/timelinechartview.h"
+#include "../../Dataflow/dataflowdialog.h"
 
 class RequestBuilder;
 class ChartManager : public QObject
@@ -18,9 +19,11 @@ public:
     static ChartManager* manager();
 
     ChartDialog& getChartDialog();
+    DataflowDialog& getDataflowDialog();
 
 signals:
     void showChartsPanel();
+    void showDataflowPanel();
 
 public slots:
     void displayChartPopup();
@@ -53,6 +56,7 @@ private:
 
     QString getItemLabel(const ViewItem* item);
 
+    DataflowDialog* dataflowDialog_ = nullptr;
     ChartDialog* chartDialog_ = nullptr;
     ChartInputPopup chartPopup_;
 

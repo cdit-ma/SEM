@@ -95,6 +95,9 @@ private:
 
     static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
 
+    // TODO - Remove PortKind enum from the PortLifecycleEvent class and just use this one
+    static AggServerResponse::Port::Kind GetPortKind(const AggServer::Port_Kind& kind);
+
     static PortLifecycleEvent::PortKind ConvertPortKind(const AggServer::Port_Kind& kind);
     static AggServerResponse::LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);

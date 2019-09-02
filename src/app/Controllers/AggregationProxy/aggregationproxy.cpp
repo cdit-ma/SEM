@@ -448,6 +448,7 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
 AggServerResponse::Port AggregationProxy::ConvertPort(const AggServer::Port& p)
 {
     AggServerResponse::Port port;
+    port.kind = GetPortKind(p.kind());
     port.name = ConstructQString(p.name());
     port.path = ConstructQString(p.path());
     port.middleware = ConstructQString(p.middleware());
@@ -492,6 +493,31 @@ AggServerResponse::ComponentInstance AggregationProxy::ConvertComponentInstance(
     }
 
     return component_instance;
+}
+
+
+/**
+ * @brief AggregationProxy::GetPortKind
+ * @param kind
+ * @return
+ */
+AggServerResponse::Port::Kind AggregationProxy::GetPortKind(const AggServer::Port_Kind &kind)
+{
+    // TODO - Rename; currently just using for Pulse-VIZ
+    switch (kind) {
+    case AggServer::Port_Kind::Port_Kind_PERIODIC:
+        return AggServerResponse::Port::Kind::PERIODIC;
+    case AggServer::Port_Kind::Port_Kind_PUBLISHER:
+        return AggServerResponse::Port::Kind::PUBLISHER;
+    case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
+        return AggServerResponse::Port::Kind::SUBSCRIBER;
+    case AggServer::Port_Kind::Port_Kind_REQUESTER:
+        return AggServerResponse::Port::Kind::REQUESTER;
+    case AggServer::Port_Kind::Port_Kind_REPLIER:
+        return AggServerResponse::Port::Kind::REPLIER;
+    default:
+        return AggServerResponse::Port::Kind::NO_KIND;
+    }
 }
 
 

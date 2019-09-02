@@ -131,6 +131,14 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/requestbuilder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/pathitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/componentinstancegraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.cpp
 )
 
 if(WIN32)
@@ -265,6 +273,14 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/requestbuilder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/pathitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/componentinstancegraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.h
 )
 
 set(RESOURCES

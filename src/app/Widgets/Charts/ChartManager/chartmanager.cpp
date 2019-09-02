@@ -14,12 +14,14 @@ ChartManager::ChartManager(const ViewController &vc)
     : viewController_(vc)
 {
     chartDialog_ = new ChartDialog();
+    dataflowDialog_ = new DataflowDialog();
 
     connect(&vc, &ViewController::vc_displayChartPopup, this, &ChartManager::displayChartPopup);
     connect(&vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
     connect(&vc, &ViewController::modelClosed, chartDialog_, &ChartDialog::clear);
 
-    connect(this, &ChartManager::showChartsPanel, chartDialog_, &ChartDialog::showChartsDockWidget);
+
+    connect(this, &ChartManager::showChartsPanel, &ChartManager::showDataflowPanel);
     connect(&chartPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartManager::experimentRunSelected);
 }
 
@@ -46,6 +48,7 @@ AggregationProxy& ChartManager::aggregationProxy()
 TimelineChartView& ChartManager::timelineChartView()
 {
     return getChartDialog().getChartView();
+
 }
 
 
@@ -307,12 +310,26 @@ ChartManager* ChartManager::manager()
  * @brief ChartManager::getChartDialog
  * @return
  */
-ChartDialog &ChartManager::getChartDialog()
+ChartDialog& ChartManager::getChartDialog()
 {
     if (chartDialog_ != nullptr) {
         return *chartDialog_;
     } else {
         throw std::runtime_error("Could not get ChartDialog reference; chartDialog_ is null.");
+    }
+}
+
+
+/**
+ * @brief ChartManager::getDataflowDialog
+ * @return
+ */
+DataflowDialog &ChartManager::getDataflowDialog()
+{
+    if (dataflowDialog_ != nullptr) {
+        return *dataflowDialog_;
+    } else {
+        throw std::runtime_error("Could not get DataflowDialog referece; dataflow_ is null.");
     }
 }
 
@@ -373,6 +390,11 @@ void ChartManager::experimentRunStateReceived(AggServerResponse::ExperimentRun e
 {
     experimentRun.last_updated_time = experimentState.last_updated_time;
     requestEventsForExperimentRun(experimentRun);
+
+    if (dataflowDialog_) {
+        dataflowDialog_->setExperimentInfo(experimentRun.experiment_name, experimentRun.experiment_run_id);
+        dataflowDialog_->displayExperimentState(experimentState);
+    }
 }
 
 

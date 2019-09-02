@@ -150,6 +150,7 @@ public:
     RootAction* model_generateModelWorkspace;
     RootAction* model_executeLocalJob;
     RootAction* model_reloadWorkerDefinitions;
+
     RootAction* model_queryRunningExperiments;
 
     RootAction* options_settings;

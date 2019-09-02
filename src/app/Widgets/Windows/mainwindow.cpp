@@ -76,6 +76,9 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     connect(SearchManager::manager(), &SearchManager::SearchComplete, this, [=](){WindowManager::ShowDockWidget(dockwidget_Search);});
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::ShowDockWidget(dockwidget_Notification);});
 
+    connect(ChartManager::manager(), &ChartManager::showChartsPanel, this, [=]() {WindowManager::ShowDockWidget(dockwidget_Charts); });
+    connect(ChartManager::manager(), &ChartManager::showDataflowPanel, this, [=]() {WindowManager::ShowDockWidget(dockwidget_Dataflow); });
+
     SettingsController* s = SettingsController::settings();
     connect(s, &SettingsController::settingChanged, this, &MainWindow::settingChanged);
 
@@ -361,6 +364,7 @@ void MainWindow::setupDockIcons(){
     setDockWidgetIcon(dockwidget_Notification, "Icons", "bell", theme);
     setDockWidgetIcon(dockwidget_Dock, "Icons", "zoomInPage", theme);
     setDockWidgetIcon(dockwidget_Charts, "Icons", "barChart", theme);
+    setDockWidgetIcon(dockwidget_Dataflow, "Icons", "wave", theme);
 
     theme->setWindowIcon(applicationToolbar->windowTitle(), "Icons", "spanner");
 
@@ -599,7 +603,7 @@ void MainWindow::setupMenuCornerWidget()
 
 /**
  * @brief MainWindow::setupDockablePanels
- * This sets up the search and notification dialogs.
+ * This sets up the panels (dialogs) that are placed within the center
  */
 void MainWindow::setupDockablePanels()
 {   
@@ -624,21 +628,31 @@ void MainWindow::setupDockablePanels()
     dockwidget_Notification->setProtected(true);
 
     // Charts Panel
-    dockwidget_Charts = window_manager->constructChartDockWidget("Charts", &ChartManager::manager()->getChartDialog(), this);
+    auto charts_dialog = &ChartManager::manager()->getChartDialog();
+    dockwidget_Charts = window_manager->constructChartDockWidget("Charts", charts_dialog, this);
+    dockwidget_Charts->setWidget(charts_dialog);
     dockwidget_Charts->setIconVisible(true);
     dockwidget_Charts->setProtected(true);
+
+    // Dataflow Panel
+    dockwidget_Dataflow = window_manager->constructDockWidget("Pulse", this);
+    dockwidget_Dataflow->setWidget(&ChartManager::manager()->getDataflowDialog());
+    dockwidget_Dataflow->setIconVisible(true);
+    dockwidget_Dataflow->setProtected(true);
 
     // add tool dock widgets to the inner window
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Search);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Notification);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Qos);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Charts);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Charts);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Dataflow);
 
     // initially hide tool dock widgets
     innerWindow->setDockWidgetVisibility(dockwidget_Qos, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Search, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Notification, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Charts, false);
+    innerWindow->setDockWidgetVisibility(dockwidget_Dataflow, false);
     
     // Tab the search and notifications
     innerWindow->tabifyDockWidget(dockwidget_Search, dockwidget_Notification);

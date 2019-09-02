@@ -29,6 +29,11 @@ if(NOT DEFINED ENV{Qt5_DIR})
     message(FATAL_ERROR "Environment Variable: 'Qt5_DIR' not set!")
 endif()
 
+#Boost 1.70 requires BUILD_SHARED_LIBS to be set to on (required for MSVC 2019)
+if(MSVC)
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
 #Set MEDEA Options
 #VERSION in form X.Y.Z(-P?)
 SET(VERSION_NO "3.3.9")

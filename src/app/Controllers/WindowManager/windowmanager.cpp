@@ -160,7 +160,6 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
         return nullptr;
 
     auto dockWidget = new DefaultDockWidget(title, parent, area);
-    dockWidget->setWidget(dialog);
     addDockWidget(dockWidget);
 
     // add actions to the dock widget's title bar for clearAll, toggle time display and screenshot
@@ -174,11 +173,6 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
     connect(clearChartsAction, &QAction::triggered, dialog, &ChartDialog::clear);
     connect(timeAction, &QAction::triggered, dialog, &ChartDialog::toggleTimelineAxisFormat);
     connect(snapShotAction, &QAction::triggered, dialog, &ChartDialog::snapShot);
-
-    // when the charts receive new data, show the charts panel
-    connect(dialog, &ChartDialog::showChartsDockWidget, [=]() {
-        emit dockWidget->req_Visible(dockWidget->getID(), true);
-    });
 
     return dockWidget;
 }

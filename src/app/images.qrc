@@ -415,5 +415,8 @@
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
         <file alias="bookmarkTwoTone">Resources/Icons/bookmarkTwoTone.png</file>
+        <file alias="envelopeTwoTone">Resources/Icons/envelopeTwoTone.png</file>
+        <file alias="arrowBottomRight">Resources/Icons/arrowBottomRight.png</file>
+        <file alias="arrowTopRight">Resources/Icons/arrowTopRight.png</file>
     </qresource>
 </RCC>

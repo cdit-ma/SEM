@@ -64,7 +64,7 @@ private:
     BaseDockWidget* dockwidget_Notification = 0;
 
     BaseDockWidget* dockwidget_Charts = 0;
-
+    BaseDockWidget* dockwidget_Dataflow = nullptr;
 
     //Right hand tools
     BaseDockWidget* dockwidget_Table = 0;

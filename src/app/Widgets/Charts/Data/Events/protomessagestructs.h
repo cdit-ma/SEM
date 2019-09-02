@@ -3,6 +3,7 @@
 
 #include <QVector>
 #include <QString>
+#include <QMetaType>
 
 
 namespace AggServerResponse{
@@ -25,8 +26,18 @@ namespace AggServerResponse{
     */
 
     struct Port {
+	enum Kind {
+	    NO_KIND,
+	    PERIODIC,
+	    PUBLISHER,
+	    SUBSCRIBER,
+	    REQUESTER,
+	    REPLIER
+	};
+	Kind kind;
         QString name;
         QString path;
+	QString type;
         QString middleware;
         QString graphml_id;
     };
