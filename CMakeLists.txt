@@ -70,7 +70,7 @@ if(BUILD_APP)
     set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
 
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re/re_common")
 endif(BUILD_APP)
 
 if(BUILD_TEST)
