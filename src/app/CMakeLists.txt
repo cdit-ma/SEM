@@ -317,7 +317,7 @@ else()
 endif()
 
 # Copy files
-set(REGEN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../re_gen")
+set(REGEN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../re/re_gen")
 set(REGEN_DST_DIR "${COPY_DEST}/Resources/re_gen")
 
 set(SCRIPTS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../scripts")

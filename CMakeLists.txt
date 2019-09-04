@@ -34,6 +34,10 @@ if(MSVC)
     set(BUILD_SHARED_LIBS ON)
 endif()
 
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/re/CMakeLists.txt)
+   message(FATAL_ERROR "'re' submodule does not exist! Have you run git submodule init && git submodule update?")
+endif()
+
 #Set MEDEA Options
 #VERSION in form X.Y.Z(-P?)
 SET(VERSION_NO "3.3.9")
