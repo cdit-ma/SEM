@@ -23,7 +23,7 @@ HoverPopup::HoverPopup(QWidget* parent)
  */
 void HoverPopup::setBorderColor(QColor color)
 {
-    _borderColor = color;
+    borderColor_ = color;
     useDefaultBorder = !color.isValid();
     update();
 }
@@ -36,9 +36,9 @@ void HoverPopup::themeChanged()
 {
     Theme* theme = Theme::theme();
     if (useDefaultBorder) {
-        _borderColor = theme->getTextColor();
+        borderColor_ = theme->getTextColor();
     }
-    _backgroundColor = theme->getActiveWidgetBorderColor();
+    backgroundColor_ = theme->getActiveWidgetBorderColor();
     update();
 }
 
@@ -49,11 +49,13 @@ void HoverPopup::themeChanged()
  */
 void HoverPopup::paintEvent(QPaintEvent* event)
 {
+    Q_UNUSED(event);
+
     qreal penWidth = 1.5;
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setPen(QPen(_borderColor, penWidth, Qt::SolidLine, Qt::RoundCap));
-    painter.setBrush(_backgroundColor);
+    painter.setPen(QPen(borderColor_, penWidth, Qt::SolidLine, Qt::RoundCap));
+    painter.setBrush(backgroundColor_);
     painter.drawRoundedRect(rect().adjusted(penWidth, penWidth, -penWidth, -penWidth), 6, 6);
 }
 

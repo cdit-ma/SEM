@@ -131,6 +131,7 @@ void AggregationProxy::SetServerEndpoint(const QString &endpoint)
 
 /**
  * @brief AggregationProxy::CheckRequester
+ * @throws NoRequesterException
  */
 void AggregationProxy::CheckRequester() const
 {
@@ -143,6 +144,7 @@ void AggregationProxy::CheckRequester() const
 /**
  * @brief AggregationProxy::GetExperimentRuns
  * @param experiment_name
+ * @throws RequestException
  * @return
  */
 QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(const QString& experiment_name) const
@@ -179,6 +181,7 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
 /**
  * @brief AggregationProxy::GetExperimentState
  * @param experiment_run_id
+ * @throws RequestException
  * @return
  */
 AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const quint32 experiment_run_id) const
@@ -217,6 +220,7 @@ AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const qu
 /**
  * @brief AggregationProxy::GetPortLifecycleEvents
  * @param request
+ * @throws RequestException
  * @return
  */
 QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const PortLifecycleRequest& request) const
@@ -264,6 +268,7 @@ QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const Port
 /**
  * @brief AggregationProxy::GetWorkloadEvents
  * @param request
+ * @throws RequestException
  * @return
  */
 QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadRequest &request) const
@@ -314,6 +319,7 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadReques
 /**
  * @brief AggregationProxy::GetCPUUtilisationEvents
  * @param request
+ * @throws RequestException
  * @return
  */
 QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CPUUtilisationRequest &request) const
@@ -353,6 +359,7 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CP
 /**
  * @brief AggregationProxy::GetMemoryUtilisationEvents
  * @param request
+ * @throws RequestException
  * @return
  */
 QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const MemoryUtilisationRequest &request) const
@@ -392,6 +399,7 @@ QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(co
 /**
  * @brief AggregationProxy::GetMarkerEvents
  * @param request
+ * @throws RequestException
  * @return
  */
 QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &request) const

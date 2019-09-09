@@ -645,7 +645,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
         }
     }
 
-    MEDEA::EventSeries* series = 0;
+    MEDEA::EventSeries* series = nullptr;
     auto seriesLabel = label;
 
     //qDebug() << "seriesID: " << seriesID;
@@ -674,7 +674,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
         series = new MarkerEventSeries(seriesID, this);
         break;
     default:
-        return 0;
+        return nullptr;
     }
 
     if (series) {
@@ -700,7 +700,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
 Chart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, const QString &ID, const QString &label)
 {
     if (!series)
-        return 0;
+        return nullptr;
 
     // NOTE - At the moment, a new entity chart is constructed per series
     // un-comment this and comment out the line below if we want to paint multiple series with that share an ID on the same chart

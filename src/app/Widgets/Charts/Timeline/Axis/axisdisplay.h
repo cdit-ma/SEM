@@ -12,7 +12,7 @@ class AxisDisplay : public QWidget
     Q_OBJECT
 
 public:
-    explicit AxisDisplay(const AxisSlider &slider, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = 0);
+    explicit AxisDisplay(const AxisSlider &slider, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = nullptr);
 
     void setAxisMargin(int margin);
     void setAxisLineVisible(bool visible);

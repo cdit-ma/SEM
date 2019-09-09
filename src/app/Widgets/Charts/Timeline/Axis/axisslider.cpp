@@ -371,6 +371,8 @@ void AxisSlider::resizeEvent(QResizeEvent* event)
  */
 void AxisSlider::paintEvent(QPaintEvent* event)
 {
+    Q_UNUSED(event);
+
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
 

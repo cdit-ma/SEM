@@ -11,7 +11,7 @@ class ChartDialog : public QFrame
     Q_OBJECT
 
 public:
-    explicit ChartDialog(QWidget* parent = 0);
+    explicit ChartDialog(QWidget* parent = nullptr);
 
     TimelineChartView& getChartView();
 

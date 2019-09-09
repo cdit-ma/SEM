@@ -11,7 +11,7 @@ public:
     explicit MemoryUtilisationEvent(const QString& hostname,
                                     double utilisation,
                                     qint64 time,
-                                    QObject* parent = 0);
+                                    QObject* parent = nullptr);
 
     QString toString(const QString& dateTimeFormat) const;
 

@@ -47,10 +47,12 @@ const QHash<qint64, qint64> &MarkerEventSeries::getMarkerIDSetDurations() const
  */
 void MarkerEventSeries::addEvent(MEDEA::Event* event)
 {
-    if (event->getKind() != MEDEA::ChartDataKind::MARKER)
+    if (event->getKind() != MEDEA::ChartDataKind::MARKER) {
+        qCritical("MarkerEventSeries::addEvent - Cannot add event due to a mismatch of type.");
         return;
+    }
 
-    auto markerEvent = (MarkerEvent*)event;
+    auto markerEvent = qobject_cast<MarkerEvent*>(event);
     auto markerID = markerEvent->getMarkerID();
     auto minTime = event->getTimeMS();
     auto maxTime = event->getTimeMS();

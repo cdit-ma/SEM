@@ -27,7 +27,7 @@ MarkerEvent::MarkerEvent(const QString &markerName,
 QString MarkerEvent::toString(const QString &dateTimeFormat) const
 {
     return "Marker Name: " + getName() + "\n" +
-           "ID: " + markerID_ + "\n" +
+           "ID: " + QString::number(markerID_) + "\n" +
            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
 

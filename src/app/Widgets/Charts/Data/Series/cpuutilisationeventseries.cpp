@@ -16,17 +16,21 @@ CPUUtilisationEventSeries::CPUUtilisationEventSeries(const QString& ID, QObject*
  */
 void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
 {
-    if (event->getKind() == MEDEA::ChartDataKind::CPU_UTILISATION) {
-        auto utilisation = ((CPUUtilisationEvent*)event)->getUtilisation();
-        if (utilisation < minUtilisation_) {
-            minUtilisation_ = utilisation;
-            emit minYValueChanged(utilisation);
-        }
-        if (utilisation > maxUtilisation_) {
-            maxUtilisation_ = utilisation;
-            emit maxYValueChanged(utilisation);
-        }
+    if (event->getKind() != MEDEA::ChartDataKind::CPU_UTILISATION) {
+        qCritical("CPUUtilisationEventSeries::addEvent - Cannot add event due to a mismatch of type.");
+        return;
     }
+
+    auto utilisation = qobject_cast<CPUUtilisationEvent*>(event)->getUtilisation();
+    if (utilisation < minUtilisation_) {
+        minUtilisation_ = utilisation;
+        emit minYValueChanged(utilisation);
+    }
+    if (utilisation > maxUtilisation_) {
+        maxUtilisation_ = utilisation;
+        emit maxYValueChanged(utilisation);
+    }
+
     MEDEA::EventSeries::addEvent(event);
 }
 

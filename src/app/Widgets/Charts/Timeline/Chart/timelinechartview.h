@@ -30,7 +30,7 @@ class TimelineChartView : public QWidget
     Q_OBJECT
 
 public:
-    explicit TimelineChartView(QWidget* parent = 0);
+    explicit TimelineChartView(QWidget* parent = nullptr);
 
     bool eventFilter(QObject *watched, QEvent* event);
 
@@ -89,8 +89,8 @@ private:
     bool showHoverLine = false;
     double verticalScrollValue = 0.0;
 
-    QLabel* emptyLabel_ = 0;
-    QWidget* mainWidget_ = 0;
+    QLabel* emptyLabel_ = nullptr;
+    QWidget* mainWidget_ = nullptr;
 
     MEDEA::ChartList* chartList_;
     MEDEA::ChartLabelList* chartLabelList_;

@@ -326,6 +326,7 @@ bool ChartLabel::eventFilter(QObject* object, QEvent* event)
  */
 void ChartLabel::enterEvent(QEvent* event)
 {
+    Q_UNUSED(event);
     emit hovered(true);
 }
 
@@ -337,6 +338,7 @@ void ChartLabel::enterEvent(QEvent* event)
  */
 void ChartLabel::leaveEvent(QEvent* event)
 {
+    Q_UNUSED(event);
     emit hovered(false);
 }
 
@@ -347,6 +349,8 @@ void ChartLabel::leaveEvent(QEvent* event)
  */
 void ChartLabel::paintEvent(QPaintEvent* event)
 {
+    Q_UNUSED(event);
+
     QPainter painter(this);
     painter.setPen(tickPen_);
 

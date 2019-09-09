@@ -274,6 +274,8 @@ void AxisDisplay::resizeEvent(QResizeEvent* event)
  */
 void AxisDisplay::paintEvent(QPaintEvent* event)
 {
+    Q_UNUSED(event);
+
     QPainter painter(this);
     painter.fillRect(rect(), Qt::transparent);
     painter.setPen(labelColor_);

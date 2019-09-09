@@ -21,7 +21,7 @@ public:
                                 PortKind kind,
                                 AggServerResponse::LifecycleType type,
                                 qint64 time,
-                                QObject* parent = 0);
+                                QObject* parent = nullptr);
 
     QString toString(const QString& dateTimeFormat) const;
 
@@ -36,6 +36,7 @@ private:
 
     const PortKind kind_;
     const AggServerResponse::Port port_;
+    //const AggServerResponse::Port& port_;
     const AggServerResponse::LifecycleType type_;
 
 };

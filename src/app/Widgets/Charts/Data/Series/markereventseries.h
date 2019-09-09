@@ -8,7 +8,7 @@ class MarkerEventSeries : public MEDEA::EventSeries
     Q_OBJECT
 
 public:
-    explicit MarkerEventSeries(const QString& ID, QObject* parent = 0);
+    explicit MarkerEventSeries(const QString& ID, QObject* parent = nullptr);
 
     const QHash<qint64, QPair<qint64, qint64>>& getMarkerIDSetRanges() const;
     const QMap<qint64, QSet<qint64>>& getMarkerIDsWithSharedStartTimes() const;

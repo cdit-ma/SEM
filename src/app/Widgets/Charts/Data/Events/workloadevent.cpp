@@ -24,10 +24,10 @@ WorkloadEvent::WorkloadEvent(const AggServerResponse::WorkerInstance& inst,
       workerInstance_ (inst),
       type_ (type),
       workloadID_(workloadID),
+      logLevel_(logLevel),
       functionName_(functionName),
       args_(args),
-      logLevel_(logLevel),
-      ID_(inst.graphml_id + workloadID) {}
+      ID_(inst.graphml_id + QString::number(workloadID)) {}
 
 
 /**

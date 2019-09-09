@@ -27,7 +27,7 @@ public:
         return {RUNS_FILTER, NODE_FILTER, COMPONENT_FILTER, WORKER_FILTER};
     }
 
-    explicit ChartInputPopup(QWidget* parent = 0);
+    explicit ChartInputPopup(QWidget* parent = nullptr);
 
     void enableFilters();
 
@@ -75,22 +75,22 @@ private:
     QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
     QVBoxLayout* constructVBoxLayout(QWidget* widget, int spacing = 0, int margin = 0);
 
-    QLineEdit* experimentNameLineEdit_ = 0;
-    QWidget* experimentRunsScrollWidget_ = 0;
+    QLineEdit* experimentNameLineEdit_ = nullptr;
+    QWidget* experimentRunsScrollWidget_ = nullptr;
 
-    QGroupBox* experimentNameGroupBox_ = 0;
-    QGroupBox* experimentRunsGroupBox_ = 0;
-    QGroupBox* nodesGroupBox_ = 0;
-    QGroupBox* componentsGroupBox_ = 0;
-    QGroupBox* workersGroupBox_ = 0;
+    QGroupBox* experimentNameGroupBox_ = nullptr;
+    QGroupBox* experimentRunsGroupBox_ = nullptr;
+    QGroupBox* nodesGroupBox_ = nullptr;
+    QGroupBox* componentsGroupBox_ = nullptr;
+    QGroupBox* workersGroupBox_ = nullptr;
 
     QHash<FILTER_KEY, QLayout*> groupBoxLayouts;
 
-    QToolBar* toolbar_ = 0;
-    QAction* okAction_ = 0;
-    QAction* cancelAction_ = 0;
-    QAction* filterAction_ = 0;
-    QMenu* filterMenu_ = 0;
+    QToolBar* toolbar_ = nullptr;
+    QAction* okAction_ = nullptr;
+    QAction* cancelAction_ = nullptr;
+    QAction* filterAction_ = nullptr;
+    QMenu* filterMenu_ = nullptr;
 
     QPointF originalCenterPos_;
     bool filtersEnabled_ = false;
@@ -107,8 +107,8 @@ private:
     QStringList workers_;
 
     QString typedExperimentName_;
-    QStringListModel* experimentsModel_;
     QCompleter* experimentsCompleter_;
+    QStringListModel* experimentsModel_ = nullptr;
     QMultiHash<QString, AggServerResponse::ExperimentRun> experimentRuns_;
 
 };

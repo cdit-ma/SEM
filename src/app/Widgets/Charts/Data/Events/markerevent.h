@@ -12,7 +12,7 @@ public:
                          qint64 markerID,
                          const AggServerResponse::ComponentInstance& inst,
                          qint64 time,
-                         QObject* parent = 0);
+                         QObject* parent = nullptr);
 
     QString toString(const QString& dateTimeFormat) const;
 
@@ -21,6 +21,7 @@ public:
     qint64 getMarkerID() const;
 
 private:
+    //const AggServerResponse::ComponentInstance& componentInstance_;
     const AggServerResponse::ComponentInstance componentInstance_;
     const qint64 markerID_;
 

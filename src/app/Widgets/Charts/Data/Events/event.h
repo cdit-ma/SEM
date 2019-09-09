@@ -17,7 +17,7 @@ public:
     explicit Event(ChartDataKind kind,
                    qint64 time,
                    const QString& name = "no_name",
-                   QObject* parent = 0);
+                   QObject* parent = nullptr);
 
     ChartDataKind getKind() const;
 

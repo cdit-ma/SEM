@@ -16,17 +16,21 @@ MemoryUtilisationEventSeries::MemoryUtilisationEventSeries(const QString& ID, QO
  */
 void MemoryUtilisationEventSeries::addEvent(MEDEA::Event *event)
 {
-    if (event->getKind() == MEDEA::ChartDataKind::MEMORY_UTILISATION) {
-        auto utilisation = ((MemoryUtilisationEvent*)event)->getUtilisation();
-        if (utilisation < minUtilisation_) {
-            minUtilisation_ = utilisation;
-            emit minYValueChanged(utilisation);
-        }
-        if (utilisation > maxUtilisation_) {
-            maxUtilisation_ = utilisation;
-            emit maxYValueChanged(utilisation);
-        }
+    if (event->getKind() != MEDEA::ChartDataKind::MEMORY_UTILISATION) {
+        qCritical("MemoryUtilisationEventSeries::addEvent - Cannot add event due to a mismatch of type.");
+        return;
     }
+
+    auto utilisation = qobject_cast<MemoryUtilisationEvent*>(event)->getUtilisation();
+    if (utilisation < minUtilisation_) {
+        minUtilisation_ = utilisation;
+        emit minYValueChanged(utilisation);
+    }
+    if (utilisation > maxUtilisation_) {
+        maxUtilisation_ = utilisation;
+        emit maxYValueChanged(utilisation);
+    }
+
     MEDEA::EventSeries::addEvent(event);
 }
 

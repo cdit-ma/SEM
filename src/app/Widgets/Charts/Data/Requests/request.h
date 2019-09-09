@@ -1,7 +1,6 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
-//#include "../Events/protomessagestructs.h"
 #include "../Events/event.h"
 
 class Request {

@@ -25,7 +25,7 @@ public:
                            const QString& functionName,
                            const QString& args,
                            quint32 logLevel,
-                           QObject* parent = 0);
+                           QObject* parent = nullptr);
 
     QString toString(const QString& dateTimeFormat) const;
 
@@ -38,6 +38,7 @@ public:
     quint32 getLogLevel() const;
 
 private:
+    //const AggServerResponse::WorkerInstance& workerInstance_;
     const AggServerResponse::WorkerInstance workerInstance_;
     const WorkloadEventType type_;
 

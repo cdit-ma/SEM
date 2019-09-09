@@ -2,7 +2,6 @@
 
 #include <QDateTime>
 
-
 int MEDEA::Event::event_ID = 0;
 
 /**

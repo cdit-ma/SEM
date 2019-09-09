@@ -9,7 +9,7 @@ class MemoryUtilisationEventSeries : public MEDEA::EventSeries
     Q_OBJECT
 
 public:
-    explicit MemoryUtilisationEventSeries(const QString& ID, QObject* parent = 0);
+    explicit MemoryUtilisationEventSeries(const QString& ID, QObject* parent = nullptr);
 
     void addEvent(MEDEA::Event* event);
 

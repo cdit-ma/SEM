@@ -1,7 +1,6 @@
 #ifndef REQUESTBUILDER_H
 #define REQUESTBUILDER_H
 
-//#include "chartmanager.h"
 #include "../Data/Requests/portlifecyclerequest.h"
 #include "../Data/Requests/workloadrequest.h"
 #include "../Data/Requests/cpuutilisationrequest.h"

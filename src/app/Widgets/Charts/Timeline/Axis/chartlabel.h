@@ -23,7 +23,7 @@ class ChartLabel : public QWidget
     Q_OBJECT
 
 public:
-    explicit ChartLabel(QString label = "", QWidget* parent = 0);
+    explicit ChartLabel(QString label = "", QWidget* parent = nullptr);
     ~ChartLabel();
 
     int getAllDepthChildrenCount() const;
@@ -100,7 +100,7 @@ private:
     QString textColorStr_;
     QString highlighColorStr_;
 
-    ChartLabel* parentChartLabel_ = 0;
+    ChartLabel* parentChartLabel_ = nullptr;
     QList<ChartLabel*> childrenChartLabels_;
 };
 

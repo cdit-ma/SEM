@@ -323,6 +323,8 @@ void ChartList::leaveEvent(QEvent *event)
  */
 void ChartList::paintEvent(QPaintEvent *event)
 {
+    Q_UNUSED(event);
+
     QPainter painter(this);
     QRect visibleRect = visibleRegion().boundingRect();
     painter.fillRect(visibleRect, backgroundColor_);

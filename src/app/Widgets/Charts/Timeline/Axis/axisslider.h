@@ -14,7 +14,7 @@ class AxisSlider : public QWidget
 public:
     enum DRAG_MODE{NO_DRAG_MODE, PAN_READY_MODE, PAN_MODE};
 
-    explicit AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWidget* parent = 0);
+    explicit AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWidget* parent = nullptr);
 
     Qt::Orientation getOrientation() const;
     Qt::Alignment getAlignment() const;

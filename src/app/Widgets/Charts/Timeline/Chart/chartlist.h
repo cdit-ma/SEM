@@ -31,7 +31,7 @@ class ChartList : public QWidget
 public:
     enum DRAG_MODE{NONE, PAN, RUBBERBAND};
 
-    explicit ChartList(QWidget* parent = 0);
+    explicit ChartList(QWidget* parent = nullptr);
 
     void setAxisXVisible(bool visible);
     void setAxisYVisible(bool visible);
@@ -104,7 +104,7 @@ private:
     QRectF hoveredChartRect_;
     QRectF hoverLineRect_;
 
-    QVBoxLayout* layout_;
+    QVBoxLayout* layout_ = nullptr;
     QList<Chart*> charts_;
 
     QPointF hoverCursor_;

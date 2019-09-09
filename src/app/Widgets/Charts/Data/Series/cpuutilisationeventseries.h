@@ -9,7 +9,7 @@ class CPUUtilisationEventSeries : public MEDEA::EventSeries
     Q_OBJECT
 
 public:
-    explicit CPUUtilisationEventSeries(const QString& ID, QObject* parent = 0);
+    explicit CPUUtilisationEventSeries(const QString& ID, QObject* parent = nullptr);
 
     void addEvent(MEDEA::Event* event);
 

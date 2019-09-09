@@ -9,7 +9,6 @@ RequestBuilder::RequestBuilder() {}
 
 /**
  * @brief RequestBuilder::build
- * @param requestKinds
  */
 RequestBuilder RequestBuilder::build()
 {
@@ -235,6 +234,7 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
 
 /**
  * @brief RequestBuilder::getPortLifecycleRequest
+ * @throws std::invalid_argument
  * @return
  */
 const PortLifecycleRequest& RequestBuilder::getPortLifecycleRequest() const
@@ -248,6 +248,7 @@ const PortLifecycleRequest& RequestBuilder::getPortLifecycleRequest() const
 
 /**
  * @brief RequestBuilder::getWorkloadRequest
+ * @throws std::invalid_argument
  * @return
  */
 const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
@@ -261,6 +262,7 @@ const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
 
 /**
  * @brief RequestBuilder::getCPUUtilisationRequest
+ * @throws std::invalid_argument
  * @return
  */
 const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
@@ -274,6 +276,7 @@ const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
 
 /**
  * @brief RequestBuilder::getMemoryUtilisationRequest
+ * @throws std::invalid_argument
  * @return
  */
 const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
@@ -287,6 +290,7 @@ const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() co
 
 /**
  * @brief RequestBuilder::getMarkerRequest
+ * @throws std::invalid_argument
  * @return
  */
 const MarkerRequest& RequestBuilder::getMarkerRequest() const

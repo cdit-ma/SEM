@@ -23,7 +23,7 @@ class Chart : public QWidget
     Q_OBJECT
 
 public:
-    explicit Chart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent = 0);
+    explicit Chart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent = nullptr);
 
     quint32 getExperimentRunID() const;
 

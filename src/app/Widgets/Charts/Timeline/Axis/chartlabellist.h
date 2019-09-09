@@ -18,7 +18,7 @@ class ChartLabelList : public QWidget
     Q_OBJECT
 
 public:
-    explicit ChartLabelList(QWidget* parent = 0);
+    explicit ChartLabelList(QWidget* parent = nullptr);
 
     int appendChartLabel(ChartLabel* chartLabel);
     int insertChartLabel(ChartLabel* prevChartLabel, ChartLabel* chartLabel);
@@ -37,7 +37,7 @@ public slots:
     void resizeEvent(QResizeEvent* event);
 
 private:
-    QVBoxLayout* mainLayout_;
+    QVBoxLayout* mainLayout_ = nullptr;
 
     int minimumEntityHeight_ = 0;
     int maximumEntityWidth_ = 0;

@@ -14,8 +14,8 @@ PortLifecycleEvent::PortLifecycleEvent(const AggServerResponse::Port& port,
                                        qint64 time,
                                        QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::PORT_LIFECYCLE, time, port.name, parent),
-      port_(port),
       kind_(kind),
+      port_(port),
       type_(type) {}
 
 

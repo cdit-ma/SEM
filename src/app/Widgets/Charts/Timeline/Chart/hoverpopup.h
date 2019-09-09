@@ -8,7 +8,7 @@ class HoverPopup : public PopupWidget
     Q_OBJECT
 
 public:
-    explicit HoverPopup(QWidget* parent = 0);
+    explicit HoverPopup(QWidget* parent = nullptr);
 
     void adjustChildrenSize(QString widgetName = "", Qt::FindChildOptions options = Qt::FindChildrenRecursively);
 
@@ -21,8 +21,8 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
-    QColor _backgroundColor;
-    QColor _borderColor;
+    QColor backgroundColor_;
+    QColor borderColor_;
     bool useDefaultBorder;
 
 };

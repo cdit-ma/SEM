@@ -14,7 +14,7 @@ class AxisWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = 0);
+    explicit AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = nullptr);
 
     void setZoomFactor(double factor);
     void setAxisMargin(int margin);

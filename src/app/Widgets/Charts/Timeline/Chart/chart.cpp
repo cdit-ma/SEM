@@ -68,9 +68,9 @@ void Chart::addSeries(EventSeries* series)
         if (series->getKind() == ChartDataKind::CPU_UTILISATION ||
                 series->getKind() == ChartDataKind::MEMORY_UTILISATION) {
             containsYRange_ = true;
+            connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
+            connect(series, &EventSeries::maxYValueChanged, this, &Chart::updateVerticalMax);
         }
-        connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
-        connect(series, &EventSeries::maxYValueChanged, this, &Chart::updateVerticalMax);
     }
 }
 
@@ -425,6 +425,8 @@ void Chart::resizeEvent(QResizeEvent* event)
  */
 void Chart::paintEvent(QPaintEvent* event)
 {
+    Q_UNUSED(event);
+
     /*
      * NOTE - This assumes that the data is ordered in ascending order time-wise
      */
@@ -553,7 +555,7 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(ChartDataKind::PORT_LIFECYCLE, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::PORT_LIFECYCLE, nullptr);
     if (!eventSeries)
         return;
 
@@ -657,7 +659,7 @@ void Chart::paintWorkloadEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(ChartDataKind::WORKLOAD, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::WORKLOAD, nullptr);
     if (!eventSeries)
         return;
 
@@ -759,7 +761,7 @@ void Chart::paintCPUUtilisationEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(ChartDataKind::CPU_UTILISATION, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::CPU_UTILISATION, nullptr);
     if (!eventSeries)
         return;
 
@@ -941,7 +943,7 @@ void Chart::paintMemoryUtilisationEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(ChartDataKind::MEMORY_UTILISATION, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::MEMORY_UTILISATION, nullptr);
     if (!eventSeries)
         return;
 
@@ -1123,7 +1125,7 @@ void Chart::paintMarkerEventSeries(QPainter &painter)
 {
     auto start = QDateTime::currentMSecsSinceEpoch();
 
-    const auto eventSeries = seriesList_.value(ChartDataKind::MARKER, 0);
+    const auto eventSeries = seriesList_.value(ChartDataKind::MARKER, nullptr);
     if (!eventSeries)
         return;
 

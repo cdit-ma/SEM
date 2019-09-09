@@ -58,7 +58,7 @@ void ChartInputPopup::enableFilters()
 bool ChartInputPopup::eventFilter(QObject *watched, QEvent *event)
 {
    if (event->type() == QEvent::KeyPress) {
-       QKeyEvent* ke = (QKeyEvent*) event;
+       QKeyEvent* ke = dynamic_cast<QKeyEvent*>(event);
        if (ke->key() == Qt::Key_Escape) {
            experimentNameLineEdit_->setText(typedExperimentName_);
        }
@@ -315,7 +315,7 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
         break;
     }
 
-    auto layout = groupBoxLayouts.value(filter, 0);
+    auto layout = groupBoxLayouts.value(filter, nullptr);
     if (!layout)
         return;
 
@@ -510,7 +510,7 @@ void ChartInputPopup::setupFilterWidgets()
     QAction* spacerAction = toolbar_->actions().at(0);
     toolbar_->insertAction(spacerAction, filterAction_);
 
-    QToolButton* button = (QToolButton*) toolbar_->widgetForAction(filterAction_);
+    QToolButton* button = qobject_cast<QToolButton*>(toolbar_->widgetForAction(filterAction_));
     button->setPopupMode(QToolButton::InstantPopup);
     button->setStyleSheet("QToolButton::menu-indicator{ image:none; }");
 
@@ -520,7 +520,7 @@ void ChartInputPopup::setupFilterWidgets()
 
     // insert the group boxes above the bottom toolbar
     if (getWidget() && getWidget()->layout()) {
-        auto vLayout = (QVBoxLayout*) getWidget()->layout();
+        auto vLayout = qobject_cast<QVBoxLayout*>(getWidget()->layout());
         int index = vLayout->indexOf(toolbar_);
         vLayout->insertWidget(index, workersGroupBox_);
         vLayout->insertWidget(index, componentsGroupBox_);
@@ -532,6 +532,7 @@ void ChartInputPopup::setupFilterWidgets()
 /**
  * @brief ChartInputPopup::getSelectedFilter
  * @param filter
+ * @throws std::runtime_error
  * @return
  */
 QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
@@ -544,8 +545,7 @@ QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
     case FILTER_KEY::WORKER_FILTER:
         return selectedWorker_;
     default:
-        //TODO: THrow exception
-        return selectedWorker_;
+        throw std::runtime_error("ChartInputPopup::getSelectedFilter - Filter key is not handled.");
     }
 }
 
@@ -553,6 +553,7 @@ QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
 /**
  * @brief ChartInputPopup::getFilterList
  * @param filter
+ * @throws std::runtime_error
  * @return
  */
 QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
@@ -565,8 +566,7 @@ QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
     case FILTER_KEY::WORKER_FILTER:
         return workers_;
     default:
-        //TODO: THrow exception
-        return workers_;
+        throw std::runtime_error("ChartInputPopup::getSelectedFilter - Filter key is not handled.");
     }
 }
 
@@ -587,8 +587,6 @@ QGroupBox* ChartInputPopup::getFilterGroupBox(ChartInputPopup::FILTER_KEY filter
         return componentsGroupBox_;
     case FILTER_KEY::WORKER_FILTER:
         return workersGroupBox_;
-    default:
-        return 0;
     }
 }
 
