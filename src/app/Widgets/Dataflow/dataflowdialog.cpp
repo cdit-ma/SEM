@@ -32,7 +32,7 @@ DataflowDialog::DataflowDialog(QWidget *parent) : QFrame(parent)
  * @param exp_name
  * @param exp_run_id
  */
-void DataflowDialog::setExperimentInfo(const QString &exp_name, qint32 exp_run_id)
+void DataflowDialog::setExperimentInfo(const QString &exp_name, quint32 exp_run_id)
 {
     if (parentWidget()) {
         auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
@@ -60,12 +60,15 @@ void DataflowDialog::themeChanged()
 void DataflowDialog::displayExperimentState(const AggServerResponse::ExperimentState &expState)
 {
     // Clear previous items
-    view_->scene()->clear();
+    clear();
 
     qDebug() << "---------------------------------------------------------------";
+    qDebug() << "nodes#: " << expState.nodes.size();
 
     for (const auto& n : expState.nodes) {
+        qDebug() << "containers#: " << n.containers.size();
         for (const auto& c : n.containers) {
+            qDebug() << "comp inst#: " << c.component_instances.size();
             for (const auto& inst : c.component_instances) {
 
                 qDebug() << "Component Instance: " << inst.name << " - " << inst.path;
@@ -78,8 +81,19 @@ void DataflowDialog::displayExperimentState(const AggServerResponse::ExperimentS
                     c_instItem->addPortInstanceItem(p_instItem);
                 }
 
-                qDebug() << "---------------------------------------------------------------";
             }
         }
     }
+
+    qDebug() << "---------------------------------------------------------------";
+}
+
+
+/**
+ * @brief DataflowDialog::clear
+ * This clears all the graphics items in the scene
+ */
+void DataflowDialog::clear()
+{
+    view_->scene()->clear();
 }

@@ -27,8 +27,9 @@ signals:
 
 public slots:
     void displayChartPopup();
-
     void filterRequestsBySelectedEntities(const QVector<ViewItem*>& selectedItems, const QList<MEDEA::ChartDataKind>& selectedDataKinds);
+
+private slots:
     void experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun);
 
 protected:
@@ -39,13 +40,13 @@ private:
     AggregationProxy& aggregationProxy();
     TimelineChartView& timelineChartView();
 
-    void experimentRunStateReceived(AggServerResponse::ExperimentRun experimentRun, AggServerResponse::ExperimentState experimentState);
-    void requestEventsForExperimentRun(const AggServerResponse::ExperimentRun &experimentRun);
+    void experimentRunStateReceived(AggServerResponse::ExperimentState experimentState);
+    void setupRequestsForExperimentRun(const quint32 experimentRunID);
 
     void requestExperimentRuns(const QString& experimentName);
     void requestExperimentState(const quint32 experimentRunID);
 
-    void requestEvents(const RequestBuilder &builder, const AggServerResponse::ExperimentRun &experimentRun);
+    void requestEvents(const RequestBuilder &builder);
     void requestPortLifecycleEvents(const PortLifecycleRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
     void requestWorkloadEvents(const WorkloadRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
     void requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
@@ -62,6 +63,7 @@ private:
 
     QVector<ViewItem*> selectedViewItems_;
     QList<MEDEA::ChartDataKind> selectedDataKinds_;
+    AggServerResponse::ExperimentRun selectedExperimentRun_;
 
     const ViewController& viewController_;
     static ChartManager* manager_;

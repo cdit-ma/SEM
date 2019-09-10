@@ -4,6 +4,8 @@
 
 #include <QFutureWatcher>
 
+const int invalid_experiment_id = -1;
+
 ChartManager* ChartManager::manager_ = nullptr;
 
 /**
@@ -18,8 +20,9 @@ ChartManager::ChartManager(const ViewController &vc)
 
     connect(&vc, &ViewController::vc_displayChartPopup, this, &ChartManager::displayChartPopup);
     connect(&vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
-    connect(&vc, &ViewController::modelClosed, chartDialog_, &ChartDialog::clear);
 
+    connect(&vc, &ViewController::modelClosed, chartDialog_, &ChartDialog::clear);
+    connect(&vc, &ViewController::modelClosed, dataflowDialog_, &DataflowDialog::clear);
 
     connect(this, &ChartManager::showChartsPanel, &ChartManager::showDataflowPanel);
     connect(&chartPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartManager::experimentRunSelected);
@@ -65,7 +68,7 @@ void ChartManager::requestExperimentRuns(const QString& experimentName)
             try {
                 cp.setExperimentRuns(futureWatcher->result().toList());
             } catch(const std::exception& ex) {
-                toastNotification("Failed to request experiment runs - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
+                toastNotification("Failed to get experiment runs - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
             }
         });
 
@@ -75,7 +78,6 @@ void ChartManager::requestExperimentRuns(const QString& experimentName)
         toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
     } catch (const RequestException& ex) {
         toastNotification("Failed to request experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "requestExperimentRuns - DIED here???";
     }
 }
 
@@ -90,12 +92,12 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
         auto future = aggregationProxy().RequestExperimentState(experimentRunID);
         auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
 
-        connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [&tv = timelineChartView(), futureWatcher, experimentRunID]() {
+        connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [this, futureWatcher]() {
             try {
-                auto state = futureWatcher->result();
-                tv.updateExperimentRunLastUpdatedTime(experimentRunID, state.last_updated_time);
+                // once the state is received, request the events for the selected experiment run
+                experimentRunStateReceived(futureWatcher->result());
             } catch (const std::exception& ex) {
-                toastNotification("Failed to request experiment state - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
+                toastNotification("Failed to get experiment state - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
             }
         });
 
@@ -105,43 +107,51 @@ void ChartManager::requestExperimentState(const quint32 experimentRunID)
         toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
     } catch (const RequestException& ex) {
         toastNotification("Failed to request experiment state: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "requestExperimentState - DIED here???";
     }
 }
 
 
 /**
  * @brief ChartManager::requestEvents
+ * This is the last function that is called, from when a valid experiment run is selected from the ChartInputPopup
+ * This is where the chart data request chain ends
  * @param builder
- * @param experimentRun
  */
-void ChartManager::requestEvents(const RequestBuilder& builder, const AggServerResponse::ExperimentRun& experimentRun)
+void ChartManager::requestEvents(const RequestBuilder& builder)
 {
+    // check if there is a valid selected experiment run
+    if (selectedExperimentRun_.experiment_run_id == invalid_experiment_id) {
+        return;
+    }
+
     try {
-        requestPortLifecycleEvents(builder.getPortLifecycleRequest(), experimentRun);
+        requestPortLifecycleEvents(builder.getPortLifecycleRequest(), selectedExperimentRun_);
     } catch (const std::exception&) {
         qInfo("No PortLifecycleRequest");
     }
     try {
-        requestWorkloadEvents(builder.getWorkloadRequest(), experimentRun);
+        requestWorkloadEvents(builder.getWorkloadRequest(), selectedExperimentRun_);
     } catch (const std::exception&) {
         qInfo("No WorkloadRequest");
     }
     try {
-        requestCPUUtilisationEvents(builder.getCPUUtilisationRequest(), experimentRun);
+        requestCPUUtilisationEvents(builder.getCPUUtilisationRequest(), selectedExperimentRun_);
     } catch (const std::exception&) {
         qInfo("No CPUUtilisationRequest");
     }
     try {
-        requestMemoryUtilisationEvents(builder.getMemoryUtilisationRequest(), experimentRun);
+        requestMemoryUtilisationEvents(builder.getMemoryUtilisationRequest(), selectedExperimentRun_);
     } catch (const std::exception&) {
         qInfo("No MemoryUtilisationRequest");
     }
     try {
-        requestMarkerEvents(builder.getMarkerRequest(), experimentRun);
+        requestMarkerEvents(builder.getMarkerRequest(), selectedExperimentRun_);
     } catch (const std::exception&) {
         qInfo("No MarkerRequest");
     }
+
+    // reset the selected run
+    selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
 }
 
 
@@ -166,7 +176,7 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
                     timelineChartView().addPortLifecycleEvents(experimentRun, events);
                 }
             } catch (const std::exception& ex) {
-                toastNotification("Failed to request port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
+                toastNotification("Failed to get port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
             }
         });
 
@@ -176,7 +186,6 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
         toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
     } catch (const RequestException& ex) {
         toastNotification("Failed to request port lifecycle events: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "requestPortLifecycleEvents - DIED here???";
     }
 }
 
@@ -201,7 +210,7 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const A
                     timelineChartView().addWorkloadEvents(experimentRun, events);
                 }
             } catch (const std::exception& ex) {
-                toastNotification("Failed to request workload events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
+                toastNotification("Failed to get workload events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
             }
         });
 
@@ -211,7 +220,6 @@ void ChartManager::requestWorkloadEvents(const WorkloadRequest &request, const A
         toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
     } catch (const RequestException& ex) {
         toastNotification("Failed to request workload events: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "requestWorkloadEvents - DIED here???";
     }
 }
 
@@ -236,7 +244,7 @@ void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &requ
                     timelineChartView().addCPUUtilisationEvents(experimentRun, events);
                 }
             } catch (const std::exception& ex) {
-                toastNotification("Failed to request cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
+                toastNotification("Failed to get cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
             }
         });
 
@@ -246,7 +254,6 @@ void ChartManager::requestCPUUtilisationEvents(const CPUUtilisationRequest &requ
         toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
     } catch (const RequestException& ex) {
         toastNotification("Failed to request cpu utilisation events: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "requestCPUUtilisationEvents - DIED here???";
     }
 }
 
@@ -271,7 +278,7 @@ void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest
                     timelineChartView().addMemoryUtilisationEvents(experimentRun, events);
                 }
             } catch (const std::exception& ex) {
-                toastNotification("Failed to request memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
+                toastNotification("Failed to get memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
             }
         });
 
@@ -281,7 +288,6 @@ void ChartManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest
         toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
     } catch (const RequestException& ex) {
         toastNotification("Failed to request memory utilisation events: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "requestMemoryUtilisationEvents - DIED here???";
     }
 }
 
@@ -306,7 +312,7 @@ void ChartManager::requestMarkerEvents(const MarkerRequest &request, const AggSe
                     timelineChartView().addMarkerEvents(experimentRun, events);
                 }
             } catch (const std::exception& ex) {
-                toastNotification("Failed to request marker events - " + QString::fromStdString(ex.what()), "bookmark", Notification::Severity::ERROR);
+                toastNotification("Failed to get marker events - " + QString::fromStdString(ex.what()), "bookmark", Notification::Severity::ERROR);
             }
         });
 
@@ -316,7 +322,6 @@ void ChartManager::requestMarkerEvents(const MarkerRequest &request, const AggSe
         toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
     } catch (const RequestException& ex) {
         toastNotification("Failed to request marker events: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "requestMarkerEvents - DIED here???";
     }
 }
 
@@ -381,7 +386,7 @@ DataflowDialog &ChartManager::getDataflowDialog()
     if (dataflowDialog_ != nullptr) {
         return *dataflowDialog_;
     } else {
-        throw std::runtime_error("Could not get DataflowDialog referece; dataflow_ is null.");
+        throw std::runtime_error("Could not get DataflowDialog referece; dataflowDialog_ is null.");
     }
 }
 
@@ -411,63 +416,55 @@ void ChartManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &se
 
 /**
  * @brief ChartManager::experimentRunSelected
+ * This slot is called when an experiment run was selected from the ChartInputPopup and "OK" was clicked
+ * This is where the chart data request chain starts
  * @param experimentRun
  */
 void ChartManager::experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun)
 {
-    try {
-        // request the experiment state to get the experiment run's last updated time
-        auto experimentRunID = experimentRun.experiment_run_id;
-        auto future = aggregationProxy().RequestExperimentState(static_cast<quint32>(experimentRunID));
-        auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
-
-        connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [this, futureWatcher, experimentRun]() {
-            try {
-                // once the state is received, request the events for the selected experiment run
-                experimentRunStateReceived(experimentRun, futureWatcher->result());
-            } catch (const std::exception& ex) {
-                toastNotification("Failed to request experiment state - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-            }
-        });
-
-        futureWatcher->setFuture(future);
-
-    } catch (const NoRequesterException& ex) {
-        toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-    } catch (const RequestException& ex) {
-        toastNotification("Failed to request experiment state: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-        qCritical() << "experimentRunSelected - DIED here???";
+    if (experimentRun.experiment_run_id != invalid_experiment_id) {
+        auto expRunID = static_cast<quint32>(experimentRun.experiment_run_id);
+        selectedExperimentRun_ = experimentRun;
+        requestExperimentState(expRunID);
     }
 }
 
 
 /**
  * @brief ChartManager::experimentRunStateReceived
- * @param experimentRun
  * @param experimentState
  */
-void ChartManager::experimentRunStateReceived(AggServerResponse::ExperimentRun experimentRun, AggServerResponse::ExperimentState experimentState)
+void ChartManager::experimentRunStateReceived(AggServerResponse::ExperimentState experimentState)
 {
-    experimentRun.last_updated_time = experimentState.last_updated_time;
-    requestEventsForExperimentRun(experimentRun);
+    // check if there is a valid selected experiment run
+    if (selectedExperimentRun_.experiment_run_id == invalid_experiment_id) {
+        return;
+    }
 
-    if (dataflowDialog_) {
-        dataflowDialog_->setExperimentInfo(experimentRun.experiment_name, experimentRun.experiment_run_id);
-        dataflowDialog_->displayExperimentState(experimentState);
+    auto expRunID = static_cast<quint32>(selectedExperimentRun_.experiment_run_id);
+    auto stateID = static_cast<quint32>(experimentState.experiment_run_id);
+
+    if (expRunID == stateID) {
+        // updated the selected experiment run's last updated time
+        auto expLastUpdatedTime = experimentState.last_updated_time;
+        selectedExperimentRun_.last_updated_time = expLastUpdatedTime;
+        // let the view know to update the time-range for the charts with the same expRunID
+        timelineChartView().updateExperimentRunLastUpdatedTime(expRunID, expLastUpdatedTime);
+        // setup/build the requests
+        setupRequestsForExperimentRun(expRunID);
+        // setup/display experiment data for PULSE
+        getDataflowDialog().setExperimentInfo(selectedExperimentRun_.experiment_name, expRunID);
+        getDataflowDialog().displayExperimentState(experimentState);
     }
 }
 
 
 /**
- * @brief ChartManager::requestEventsForExperimentRun
- * @param experimentRun
+ * @brief ChartManager::setupRequestsForExperimentRun
+ * @param experimentRunID
  */
-void ChartManager::requestEventsForExperimentRun(const AggServerResponse::ExperimentRun& experimentRun)
+void ChartManager::setupRequestsForExperimentRun(const quint32 experimentRunID)
 {
-    auto experimentRunID = experimentRun.experiment_run_id;
-    if (experimentRunID == -1)
-        return;
-
     if (selectedDataKinds_.isEmpty()) {
         selectedDataKinds_ = MEDEA::Event::GetChartDataKinds();
         selectedDataKinds_.removeAll(MEDEA::ChartDataKind::DATA);
@@ -475,9 +472,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
 
     auto builder = RequestBuilder::build();
     builder.buildRequests(selectedDataKinds_);
-    builder.setExperimentID(static_cast<quint32>(experimentRunID));
-
-    //qDebug() << "-----------------------------FILTERS-----------------------------";
+    builder.setExperimentID(experimentRunID);
 
     if (!selectedViewItems_.isEmpty()) {
 
@@ -586,9 +581,7 @@ void ChartManager::requestEventsForExperimentRun(const AggServerResponse::Experi
         builder.setNodeHostnames(nodeHostnames);
     }
 
-    //qDebug() << "-----------------------------------------------------------------";
-
-    requestEvents(builder, experimentRun);
+    requestEvents(builder);
     selectedDataKinds_.clear();
     selectedViewItems_.clear();
 }

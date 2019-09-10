@@ -154,8 +154,8 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
         return;
 
     // hiding then showing the groupbox stops the glitching
-    auto filter = (FILTER_KEY) action->property(FILTER).toUInt();
     if (action->isChecked()) {
+        auto filter = static_cast<FILTER_KEY>(action->property(FILTER).toUInt());
         resetGroupBox(filter);
         populateGroupBox(filter);
         setGroupBoxVisible(filter, true);
@@ -325,6 +325,8 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
         layout->removeWidget(button);
         button->deleteLater();
     }
+
+    groupBox->updateGeometry();
 }
 
 
@@ -380,7 +382,7 @@ void ChartInputPopup::resizePopup()
 
 
 /**
- * @brief ChartInputPopup::reset
+ * @brief ChartInputPopup::resetPopup
  */
 void ChartInputPopup::resetPopup()
 {
@@ -604,7 +606,7 @@ QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY f
     groupBoxLayouts[filter] = constructVBoxLayout(groupBox, GROUPBOX_ITEM_SPACING);
 
     QAction* action = filterMenu_->addAction(filterName);
-    action->setProperty(FILTER, (uint)filter);
+    action->setProperty(FILTER, static_cast<uint>(filter));
     action->setCheckable(true);
     connect(action, &QAction::toggled, groupBox, &QGroupBox::setVisible);
 

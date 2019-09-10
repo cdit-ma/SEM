@@ -13,7 +13,7 @@ class DataflowDialog : public QFrame
 public:
     explicit DataflowDialog(QWidget* parent = nullptr);
 
-    void setExperimentInfo(const QString& exp_name, qint32 exp_run_id);
+    void setExperimentInfo(const QString& exp_name, quint32 exp_run_id);
 
 signals:
     void showDataflowDockWidget();
@@ -22,6 +22,7 @@ public slots:
     void themeChanged();
 
     void displayExperimentState(const AggServerResponse::ExperimentState& expState);
+    void clear();
 
 private:
     QGraphicsView* view_ = nullptr;
