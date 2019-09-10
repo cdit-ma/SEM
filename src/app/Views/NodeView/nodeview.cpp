@@ -22,14 +22,14 @@
 #include "SceneItems/Edge/edgeitem.h"
 #include "../../theme.h"
 
-
-
-
 #define ZOOM_INCREMENTOR 1.05
+#define ZOOM_DEFAULT_RATIO 1.0
+#define ZOOM_MIN_RATIO 0.1
+#define ZOOM_MAX_RATIO 10.0
+
 
 NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 {
-    
     setMinimumSize(200, 200);
     setupStateMachine();
     
@@ -53,8 +53,6 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
 
     setCacheMode(QGraphicsView::CacheBackground);
 
-
-
     //Turn off the Scroll bars.
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -70,6 +68,14 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     themeChanged();
 
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeView::activeViewDockChanged);
+
+    // Connect view zoom anchor setting
+    connect(SettingsController::settings(), &SettingsController::settingChanged, [this](SETTINGS key, QVariant value) {
+        if (key == SETTINGS::GENERAL_ZOOM_UNDER_MOUSE) {
+            bool zoom_under_mouse = value.toBool();
+            zoom_anchor_ = zoom_under_mouse ? ViewportAnchor::AnchorUnderMouse : ViewportAnchor::AnchorViewCenter;
+        }
+    });
 }
 
 
@@ -112,9 +118,6 @@ void NodeView::setViewController(ViewController *viewController)
         connect(this, &NodeView::removeData, viewController, &ViewController::RemoveData);
         connect(this, &NodeView::editData, viewController, &ViewController::vc_editTableCell);
 
-
-
-
         connect(viewController, &ViewController::vc_centerItem, this, &NodeView::centerItem);
         connect(viewController, &ViewController::vc_fitToScreen, this, &NodeView::AllFitToScreen);
 
@@ -146,12 +149,21 @@ void NodeView::translate(QPointF point)
 void NodeView::scale(qreal sx, qreal sy)
 {
     if(sx != 1 || sy != 1){
+
+        //qDebug() << "sx: " << sx;
+        //qDebug() << "sy: " << sy;
         auto t = transform();
+
+        //qDebug() << "t.m11: " << t.m11();
+
+
         auto zoom = t.m11() * sx;
 
-        // limits the max zoom to 500%
-        zoom = qMin(zoom, 5.0);
-        //zoom = qMin(zoom, 10.0); // THIS IS ONLY USED FOR SCREENSHOTS!
+        //qDebug() << "zoom: " << zoom;
+
+        // limits the max zoom to 750%
+        zoom = qMin(zoom, ZOOM_MAX_RATIO);
+        //qDebug() << "zoom2: " << zoom;
 
         //m11 and m22 are x/y scaling respectively
         t.setMatrix(zoom, t.m12(), t.m13(), t.m21(), zoom, t.m23(), t.m31(), t.m32(), t.m33());
@@ -164,6 +176,29 @@ void NodeView::setContainedViewAspect(VIEW_ASPECT aspect)
     containedAspect = aspect;
     isAspectView = true;
     themeChanged();
+
+    // Set default values
+    auto settings = SettingsController::settings();
+    center_on_construct_ = settings->getSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_CENTER).toBool();
+    select_on_construct_ = settings->getSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT).toBool();
+
+    // Connect the select and center on construction settings - we only want these for aspect views
+    connect(settings, &SettingsController::settingChanged, [this](SETTINGS key, QVariant value){
+        if (key == SETTINGS::GENERAL_ON_CONSTRUCTION_CENTER) {
+            center_on_construct_ = value.toBool();
+        } else if (key == SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT) {
+            select_on_construct_ = value.toBool();
+        }
+    });
+
+    // Catch the view controller's signals to get the required data for the above to work
+    if (viewController != nullptr) {
+        connect(viewController, &ViewController::ConstructNodeAtPos, this, &NodeView::constructNode);
+        connect(viewController, &ViewController::ConstructNodeAtIndex, this, &NodeView::constructNode);
+        connect(viewController, &ViewController::ConstructConnectedNodeAtPos, this, &NodeView::constructNode);
+        connect(viewController, &ViewController::ConstructConnectedNodeAtIndex, this, &NodeView::constructNode);
+        connect(viewController, &ViewController::ActionFinished, this, &NodeView::actionFinished);
+    }
 }
 
 void NodeView::setContainedNodeViewItem(NodeViewItem *item)
@@ -636,6 +671,23 @@ void NodeView::centerItem(int ID)
     }
 }
 
+
+/**
+ * @brief NodeView::centerOnItem
+ * @param ID
+ */
+void NodeView::centerOnItem(int ID)
+{
+    EntityItem* item = getEntityItem(ID);
+    if (item) {
+        if (parentWidget()) {
+            parentWidget()->show();
+        }
+        centerOnItem(item);
+    }
+}
+
+
 void NodeView::highlightItem(int ID, bool highlighted)
 {
     EntityItem* item = getEntityItem(ID);
@@ -701,6 +753,20 @@ void NodeView::centerOnItems(QList<EntityItem *> items)
     centerRect(getSceneBoundingRectOfItems(items));
 }
 
+
+/**
+ * @brief NodeView::centerOnItem
+ * @param item
+ */
+void NodeView::centerOnItem(EntityItem* item)
+{
+    if (!item->isVisibleTo(nullptr)) {
+        showItem(item);
+    }
+    centerRect(item->sceneBoundingRect());
+}
+
+
 QRectF NodeView::getSceneBoundingRectOfItems(QList<EntityItem *> items)
 {
     QRectF itemsRect;
@@ -716,25 +782,30 @@ void NodeView::centerRect(QRectF rectScene)
 {
     if(rectScene.isValid()){
         //Inflate by 110%
-        QRectF visibleRect = viewportRect();
+        QRectF visibleRect = viewportSceneRect();
         qreal widthRatio = visibleRect.width() / (rectScene.width() * 1.1);
         qreal heightRatio = visibleRect.height() / (rectScene.height() * 1.1);
-
         qreal scaleRatio = qMin(widthRatio, heightRatio);
 
-        //Change the scale.
-        scale(scaleRatio, scaleRatio);
+        cappedScale(scaleRatio);
         centerView(rectScene.center());
+
     }else{
         resetMatrix();
     }
 }
 
+
+/**
+ * @brief NodeView::centerView
+ * Center the view on the given scene position
+ * @param scenePos
+ */
 void NodeView::centerView(QPointF scenePos)
 {
-    QPointF delta = viewportRect().center() - scenePos;
+    QPointF delta = viewportSceneRect().center() - scenePos;
     translate(delta);
-    viewportCenter_Scene = viewportRect().center();
+    viewportCenter_Scene = viewportSceneRect().center();
 }
 
 
@@ -755,7 +826,7 @@ void NodeView::topLevelItemMoved()
 
 
 void NodeView::update_minimap(){
-    emit viewport_changed(viewportRect(), transform().m11());
+    emit viewport_changed(viewportSceneRect(), transform().m11());
     emit scenerect_changed(currentSceneRect);
 }
 
@@ -805,6 +876,7 @@ void NodeView::viewItem_LabelChanged(QString label)
     background_text_rect = fm.boundingRect(text);
 }
 
+
 void NodeView::activeViewDockChanged(ViewDockWidget* dw){
 
     bool active = dw && dw->widget() == this;
@@ -814,10 +886,17 @@ void NodeView::activeViewDockChanged(ViewDockWidget* dw){
     }
 }
 
-QRectF NodeView::viewportRect()
+
+/**
+ * @brief NodeView::viewportSceneRect
+ * This returns the viewport's rectangle in scene coordinates
+ * @return
+ */
+QRectF NodeView::viewportSceneRect()
 {
     return mapToScene(viewport()->rect()).boundingRect();
 }
+
 
 void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 {
@@ -1305,6 +1384,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 if(stack_item){
                     stack_item->RecalculateCells();
                 }
+
+                if (is_active) {
+                    if (node_kind == clicked_node_kind_) {
+                        constructed_node_id_ = ID;
+                        clicked_node_kind_ = NODE_KIND::NONE;
+                    }
+                }
             }
         }
     }
@@ -1419,26 +1505,65 @@ EntityItem *NodeView::getEntityItem(ViewItem *item) const
     return e;
 }
 
-void NodeView::zoom(int delta, QPoint anchorScreenPos)
+
+/**
+ * @brief NodeView::zoom
+ * This zooms the view in/out and centers it on the set anchor point
+ * @param delta
+ * @param anchor_screen_pos
+ */
+void NodeView::zoom(int delta, QPoint anchor_screen_pos)
 {
-    if(delta != 0){
-        QPointF anchorScenePos;
+    // Store anchor point
+    auto anchor_scene_pos = viewportSceneRect().center();
+    switch (zoom_anchor_) {
+    case ViewportAnchor::AnchorUnderMouse:
+        anchor_scene_pos = mapToScene(anchor_screen_pos);
+        break;
+    default:
+        break;
+    }
 
-        if(!topLevelGUIItemIDs.isEmpty()){
-            anchorScenePos = getScenePosOfPoint(anchorScreenPos);
-        }
-        //Calculate the zoom change.
-        qreal scaleFactor = pow(ZOOM_INCREMENTOR, (delta / abs(delta)));
-        if(scaleFactor != 1){
-            scale(scaleFactor, scaleFactor);
+    // Scale the view
+    if (delta < 0) {
+        cappedScale(1 / ZOOM_INCREMENTOR);
+    } else {
+        cappedScale(ZOOM_INCREMENTOR);
+    }
 
-            if(!topLevelGUIItemIDs.isEmpty()){
-                QPointF delta = getScenePosOfPoint(anchorScreenPos) - anchorScenePos;
-                translate(delta);
-            }
-       }
+    // Center on the anchor point
+    switch (zoom_anchor_) {
+    case ViewportAnchor::AnchorUnderMouse: {
+        auto delta_pos = mapToScene(anchor_screen_pos) - anchor_scene_pos;
+        translate(delta_pos);
+        break;
+    }
+    default:
+        centerView(anchor_scene_pos);
+        break;
     }
 }
+
+
+/**
+ * @brief NodeView::cappedScale
+ * This scales the view capped to the defined min/max zoom ratio
+ * @param scale
+ */
+void NodeView::cappedScale(qreal scale)
+{
+    auto current_scale = transform().m11();
+    auto new_scale = current_scale * scale;
+    if (new_scale < ZOOM_MIN_RATIO) {
+        resetMatrix();
+        scale = ZOOM_MIN_RATIO;
+    } else if (new_scale > ZOOM_MAX_RATIO) {
+        resetMatrix();
+        scale = ZOOM_MAX_RATIO;
+    }
+    QGraphicsView::scale(scale, scale);
+}
+
 
 QPointF NodeView::getScenePosOfPoint(QPoint pos)
 {
@@ -1680,6 +1805,39 @@ void NodeView::state_Default_Entered()
 {
     unsetCursor();
 }
+
+
+/**
+ * @brief NodeView::constructNode
+ * This is called when the add/plus button/menu is triggered
+ * It stores the node kind that is to be constructed
+ * @param parent_id
+ * @param kind
+ */
+void NodeView::constructNode(int parent_id, NODE_KIND kind)
+{
+    Q_UNUSED(parent_id);
+    clicked_node_kind_ = kind;
+}
+
+
+/**
+ * @brief NodeView::actionFinished
+ * This is called whenever an undo/redoable action is finished
+ */
+void NodeView::actionFinished()
+{
+    if (constructed_node_id_ != -1) {
+        if (center_on_construct_) {
+            centerOnItem(constructed_node_id_);
+        }
+        if (select_on_construct_) {
+            selectItemIDs({constructed_node_id_});
+        }
+        constructed_node_id_ = -1;
+    }
+}
+
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {

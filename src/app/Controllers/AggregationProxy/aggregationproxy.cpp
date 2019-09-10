@@ -14,12 +14,12 @@ AggregationProxy::AggregationProxy()
 {
     auto settings = SettingsController::settings();
     connect(settings, &SettingsController::settingChanged, [=](SETTINGS key, QVariant value) {
-        if (key == SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT) {
+        if (key == SETTINGS::CHARTS_AGGREGATION_BROKER_ENDPOINT) {
             SetServerEndpoint(value.toString());
         }
     });
 
-    SetServerEndpoint(settings->getSetting(SETTINGS::CHARTS_AGGREGATION_SERVER_ENDPOINT).toString());
+    SetServerEndpoint(settings->getSetting(SETTINGS::CHARTS_AGGREGATION_BROKER_ENDPOINT).toString());
 }
 
 

@@ -298,6 +298,7 @@ QVBoxLayout *AppSettings::getCategoryLayout(QString category)
 
 
 CustomGroupBox *AppSettings::getSectionBox(QString category, QString section){
+
     auto key = settingKey(category, section);
     CustomGroupBox* box = sectionBoxes.value(key, 0);
     if(!box){
