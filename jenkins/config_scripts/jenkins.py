@@ -45,6 +45,7 @@ class JenkinsHandle:
         print("Creating Jenkins job: " + job_name)
         # TODO: Replace print with subprocess call
         create_job_command = ["java", "-jar", self.jenkins_jar_file_name, "-s", self.server_url, "create-job", job_name]
+        print(create_job_command)
         # process = subprocess.Popen(create_job_command, stdin=subprocess.PIPE)
         # process.communicate(input=open(file_path).read().encode())
 
@@ -67,5 +68,6 @@ class JenkinsHandle:
         # TODO: Pipe mutated xml file into create_node_command run
         create_node_command = ["java", "-jar", self.jenkins_jar_file_name, "-s", self.server_url, "create-node",
                                node_config.node_name]
+        print(create_node_command)
         # process = subprocess.Popen(create_node_command, stdin=subprocess.PIPE)
         # process.communicate(input=mutated_xml_string)
