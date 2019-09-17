@@ -170,8 +170,18 @@ pipeline{
 
                                             unstash('codegen')
                                             dir("build"){
-                                                if(!utils.buildProject("Ninja", "-DCMAKE_INSTALL_PREFIX=../install", true)){
-                                                    error("CMake failed on Builder Node: ${builder_name}")
+
+                                                // If building on a raspberry pi, Unix Makefiles and only 2 cores
+                                                // This fixes issues caused by ninja oversubscribing the rpi's cpu and ram
+                                                if(os.contains("raspi")) {
+                                                    if(!utils.buildProject("Unix Makefiles", "-DCMAKE_INSTALL_PREFIX=../install -- -j2", true)){
+                                                        error("CMake failed on Builder Node: ${builder_name}")
+                                                    }
+                                                }
+                                                else {
+                                                    if(!utils.buildProject("Ninja", "-DCMAKE_INSTALL_PREFIX=../install", true)){
+                                                        error("CMake failed on Builder Node: ${builder_name}")
+                                                    }
                                                 }
                                             }
                                             dir("install"){
