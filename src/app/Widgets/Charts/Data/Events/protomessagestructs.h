@@ -25,19 +25,30 @@ namespace AggServerResponse{
     * STRUCTS
     */
 
+    struct PortConnection {
+        enum ConnectionType {
+            PUBSUB,
+            REQREP
+        };
+        ConnectionType type;
+        QString from_port_graphml;
+        QString to_port_graphml;
+    };
+
+
     struct Port {
-	enum Kind {
-	    NO_KIND,
-	    PERIODIC,
-	    PUBLISHER,
-	    SUBSCRIBER,
-	    REQUESTER,
-	    REPLIER
-	};
-	Kind kind;
+        enum Kind {
+            NO_KIND,
+            PERIODIC,
+            PUBLISHER,
+            SUBSCRIBER,
+            REQUESTER,
+            REPLIER
+        };
+        Kind kind;
         QString name;
         QString path;
-	QString type;
+        QString type;
         QString middleware;
         QString graphml_id;
     };
@@ -94,6 +105,7 @@ namespace AggServerResponse{
         QVector<Node> nodes;
         QVector<Component> components;
         QVector<Worker> workers;
+        QVector<PortConnection> port_connections;
         quint32 experiment_run_id;
         qint64 end_time;
         qint64 last_updated_time = 0;

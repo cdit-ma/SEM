@@ -5,6 +5,7 @@
 #include <QGraphicsView>
 
 #include "../Charts/Data/Events/protomessagestructs.h"
+#include "EntityItems/portinstancegraphicsitem.h"
 
 class DataflowDialog : public QFrame
 {
@@ -21,10 +22,13 @@ signals:
 public slots:
     void themeChanged();
 
-    void displayExperimentState(const AggServerResponse::ExperimentState& expState);
+    void displayExperimentState(const AggServerResponse::ExperimentState& exp_state);
+    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QVector<AggServerResponse::PortConnection>& port_connections);
     void clear();
 
 private:
+    void addItemToScene(QGraphicsItem* item);
+
     QGraphicsView* view_ = nullptr;
 
 };

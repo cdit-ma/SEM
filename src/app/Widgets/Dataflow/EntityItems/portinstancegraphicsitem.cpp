@@ -71,6 +71,16 @@ AggServerResponse::Port::Kind PortInstanceGraphicsItem::getPortKind() const
 
 
 /**
+ * @brief PortInstanceGraphicsItem::getIconSceneRect
+ * @return
+ */
+QRectF PortInstanceGraphicsItem::getIconSceneRect() const
+{
+   return icon_pixmap_item_->sceneBoundingRect();
+}
+
+
+/**
  * @brief PortInstanceGraphicsItem::setAlignment
  * @param alignment
  */

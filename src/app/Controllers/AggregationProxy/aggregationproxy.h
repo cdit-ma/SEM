@@ -86,14 +86,14 @@ private:
     static QDateTime ConstructQDateTime(const google::protobuf::Timestamp &time);
     static QString ConstructQString(const std::string &string);
     
-    static AggServerResponse::Node ConvertNode(const AggServer::Node& node);
-    static AggServerResponse::Component ConvertComponent(const AggServer::Component& component);
-    static AggServerResponse::Worker ConvertWorker(const AggServer::Worker& worker);
-    static AggServerResponse::Port ConvertPort(const AggServer::Port& port);
-    static AggServerResponse::Container ConvertContainer(const AggServer::Container& container);
-    static AggServerResponse::WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& workerInstance);
-
-    static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& componentInstance);
+    static AggServerResponse::Node ConvertNode(const AggServer::Node& proto_node);
+    static AggServerResponse::Component ConvertComponent(const AggServer::Component& proto_component);
+    static AggServerResponse::Worker ConvertWorker(const AggServer::Worker& proto_worker);
+    static AggServerResponse::Port ConvertPort(const AggServer::Port& proto_port);
+    static AggServerResponse::Container ConvertContainer(const AggServer::Container& proto_container);
+    static AggServerResponse::WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& proto_worker_instance);
+    static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& proto_component_instance);
+    static AggServerResponse::PortConnection ConvertPortConnection(const AggServer::PortConnection& proto_port_connection);
 
     // TODO - Remove PortKind enum from the PortLifecycleEvent class and just use this one
     static AggServerResponse::Port::Kind GetPortKind(const AggServer::Port_Kind& kind);

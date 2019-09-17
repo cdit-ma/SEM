@@ -17,7 +17,7 @@ public:
 protected:
     // QGraphicsLayoutItem interface
     void setGeometry(const QRectF &geom) override;
-    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const  override;
+    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override;
 
 private:
     int pixmap_size_ = getDefaultHeight();

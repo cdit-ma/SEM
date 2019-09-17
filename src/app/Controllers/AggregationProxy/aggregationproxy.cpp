@@ -208,6 +208,9 @@ AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const qu
         for (const auto& w : result->workers()) {
             state.workers.append(ConvertWorker(w));
         }
+        for (const auto& p_c : result->port_connections()) {
+            state.port_connections.append(ConvertPortConnection(p_c));
+        }
 
         return state;
 
@@ -450,57 +453,84 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
 
 /**
  * @brief AggregationProxy::ConvertPort
- * @param p
+ * @param proto_port
  * @return
  */
-AggServerResponse::Port AggregationProxy::ConvertPort(const AggServer::Port& p)
+AggServerResponse::Port AggregationProxy::ConvertPort(const AggServer::Port& proto_port)
 {
     AggServerResponse::Port port;
-    port.kind = GetPortKind(p.kind());
-    port.name = ConstructQString(p.name());
-    port.path = ConstructQString(p.path());
-    port.middleware = ConstructQString(p.middleware());
-    port.graphml_id = ConstructQString(p.graphml_id());
+    port.kind = GetPortKind(proto_port.kind());
+    port.name = ConstructQString(proto_port.name());
+    port.path = ConstructQString(proto_port.path());
+    port.middleware = ConstructQString(proto_port.middleware());
+    port.graphml_id = ConstructQString(proto_port.graphml_id());
     return port;
 }
 
 
 /**
  * @brief AggregationProxy::ConvertWorkerInstance
- * @param w_i
+ * @param proto_worker_instance
  * @return
  */
-AggServerResponse::WorkerInstance AggregationProxy::ConvertWorkerInstance(const AggServer::WorkerInstance& w_i)
+AggServerResponse::WorkerInstance AggregationProxy::ConvertWorkerInstance(const AggServer::WorkerInstance& proto_worker_instance)
 {
     AggServerResponse::WorkerInstance worker_instance;
-    worker_instance.name = ConstructQString(w_i.name());
-    worker_instance.path = ConstructQString(w_i.path());
-    worker_instance.graphml_id = ConstructQString(w_i.graphml_id());
+    worker_instance.name = ConstructQString(proto_worker_instance.name());
+    worker_instance.path = ConstructQString(proto_worker_instance.path());
+    worker_instance.graphml_id = ConstructQString(proto_worker_instance.graphml_id());
     return worker_instance;
 }
 
 
 /**
  * @brief AggregationProxy::ConvertComponentInstance
- * @param c_i
+ * @param proto_component_instance
  * @return
  */
-AggServerResponse::ComponentInstance AggregationProxy::ConvertComponentInstance(const AggServer::ComponentInstance& c_i)
+AggServerResponse::ComponentInstance AggregationProxy::ConvertComponentInstance(const AggServer::ComponentInstance& proto_component_instance)
 {
     AggServerResponse::ComponentInstance component_instance;
-    component_instance.name = ConstructQString(c_i.name());
-    component_instance.path = ConstructQString(c_i.path());
-    component_instance.graphml_id = ConstructQString(c_i.graphml_id());
-    component_instance.type = ConstructQString(c_i.type());
+    component_instance.name = ConstructQString(proto_component_instance.name());
+    component_instance.path = ConstructQString(proto_component_instance.path());
+    component_instance.graphml_id = ConstructQString(proto_component_instance.graphml_id());
+    component_instance.type = ConstructQString(proto_component_instance.type());
 
-    for (const auto& p : c_i.ports()) {
+    for (const auto& p : proto_component_instance.ports()) {
         component_instance.ports.append(ConvertPort(p));
     }
-    for (const auto& w_i : c_i.worker_instances()) {
+    for (const auto& w_i : proto_component_instance.worker_instances()) {
         component_instance.worker_instances.append(ConvertWorkerInstance(w_i));
     }
 
     return component_instance;
+}
+
+
+/**
+ * @brief AggregationProxy::ConvertPortConnection
+ * @param proto_port_connection
+ * @throws std::invalid_argument
+ * @return
+ */
+AggServerResponse::PortConnection AggregationProxy::ConvertPortConnection(const AggServer::PortConnection& proto_port_connection)
+{
+    AggServerResponse::PortConnection port_connection;
+    port_connection.from_port_graphml = ConstructQString(proto_port_connection.from_port_graphml());
+    port_connection.to_port_graphml = ConstructQString(proto_port_connection.to_port_graphml());
+
+    switch (proto_port_connection.type()) {
+    case AggServer::PortConnection::PUBSUB:
+        port_connection.type = AggServerResponse::PortConnection::PUBSUB;
+        break;
+    case AggServer::PortConnection::REQREP:
+        port_connection.type = AggServerResponse::PortConnection::REQREP;
+        break;
+    default:
+        throw std::invalid_argument("AggregationProxy::ConvertPortConnection - Unknown port connection type.");
+    }
+
+    return port_connection;
 }
 
 
@@ -511,17 +541,17 @@ AggServerResponse::ComponentInstance AggregationProxy::ConvertComponentInstance(
  */
 AggServerResponse::Port::Kind AggregationProxy::GetPortKind(const AggServer::Port_Kind &kind)
 {
-    // TODO - Rename; currently just using for Pulse-VIZ
+    // TODO - Rename/move; currently just using for Pulse-VIZ
     switch (kind) {
-    case AggServer::Port_Kind::Port_Kind_PERIODIC:
+    case AggServer::Port::PERIODIC:
         return AggServerResponse::Port::Kind::PERIODIC;
-    case AggServer::Port_Kind::Port_Kind_PUBLISHER:
+    case AggServer::Port::PUBLISHER:
         return AggServerResponse::Port::Kind::PUBLISHER;
-    case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
+    case AggServer::Port::SUBSCRIBER:
         return AggServerResponse::Port::Kind::SUBSCRIBER;
-    case AggServer::Port_Kind::Port_Kind_REQUESTER:
+    case AggServer::Port::REQUESTER:
         return AggServerResponse::Port::Kind::REQUESTER;
-    case AggServer::Port_Kind::Port_Kind_REPLIER:
+    case AggServer::Port::REPLIER:
         return AggServerResponse::Port::Kind::REPLIER;
     default:
         return AggServerResponse::Port::Kind::NO_KIND;
@@ -531,24 +561,24 @@ AggServerResponse::Port::Kind AggregationProxy::GetPortKind(const AggServer::Por
 
 /**
  * @brief AggregationProxy::ConvertContainer
- * @param c
+ * @param proto_container
  * @return
  */
-AggServerResponse::Container AggregationProxy::ConvertContainer(const AggServer::Container& c)
+AggServerResponse::Container AggregationProxy::ConvertContainer(const AggServer::Container& proto_container)
 {
     AggServerResponse::Container container;
-    container.name = ConstructQString(c.name());
-    container.graphml_id = ConstructQString(c.graphml_id());
+    container.name = ConstructQString(proto_container.name());
+    container.graphml_id = ConstructQString(proto_container.graphml_id());
 
-    for (const auto& c_i : c.component_instances()) {
+    for (const auto& c_i : proto_container.component_instances()) {
         container.component_instances.append(ConvertComponentInstance(c_i));
     }
 
-    switch (c.type()) {
-    case AggServer::Container_ContainerType::Container_ContainerType_GENERIC:
+    switch (proto_container.type()) {
+    case AggServer::Container::GENERIC:
         container.type = AggServerResponse::Container::ContainerType::GENERIC;
         break;
-    case AggServer::Container_ContainerType::Container_ContainerType_DOCKER:
+    case AggServer::Container::DOCKER:
         container.type = AggServerResponse::Container::ContainerType::DOCKER;
         break;
     default:
@@ -561,15 +591,15 @@ AggServerResponse::Container AggregationProxy::ConvertContainer(const AggServer:
 
 /**
  * @brief AggregationProxy::ConvertNode
- * @param n
+ * @param proto_node
  * @return
  */
-AggServerResponse::Node AggregationProxy::ConvertNode(const AggServer::Node& n)
+AggServerResponse::Node AggregationProxy::ConvertNode(const AggServer::Node& proto_node)
 {
     AggServerResponse::Node node;
-    node.hostname = ConstructQString(n.hostname());
-    node.ip = ConstructQString(n.ip());
-    for (const auto& c : n.containers()) {
+    node.hostname = ConstructQString(proto_node.hostname());
+    node.ip = ConstructQString(proto_node.ip());
+    for (const auto& c : proto_node.containers()) {
         node.containers.append(ConvertContainer(c));
     }
     return node;
@@ -578,26 +608,26 @@ AggServerResponse::Node AggregationProxy::ConvertNode(const AggServer::Node& n)
 
 /**
  * @brief AggregationProxy::ConvertComponent
- * @param c
+ * @param proto_component
  * @return
  */
-AggServerResponse::Component AggregationProxy::ConvertComponent(const AggServer::Component& c)
+AggServerResponse::Component AggregationProxy::ConvertComponent(const AggServer::Component& proto_component)
 {
     AggServerResponse::Component component;
-    component.name = ConstructQString(c.name());
+    component.name = ConstructQString(proto_component.name());
     return component;
 }
 
 
 /**
  * @brief AggregationProxy::ConvertWorker
- * @param w
+ * @param proto_worker
  * @return
  */
-AggServerResponse::Worker AggregationProxy::ConvertWorker(const AggServer::Worker& w)
+AggServerResponse::Worker AggregationProxy::ConvertWorker(const AggServer::Worker& proto_worker)
 {
     AggServerResponse::Worker worker;
-    worker.name = ConstructQString(w.name());
+    worker.name = ConstructQString(proto_worker.name());
     return worker;
 }
 
@@ -610,13 +640,13 @@ AggServerResponse::Worker AggregationProxy::ConvertWorker(const AggServer::Worke
 AggServerResponse::LifecycleType AggregationProxy::ConvertLifeCycleType(const AggServer::LifecycleType& type)
 {
     switch (type) {
-    case AggServer::LifecycleType::CONFIGURE:
+    case AggServer::CONFIGURE:
         return AggServerResponse::LifecycleType::CONFIGURE;
-    case AggServer::LifecycleType::ACTIVATE:
+    case AggServer::ACTIVATE:
         return AggServerResponse::LifecycleType::ACTIVATE;
-    case AggServer::LifecycleType::PASSIVATE:
+    case AggServer::PASSIVATE:
         return AggServerResponse::LifecycleType::PASSIVATE;
-    case AggServer::LifecycleType::TERMINATE:
+    case AggServer::TERMINATE:
         return AggServerResponse::LifecycleType::TERMINATE;
     default:
         return AggServerResponse::LifecycleType::NO_TYPE;
@@ -632,15 +662,15 @@ AggServerResponse::LifecycleType AggregationProxy::ConvertLifeCycleType(const Ag
 PortLifecycleEvent::PortKind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
 {
     switch (kind) {
-    case AggServer::Port_Kind::Port_Kind_PERIODIC:
+    case AggServer::Port::PERIODIC:
         return PortLifecycleEvent::PortKind::PERIODIC;
-    case AggServer::Port_Kind::Port_Kind_PUBLISHER:
+    case AggServer::Port::PUBLISHER:
         return PortLifecycleEvent::PortKind::PUBLISHER;
-    case AggServer::Port_Kind::Port_Kind_SUBSCRIBER:
+    case AggServer::Port::SUBSCRIBER:
         return PortLifecycleEvent::PortKind::SUBSCRIBER;
-    case AggServer::Port_Kind::Port_Kind_REQUESTER:
+    case AggServer::Port::REQUESTER:
         return PortLifecycleEvent::PortKind::REQUESTER;
-    case AggServer::Port_Kind::Port_Kind_REPLIER:
+    case AggServer::Port::REPLIER:
         return PortLifecycleEvent::PortKind::REPLIER;
     default:
         return PortLifecycleEvent::PortKind::NO_KIND;
@@ -656,17 +686,17 @@ PortLifecycleEvent::PortKind AggregationProxy::ConvertPortKind(const AggServer::
 WorkloadEvent::WorkloadEventType AggregationProxy::ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type)
 {
     switch (type) {
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_STARTED:
+    case AggServer::WorkloadEvent::STARTED:
         return WorkloadEvent::WorkloadEventType::STARTED;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_FINISHED:
+    case AggServer::WorkloadEvent::FINISHED:
         return WorkloadEvent::WorkloadEventType::FINISHED;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MESSAGE:
+    case AggServer::WorkloadEvent::MESSAGE:
         return WorkloadEvent::WorkloadEventType::MESSAGE;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_WARNING:
+    case AggServer::WorkloadEvent::WARNING:
         return WorkloadEvent::WorkloadEventType::WARNING;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_ERROR_EVENT:
+    case AggServer::WorkloadEvent::ERROR_EVENT:
         return WorkloadEvent::WorkloadEventType::ERROR_EVENT;
-    case AggServer::WorkloadEvent_WorkloadEventType::WorkloadEvent_WorkloadEventType_MARKER:
+    case AggServer::WorkloadEvent::MARKER:
         return WorkloadEvent::WorkloadEventType::MARKER;
     default:
         return WorkloadEvent::WorkloadEventType::UNKNOWN;

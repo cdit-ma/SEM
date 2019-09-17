@@ -10,14 +10,22 @@
 
 class PortInstanceGraphicsItem : public QGraphicsWidget
 {
+    Q_OBJECT
+
 public:
     PortInstanceGraphicsItem(const AggServerResponse::Port& port, QGraphicsItem* parent = nullptr);
 
     AggServerResponse::Port::Kind getPortKind() const;
+
+    QRectF getIconSceneRect() const;
+
     void setAlignment(Qt::Alignment alignment);
 
+signals:
+    void itemMoved();
+
 protected:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
     void themeChanged();

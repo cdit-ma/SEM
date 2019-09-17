@@ -164,6 +164,17 @@ void ComponentInstanceGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEve
 
 
 /**
+ * @brief ComponentInstanceGraphicsItem::moveEvent
+ * @param event
+ */
+void ComponentInstanceGraphicsItem::moveEvent(QGraphicsSceneMoveEvent *event)
+{
+    emit itemMoved();
+    QGraphicsWidget::moveEvent(event);
+}
+
+
+/**
  * @brief ComponentInstanceGraphicsItem::themeChanged
  */
 void ComponentInstanceGraphicsItem::themeChanged()
