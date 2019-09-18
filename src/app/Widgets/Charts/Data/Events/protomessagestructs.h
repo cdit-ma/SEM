@@ -106,7 +106,7 @@ namespace AggServerResponse{
         QVector<Component> components;
         QVector<Worker> workers;
         QVector<PortConnection> port_connections;
-        quint32 experiment_run_id;
+	qint32 experiment_run_id;
         qint64 end_time;
         qint64 last_updated_time = 0;
     };

@@ -6,9 +6,12 @@
 #include "EntityItems/componentinstancegraphicsitem.h"
 #include "GraphicsItems/edgeitem.h"
 
-#include <QVBoxLayout>
 #include <QGraphicsRectItem>
+#include <QVBoxLayout>
 #include <QDockWidget>
+#include <QtConcurrent>
+
+const int invalid_experiment_id = -1;
 
 /**
  * @brief DataflowDialog::DataflowDialog
@@ -28,15 +31,64 @@ DataflowDialog::DataflowDialog(QWidget *parent) : QFrame(parent)
 
 
 /**
- * @brief DataflowDialog::setExperimentInfo
- * @param exp_name
- * @param exp_run_id
+ * @brief DataflowDialog::storePortLifecycleEvents
+ * @param events
  */
-void DataflowDialog::setExperimentInfo(const QString &exp_name, quint32 exp_run_id)
+void DataflowDialog::storePortLifecycleEvents(const QVector<PortLifecycleEvent*>& events)
 {
-    if (parentWidget()) {
-        auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
-        parent_dockwidget->setTitle("Pulse [" + exp_name + " #" + QString::number(exp_run_id) + "]");
+    if (events.isEmpty()) {
+        return;
+    }
+
+    // Clear the hash used for playback
+    port_ids_at_elapsed_time_.clear();
+    port_lifecycle_events_ = events;
+
+    // There should be a valid selected experiment run at this point
+    if (experiment_run_.experiment_run_id == invalid_experiment_id) {
+        return;
+    }
+
+    auto start_time = experiment_run_.start_time;
+    auto end_time = experiment_run_.last_updated_time;
+    playback_duration_ms_ = static_cast<qint64>(end_time - start_time);
+
+    qDebug() << "\nExperiment Run Duration:\t" << playback_duration_ms_ / 1000.0 << "S";
+    qDebug() << "Experiment Start Time:\t" << QDateTime::fromMSecsSinceEpoch(start_time).toString("hh:mm:ss.zzz");
+    qDebug() << "Experiment End Time:\t" << QDateTime::fromMSecsSinceEpoch(end_time).toString("hh:mm:ss.zzz");
+
+    // Initialise the hash keys with the elapsed times (ms)
+    for (qint64 i = 0; i <= playback_duration_ms_; i++) {
+        port_ids_at_elapsed_time_.insert(i, QString());
+    }
+
+    for (int i = 0; i < port_lifecycle_events_.length(); i++) {
+        const auto& event = port_lifecycle_events_[i];
+        auto elapsed_time = event->getTimeMS() - start_time;
+        if (port_ids_at_elapsed_time_.contains(elapsed_time)) {
+            port_ids_at_elapsed_time_.insertMulti(elapsed_time, event->getID());
+        } else {
+            qWarning("DataflowDialog::storePortLifecycleEvents - Event time lies outside of the calculated experiment duration.");
+            qDebug() << "Event time: " + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("hh:mm:ss.zzz");
+        }
+    }
+}
+
+
+/**
+ * @brief DataflowDialog::playbackDataflow
+ */
+void DataflowDialog::playbackDataflow()
+{
+    if (port_lifecycle_events_.isEmpty()) {
+        qInfo("DataflowDialog::playbackDataflow - There are no events to playback.");
+        return;
+    }
+    if (!timer_active_) {
+        qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
+        auto tick_interval_ms = 1;
+        timer_id_ = startTimer(tick_interval_ms);
+        timer_active_ = true;
     }
 }
 
@@ -54,19 +106,31 @@ void DataflowDialog::themeChanged()
 
 
 /**
- * @brief DataflowDialog::displayExperimentState
+ * @brief DataflowDialog::constructGraphicsItems
+ * @param exp_run
  * @param exp_state
  */
-void DataflowDialog::displayExperimentState(const AggServerResponse::ExperimentState& exp_state)
+void DataflowDialog::constructGraphicsItems(const AggServerResponse::ExperimentRun& exp_run, const AggServerResponse::ExperimentState& exp_state)
 {
+    auto exp_id = exp_run.experiment_run_id;
+    if (exp_id == invalid_experiment_id) {
+        return;
+    }
+
+    // This shouldn't be needed, but just in case
+    if (exp_id != exp_state.experiment_run_id) {
+        return;
+    }
+
+    experiment_run_ = exp_run;
+    experiment_run_.last_updated_time = exp_state.last_updated_time;
+    setExperimentInfo(exp_run.experiment_name, exp_id);
+
     // Clear previous items
-    clear();
+    clearScene();
 
-    qDebug() << "---------------------------------------------------------------";
-    //qDebug() << "EXPERIMENT STATE:";
+    qDebug() << "-----------------------------------------------------------------------";
     //qDebug() << "nodes#: " << expState.nodes.size();
-
-    QHash<QString, PortInstanceGraphicsItem*> port_instances;
 
     for (const auto& n : exp_state.nodes) {
         //qDebug() << "containers#: " << n.containers.size();
@@ -78,12 +142,12 @@ void DataflowDialog::displayExperimentState(const AggServerResponse::ExperimentS
                 auto c_instItem = new ComponentInstanceGraphicsItem(inst);
                 addItemToScene(c_instItem);
 
-                qDebug() << "Comp Inst scene rect: " << c_instItem->sceneBoundingRect();
+                //qDebug() << "Comp Inst scene rect: " << c_instItem->sceneBoundingRect();
 
                 for (const auto& port : inst.ports) {
                     qDebug() << "Port: " << port.name << " - " << port.path;
                     auto p_instItem = new PortInstanceGraphicsItem(port);
-                    port_instances[port.graphml_id] = p_instItem;
+                    port_items_[port.graphml_id] = p_instItem;
                     c_instItem->addPortInstanceItem(p_instItem);
                     connect(c_instItem, &ComponentInstanceGraphicsItem::itemMoved, p_instItem, &PortInstanceGraphicsItem::itemMoved);
 
@@ -99,8 +163,8 @@ void DataflowDialog::displayExperimentState(const AggServerResponse::ExperimentS
     }
 
     // Construct the edges
-    constructEdgeItems(port_instances, exp_state.port_connections);
-    qDebug() << "---------------------------------------------------------------";
+    constructEdgeItems(port_items_, exp_state.port_connections);
+    qDebug() << "-----------------------------------------------------------------------";
 }
 
 
@@ -121,18 +185,92 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
         connect(from_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateSourcePos(); });
         connect(to_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateDestinationPos(); });
         addItemToScene(edge_item);
-        qDebug() << "Edge scene rect: " << edge_item->sceneBoundingRect();
+        //qDebug() << "Edge scene rect: " << edge_item->sceneBoundingRect();
     }
 }
 
 
 /**
- * @brief DataflowDialog::clear
+ * @brief DataflowDialog::clearScene
  * This clears all the graphics items in the scene
  */
-void DataflowDialog::clear()
+void DataflowDialog::clearScene()
 {
     view_->scene()->clear();
+    port_items_.clear();
+}
+
+
+/**
+ * @brief DataflowDialog::setExperimentInfo
+ * @param exp_name
+ * @param exp_run_id
+ */
+void DataflowDialog::setExperimentInfo(const QString &exp_name, qint32 exp_run_id)
+{
+    if (parentWidget()) {
+        auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
+        parent_dockwidget->setTitle("Pulse [" + exp_name + " #" + QString::number(exp_run_id) + "]");
+    }
+}
+
+
+/**
+ * @brief DataflowDialog::clearPlaybackState
+ */
+void DataflowDialog::clearPlaybackState()
+{
+    playback_elapsed_time_ = 0;
+    timer_active_ = false;
+    timer_id_ = 0;
+}
+
+
+/**
+ * @brief DataflowDialog::timerEvent
+ * @param event
+ */
+void DataflowDialog::timerEvent(QTimerEvent* event)
+{
+    // We only care about the playback timer
+    if (event->timerId() != timer_id_) {
+        return;
+    }
+
+    if (playback_elapsed_time_ > playback_duration_ms_) {
+        killTimer(timer_id_);
+        clearPlaybackState();
+        qDebug() << "PLAYBACK FINISHED ----------------------------------------------------";
+        return;
+    }
+
+    if (playback_elapsed_time_ % 1000 == 0) {
+        qDebug() << "-" << playback_elapsed_time_ / 1000 << "S";
+    }
+
+    if (port_ids_at_elapsed_time_.contains(playback_elapsed_time_)) {
+        for (const auto& id : port_ids_at_elapsed_time_.values(playback_elapsed_time_)) {
+            auto port = port_items_.value(id, nullptr);
+            if (port) {
+                qDebug() << "------" << playback_elapsed_time_ / 1000.0 << "S - " << port->getPortName();
+                port->flashPort();
+            }
+        }
+    }
+
+    playback_elapsed_time_++;
+    QFrame::timerEvent(event);
+}
+
+
+/**
+ * @brief DataflowDialog::mouseDoubleClickEvent
+ * @param event
+ */
+void DataflowDialog::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    playbackDataflow();
+    QFrame::mouseDoubleClickEvent(event);
 }
 
 
@@ -146,6 +284,6 @@ void DataflowDialog::addItemToScene(QGraphicsItem *item)
     if (item) {
         view_->scene()->addItem(item);
     } else {
-        throw std::invalid_argument("DataflowDialog::addItemToScene - Trying to add a null item");
+        throw std::invalid_argument("DataflowDialog::addItemToScene - Trying to add a null item.");
     }
 }

@@ -3,7 +3,6 @@
 #include <QPainter>
 #include <QTimer>
 #include <QtConcurrent>
-#include <QStyleOptionGraphicsItem>
 
 const qreal pen_width = 2.0;
 const qreal arrow_length = 4.0;
@@ -44,7 +43,10 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem *src, PortInstanceGraphicsItem *dst,
     updateDestinationPos();
 
     //setZValue(-1);
-    //flashEdge();
+    /*QtConcurrent::run([this]() {
+        QThread::currentThread()->msleep(5000);
+        flashEdge();
+    });*/
 }
 
 
@@ -56,7 +58,7 @@ void EdgeItem::updateSourcePos()
     auto icon_rect = src_item_->getIconSceneRect();
     src_point_.setX(icon_rect.right());
     src_point_.setY(icon_rect.center().y());
-    updateEdge();
+    updateEdgePath();
 }
 
 
@@ -68,7 +70,7 @@ void EdgeItem::updateDestinationPos()
     auto icon_rect = dst_item_->getIconSceneRect();
     dst_point_.setX(icon_rect.left());
     dst_point_.setY(icon_rect.center().y());
-    updateEdge();
+    updateEdgePath();
 }
 
 
@@ -108,28 +110,40 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 /**
  * @brief EdgeItem::flashEdge
+ * @param sleep_ms
  */
-void EdgeItem::flashEdge()
+void EdgeItem::flashEdge(quint32 sleep_ms)
 {
-    QtConcurrent::run([this]() {
-        // Switch pen
-        int flash_count = 50;
-        while (--flash_count > 0) {
-            active_pen_ = (flash_count % 2 == 0) ? highlight_pen_ : default_pen_;
+    QtConcurrent::run([this, sleep_ms]() {
+
+        int flash_count = 2;
+        quint32 sleep = 1;
+        quint32 time_left = sleep_ms;
+
+        while (time_left > 0) {
+            // Switch pen
+            active_pen_ = (--flash_count % 2 == 0) ? highlight_pen_ : default_pen_;
             point_pen_.setColor(active_pen_.color());
             update();
-            QThread::currentThread()->msleep(250);
+
+            QThread::currentThread()->msleep(sleep);
+            time_left -= sleep;
         }
+
+        // Reset the pen
+        active_pen_ = default_pen_;
+        point_pen_.setColor(active_pen_.color());
+        update();
     });
 }
 
 
 /**
- * @brief EdgeItem::updateEdge
+ * @brief EdgeItem::updateEdgePath
  * This updates the painter path that is used to draw the dege
  * It needs to be called every time the src or dst points are changed
  */
-void EdgeItem::updateEdge()
+void EdgeItem::updateEdgePath()
 {
     auto dx = dst_point_.x() - src_point_.x();
     auto dy = dst_point_.y() - src_point_.y();
@@ -138,20 +152,7 @@ void EdgeItem::updateEdge()
     auto x_offset = qMin(max_offset, min_offset + qAbs(dx) / 25.0);
 
     // Not getting the abs of dy allows its sign to determine the vertical offset's direction
-    auto y_offset = dy / 8.0;
-
-    /*
-    // TODO - Calculate the offset so that when the points are close enough together the control points aren't so far out
-
-    auto src_x = src_point_.x();
-    auto src_y = src_point_.y();
-    auto dst_x = dst_point_.x();
-    auto dst_y = dst_point_.y();
-
-    // Distance between src and dst
-    auto distance = sqrt(pow(dst_x - src_x, 2) + pow(dst_y - src_y, 2));
-    auto offset = distance / 10.0;
-    */
+    auto y_offset = dy / 10.0;
 
     // Get the midpoint
     QPointF mid_point = (src_point_ + dst_point_) / 2.0;
@@ -159,15 +160,15 @@ void EdgeItem::updateEdge()
     QPointF fixed_ctr1 = src_point_ + QPointF(x_offset, 0);
     QPointF fixed_ctr2 = dst_point_ - QPointF(x_offset, 0);
 
-    QPointF ctrl_p1 = QPointF(fixed_ctr1.x() + x_offset, src_point_.y() + y_offset);
-    QPointF ctrl_p2 = QPointF(fixed_ctr2.x() - x_offset, dst_point_.y() - y_offset);
+    QPointF ctrl_p1 = fixed_ctr1 + QPointF(qAbs(y_offset), y_offset);
+    QPointF ctrl_p2 = fixed_ctr2 - QPointF(qAbs(y_offset), y_offset);
 
     auto src_path = getCubicPath(src_point_, fixed_ctr1, ctrl_p1, mid_point);
     auto dst_path = getCubicPath(dst_point_, fixed_ctr2, ctrl_p2, mid_point);
     edge_path_ = src_path + dst_path;
 
     // Calculate the arrow
-    arrow_ = getArrowPath(mid_point);
+    arrow_ = getArrowPath(dst_point_);
 
     prepareGeometryChange();
     update();
@@ -193,6 +194,21 @@ QPainterPath EdgeItem::getArrowPath(QPointF arrow_point) const
     path.lineTo(bottom_point);
     path.lineTo(start_point);
     return path;
+}
+
+
+/**
+ * @brief EdgeItem::getCubicPath
+ * @param p1
+ * @param p2
+ * @return
+ */
+QPainterPath EdgeItem::getCubicPath(QPointF p1, QPointF p2) const
+{
+    qreal mid_x = (p1.x() + p2.x()) / 2;
+    QPointF ctrl_p1(mid_x, p1.y());
+    QPointF ctrl_p2(mid_x, p2.y());
+    return getCubicPath(p1, ctrl_p1, ctrl_p2, p2);
 }
 
 

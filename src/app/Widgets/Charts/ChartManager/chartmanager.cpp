@@ -22,7 +22,7 @@ ChartManager::ChartManager(const ViewController &vc)
     connect(&vc, &ViewController::vc_viewItemsInChart, this, &ChartManager::filterRequestsBySelectedEntities);
 
     connect(&vc, &ViewController::modelClosed, chartDialog_, &ChartDialog::clear);
-    connect(&vc, &ViewController::modelClosed, dataflowDialog_, &DataflowDialog::clear);
+    connect(&vc, &ViewController::modelClosed, dataflowDialog_, &DataflowDialog::clearScene);
 
     connect(this, &ChartManager::showChartsPanel, &ChartManager::showDataflowPanel);
     connect(&chartPopup_, &ChartInputPopup::selectedExperimentRun, this, &ChartManager::experimentRunSelected);
@@ -150,7 +150,7 @@ void ChartManager::requestEvents(const RequestBuilder& builder)
         qInfo("No MarkerRequest");
     }
 
-    // reset the selected run
+    // Reset the selected experiment run
     selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
 }
 
@@ -173,6 +173,7 @@ void ChartManager::requestPortLifecycleEvents(const PortLifecycleRequest &reques
                     toastNotification("No port lifecycle events received for selection", "plug");
                 } else {
                     emit showChartsPanel();
+                    getDataflowDialog().storePortLifecycleEvents(events);
                     timelineChartView().addPortLifecycleEvents(experimentRun, events);
                 }
             } catch (const std::exception& ex) {
@@ -450,11 +451,11 @@ void ChartManager::experimentRunStateReceived(AggServerResponse::ExperimentState
         selectedExperimentRun_.last_updated_time = expLastUpdatedTime;
         // let the view know to update the time-range for the charts with the same expRunID
         timelineChartView().updateExperimentRunLastUpdatedTime(expRunID, expLastUpdatedTime);
-        // setup/build the requests
-        setupRequestsForExperimentRun(expRunID);
         // setup/display experiment data for PULSE
-        getDataflowDialog().setExperimentInfo(selectedExperimentRun_.experiment_name, expRunID);
-        getDataflowDialog().displayExperimentState(experimentState);
+        getDataflowDialog().constructGraphicsItems(selectedExperimentRun_, experimentState);
+        // setup/build the requests
+        // NOTE: This needs to be called last because it clears the selected experiment run
+        setupRequestsForExperimentRun(expRunID);
     }
 }
 

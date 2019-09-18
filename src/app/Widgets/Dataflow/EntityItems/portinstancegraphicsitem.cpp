@@ -2,6 +2,7 @@
 #include "../../../theme.h"
 
 #include <QPainter>
+#include <QtConcurrent>
 
 //#define PIXMAP_PADDING 15 // better for square icons
 #define PIXMAP_PADDING 10
@@ -17,33 +18,27 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const AggServerResponse::Port
 {
     port_kind_ = port.kind;
     icon_path.first = "Icons";
-    //icon_path.first = "EntityIcons";
 
     // Identify Port kind
     switch (port_kind_) {
     case AggServerResponse::Port::Kind::PERIODIC: {
         icon_path.second = "clockCycle";
-        //icon_path.second = "PeriodicPort";
         break;
     }
     case AggServerResponse::Port::Kind::PUBLISHER: {
         icon_path.second = "arrowRightLong";
-        //icon_path.second = "PublisherPortInstance";
         break;
     }
     case AggServerResponse::Port::Kind::SUBSCRIBER: {
         icon_path.second = "arrowIntoBox";
-        //icon_path.second = "SubscriberPortInstance";
         break;
     }
     case AggServerResponse::Port::Kind::REQUESTER: {
         icon_path.second = "arrowTopRight";
-        //icon_path.second = "RequesterPort";
         break;
     }
     case AggServerResponse::Port::Kind::REPLIER: {
         icon_path.second = "arrowBottomRight";
-        //icon_path.second = "ReplierPort";
         break;
     }
     default:
@@ -57,6 +52,16 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const AggServerResponse::Port
 
     themeChanged();
     connect(Theme::theme(), &Theme::theme_Changed, this, &PortInstanceGraphicsItem::themeChanged);
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::getPortName
+ * @return
+ */
+const QString& PortInstanceGraphicsItem::getPortName() const
+{
+    return port_.name;
 }
 
 
@@ -76,7 +81,8 @@ AggServerResponse::Port::Kind PortInstanceGraphicsItem::getPortKind() const
  */
 QRectF PortInstanceGraphicsItem::getIconSceneRect() const
 {
-   return icon_pixmap_item_->sceneBoundingRect();
+    //return mapFromParent(icon_pixmap_item_->boundingRect()).boundingRect();
+    return icon_pixmap_item_->sceneBoundingRect();
 }
 
 
@@ -134,27 +140,51 @@ void PortInstanceGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphi
 
 
 /**
+ * @brief PortInstanceGraphicsItem::flashPort
+ * @param ms
+ * @param flash_color
+ */
+void PortInstanceGraphicsItem::flashPort(quint32 ms, QColor flash_color)
+{
+    if (!flash_color.isValid()) {
+        flash_color = highlight_color_;
+    }
+
+    QtConcurrent::run([this, ms, flash_color]() {
+        // Switch the ellipse color
+        ellipse_color_ = flash_color;
+        update();
+
+        // Hold the highlight for 300ms
+        QThread::currentThread()->msleep(ms);
+
+        // Reset the ellipse color
+        ellipse_color_ = default_color_;
+        update();
+    });
+}
+
+
+/**
  * @brief PortInstanceGraphicsItem::themeChanged
  */
 void PortInstanceGraphicsItem::themeChanged()
 {
     Theme* theme = Theme::theme();
+    highlight_color_ = theme->getHighlightColor();
 
     QColor pixmap_color = theme->getMenuIconColor();
     if (alignment_ == Qt::AlignLeft) {
-        //pixmap_color = theme->getSeverityColor(Notification::Severity::ERROR);
-        ellipse_color_ = theme->getSeverityColor(Notification::Severity::ERROR);
+        default_color_ = theme->getSeverityColor(Notification::Severity::ERROR);
     } else {
-        //pixmap_color = theme->getSeverityColor(Notification::Severity::SUCCESS);
-        ellipse_color_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
+        default_color_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
     }
+
+    ellipse_color_ = default_color_;
 
     auto pixmap = theme->getImage(icon_path.first, icon_path.second, QSize(), pixmap_color);
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
-
-    //ellipse_color_ = theme->getActiveWidgetBorderColor();
-    //ellipse_color_.setAlphaF(0.5);
 
     pixmap = theme->getImage("Icons", "envelopeTwoTone", QSize(), theme->getAltTextColor());
     sub_icon_pixmap_item_->updatePixmap(pixmap);

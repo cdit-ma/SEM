@@ -15,11 +15,14 @@ class PortInstanceGraphicsItem : public QGraphicsWidget
 public:
     PortInstanceGraphicsItem(const AggServerResponse::Port& port, QGraphicsItem* parent = nullptr);
 
+    const QString& getPortName() const;
     AggServerResponse::Port::Kind getPortKind() const;
 
     QRectF getIconSceneRect() const;
 
     void setAlignment(Qt::Alignment alignment);
+
+    void flashPort(quint32 ms = 300, QColor flash_color = QColor());
 
 signals:
     void itemMoved();
@@ -28,12 +31,16 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
+
     void themeChanged();
     void setupCentralisedIconLayout();
 
     Qt::Alignment alignment_ = Qt::AlignLeft;
     QPair<QString, QString> icon_path;
+
     QColor ellipse_color_;
+    QColor default_color_;
+    QColor highlight_color_;
 
     QGraphicsLinearLayout* main_layout_ = nullptr;
     QGraphicsLinearLayout* top_layout_ = nullptr;
