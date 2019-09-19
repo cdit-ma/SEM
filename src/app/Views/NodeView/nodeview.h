@@ -1,8 +1,6 @@
 #ifndef NODEVIEW_H
 #define NODEVIEW_H
 
-#include <QGraphicsView>
-
 #include "../../Controllers/ViewController/viewcontroller.h"
 
 #include "SceneItems/entityitem.h"
@@ -10,6 +8,7 @@
 #include "SceneItems/Edge/edgeitem.h"
 #include "SceneItems/arrowline.h"
 
+#include <QGraphicsView>
 #include <QStateMachine>
 #include <QStaticText>
 
@@ -18,46 +17,37 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    NodeView(QWidget *parent = nullptr);
+    NodeView(ViewController& view_controller, QWidget* parent = nullptr);
     ~NodeView();
-
-    void setViewController(ViewController* viewController);
-    void translate(QPointF point);
-    void scale(qreal sx, qreal sy);
 
     void setContainedViewAspect(VIEW_ASPECT aspect);
     void setContainedNodeViewItem(NodeViewItem* item);
     ViewItem* getContainedViewItem();
 
-    QColor getBackgroundColor();
-    SelectionHandler* getSelectionHandler();
+    QColor getBackgroundColor() const;
+    SelectionHandler& getSelectionHandler() const;
 
     void alignHorizontal();
     void alignVertical();
-
     void centerSelection();
 
     void update_minimap();
 
 signals:
-    void trans_inactive();
-    void trans_InActive2Moving();
-    void trans_Moving2InActive();
-
-    void trans_InActive2RubberbandMode();
-    void trans_RubberbandMode2InActive();
-
-    void trans_RubberbandMode2RubberbandMode_Selecting();
-    void trans_RubberbandMode_Selecting2RubberbandMode();
-
-    void trans_InActive2Connecting();
-    void trans_Connecting2InActive();
+    // Transition Signals
+    void leftMousePressed();
+    void rightMousePressed();
+    void mouseReleased();
+    void ctrlShiftPressed();
+    void itemMoveTriggered();
+    void connectModeTriggered();
 
     void edgeToolbarRequested(QPoint screenPos, EDGE_KIND kind, EDGE_DIRECTION direction);
-    
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
-    void viewport_changed(QRectF viewportSceneRect, double zoom_factor);
-    void scenerect_changed(QRectF sceneRect);
+
+    void viewport_changed(QRectF viewport_scene_rect, double zoom_factor);
+    void scenerect_changed(QRectF scene_rect);
+
     void viewFocussed(NodeView* view, bool focussed);
 
     void triggerAction(QString);
@@ -74,43 +64,34 @@ public slots:
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
 
-    void zoomIn(){
-        minimap_Zoom(1);
-    }
+    void zoomIn() { minimap_Zoom(1); }
+    void zoomOut() { minimap_Zoom(-1); }
 
-    void zoomOut(){
-        minimap_Zoom(-1);
-    }
-
-    void AllFitToScreen(bool if_active);
-    void FitToScreen();
+    void fitViewToScreen(bool if_active);
+    void fitToScreen();
 
     void receiveMouseMove(QMouseEvent* event);
 
 private slots:
     void viewItem_LabelChanged(QString label);
-    void viewItem_Constructed(ViewItem* viewItem);
-    void viewItem_Destructed(int ID, ViewItem* viewItem);
+
+    void viewItem_Constructed(ViewItem* view_item);
+    void viewItem_Destructed(int ID, ViewItem* view_item);
 
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
-    void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
+    void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool is_active_);
     void themeChanged();
-    
+
     void node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
-    void node_ConnectEdgeMode(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void node_AddMenu(QPointF scene_pos, int index);
     
-    void item_EditData(ViewItem* item, QString keyName);
-    void item_RemoveData(ViewItem* item, QString keyName);
+    void item_EditData(ViewItem* item, QString key_name);
+    void item_RemoveData(ViewItem* item, QString key_name);
+
     void item_Selected(ViewItem* item, bool append);
     void item_ActiveSelected(ViewItem* item);
-
     void item_SetExpanded(EntityItem* item, bool expand);
-    void item_SetCentered(EntityItem* item);
 
-    void item_MoveSelection(QPointF delta);
-
-    void centerItem(int ID);
     void centerOnItem(int ID);
     void highlightItem(int ID, bool highlighted);
 
@@ -119,20 +100,8 @@ private slots:
     void selectItemIDs(const QList<int>& ids);
 
     void activeViewDockChanged(ViewDockWidget* dw);
-    void state_Moving_Entered();
-    void state_Moving_Exited();
 
-    void state_RubberbandMode_Entered();
-    void state_RubberbandMode_Exited();
-
-    void state_RubberbandMode_Selecting_Entered();
-    void state_RubberbandMode_Selecting_Exited();
-
-    void state_Connecting_Exited();
-
-    void state_Default_Entered();
-
-    void constructNode(int parent_id, NODE_KIND kind);
+    void addNodeTriggered(int parent_id, NODE_KIND kind);
     void actionFinished();
 
 protected:
@@ -154,18 +123,29 @@ protected:
     void resizeEvent(QResizeEvent *);
 
 private:
-    void fitToScreen();
+    void connectViewController();
+    void setupStateMachine();
+
     void themeItem(EntityItem* item);
 
     void showItem(EntityItem* item);
-    void setupConnections(EntityItem* item);
+    void setupItemConnections(EntityItem* item);
 
-    void centerOnItems(QList<EntityItem*> items);
-    void centerOnItem(EntityItem* item);
-    void centerRect(QRectF rectScene);
-    void centerView(QPointF scenePos);
+    void centerOnItems(const QList<EntityItem *> &items);
+    void centerOnItemInternal(EntityItem* item);
+    void centerRect(QRectF rect_scene);
+    void centerViewOn(QPointF scene_pos);
 
-    QRectF getSceneBoundingRectOfItems(QList<EntityItem*> items);
+    void zoom(int delta, QPoint anchor_screen_pos = QPoint());
+    void cappedScale(qreal scale);
+    void translate(QPointF point);
+
+    void shiftOrderInParent(NodeItem* item, int key_pressed);
+    void topLevelItemMoved();
+
+    qreal distance(QPoint p1, QPoint p2);
+
+    QRectF getSceneBoundingRectOfItems(const QList<EntityItem *> &items);
     QRectF viewportSceneRect();
 
     void nodeViewItem_Constructed(NodeViewItem* item);
@@ -179,86 +159,81 @@ private:
 
     EntityItem* getEntityItem(int ID) const;
     EntityItem* getEntityItem(ViewItem* item) const;
+    EntityItem* getEntityAtPos(QPointF scenePos) const;
 
-    void zoom(int delta, QPoint anchor_screen_pos = QPoint());
-    void cappedScale(qreal scale);
+    // State Functions
+    void setMovingModeOn();
+    void setMovingModeOff();
+    void moveSelection(QPointF delta);
 
-    QPointF getScenePosOfPoint(QPoint pos = QPoint());
-
+    void setRubberbandModeOn();
+    void setRubberbandModeOff();
     void selectItemsInRubberband();
-    void _selectAll();
-    void _clearSelection();
-    qreal distance(QPoint p1, QPoint p2);
 
-    void ShiftOrderInParent(NodeItem* item, int key_pressed);
-    
-    void setupStateMachine();
+    void setConnectingModeOn(QPointF scene_pos, EDGE_KIND edge_kind, EDGE_DIRECTION direction);
+    void connectUsingConnectLine();
 
-    void topLevelItemMoved();
+    /*
+     * MEMBER VARIABLES
+     */
 
-    EntityItem* getEntityAtPos(QPointF scenePos);
+    QList<int> top_level_gui_item_ids_;
+    QHash<int, EntityItem*> gui_items_;
 
-    /************************************************************************/
+    ViewController& view_controller_;
+    SelectionHandler* selection_handler_ = nullptr;
 
-    QList<int> topLevelGUIItemIDs;
-    QHash<int, EntityItem*> guiItems;
-
-    ViewController* viewController = nullptr;
-    SelectionHandler* selectionHandler = nullptr;
-
-    QRectF currentSceneRect;
-    QPoint pan_lastPos;
-    QPointF pan_lastScenePos;
-    qreal pan_distance;
-
-    QPoint rubberband_lastPos;
-    QRubberBand* rubberband = nullptr;
-
-    bool is_active = false;
-    bool isPanning = false;
-    bool isAspectView = false;
+    bool is_active_ = false;
+    bool is_aspect_view_ = false;
 
     bool center_on_construct_ = false;
     bool select_on_construct_ = false;
+
     int constructed_node_id_ = -1;
     NODE_KIND clicked_node_kind_ = NODE_KIND::NONE;
 
+    VIEW_ASPECT contained_aspect_ = VIEW_ASPECT::NONE;
+    NodeViewItem* contained_node_view_item_ = nullptr;
+
     ViewportAnchor zoom_anchor_ = ViewportAnchor::NoAnchor;
+    QPointF viewport_center_scene_;
 
-    QPointF viewportCenter_Scene;
-    
-    QList<double> render_times;
+    QRectF current_scene_rect_;
 
-    QTransform old_transform;
-    VIEW_ASPECT containedAspect = VIEW_ASPECT::NONE;
-    NodeViewItem* containedNodeViewItem = nullptr;
+    qreal pan_distance_;
 
-    QFont background_font;
-    QColor background_text_color;
-    QColor background_color;
+    QPoint event_last_pos_;
+    QPointF event_last_scene_pos_;
 
-    QColor body_color;
-    QColor alt_body_color;
-    QColor text_color;
-    QColor alt_text_color;
-    QColor header_color;
-    QColor highlight_color;
-    QColor highlight_text_color;
-    QPen default_pen;
+    QRubberBand* rubberband_ = nullptr;
+    QTransform old_transform_;
 
-    QStaticText background_text;
-    QRectF background_text_rect;
+    QFont background_font_;
+    QColor background_text_color_;
+    QColor background_color_;
 
-    QStateMachine* viewStateMachine = nullptr;
-    QState* state_InActive = nullptr;
+    QColor body_color_;
+    QColor alt_body_color_;
+    QColor text_color_;
+    QColor alt_text_color_;
+    QColor header_color_;
+    QColor highlight_color_;
+    QColor highlight_text_color_;
+    QPen default_pen_;
 
-    QState* state_Active = nullptr;
-    QState* state_Active_Moving = nullptr;
-    QState* state_Active_RubberbandMode = nullptr;
-    QState* state_Active_RubberbandMode_Selecting = nullptr;
-    QState* state_Active_Connecting = nullptr;
+    QStaticText background_text_;
+    QRectF background_text_rect_;
 
-    ArrowLine* connect_line = nullptr;
+    // View input/event state machine
+    QStateMachine* state_machine_ = nullptr;
+    QState* state_idle_ = nullptr;
+    QState* state_panning_mode_ = nullptr;
+    QState* state_moving_mode_ = nullptr;
+    QState* state_connecting_mode_ = nullptr;
+    QState* state_rubberband_keys_pressed_ = nullptr;
+    QState* state_rubberband_mode_ = nullptr;
+
+    ArrowLine* connect_line_ = nullptr;
 };
 
 #endif // NODEVIEW_H

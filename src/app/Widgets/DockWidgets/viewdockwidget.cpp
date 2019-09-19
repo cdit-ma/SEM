@@ -1,20 +1,21 @@
 #include "viewdockwidget.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include <QDebug>
+
 ViewDockWidget::ViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area):DefaultDockWidget(title, parent, area, DefaultDockType::VIEW)
 {
-    nodeView = 0;
+    nodeView = nullptr;
 }
 
-SelectionHandler *ViewDockWidget::getSelectionHandler()
+SelectionHandler* ViewDockWidget::getSelectionHandler()
 {
-    if(nodeView){
-        return nodeView->getSelectionHandler();
+    if (nodeView) {
+        return &nodeView->getSelectionHandler();
     }
-    return 0;
+    return nullptr;
 }
 
-NodeView *ViewDockWidget::getNodeView()
+NodeView* ViewDockWidget::getNodeView()
 {
     return nodeView;
 }

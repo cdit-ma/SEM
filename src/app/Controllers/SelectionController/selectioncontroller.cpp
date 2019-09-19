@@ -145,23 +145,31 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
     }
 }
 
+
 void SelectionController::removeSelectionHandler()
 {
     SelectionHandler* handler = qobject_cast<SelectionHandler*>(sender());
-    if(handler){
-        if(!handler->hasRegisteredObjects()){
-            selectionHandlers.remove(handler->getID());
+    if (handler) {
 
+        if (!handler->hasRegisteredObjects()) {
 
-            if(currentHandler == handler){
-                //Unset the current Handler.
-                setCurrentSelectionHandler(0);
+            // NOTE: This is added to avoid a null SelectionHandler from being passed around - remove handler from lookup
+            // TODO: Investigate further when this is being called (related to registering/unregistering of QObjectRegistrar)
+            // Currently, unselecting an item unregisters its selection handler from it
+            auto handler_id = handler->getID();
+            auto lookup_key = selectionHandlerIDLookup.key(handler_id);
+            selectionHandlerIDLookup.remove(lookup_key);
+            selectionHandlers.remove(handler_id);
+
+            // Unset the current Handler
+            if (currentHandler == handler) {
+                setCurrentSelectionHandler(nullptr);
             }
+
             handler->deleteLater();
         }
     }
 }
-
 
 
 void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)

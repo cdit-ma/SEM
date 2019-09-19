@@ -530,13 +530,8 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
-
     if(event->button() == Qt::LeftButton && getElementPath(EntityRect::SHAPE).contains(event->pos())){
         handleSelection(controlDown);
-    }
-
-    if(event->button() == Qt::MiddleButton){
-        emit req_centerItem(this);
     }
 
     if(isMoveEnabled() && event->button() == Qt::LeftButton && getElementPath(EntityRect::MOVE).contains(event->pos())){

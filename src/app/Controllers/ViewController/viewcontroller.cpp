@@ -438,17 +438,15 @@ QList<ViewItem*> ViewController::filterList(QString query, QList<ViewItem*> view
     }
 }
 
-ViewDockWidget *ViewController::constructViewDockWidget(QString label, QWidget* parent)
+ViewDockWidget* ViewController::constructViewDockWidget(QString label, QWidget* parent)
 {
     auto dock_widget = WindowManager::manager()->constructViewDockWidget(label, parent);
-    auto node_view = new NodeView(dock_widget);
-    dock_widget->setWidget(node_view);
+    auto node_view = new NodeView(*this, dock_widget);
     
-    //Setup NodeView
-    node_view->setViewController(this);
+    dock_widget->setWidget(node_view);
     connect(node_view, &NodeView::itemSelectionChanged, SearchManager::manager(), &SearchManager::ItemSelectionChanged);
 
-    return (ViewDockWidget*)dock_widget;
+    return dock_widget;
 }
 
 QSet<NODE_KIND> ViewController::getValidNodeKinds()
@@ -1043,7 +1041,7 @@ void ViewController::spawnSubView(ViewItem * item)
                 //Set the NodeView to be contained on this NodeViewItem
                 dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
                 //Fit the contents of the dockwidget to screen
-                dockWidget->getNodeView()->FitToScreen();
+                dockWidget->getNodeView()->fitToScreen();
             }else{
                 WindowManager::manager()->destructDockWidget(dockWidget);
             }

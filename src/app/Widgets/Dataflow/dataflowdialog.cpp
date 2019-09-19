@@ -170,7 +170,8 @@ void DataflowDialog::constructGraphicsItems(const AggServerResponse::ExperimentR
 
 /**
  * @brief DataflowDialog::constructEdgeItems
- * @param exp_state
+ * @param port_instances
+ * @param port_connections
  */
 void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QVector<AggServerResponse::PortConnection>& port_connections)
 {
