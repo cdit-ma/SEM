@@ -14,6 +14,28 @@ if(NOT PQXX_FOUND)
 	return()
 endif()
 
+# Build the DatabaseClient library
+set(LOGAN_DB_CLIENT_LIB "logan_database_client_lib")
+add_library(${LOGAN_DB_CLIENT_LIB} STATIC "")
+target_compile_features(${LOGAN_DB_CLIENT_LIB} PRIVATE cxx_std_17)
+target_sources(${LOGAN_DB_CLIENT_LIB} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils.h)
+
+target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${LOGAN_SRC_PATH})
+target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${PQXX_INCLUDE_DIRECTORIES})
+target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
+target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
+
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${PQXX_LIBRARIES})
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${PROTOBUF_LIBRARIES})
+
+
 add_subdirectory("aggregationbroker")
 
 
@@ -27,11 +49,10 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerprotohandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modeleventprotohandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/systemeventprotohandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.cpp
+        #    ${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/experimenttracker.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
 )
-
 set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/aggregationprotohandler.h
@@ -49,6 +70,7 @@ set(HEADERS
 
 # Construct an aggregation_server binary
 add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 
 if (MSVC)
     # Windows requires protobuf in DLLs
@@ -80,6 +102,8 @@ target_link_libraries(${PROJ_NAME} re_common_proto_systemevent)
 target_link_libraries(${PROJ_NAME} ${PQXX_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+
+target_link_libraries(${PROJ_NAME} ${LOGAN_DB_CLIENT_LIB})
 
 #if(NOT DISABLE_MODEL_LOGGING)
 #    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/modelprotohandler")

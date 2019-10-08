@@ -21,9 +21,10 @@ class DatabaseClient {
 public:
     DatabaseClient(const std::string& connection_details);
     ~DatabaseClient();
-    void Connect(const std::string& connection_string){};
+    // void Connect(const std::string& connection_string){};
+    void Test();
 
-    void InitSchemaFrom(const std::string& sql_string);
+    virtual void InitSchemaFrom(const std::string& sql_string);
 
     void CreateTable(const std::string& table_name,
                      const std::vector<std::pair<std::string, std::string>>& columns);

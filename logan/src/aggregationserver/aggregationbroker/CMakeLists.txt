@@ -9,7 +9,7 @@ find_package(ZMQ REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/../databaseclient.cpp
+        #	${CMAKE_CURRENT_SOURCE_DIR}/../databaseclient.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../utils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationbroker.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationreplier.cpp
@@ -25,6 +25,7 @@ set(HEADERS
 
 # Construct an aggregation_server binary
 add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 
 if (MSVC)
     # Windows requires protobuf in DLLs
@@ -58,3 +59,5 @@ target_link_libraries(${PROJ_NAME} re_common_proto_aggregation_message)
 target_link_libraries(${PROJ_NAME} pqxx)
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+
+target_link_libraries(${PROJ_NAME} logan_database_client_lib)
