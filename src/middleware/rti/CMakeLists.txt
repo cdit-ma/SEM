@@ -1,5 +1,6 @@
 set(PROJ_NAME rti_dds_helper)
-project (${PROJ_NAME})
+project (${PROJ_NAME}
+        VERSION ${PROJECT_VERSION})
 
 # Find RTI
 find_package(RTI_DDS)

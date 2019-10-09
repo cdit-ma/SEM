@@ -1,5 +1,6 @@
 set(PROJ_NAME tao_helper)
-project (${PROJ_NAME})
+project (${PROJ_NAME}
+		VERSION ${PROJECT_VERSION})
 
 find_package(TAO)
 

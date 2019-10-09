@@ -3,6 +3,7 @@
 /lib/
 /bin/
 /cmake-build-*/
+/docs/doxygen/
 
 # IDE config dirs
 /.vscode/

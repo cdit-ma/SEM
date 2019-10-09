@@ -21,7 +21,7 @@ message ExperimentStateResponse {
     repeated Component components = 3;
     repeated Worker workers = 4;
     google.protobuf.Timestamp last_updated = 5;
-
+    repeated PortConnection port_connections = 6;
 }
 
 message PortLifecycleRequest {
@@ -232,4 +232,14 @@ message Node {
     string ip = 2;
     //string graphml_id = 3;
     repeated Container containers = 4;
+}
+
+message PortConnection {
+    enum ConnectionType {
+        PUBSUB = 0;
+        REQREP = 1;
+    }
+    ConnectionType type = 1;
+    string from_port_graphml = 2;
+    string to_port_graphml = 3;
 }

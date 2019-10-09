@@ -1,6 +1,7 @@
 set(PROJ_NAME "re_node_manager")
 set(LIB_NAME "re_node_manager_lib")
-project(${PROJ_NAME})
+project(${PROJ_NAME}
+        VERSION ${PROJECT_VERSION})
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
@@ -24,7 +25,6 @@ target_sources(${LIB_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
-    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
     ${CMAKE_CURRENT_SOURCE_DIR}/slaveheartbeater.h
 )
 target_include_directories(${LIB_NAME} PUBLIC ${LOGAN_SOURCE_PATH})
@@ -51,9 +51,9 @@ target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
 target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
 )
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/..)
 target_link_libraries(${PROJ_NAME} PUBLIC ${LIB_NAME})
 target_link_libraries(${PROJ_NAME} PUBLIC re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
 # Pass Version info into cmakevars.h
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)

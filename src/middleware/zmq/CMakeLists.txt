@@ -1,5 +1,6 @@
 set(PROJ_NAME zmq_helper)
-project(${PROJ_NAME})
+project(${PROJ_NAME}
+        VERSION ${PROJECT_VERSION})
 
 find_package(ZMQ)
 
