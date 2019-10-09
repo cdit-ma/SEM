@@ -19,7 +19,7 @@ using row = tuple;
 
 class DatabaseClient {
 public:
-    DatabaseClient(const std::string& connection_details);
+    explicit DatabaseClient(const std::string& connection_details);
     ~DatabaseClient();
     // void Connect(const std::string& connection_string){};
     void Test();

@@ -5,6 +5,9 @@
 
 #include <proto/controlmessage/controlmessage.pb.h>
 
+#include "modeleventprotohandler.h"
+#include "systemeventprotohandler.h"
+
 #include "databaseclient.h"
 
 #include "utils.h"
