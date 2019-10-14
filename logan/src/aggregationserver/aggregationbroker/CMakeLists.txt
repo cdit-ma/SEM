@@ -25,6 +25,7 @@ set(HEADERS
 
 # Construct an aggregation_server binary
 add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 
 if (MSVC)
     # Windows requires protobuf in DLLs

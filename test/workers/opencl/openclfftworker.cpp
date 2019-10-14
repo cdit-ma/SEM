@@ -1,7 +1,7 @@
 #include "common.h"
 #include <workers/opencl/opencl_worker.h>
 
-#include <math.h>
+#include <cmath>
 #include <random>
 
 #define PI 3.1415926535897932384
@@ -11,16 +11,16 @@
  * FFT testing
  ****/
 
-using namespace cditma::test::helpers;
+using namespace cdit_ma::test;
 
 struct FFTParam {
     FFTParam(DeviceParam device,
-             const std::vector<float>& data_in,
-             const std::vector<float>& data_out,
+             std::vector<float> data_in,
+             std::vector<float> data_out,
              bool expect_success = true) :
         device_(device),
-        data_in_(data_in),
-        data_out_(data_out),
+        data_in_(std::move(data_in)),
+        data_out_(std::move(data_out)),
         expect_success_(expect_success){};
 
     DeviceParam device_;
@@ -32,7 +32,7 @@ struct FFTParam {
 void addFrequency(std::vector<float>& data, float frequency, float amplitude, float phase_shift)
 {
     size_t num_elements = data.size() / 2;
-    for(unsigned int i = 0; i < num_elements; i++) {
+    for(size_t i = 0; i < num_elements; i++) {
         data[i * 2] +=
             amplitude
             * (float)(cos((float)frequency * ((float)i / num_elements) * 2 * PI + phase_shift));
@@ -133,7 +133,7 @@ TEST_P(FFTFixture, FFTtest)
 
     ASSERT_EQ(data.size(), expected_output.size());
 
-    expect_nearly_equal(data, expected_output, 1e-3);
+    common::expect_nearly_equal(data, expected_output, 1e-3);
 }
 
 typedef std::tuple<std::vector<float>, std::vector<float>, bool> TestData;

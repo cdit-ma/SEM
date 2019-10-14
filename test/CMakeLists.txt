@@ -12,6 +12,7 @@ set(RE_TEST_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_subdirectory("${GOOGLE_TEST_DIR}")
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/common)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/core")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/workers")
