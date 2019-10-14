@@ -65,10 +65,10 @@ message Port{
 message LifecycleEvent{
     enum Type{
         NONE = 0;
-        CONFIGURED = 1;
-        ACTIVATED = 2;
-        PASSIVATED = 3;
-        TERMINATED = 4;
+        CONFIGURE = 1;
+        ACTIVATE = 2;
+        PASSIVATE = 3;
+        TERMINATE = 4;
     }
     Info info = 1;
     Type type = 2;
