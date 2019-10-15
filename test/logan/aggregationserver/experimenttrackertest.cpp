@@ -24,7 +24,7 @@ using ::testing::NaggyMock;
 // TODO: Create a test fixture that spawns a postgres database instance for test isolation
 class ExperimentTrackerFixture : public ::testing::Test {
 public:
-    ExperimentTrackerFixture() = default;
+    ExperimentTrackerFixture() : db_client(std::make_shared<NaggyMock<MockDatabaseClient>>()){};
     std::shared_ptr<NaggyMock<MockDatabaseClient>> db_client;
 };
 
