@@ -1,5 +1,5 @@
 set(PROJ_NAME "re_loggers")
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 add_library(${PROJ_NAME} SHARED "")
 target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)

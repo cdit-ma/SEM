@@ -1,7 +1,7 @@
 set(AGGREGATION_SERVER "aggregation_server")
 set(PROJ_NAME ${AGGREGATION_SERVER})
 
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #Find packages
 find_package(Protobuf REQUIRED)

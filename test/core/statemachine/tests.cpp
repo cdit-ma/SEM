@@ -20,5 +20,5 @@ class Re_Core_StateMachine_FSM: public ::testing::Test {
 };
 
 #define TEST_FSM_CLASS Re_Core_StateMachine_FSM
-#include "../../../core/activatablefsmtestcases.h"
+#include "../activatablefsmtestcases.h"
 #undef TEST_FSM_CLASS

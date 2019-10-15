@@ -1,5 +1,5 @@
 set(PROJ_NAME test_qpid_pubsub)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 # Find package QPID
 find_package(QPID)

@@ -1,7 +1,7 @@
 
 #Set our project names
 set(PROJ_NAME re_common_proto_aggregation_message)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 find_package(Protobuf REQUIRED)
 

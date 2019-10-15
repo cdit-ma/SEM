@@ -1,7 +1,7 @@
 set(AGGREGATION_BROKER "aggregation_broker")
 set(PROJ_NAME ${AGGREGATION_BROKER})
 
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #Find packages
 find_package(Protobuf REQUIRED)
@@ -56,7 +56,7 @@ target_link_libraries(${PROJ_NAME} re_common_proto_aggregation_message)
 #target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 #target_link_libraries(${PROJ_NAME} re_common_proto_control)
 #target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
-target_link_libraries(${PROJ_NAME} pqxx)
+target_link_libraries(${PROJ_NAME} ${PQXX_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 
