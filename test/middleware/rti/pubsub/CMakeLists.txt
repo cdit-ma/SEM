@@ -1,5 +1,5 @@
 set(PROJ_NAME test_rti_pubsub)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 # Find package RTIDDS
 find_package(RTI_DDS)

@@ -1,6 +1,6 @@
 #Set our project names
 set(PROJ_NAME test_graphmlparser)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 # See https://github.com/vector-of-bool/cmrc
 include(${CMAKE_MODULE_PATH}/CMakeRC.cmake)

@@ -1,5 +1,5 @@
 set(PROJ_NAME lib_test_basic_proto)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #Find protobuf
 find_package(Protobuf REQUIRED)
