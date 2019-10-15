@@ -30,7 +30,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${AGG_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_BINARY_DIR}/logan/src/aggregationserver/)
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/googlemock/include)
+target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_MOCK_DIR}/include)
 
 target_link_libraries(${PROJ_NAME} PRIVATE logan_database_client_lib)
 
