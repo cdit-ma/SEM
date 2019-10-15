@@ -81,9 +81,9 @@ int DatabaseClient::InsertValues(const std::string& table_name,
 
     query_stream << std::endl << " VALUES (";
     for(unsigned int i = 0; i < values.size() - 1; i++) {
-        query_stream << connection_.quote(values.at(i)) << ',';
+        query_stream << values.at(i) << ',';
     }
-    query_stream << connection_.quote(values.at(values.size() - 1)) << ")" << std::endl;
+    query_stream << values.at(values.size() - 1) << ")" << std::endl;
     query_stream << "RETURNING " << strip_schema(table_name) << "." << id_column << ";"
                  << std::endl;
 
@@ -138,6 +138,88 @@ int DatabaseClient::InsertValues(const std::string& table_name,
                   << e.what() << std::endl;
         std::cerr << query_stream.str() << std::endl;
         std::cerr << "ID column name = " << id_column << std::endl;
+        throw;
+    }
+}
+
+void DatabaseClient::InsertPubSubValues(int from_port_id,
+                                        const std::string& to_port_graphml,
+                                        int experiment_run_id)
+{
+    std::stringstream query_stream;
+
+    query_stream << "INSERT INTO PubSubConnection (PubPortID, SubPortID)";
+
+    query_stream << " VALUES (" << quote(from_port_id) << ", getPortFromGraphml("
+                 << quote(experiment_run_id) << ", " << quote(to_port_graphml) << "))";
+    query_stream << " ON CONFLICT DO NOTHING";
+
+    std::lock_guard<std::mutex> conn_guard(conn_mutex_);
+
+    try {
+        auto start = std::chrono::steady_clock::now();
+        auto& transaction = AquireBatchedTransaction();
+
+        auto made_transaction = std::chrono::steady_clock::now();
+
+        try {
+            auto&& result = transaction.exec(query_stream.str());
+
+            auto executed_trans = std::chrono::steady_clock::now();
+            ReleaseBatchedTransaction();
+            FlushBatchedTransaction(); // TODO: remove this once we can actually figure out when
+                                       // things are going down
+
+        } catch(const std::exception& ex) {
+            std::cerr << "Exception thrown on exec for batched transaction\n";
+            AbortBatchedTransaction();
+            throw;
+        }
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while trying to insert values into the database: "
+                  << e.what() << std::endl;
+        std::cerr << query_stream.str() << std::endl;
+        throw;
+    }
+}
+
+void DatabaseClient::InsertReqRepValues(int from_port_id,
+                                        const std::string& to_port_graphml,
+                                        int experiment_run_id)
+{
+    std::stringstream query_stream;
+
+    query_stream << "INSERT INTO ReqRepConnection (ReqPortID, RepPortID)";
+
+    query_stream << " VALUES (" << quote(from_port_id) << ", getPortFromGraphml("
+                 << quote(experiment_run_id) << ", " << quote(to_port_graphml) << "))";
+    query_stream << " ON CONFLICT DO NOTHING";
+
+    std::lock_guard<std::mutex> conn_guard(conn_mutex_);
+
+    try {
+        auto start = std::chrono::steady_clock::now();
+        auto& transaction = AquireBatchedTransaction();
+
+        auto made_transaction = std::chrono::steady_clock::now();
+
+        try {
+            auto&& result = transaction.exec(query_stream.str());
+
+            auto executed_trans = std::chrono::steady_clock::now();
+            ReleaseBatchedTransaction();
+            FlushBatchedTransaction(); // TODO: remove this once we can actually figure out when
+                                       // things are going down
+
+        } catch(const std::exception& ex) {
+            std::cerr << "Exception thrown on exec for batched transaction\n";
+            AbortBatchedTransaction();
+            throw;
+        }
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while trying to insert values into the database: "
+                  << e.what() << std::endl;
+        std::cerr << query_stream.str() << std::endl;
         throw;
     }
 }
@@ -305,6 +387,47 @@ int DatabaseClient::GetID(const std::string& table_name, const std::string& quer
 
     throw std::runtime_error(
         "Did not find ID amongst returned database columns when calling GetID on " + table_name);
+}
+
+std::optional<int> DatabaseClient::GetMaxValue(const std::string& table_name,
+                                               const std::string& column,
+                                               const std::string& where_query)
+{
+    std::stringstream query_stream;
+
+    query_stream << "SELECT max(" << column << ") as maxval FROM " << table_name;
+    query_stream << " WHERE (" << where_query << ");";
+
+    std::lock_guard<std::mutex> conn_guard(conn_mutex_);
+
+    try {
+        pqxx::work transaction(connection_, "GetMaxValueTransaction");
+        const auto& pg_result = transaction.exec(query_stream.str());
+        transaction.commit();
+
+        if(pg_result.empty()) {
+            return std::optional<int>();
+        }
+
+        if(pg_result.size() > 1) {
+            throw std::runtime_error("Returned multiple max results in table '" + table_name
+                                     + "' matching query '" + where_query
+                                     + "'; only one was expected.");
+        }
+
+        for(const auto& row : pg_result) {
+            const auto& result = row["maxval"];
+            if(result.is_null()) {
+                return std::optional<int>();
+            }
+            return result.as<int>();
+        }
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while querying values from the database: " << std::endl;
+        std::cerr << query_stream.str() << std::endl;
+        std::cerr << e.what() << std::endl;
+        throw;
+    }
 }
 
 const pqxx::result
@@ -638,8 +761,6 @@ void DatabaseClient::UpdateLastSampleTime(int experiment_run_id, const std::stri
         throw;
     }
 }
-
-std::string DatabaseClient::EscapeString(const std::string& str) { return connection_.quote(str); }
 
 std::string DatabaseClient::StringToPSQLTimestamp(const std::string& str)
 {

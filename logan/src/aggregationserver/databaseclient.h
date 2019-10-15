@@ -2,6 +2,7 @@
 #define LOGAN_DATABASECLIENT_H
 
 #include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -38,6 +39,12 @@ public:
                            const std::vector<std::string>& values,
                            const std::vector<std::string>& unique_col);
 
+    void
+    InsertPubSubValues(int from_port_id, const std::string& to_port_graphml, int experiment_run_id);
+
+    void
+    InsertReqRepValues(int from_port_id, const std::string& to_port_graphml, int experiment_run_id);
+
     const pqxx::result GetValues(const std::string table_name,
                                  const std::vector<std::string>& columns,
                                  const std::string& query = "");
@@ -48,7 +55,9 @@ public:
 
     int GetID(const std::string& table_name, const std::string& query);
 
-    std::string EscapeString(const std::string& str);
+    std::optional<int> GetMaxValue(const std::string& table_name,
+                                   const std::string& column,
+                                   const std::string& where_query);
 
     const pqxx::result GetPortLifecycleEventInfo(int experiment_run_id,
                                                  std::string start_time,
@@ -83,6 +92,8 @@ public:
     void UpdateShutdownTime(int experiment_run_id, const std::string& end_time);
 
     void UpdateLastSampleTime(int experiment_run_id, const std::string& sample_time);
+
+    template<typename T> std::string quote(const T& val) { return connection_.quote(val); }
 
     static std::string StringToPSQLTimestamp(const std::string& str);
 

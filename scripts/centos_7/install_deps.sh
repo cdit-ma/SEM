@@ -6,6 +6,7 @@ sudo yum install epel-release git wget java-1.8.0-openjdk chrony && \
     sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && \
     sudo yum install docker-ce docker-ce-cli containerd.io && \
     sudo yum install ninja-build cmake3 ccache python-devel && \
+    sudo yum install libpq && \
     sudo ln -s /usr/bin/cmake3 /usr/bin/cmake && \
     . /opt/rh/devtoolset-7/enable
 
@@ -62,6 +63,17 @@ wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q && \
     sudo cmake --build . --target install && \
     cd ~ && \
     rm sigar-1.6.4B.tar.gz sigar-sigar-1.6.4B -rf
+
+# Install pqxx
+wget http://192.168.111.1/raid/software_share/UtilityLibraries/libpqxx7-0-0.tar.gz && \
+    tar xf libpqxx7-0-0.tar.gz && \
+    cd libpqxx && \
+    mkdir build && \
+    cd build && \
+    cmake -G Ninja .. && \
+    sudo cmake --build . --target install && \
+    cd ~ && \
+    rm libpqxx7-0-0.tar.gz libpqxx -rf
 
 # Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \
