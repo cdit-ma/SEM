@@ -97,6 +97,23 @@ message PortLifecycleEvent {
     google.protobuf.Timestamp time = 3;
 }
 
+message PortEvent {
+    enum PortEventType {
+        SENT = 0;
+        RECEIVED = 1;
+        STARTED_FUNC = 2;
+        FINISHED_FUNC = 3;
+        IGNORED = 4;
+        EXCEPTION = 5;
+        MESSAGE = 6;
+    }
+    Port port = 1;
+    uint64 port_event_id = 2;
+    PortEventType type = 3;
+    string message = 4;
+    google.protobuf.Timestamp time = 5;
+}
+
 message WorkloadEvent {
     enum WorkloadEventType {
         STARTED = 0;
