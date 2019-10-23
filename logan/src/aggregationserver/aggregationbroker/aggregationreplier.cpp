@@ -420,8 +420,8 @@ AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEven
             event->set_message(row["Message"].as<std::string>());
             event->set_sequence_num(row["SequenceNum"].as<int>());
             auto&& timestamp_str = row["SampleTime"].as<std::string>();
-            bool did_parse = TimeUtil::FromString(timestamp_str, event->mutable_time());
-            if(!did_parse) {
+            bool did_parse_event_time = TimeUtil::FromString(timestamp_str, event->mutable_time());
+            if(!did_parse_event_time) {
                 throw std::runtime_error("Failed to parse SampleTime field from string: "
                                          + timestamp_str);
             }
@@ -431,10 +431,10 @@ AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEven
             port->set_name(row["PortName"].as<std::string>());
             port->set_path(row["PortPath"].as<std::string>());
             Port::Kind kind;
-            bool did_parse_lifecycle =
+            bool did_parse_port_kind =
                 AggServer::Port::Kind_Parse(row["PortKind"].as<std::string>(), &kind);
-            if(!did_parse_lifecycle) {
-                throw std::runtime_error("Failed to parse Lifecycle Kind field from string: "
+            if(!did_parse_port_kind) {
+                throw std::runtime_error("Failed to parse Port's Kind field from string: "
                                          + row["PortKind"].as<std::string>());
             }
             port->set_kind(kind);
@@ -443,8 +443,7 @@ AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEven
         }
 
     } catch(const std::exception& ex) {
-        std::cerr << "An exception occurred while querying PortLifecycleEvents:" << ex.what()
-                  << std::endl;
+        std::cerr << "An exception occurred while querying PortEvents:" << ex.what() << std::endl;
         throw;
     }
 
