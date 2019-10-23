@@ -32,12 +32,23 @@ message PortLifecycleRequest {
     uint32 experiment_run_id = 5;
     repeated string port_ids = 6;
     repeated string component_instance_ids = 7;
-
 }
 message PortLifecycleResponse {
     repeated PortLifecycleEvent events = 1;
 }
 
+message PortEventRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    repeated string port_paths = 2; // filter results by expected ports
+    repeated string component_instance_paths = 3; // filter results by expected
+    repeated string component_names = 4;
+    uint32 experiment_run_id = 5;
+    repeated string port_ids = 6;
+    repeated string component_instance_ids = 7;
+}
+message PortEventResponse {
+    repeated PortEvent events = 1;
+}
 
 message WorkloadRequest {
     repeated google.protobuf.Timestamp time_interval = 1;
@@ -95,6 +106,23 @@ message PortLifecycleEvent {
     Port port = 1;
     LifecycleType type = 2;
     google.protobuf.Timestamp time = 3;
+}
+
+message PortEvent {
+    enum PortEventType {
+        SENT = 0;
+        RECEIVED = 1;
+        STARTED_FUNC = 2;
+        FINISHED_FUNC = 3;
+        IGNORED = 4;
+        EXCEPTION = 5;
+        MESSAGE = 6;
+    }
+    Port port = 1;
+    uint64 sequence_num = 2;
+    PortEventType type = 3;
+    string message = 4;
+    google.protobuf.Timestamp time = 5;
 }
 
 message WorkloadEvent {

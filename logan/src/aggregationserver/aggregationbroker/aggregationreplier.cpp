@@ -95,6 +95,9 @@ void AggServer::AggregationReplier::RegisterCallbacks() {
         "GetPortLifecycle",
         std::bind(&AggregationReplier::ProcessPortLifecycleRequest, this, std::placeholders::_1)
     );
+    RegisterProtoCallback<PortEventRequest, PortEventResponse>(
+        "GetPortEvents",
+        std::bind(&AggregationReplier::ProcessPortEventRequest, this, std::placeholders::_1));
     RegisterProtoCallback<WorkloadRequest, WorkloadResponse>(
         "GetWorkload",
         std::bind(&AggregationReplier::ProcessWorkloadEventRequest, this, std::placeholders::_1)
@@ -365,6 +368,87 @@ AggServer::AggregationReplier::ProcessPortLifecycleRequest(const AggServer::Port
     return response;
 }
 
+std::unique_ptr<AggServer::PortEventResponse>
+AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEventRequest& message)
+{
+    auto response = std::make_unique<AggServer::PortEventResponse>();
+
+    std::string start, end;
+
+    // Start time defaults to 0 if not specified
+    if(message.time_interval_size() >= 1) {
+        start = TimeUtil::ToString(message.time_interval()[0]);
+    } else {
+        start = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
+    }
+
+    // End time defaults to 0 if not specified
+    if(message.time_interval_size() >= 2) {
+        end = TimeUtil::ToString(message.time_interval()[1]);
+    } else {
+        end = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
+    }
+
+    // Get filter conditions
+    const auto conditions = ConditionPairBuilder::createConditionPairs()
+                                .add("Port.Path", message.port_paths())
+                                .add("Port.GraphmlID", message.port_ids())
+                                .add("ComponentInstance.Path", message.component_instance_paths())
+                                .add("ComponentInstance.GraphmlID",
+                                     message.component_instance_ids())
+                                .add("Component.Name", message.component_names())
+                                .finish();
+
+    try {
+        const pqxx::result res = database_->GetPortEventInfo(message.experiment_run_id(), start,
+                                                             end, conditions.getColumns(),
+                                                             conditions.getValues());
+
+        for(const auto& row : res) {
+            auto event = response->add_events();
+
+            // Build Event
+            auto&& db_type_str = row["Type"].as<std::string>();
+            AggServer::PortEvent::PortEventType event_type;
+            bool did_parse_type = AggServer::PortEvent_PortEventType_Parse(db_type_str,
+                                                                           &event_type);
+            if(!did_parse_type) {
+                throw std::runtime_error("Failed to parse PortEventType from string: "
+                                         + db_type_str);
+            }
+            event->set_type(event_type);
+            event->set_message(row["Message"].as<std::string>());
+            event->set_sequence_num(row["SequenceNum"].as<int>());
+            auto&& timestamp_str = row["SampleTime"].as<std::string>();
+            bool did_parse_event_time = TimeUtil::FromString(timestamp_str, event->mutable_time());
+            if(!did_parse_event_time) {
+                throw std::runtime_error("Failed to parse SampleTime field from string: "
+                                         + timestamp_str);
+            }
+
+            // Build Port
+            auto port = event->mutable_port();
+            port->set_name(row["PortName"].as<std::string>());
+            port->set_path(row["PortPath"].as<std::string>());
+            Port::Kind kind;
+            bool did_parse_port_kind =
+                AggServer::Port::Kind_Parse(row["PortKind"].as<std::string>(), &kind);
+            if(!did_parse_port_kind) {
+                throw std::runtime_error("Failed to parse Port's Kind field from string: "
+                                         + row["PortKind"].as<std::string>());
+            }
+            port->set_kind(kind);
+            port->set_middleware(row["Middleware"].as<std::string>());
+            port->set_graphml_id(row["PortGraphmlID"].as<std::string>());
+        }
+
+    } catch(const std::exception& ex) {
+        std::cerr << "An exception occurred while querying PortEvents:" << ex.what() << std::endl;
+        throw;
+    }
+
+    return response;
+}
 
 std::unique_ptr<AggServer::WorkloadResponse>
 AggServer::AggregationReplier::ProcessWorkloadEventRequest(const AggServer::WorkloadRequest& message) {
