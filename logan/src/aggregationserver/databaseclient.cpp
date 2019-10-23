@@ -382,7 +382,7 @@ DatabaseClient::GetPortEventInfo(int experiment_run_id,
 
     query_stream << "SELECT PortEvent.Type, " << StringToPSQLTimestamp("SampleTime")
                  << " AS SampleTime, porteventsequencenum AS SequenceNum, PortEvent.Message AS "
-                    "Message\n";
+                    "Message, \n";
     query_stream << "   Port.Name AS PortName, Port.Type AS PortType, Port.Kind AS PortKind, "
                     "Port.Path AS PortPath, Port.Middleware, Port.GraphmlID AS PortGraphmlID, \n";
     query_stream << "   ComponentInstance.Name AS ComponentInstanceName, ComponentInstance.Path AS "

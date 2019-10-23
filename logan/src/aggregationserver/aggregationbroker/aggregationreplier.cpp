@@ -96,7 +96,7 @@ void AggServer::AggregationReplier::RegisterCallbacks() {
         std::bind(&AggregationReplier::ProcessPortLifecycleRequest, this, std::placeholders::_1)
     );
     RegisterProtoCallback<PortEventRequest, PortEventResponse>(
-        "GetPortEvent",
+        "GetPortEvents",
         std::bind(&AggregationReplier::ProcessPortEventRequest, this, std::placeholders::_1));
     RegisterProtoCallback<WorkloadRequest, WorkloadResponse>(
         "GetWorkload",
