@@ -418,7 +418,7 @@ AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEven
             }
             event->set_type(event_type);
             event->set_message(row["Message"].as<std::string>());
-            event->set_port_event_id(row["SequenceNum"].as<int>());
+            event->set_sequence_num(row["SequenceNum"].as<int>());
             auto&& timestamp_str = row["SampleTime"].as<std::string>();
             bool did_parse = TimeUtil::FromString(timestamp_str, event->mutable_time());
             if(!did_parse) {

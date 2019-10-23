@@ -119,7 +119,7 @@ message PortEvent {
         MESSAGE = 6;
     }
     Port port = 1;
-    uint64 port_event_id = 2;
+    uint64 sequence_num = 2;
     PortEventType type = 3;
     string message = 4;
     google.protobuf.Timestamp time = 5;
