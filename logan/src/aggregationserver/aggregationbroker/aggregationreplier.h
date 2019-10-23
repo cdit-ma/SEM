@@ -28,6 +28,9 @@ public:
         const AggServer::PortLifecycleRequest& message
     );
 
+    std::unique_ptr<AggServer::PortEventResponse>
+    ProcessPortEventRequest(const AggServer::PortEventRequest& message);
+
     std::unique_ptr<AggServer::WorkloadResponse>
     ProcessWorkloadEventRequest(
         const AggServer::WorkloadRequest& message
