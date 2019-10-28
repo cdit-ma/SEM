@@ -149,6 +149,11 @@ void ChartManager::requestEvents(const RequestBuilder& builder)
     } catch (const std::exception&) {
         qInfo("No MarkerRequest");
     }
+    try {
+        requestPortEvents(builder.getPortEventRequest(), selectedExperimentRun_);
+    } catch (const std::exception&) {
+        qInfo("No PortEventRequest");
+    }
 
     // Reset the selected experiment run
     selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
@@ -328,6 +333,43 @@ void ChartManager::requestMarkerEvents(const MarkerRequest &request, const AggSe
 
 
 /**
+ * @brief ChartManager::requestPortEvents
+ * @param request
+ * @param experimentRun
+ */
+void ChartManager::requestPortEvents(const PortEventRequest &request, const AggServerResponse::ExperimentRun &experimentRun)
+{
+    try {
+        auto future = aggregationProxy().RequestPortEvents(request);
+        auto futureWatcher = new QFutureWatcher<QVector<PortEvent*>>(this);
+
+        connect(futureWatcher, &QFutureWatcher<QVector<PortEvent*>>::finished, [this, futureWatcher, experimentRun]() {
+            try {
+                auto events = futureWatcher->result();
+                if (events.isEmpty()) {
+                    toastNotification("No port events received for selection", "plug");
+                } else {
+                    qDebug() << "Received Port Events#: " << events.size();
+                    // TODO - Next step; GUI side implementation
+                    //emit showChartsPanel();
+                    //timelineChartView().addMarkerEvents(experimentRun, events);
+                }
+            } catch (const std::exception& ex) {
+                toastNotification("Failed to get port events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
+            }
+        });
+
+        futureWatcher->setFuture(future);
+
+    } catch (const NoRequesterException& ex) {
+        toastNotification("Failed to set up the Aggregation Server when requesting experiment runs: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
+    } catch (const RequestException& ex) {
+        toastNotification("Failed to request port events: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
+    }
+}
+
+
+/**
  * @brief ChartManager::toastNotification
  * @param description
  * @param iconName
@@ -473,7 +515,7 @@ void ChartManager::setupRequestsForExperimentRun(const quint32 experimentRunID)
 
     auto builder = RequestBuilder::build();
     builder.buildRequests(selectedDataKinds_);
-    builder.setExperimentID(experimentRunID);
+    builder.setExperimentRunID(experimentRunID);
 
     if (!selectedViewItems_.isEmpty()) {
 

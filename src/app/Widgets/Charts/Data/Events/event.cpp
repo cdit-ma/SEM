@@ -72,7 +72,9 @@ const QList<MEDEA::ChartDataKind> &MEDEA::Event::GetChartDataKinds()
                 ChartDataKind::WORKLOAD,
                 ChartDataKind::CPU_UTILISATION,
                 ChartDataKind::MEMORY_UTILISATION,
-                ChartDataKind::MARKER};
+                ChartDataKind::MARKER,
+                ChartDataKind::PORT_EVENT
+    };
     return kinds;
 }
 
@@ -86,8 +88,8 @@ const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
 {
     switch (kind) {
     case ChartDataKind::PORT_LIFECYCLE: {
-        static const QString portStr = "PortLifecycle";
-        return portStr;
+        static const QString portLifecycleStr = "PortLifecycle";
+        return portLifecycleStr;
     }
     case ChartDataKind::WORKLOAD: {
         static const QString workloadStr = "Workload";
@@ -104,6 +106,10 @@ const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
     case ChartDataKind::MARKER: {
         static const QString markerStr = "Marker";
         return markerStr;
+    }
+    case ChartDataKind::PORT_EVENT: {
+        static const QString portEventStr = "PortEvent";
+        return portEventStr;
     }
     default: {
         static const QString defaultStr = "Data";

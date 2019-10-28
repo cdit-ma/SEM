@@ -6,6 +6,7 @@
 #include "../Data/Requests/cpuutilisationrequest.h"
 #include "../Data/Requests/memoryutilisationrequest.h"
 #include "../Data/Requests/markerrequest.h"
+#include "../Data/Requests/porteventrequest.h"
 
 #include <memory>
 
@@ -21,7 +22,7 @@ public:
 
     void buildRequests(const QList<MEDEA::ChartDataKind> &requestKinds);
 
-    void setExperimentID(const quint32 experiment_run_id);
+    void setExperimentRunID(const quint32 experiment_run_id);
     void setTimeInterval(const QVector<qint64>& time_interval);
     void setComponentNames(const QVector<QString>& component_names);
     void setComponentInstanceIDS(const QVector<QString>& component_instance_ids);
@@ -38,6 +39,7 @@ public:
     const CPUUtilisationRequest& getCPUUtilisationRequest() const;
     const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
     const MarkerRequest& getMarkerRequest() const;
+    const PortEventRequest& getPortEventRequest() const;
 
 private:
     std::unique_ptr<PortLifecycleRequest> portLifecycleRequest_;
@@ -45,6 +47,7 @@ private:
     std::unique_ptr<CPUUtilisationRequest> cpuUtilisationRequest_;
     std::unique_ptr<MemoryUtilisationRequest> memoryUtilisationRequest_;
     std::unique_ptr<MarkerRequest> markerRequest_;
+    std::unique_ptr<PortEventRequest> portEventRequest_;
 };
 
 #endif // REQUESTBUILDER_H

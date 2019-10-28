@@ -6,7 +6,7 @@
 
 namespace MEDEA {
 
-enum class ChartDataKind{DATA, PORT_LIFECYCLE, WORKLOAD, CPU_UTILISATION, MEMORY_UTILISATION, MARKER};
+enum class ChartDataKind{DATA, PORT_LIFECYCLE, WORKLOAD, CPU_UTILISATION, MEMORY_UTILISATION, MARKER, PORT_EVENT};
 
 class Event : public QObject
 {
@@ -26,6 +26,8 @@ public:
 
     const QString& getName() const;
 
+    // The ID is used to group the events together
+    // Combined with the ChartDataKind, it identifies the series that the event belongs to
     virtual const QString& getID() const = 0;
     virtual QString toString(const QString& dateTimeFormat) const = 0;
 

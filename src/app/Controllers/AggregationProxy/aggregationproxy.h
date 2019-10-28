@@ -16,6 +16,7 @@
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
 #include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
 #include "../../Widgets/Charts/Data/Events/markerevent.h"
+#include "../../Widgets/Charts/Data/Events/portevent.h"
 #include "../../Widgets/Charts/ChartManager/requestbuilder.h"
 
 
@@ -65,6 +66,7 @@ public:
     QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const CPUUtilisationRequest& request) const;
     QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
     QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request) const;
+    QFuture<QVector<PortEvent*>> RequestPortEvents(const PortEventRequest& request) const;
 
 private:
     AggregationProxy();
@@ -80,6 +82,7 @@ private:
     QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const CPUUtilisationRequest& request) const;
     QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
     QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request) const;
+    QVector<PortEvent*> GetPortEvents(const PortEventRequest& request) const;
 
     // Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);
@@ -101,6 +104,7 @@ private:
     static PortLifecycleEvent::PortKind ConvertPortKind(const AggServer::Port_Kind& kind);
     static AggServerResponse::LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
+    static PortEvent::PortEventType ConvertPortEventType(const AggServer::PortEvent_PortEventType& type);
 
     static std::unique_ptr<AggregationProxy> proxySingleton_;
     std::unique_ptr<AggServer::Requester> requester_;

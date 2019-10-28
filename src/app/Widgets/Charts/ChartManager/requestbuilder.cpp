@@ -39,7 +39,11 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
         case MEDEA::ChartDataKind::MARKER:
             markerRequest_ = std::unique_ptr<MarkerRequest>(new MarkerRequest());
             break;
+        case MEDEA::ChartDataKind::PORT_EVENT:
+            portEventRequest_ = std::unique_ptr<PortEventRequest>(new PortEventRequest());
+            break;
         default:
+            qWarning("RequestBuilder::buildRequests - Unknown chart data kind");
             break;
         }
     }
@@ -47,25 +51,28 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
 
 
 /**
- * @brief RequestBuilder::setExperimentID
+ * @brief RequestBuilder::setExperimentRunID
  * @param experiment_run_id
  */
-void RequestBuilder::setExperimentID(const quint32 experiment_run_id)
+void RequestBuilder::setExperimentRunID(const quint32 experiment_run_id)
 {
     if (portLifecycleRequest_) {
-        portLifecycleRequest_->setExperimentID(experiment_run_id);
+        portLifecycleRequest_->setExperimentRunID(experiment_run_id);
     }
     if (workloadRequest_) {
-        workloadRequest_->setExperimentID(experiment_run_id);
+        workloadRequest_->setExperimentRunID(experiment_run_id);
     }
     if (cpuUtilisationRequest_) {
-        cpuUtilisationRequest_->setExperimentID(experiment_run_id);
+        cpuUtilisationRequest_->setExperimentRunID(experiment_run_id);
     }
     if (memoryUtilisationRequest_) {
-        memoryUtilisationRequest_->setExperimentID(experiment_run_id);
+        memoryUtilisationRequest_->setExperimentRunID(experiment_run_id);
     }
     if (markerRequest_) {
-        markerRequest_->setExperimentID(experiment_run_id);
+        markerRequest_->setExperimentRunID(experiment_run_id);
+    }
+    if (portEventRequest_) {
+        portEventRequest_->setExperimentRunID(experiment_run_id);
     }
 }
 
@@ -91,6 +98,9 @@ void RequestBuilder::setTimeInterval(const QVector<qint64> &time_interval)
     if (markerRequest_) {
         markerRequest_->setTimeInterval(time_interval);
     }
+    if (portEventRequest_) {
+        portEventRequest_->setTimeInterval(time_interval);
+    }
 }
 
 
@@ -108,6 +118,9 @@ void RequestBuilder::setComponentNames(const QVector<QString> &component_names)
     }
     if (markerRequest_) {
         markerRequest_->setComponentNames(component_names);
+    }
+    if (portEventRequest_) {
+        portEventRequest_->setComponentNames(component_names);
     }
 }
 
@@ -127,6 +140,9 @@ void RequestBuilder::setComponentInstanceIDS(const QVector<QString> &component_i
     if (markerRequest_) {
         markerRequest_->setComponentInstanceIDS(component_instance_ids);
     }
+    if (portEventRequest_) {
+        portEventRequest_->setComponentInstanceIDS(component_instance_ids);
+    }
 }
 
 
@@ -145,6 +161,9 @@ void RequestBuilder::setComponentInstancePaths(const QVector<QString> &component
     if (markerRequest_) {
         markerRequest_->setComponentInstancePaths(component_instance_paths);
     }
+    if (portEventRequest_) {
+        portEventRequest_->setComponentInstancePaths(component_instance_paths);
+    }
 }
 
 
@@ -157,6 +176,9 @@ void RequestBuilder::setPortIDs(const QVector<QString> &port_ids)
     if (portLifecycleRequest_) {
         portLifecycleRequest_->setPortIDs(port_ids);
     }
+    if (portEventRequest_) {
+        portEventRequest_->setPortIDs(port_ids);
+    }
 }
 
 
@@ -168,6 +190,9 @@ void RequestBuilder::setPortPaths(const QVector<QString> &port_paths)
 {
     if (portLifecycleRequest_) {
         portLifecycleRequest_->setPortPaths(port_paths);
+    }
+    if (portEventRequest_) {
+        portEventRequest_->setPortPaths(port_paths);
     }
 }
 
@@ -299,4 +324,17 @@ const MarkerRequest& RequestBuilder::getMarkerRequest() const
         throw std::invalid_argument("No MarkerRequest");
     }
     return *markerRequest_;
+}
+
+
+/**
+ * @brief RequestBuilder::getPortEventRequest
+ * @return
+ */
+const PortEventRequest& RequestBuilder::getPortEventRequest() const
+{
+    if (!portEventRequest_) {
+        throw std::invalid_argument("No PortEventRequest");
+    }
+    return *portEventRequest_;
 }

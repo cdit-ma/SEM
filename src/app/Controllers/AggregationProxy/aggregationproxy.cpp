@@ -115,6 +115,17 @@ QFuture< QVector<MarkerEvent*> > AggregationProxy::RequestMarkerEvents(const Mar
 
 
 /**
+ * @brief AggregationProxy::RequestPortEvents
+ * @param request
+ * @return
+ */
+QFuture<QVector<PortEvent*> > AggregationProxy::RequestPortEvents(const PortEventRequest& request) const
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetPortEvents, request);
+}
+
+
+/**
  * @brief AggregationProxy::SetServerEndpoint
  * @param endpoint
  * @throws NoRequesterException
@@ -162,7 +173,7 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
             for (auto& ex_run : ex.runs()) {
                 AggServerResponse::ExperimentRun run;
                 run.experiment_name = experiment_name;
-                run.experiment_run_id = ex_run.experiment_run_id();
+                run.experiment_run_id = static_cast<qint32>(ex_run.experiment_run_id());
                 run.job_num = ex_run.job_num();
                 run.start_time = ConstructQDateTime(ex_run.start_time()).toMSecsSinceEpoch();
                 run.end_time = ConstructQDateTime(ex_run.end_time()).toMSecsSinceEpoch();
@@ -452,6 +463,54 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
 
 
 /**
+ * @brief AggregationProxy::GetPortEvents
+ * @param request
+ * @return
+ */
+QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &request) const
+{
+    CheckRequester();
+
+    try {
+        QVector<PortEvent*> events;
+        AggServer::PortEventRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
+
+        for (const auto& name : request.component_names()) {
+            agg_request.add_component_names(name.toStdString());
+        }
+        for (const auto& id : request.component_instance_ids()) {
+            agg_request.add_component_instance_ids(id.toStdString());
+        }
+        for (const auto& path : request.component_instance_paths()) {
+            agg_request.add_component_instance_paths(path.toStdString());
+        }
+        for (const auto& id : request.port_ids()) {
+            agg_request.add_port_ids(id.toStdString());
+        }
+        for (const auto& path : request.port_paths()) {
+            agg_request.add_port_paths(path.toStdString());
+        }
+
+        const auto& results = requester_->GetPortEvents(agg_request);
+        for (const auto& item : results->events()) {
+            const auto& port = ConvertPort(item.port());
+            const auto& seqNum = item.sequence_num();
+            const auto& type = ConvertPortEventType(item.type());
+            const auto& message = ConstructQString(item.message());
+            const auto& time = ConstructQDateTime(item.time());
+            events.append(new PortEvent(port, seqNum, type, message, time.toMSecsSinceEpoch()));
+        }
+
+        return events;
+
+    } catch (const std::exception& ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+
+/**
  * @brief AggregationProxy::ConvertPort
  * @param proto_port
  * @return
@@ -673,6 +732,7 @@ PortLifecycleEvent::PortKind AggregationProxy::ConvertPortKind(const AggServer::
     case AggServer::Port::REPLIER:
         return PortLifecycleEvent::PortKind::REPLIER;
     default:
+        // TODO - Replace NO_KIND with UNKNOWN
         return PortLifecycleEvent::PortKind::NO_KIND;
     }
 }
@@ -700,6 +760,34 @@ WorkloadEvent::WorkloadEventType AggregationProxy::ConvertWorkloadEventType(cons
         return WorkloadEvent::WorkloadEventType::MARKER;
     default:
         return WorkloadEvent::WorkloadEventType::UNKNOWN;
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::ConvertPortEventType
+ * @param type
+ * @return
+ */
+PortEvent::PortEventType AggregationProxy::ConvertPortEventType(const AggServer::PortEvent_PortEventType& type)
+{
+    switch (type) {
+    case AggServer::PortEvent::SENT:
+        return PortEvent::PortEventType::SENT;
+    case AggServer::PortEvent::RECEIVED:
+        return PortEvent::PortEventType::RECEIVED;
+    case AggServer::PortEvent::STARTED_FUNC:
+        return PortEvent::PortEventType::STARTED_FUNC;
+    case AggServer::PortEvent::FINISHED_FUNC:
+        return PortEvent::PortEventType::FINISHED_FUNC;
+    case AggServer::PortEvent::IGNORED:
+        return PortEvent::PortEventType::IGNORED;
+    case AggServer::PortEvent::EXCEPTION:
+        return PortEvent::PortEventType::EXCEPTION;
+    case AggServer::PortEvent::MESSAGE:
+        return PortEvent::PortEventType::MESSAGE;
+    default:
+        return PortEvent::PortEventType::UNKNOWN;
     }
 }
 

@@ -95,8 +95,8 @@ const QString &PortLifecycleEvent::getTypeString(AggServerResponse::LifecycleTyp
         return terminateStr;
     }
     default: {
-        static const QString defaultStr = "UNKNOWN";
-        return defaultStr;
+        static const QString defaultPortLifecycleTypeStr = "UNKNOWN";
+        return defaultPortLifecycleTypeStr;
     }
     }
 }

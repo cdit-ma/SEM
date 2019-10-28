@@ -9,13 +9,13 @@ protected:
     explicit Request(MEDEA::ChartDataKind kind = MEDEA::ChartDataKind::DATA);
 
 public:
-    void setExperimentID(const quint32 experiment_run_id);
+    void setExperimentRunID(const quint32 experiment_run_id);
     void setTimeInterval(const QVector<qint64>& time_interval);
 
     quint32 experiment_run_id() const;
-    MEDEA::ChartDataKind getKind() const;
-
     const QVector<qint64>& time_interval() const;
+
+    MEDEA::ChartDataKind getDataKind() const;
 
 private:
     quint32 experimentRunID_;

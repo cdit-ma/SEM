@@ -9,10 +9,10 @@ Request::Request(MEDEA::ChartDataKind kind) : kind_(kind) {}
 
 
 /**
- * @brief Request::setExperimentID
+ * @brief Request::setExperimentRunID
  * @param experiment_run_id
  */
-void Request::setExperimentID(const quint32 experiment_run_id)
+void Request::setExperimentRunID(const quint32 experiment_run_id)
 {
     experimentRunID_ = experiment_run_id;
 }
@@ -49,10 +49,10 @@ const QVector<qint64> &Request::time_interval() const
 
 
 /**
- * @brief Request::getKind
+ * @brief Request::getDataKind
  * @return
  */
-MEDEA::ChartDataKind Request::getKind() const
+MEDEA::ChartDataKind Request::getDataKind() const
 {
     return kind_;
 }

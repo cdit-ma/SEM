@@ -52,6 +52,7 @@ private:
     void requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
     void requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
     void requestMarkerEvents(const MarkerRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
+    void requestPortEvents(const PortEventRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
 
     static void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
 
