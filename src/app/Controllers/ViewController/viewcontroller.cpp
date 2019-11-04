@@ -20,15 +20,13 @@
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Controllers/NotificationManager/notificationobject.h"
-#include "../../Widgets/Charts/ChartManager/chartmanager.h"
-
+#include "../../Widgets/Charts/ExperimentDataManager/experimentdatamanager.h"
 
 #include "../../../modelcontroller/modelcontroller.h"
 #include "../../../modelcontroller/entityfactory.h"
 #include "../../../modelcontroller/version.h"
 
 #include "../../Utils/filehandler.h"
-
 
 #undef ERROR
 
@@ -69,7 +67,7 @@ ViewController::ViewController()
 
     NotificationManager::construct_singleton(this);
     SearchManager::construct_singleton(this);
-    ChartManager::constructSingleton(this);
+    ExperimentDataManager::constructSingleton(this);
 
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
@@ -78,7 +76,7 @@ ViewController::ViewController()
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
-    connect(ChartManager::manager(), &ChartManager::showChartsPanel, [=](){ emit  });
+    connect(ExperimentDataManager::manager(), &ExperimentDataManager::showChartsPanel, [=](){ emit  });
 
     connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &ViewController::notification_Added);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &ViewController::notification_Destructed);

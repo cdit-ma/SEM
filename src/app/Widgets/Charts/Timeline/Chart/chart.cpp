@@ -1147,7 +1147,7 @@ void Chart::paintMarkerEventSeries(QPainter &painter)
     }
 
     auto markerEventSeries = (MarkerEventSeries*) eventSeries;
-    const auto& startTimesMap = markerEventSeries->getMarkerIDsWithSharedStartTimes();
+    const auto& startTimesMap = markerEventSeries->getMarkerIDsMappedByStartTimes();
     const auto& idSetDuration = markerEventSeries->getMarkerIDSetDurations();
 
     auto currentBinIndex = 0;

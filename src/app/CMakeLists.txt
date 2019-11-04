@@ -109,6 +109,13 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/workerinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/componentinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/containerinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/nodedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portconnectiondata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/markersetdata.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.cpp
@@ -132,10 +139,10 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentrundata.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/requestbuilder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.cpp
@@ -255,6 +262,13 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/workerinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/componentinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/containerinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/nodedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portconnectiondata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/markersetdata.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.h
@@ -264,7 +278,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/cpuutilisationrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/memoryutilisationrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/protomessagestructs.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/protomessagestructs.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portevent.h
@@ -279,10 +293,10 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentrundata.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/chartmanager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ChartManager/requestbuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.h

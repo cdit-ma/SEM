@@ -2,7 +2,7 @@
 #define MEDEAEVENT_H
 
 #include <QObject>
-#include "protomessagestructs.h"
+#include "../protomessagestructs.h"
 
 namespace MEDEA {
 

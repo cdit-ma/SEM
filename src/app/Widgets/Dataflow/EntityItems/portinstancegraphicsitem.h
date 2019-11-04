@@ -1,7 +1,7 @@
 #ifndef PORTINSTGRAPHICSITEM_H
 #define PORTINSTGRAPHICSITEM_H
 
-#include "../../../Widgets/Charts/Data/Events/protomessagestructs.h"
+#include "../../Charts/Data/portinstancedata.h"
 #include "../GraphicsLayoutItems/pixmapgraphicsitem.h"
 #include "../GraphicsLayoutItems/textgraphicsitem.h"
 
@@ -13,7 +13,7 @@ class PortInstanceGraphicsItem : public QGraphicsWidget
     Q_OBJECT
 
 public:
-    PortInstanceGraphicsItem(const AggServerResponse::Port& port, QGraphicsItem* parent = nullptr);
+    PortInstanceGraphicsItem(const PortInstanceData& port_data, QGraphicsItem* parent = nullptr);
 
     const QString& getPortName() const;
     AggServerResponse::Port::Kind getPortKind() const;
@@ -31,7 +31,6 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
-
     void themeChanged();
     void setupCentralisedIconLayout();
 
@@ -52,7 +51,7 @@ private:
     PixmapGraphicsItem* sub_icon_pixmap_item_ = nullptr;
     TextGraphicsItem* sub_label_text_item_ = nullptr;
 
-    const AggServerResponse::Port& port_;
+    QString port_name_;
     AggServerResponse::Port::Kind port_kind_;
 };
 

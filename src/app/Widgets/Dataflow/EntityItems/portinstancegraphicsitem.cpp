@@ -9,14 +9,14 @@
 
 /**
  * @brief PortInstanceGraphicsItem::PortInstanceGraphicsItem
- * @param port
+ * @param port_data
  * @param parent
  */
-PortInstanceGraphicsItem::PortInstanceGraphicsItem(const AggServerResponse::Port& port, QGraphicsItem* parent)
-    : QGraphicsWidget (parent),
-      port_(port)
+PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_data, QGraphicsItem* parent)
+    : QGraphicsWidget(parent),
+      port_name_(port_data.getName()),
+      port_kind_(port_data.getKind())
 {
-    port_kind_ = port.kind;
     icon_path.first = "Icons";
 
     // Identify Port kind
@@ -61,7 +61,7 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const AggServerResponse::Port
  */
 const QString& PortInstanceGraphicsItem::getPortName() const
 {
-    return port_.name;
+    return port_name_;
 }
 
 
@@ -205,7 +205,7 @@ void PortInstanceGraphicsItem::setupCentralisedIconLayout()
     icon_pixmap_item_->setParentItem(this);
     icon_pixmap_item_->setSquareSize(size);
 
-    label_text_item_ = new TextGraphicsItem(port_.name, this);
+    label_text_item_ = new TextGraphicsItem(port_name_, this);
     label_text_item_->setParentItem(this);
 
     int sub_size = size / 2;

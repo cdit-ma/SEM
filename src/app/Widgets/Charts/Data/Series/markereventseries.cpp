@@ -16,16 +16,16 @@ MarkerEventSeries::MarkerEventSeries(const QString& ID, QObject *parent)
  * @brief MarkerEventSeries::getMarkerIDSetRanges
  * @return
  */
-const QHash<qint64, QPair<qint64, qint64> > &MarkerEventSeries::getMarkerIDSetRanges() const
+const QHash<qint64, QPair<qint64, qint64>>& MarkerEventSeries::getMarkerIDSetRanges() const
 {
     return markerIDSetRanges_;
 }
 
 /**
- * @brief MarkerEventSeries::getMarkerIDsWithSharedStartTimes
+ * @brief MarkerEventSeries::getMarkerIDsMappedByStartTimes
  * @return
  */
-const QMap<qint64, QSet<qint64> > &MarkerEventSeries::getMarkerIDsWithSharedStartTimes() const
+const QMap<qint64, QSet<qint64>>& MarkerEventSeries::getMarkerIDsMappedByStartTimes() const
 {
     return startTimeMap_;
 }
@@ -35,7 +35,7 @@ const QMap<qint64, QSet<qint64> > &MarkerEventSeries::getMarkerIDsWithSharedStar
  * @brief MarkerEventSeries::getMarkerIDSetDurations
  * @return
  */
-const QHash<qint64, qint64> &MarkerEventSeries::getMarkerIDSetDurations() const
+const QHash<qint64, qint64>& MarkerEventSeries::getMarkerIDSetDurations() const
 {
     return markerIDSetDurations_;
 }

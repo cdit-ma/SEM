@@ -12,7 +12,7 @@
 
 class RequestBuilder {
 
-    friend class ChartManager;
+    friend class ExperimentDataManager;
 
 protected:
     explicit RequestBuilder();

@@ -21,7 +21,6 @@ public:
     qint64 getMarkerID() const;
 
 private:
-    //const AggServerResponse::ComponentInstance& componentInstance_;
     const AggServerResponse::ComponentInstance componentInstance_;
     const qint64 markerID_;
 

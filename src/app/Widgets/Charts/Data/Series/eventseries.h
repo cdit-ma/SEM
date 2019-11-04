@@ -19,9 +19,16 @@ public:
     void clear();
     bool isEmpty() const;
 
-    void addEvents(const QList<Event*>& events);
+    template<class T>
+    void addEvents(const QVector<T>& events)
+    {
+        for (const auto& event : events) {
+            addEvent(event);
+        }
+    }
+
     virtual void addEvent(Event* event);
-    const QList<Event*>& getEvents();
+    const QList<Event*>& getEvents() const;
 
     qint64 getMinTimeMS() const;
     qint64 getMaxTimeMS() const;
@@ -29,7 +36,6 @@ public:
 
     MEDEA::ChartDataKind getKind() const;
 
-    const QString& getID() const;
     const QString& getEventSeriesID() const;
 
     QList<Event*>::const_iterator getFirstAfterTime(const qint64 timeMS) const;
@@ -68,7 +74,7 @@ private:
     int eventSeriesID_;
     QString eventSeriesIDStr_;
 
-    static int eventSeries_ID;
+    static std::atomic<int> eventSeries_ID;
 };
 
 }

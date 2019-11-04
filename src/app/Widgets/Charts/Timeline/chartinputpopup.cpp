@@ -127,16 +127,25 @@ void ChartInputPopup::setPopupVisible(bool visible)
 
 /**
  * @brief ChartInputPopup::setExperimentRuns
- * @param runs
+ * @param experimentName
+ * @param experimentRuns
  */
-void ChartInputPopup::setExperimentRuns(const QList<AggServerResponse::ExperimentRun> &runs)
+void ChartInputPopup::setExperimentRuns(const QString& experimentName, const QList<AggServerResponse::ExperimentRun>& experimentRuns)
 {
     QStringList experimentNames;
-    for (auto run : runs) {
-        experimentNames.append(run.experiment_name);
-        experimentRuns_.insert(experimentNames.last(), run);
+    if (experimentName.isEmpty()) {
+        for (auto run : experimentRuns) {
+            auto&& exp_name = run.experiment_name;
+            experimentNames.append(exp_name);
+            experimentRuns_.insert(exp_name, run);
+        }
+        experimentNames.removeDuplicates();
+    } else {
+        for (auto run : experimentRuns) {
+            experimentRuns_.insert(experimentName, run);
+        }
+        experimentNames.append(experimentName);
     }
-    experimentNames.removeDuplicates();
     experimentsModel_->setStringList(experimentNames);
     experimentNameChanged(typedExperimentName_);
 }

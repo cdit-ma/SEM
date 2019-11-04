@@ -6,14 +6,16 @@
 
 #define PEN_WIDTH 2.0
 
+
 /**
  * @brief ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem
- * @param comp_inst
+ * @param comp_inst_data
  * @param parent
  */
-ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const AggServerResponse::ComponentInstance& comp_inst, QGraphicsItem* parent)
+ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, QGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      comp_instance_(comp_inst)
+      comp_inst_name_(comp_inst_data.getName()),
+      comp_inst_graphml_id_(comp_inst_data.getGraphmlID())
 {
     setFlags(flags() | QGraphicsWidget::ItemIsMovable | QGraphicsWidget::ItemIsSelectable);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -198,7 +200,7 @@ void ComponentInstanceGraphicsItem::setupLayout()
 {
     QPixmap pix = Theme::theme()->getImage("EntityIcons", "ComponentInstance");
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    label_text_item_ = new TextGraphicsItem(comp_instance_.name + " [" + comp_instance_.graphml_id + "]", this);
+    label_text_item_ = new TextGraphicsItem(comp_inst_name_ + " [" + comp_inst_graphml_id_ + "]", this);
 
     icon_pixmap_item_->setParentItem(this);
     label_text_item_->setParentItem(this);

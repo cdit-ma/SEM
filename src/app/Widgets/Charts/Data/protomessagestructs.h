@@ -27,8 +27,8 @@ enum class LifecycleType {
 
 struct PortConnection {
     enum ConnectionType {
-	PUBSUB,
-	REQREP
+        PUBSUB,
+        REQREP
     };
     ConnectionType type;
     QString from_port_graphml;
@@ -105,7 +105,7 @@ struct ExperimentState {
     QVector<Component> components;
     QVector<Worker> workers;
     QVector<PortConnection> port_connections;
-    qint32 experiment_run_id;
+    //qint32 experiment_run_id;
     qint64 end_time;
     qint64 last_updated_time = 0;
 };

@@ -9,12 +9,10 @@
  * @param parent
  */
 PortLifecycleEvent::PortLifecycleEvent(const AggServerResponse::Port& port,
-                                       PortKind kind,
                                        AggServerResponse::LifecycleType type,
                                        qint64 time,
                                        QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::PORT_LIFECYCLE, time, port.name, parent),
-      kind_(kind),
       port_(port),
       type_(type) {}
 
@@ -47,16 +45,6 @@ QString PortLifecycleEvent::toString(const QString &dateTimeFormat) const
 const AggServerResponse::Port& PortLifecycleEvent::getPort() const
 {
     return port_;
-}
-
-
-/**
- * @brief PortLifecycleEvent::getPortKind
- * @return
- */
-PortLifecycleEvent::PortKind PortLifecycleEvent::getPortKind() const
-{
-    return kind_;
 }
 
 

@@ -205,7 +205,6 @@ AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const qu
         request.set_experiment_run_id(experiment_run_id);
         
         auto result = requester_->GetExperimentState(request);
-        state.experiment_run_id = experiment_run_id;
         state.last_updated_time = ConstructQDateTime(result->last_updated()).toMSecsSinceEpoch();
         state.end_time = ConstructQDateTime(result->end_time()).toMSecsSinceEpoch();
 
@@ -265,10 +264,9 @@ QVector<PortLifecycleEvent*> AggregationProxy::GetPortLifecycleEvents(const Port
         const auto& results = requester_->GetPortLifecycle(agg_request);
         for (const auto& item : results->events()) {
             const auto& port = ConvertPort(item.port());
-            const auto& kind = ConvertPortKind(item.port().kind());
             const auto& type = ConvertLifeCycleType(item.type());
             const auto& time = ConstructQDateTime(item.time());
-            events.append(new PortLifecycleEvent(port, kind, type, time.toMSecsSinceEpoch()));
+            events.append(new PortLifecycleEvent(port, type, time.toMSecsSinceEpoch()));
         }
 
         return events;
@@ -518,7 +516,7 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &requ
 AggServerResponse::Port AggregationProxy::ConvertPort(const AggServer::Port& proto_port)
 {
     AggServerResponse::Port port;
-    port.kind = GetPortKind(proto_port.kind());
+    port.kind = ConvertPortKind(proto_port.kind());
     port.name = ConstructQString(proto_port.name());
     port.path = ConstructQString(proto_port.path());
     port.middleware = ConstructQString(proto_port.middleware());
@@ -594,13 +592,12 @@ AggServerResponse::PortConnection AggregationProxy::ConvertPortConnection(const 
 
 
 /**
- * @brief AggregationProxy::GetPortKind
+ * @brief AggregationProxy::ConvertPortKind
  * @param kind
  * @return
  */
-AggServerResponse::Port::Kind AggregationProxy::GetPortKind(const AggServer::Port_Kind &kind)
+AggServerResponse::Port::Kind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
 {
-    // TODO - Rename/move; currently just using for Pulse-VIZ
     switch (kind) {
     case AggServer::Port::PERIODIC:
         return AggServerResponse::Port::Kind::PERIODIC;
@@ -709,31 +706,6 @@ AggServerResponse::LifecycleType AggregationProxy::ConvertLifeCycleType(const Ag
         return AggServerResponse::LifecycleType::TERMINATE;
     default:
         return AggServerResponse::LifecycleType::NO_TYPE;
-    }
-}
-
-
-/**
- * @brief AggregationProxy::ConvertPortKind
- * @param kind
- * @return
- */
-PortLifecycleEvent::PortKind AggregationProxy::ConvertPortKind(const AggServer::Port_Kind& kind)
-{
-    switch (kind) {
-    case AggServer::Port::PERIODIC:
-        return PortLifecycleEvent::PortKind::PERIODIC;
-    case AggServer::Port::PUBLISHER:
-        return PortLifecycleEvent::PortKind::PUBLISHER;
-    case AggServer::Port::SUBSCRIBER:
-        return PortLifecycleEvent::PortKind::SUBSCRIBER;
-    case AggServer::Port::REQUESTER:
-        return PortLifecycleEvent::PortKind::REQUESTER;
-    case AggServer::Port::REPLIER:
-        return PortLifecycleEvent::PortKind::REPLIER;
-    default:
-        // TODO - Replace NO_KIND with UNKNOWN
-        return PortLifecycleEvent::PortKind::NO_KIND;
     }
 }
 

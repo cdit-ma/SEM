@@ -1,5 +1,6 @@
 #include "experimentdata.h"
 #include <memory>
+#include <utility>
 
 const int invalid_experiment_run_id = -1;
 
@@ -17,7 +18,7 @@ ExperimentData::ExperimentData(const QString& experiment_name)
  * @brief ExperimentData::experiment_name
  * @return
  */
-const QString &ExperimentData::experiment_name() const
+const QString& ExperimentData::experiment_name() const
 {
     return experiment_name_;
 }
@@ -26,30 +27,36 @@ const QString &ExperimentData::experiment_name() const
 /**
  * @brief ExperimentData::addExperimentRun
  * @param exp_run
+ * @throws std::invalid_argument
  */
 void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& exp_run)
 {
     auto exp_run_id = exp_run.experiment_run_id;
     if (exp_run_id == invalid_experiment_run_id) {
-        return;
+        throw std::invalid_argument("ExperimentData::addExperimentRun - Invalid experiment run.");
     }
 
-    ExperimentRunData&& exp_run_data = ExperimentRunData(ExperimentRunData::PassKey(),
-                                                         static_cast<quint32>(exp_run_id),
-                                                         exp_run.job_num,
-                                                         exp_run.start_time,
-                                                         exp_run.end_time,
-                                                         exp_run.last_updated_time);
+    auto&& exp_run_data = std::make_unique<ExperimentRunData>(exp_run_id,
+                                                              exp_run.job_num,
+                                                              exp_run.start_time,
+                                                              exp_run.end_time,
+                                                              exp_run.last_updated_time);
 
-    experiment_runs_.push_back(exp_run_data);
+// TODO: We should figure out what the emplace/insert functions actually do
+    experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));
 }
 
 
 /**
- * @brief ExperimentData::getExperimentRuns
+ * @brief ExperimentData::getExperimentRun
+ * @param exp_run_id
  * @return
  */
-const std::vector<ExperimentRunData>& ExperimentData::getExperimentRuns() const
+MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) const
 {
-    return experiment_runs_;
+    auto&& exp_run = experiment_run_map_.at(exp_run_id);
+    if (exp_run == nullptr) {
+        throw std::invalid_argument("ExperimentData::getExperimentRun - No ExperimentRunData exists for experiment run id: " + std::to_string(exp_run_id));
+    }
+    return *exp_run;
 }

@@ -3,7 +3,7 @@
 
 #include "Chart/hoverpopup.h"
 #include "../Data/Events/event.h"
-#include "../Data/Events/protomessagestructs.h"
+#include "../Data/protomessagestructs.h"
 #include "../../../Controllers/ViewController/nodeviewitem.h"
 #include "../../../Controllers/ViewController/viewcontroller.h"
 
@@ -41,7 +41,7 @@ public slots:
     void themeChanged();
 
     void setPopupVisible(bool visible);
-    void setExperimentRuns(const QList<AggServerResponse::ExperimentRun>& runs);
+    void setExperimentRuns(const QString& experimentName, const QList<AggServerResponse::ExperimentRun>& experimentRuns);
 
     void filterMenuTriggered(QAction* action);
 

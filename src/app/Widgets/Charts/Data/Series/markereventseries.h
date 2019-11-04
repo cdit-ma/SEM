@@ -10,8 +10,8 @@ class MarkerEventSeries : public MEDEA::EventSeries
 public:
     explicit MarkerEventSeries(const QString& ID, QObject* parent = nullptr);
 
+    const QMap<qint64, QSet<qint64>>& getMarkerIDsMappedByStartTimes() const;
     const QHash<qint64, QPair<qint64, qint64>>& getMarkerIDSetRanges() const;
-    const QMap<qint64, QSet<qint64>>& getMarkerIDsWithSharedStartTimes() const;
     const QHash<qint64, qint64>& getMarkerIDSetDurations() const;
 
     void addEvent(MEDEA::Event* event);

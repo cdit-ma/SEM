@@ -17,7 +17,7 @@
 #include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
 #include "../../Widgets/Charts/Data/Events/markerevent.h"
 #include "../../Widgets/Charts/Data/Events/portevent.h"
-#include "../../Widgets/Charts/ChartManager/requestbuilder.h"
+#include "../../Widgets/Charts/ExperimentDataManager/requestbuilder.h"
 
 
 class NoRequesterException : public QException{
@@ -98,10 +98,7 @@ private:
     static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& proto_component_instance);
     static AggServerResponse::PortConnection ConvertPortConnection(const AggServer::PortConnection& proto_port_connection);
 
-    // TODO - Remove PortKind enum from the PortLifecycleEvent class and just use this one
-    static AggServerResponse::Port::Kind GetPortKind(const AggServer::Port_Kind& kind);
-
-    static PortLifecycleEvent::PortKind ConvertPortKind(const AggServer::Port_Kind& kind);
+    static AggServerResponse::Port::Kind ConvertPortKind(const AggServer::Port_Kind& kind);
     static AggServerResponse::LifecycleType ConvertLifeCycleType(const AggServer::LifecycleType& type);
     static WorkloadEvent::WorkloadEventType ConvertWorkloadEventType(const AggServer::WorkloadEvent_WorkloadEventType& type);
     static PortEvent::PortEventType ConvertPortEventType(const AggServer::PortEvent_PortEventType& type);

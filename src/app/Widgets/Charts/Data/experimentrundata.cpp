@@ -5,15 +5,14 @@
 
 /**
  * @brief MEDEA::ExperimentRunData::ExperimentRunData
- * @param experiment_name
- * @param experiemnt_run_id
+ * @param experiment_run_id
  * @param job_num
  * @param start_time
  * @param end_time
  * @param last_updated_time
  */
-MEDEA::ExperimentRunData::ExperimentRunData(PassKey, quint32 experiemnt_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time)
-    : experiment_run_id_(experiemnt_run_id),
+MEDEA::ExperimentRunData::ExperimentRunData(quint32 experiment_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time)
+    : experiment_run_id_(experiment_run_id),
       job_num_(job_num),
       start_time_(start_time),
       end_time_(end_time),
@@ -86,16 +85,26 @@ bool MEDEA::ExperimentRunData::hasState() const
  */
 void MEDEA::ExperimentRunData::setExperimentState(const AggServerResponse::ExperimentState& exp_state)
 {
-    // TODO - When the ChartManager is refactored, change ExperimentState to use quint32 and use a bool to check selected ExperimentRun instead
-    auto exp_id = static_cast<qint32>(experiment_run_id_);
+    // NOTE: Things that can change are the instances, port connections and markers; basically all the data except the nodes
 
-    if (exp_state.experiment_run_id == exp_id) {
-        has_state_ = true;
-        nodes_ = exp_state.nodes;
-        components_ = exp_state.components;
-        workers_ = exp_state.workers;
-        port_connections_ = exp_state.port_connections;
+    // If the state has already been set, clear the hashes before updating the state
+    bool update = hasState();
+    if (update) {
+        clearState();
     }
+
+    for (const auto& node : exp_state.nodes) {
+        addNodeData(node);
+    }
+    for (const auto& p_c : exp_state.port_connections) {
+        addPortConnection(p_c);
+    }
+
+    if (update) {
+        emit dataChanged();
+    }
+
+    has_state_ = true;
 }
 
 
@@ -116,4 +125,94 @@ void MEDEA::ExperimentRunData::updateEndTime(qint64 time)
 void MEDEA::ExperimentRunData::updateLastUpdatedTime(qint64 time)
 {
     last_updated_time_ = time;
+}
+
+
+/**
+ * @brief MEDEA::ExperimentRunData::getNodeData
+ * @param hostname
+ * @return
+ */
+QList<NodeData> MEDEA::ExperimentRunData::getNodeData(const QString& hostname) const
+{
+    if (hostname.isEmpty()) {
+        return node_data_hash_.values();
+    } else {
+        return node_data_hash_.values(hostname);
+    }
+}
+
+
+/**
+ * @brief MEDEA::ExperimentRunData::getPortConnectionData
+ * @param id
+ * @return
+ */
+QList<PortConnectionData> MEDEA::ExperimentRunData::getPortConnectionData(int id) const
+{
+    if (id == -1) {
+        return port_connection_hash_.values();
+    } else {
+        return port_connection_hash_.values(id);
+    }
+}
+
+
+/**
+ * @brief MEDEA::ExperimentRunData::getMarkerSetData
+ * @param id
+ * @return
+ */
+QList<MarkerSetData> MEDEA::ExperimentRunData::getMarkerSetData(int id) const
+{
+    if (id == -1) {
+        return marker_set_hash_.values();
+    } else {
+        return marker_set_hash_.values(id);
+    }
+}
+
+
+/**
+ * @brief MEDEA::ExperimentRunData::addNodeData
+ * @param node
+ */
+void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
+{
+    NodeData node_data(node);
+    node_data_hash_.insert(node_data.getHostname(), node_data);
+}
+
+
+/**
+ * @brief MEDEA::ExperimentRunData::addPortConnection
+ * @param port_connection
+ */
+void MEDEA::ExperimentRunData::addPortConnection(const AggServerResponse::PortConnection& port_connection)
+{
+    PortConnectionData port_connection_data(port_connection);
+    port_connection_hash_.insert(port_connection_data.getID(), port_connection_data);
+}
+
+
+/**
+ * @brief MEDEA::ExperimentRunData::addMarkerSet
+ * @param marker_name
+ */
+void MEDEA::ExperimentRunData::addMarkerSet(const QString& marker_name)
+{
+    MarkerSetData marker_set_data(marker_name);
+    marker_set_hash_.insert(marker_set_data.getID(), marker_set_data);
+}
+
+
+/**
+ * @brief MEDEA::ExperimentRunData::clearState
+ */
+void MEDEA::ExperimentRunData::clearState()
+{
+    node_data_hash_.clear();
+    port_connection_hash_.clear();
+    marker_set_hash_.clear();
+    has_state_ = false;
 }

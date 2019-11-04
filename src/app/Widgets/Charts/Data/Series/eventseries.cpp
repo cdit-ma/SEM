@@ -3,7 +3,7 @@
 #include <QTextStream>
 #include <QDateTime>
 
-int MEDEA::EventSeries::eventSeries_ID = 0;
+std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
 
 /**
  * @brief MEDEA::EventSeries::EventSeries
@@ -66,18 +66,6 @@ bool MEDEA::EventSeries::isEmpty() const
 
 
 /**
- * @brief MEDEA::EventSeries::addEvents
- * @param events
- */
-void MEDEA::EventSeries::addEvents(const QList<Event*>& events)
-{
-    for (auto event : events) {
-        addEvent(event);
-    }
-}
-
-
-/**
  * @brief MEDEA::EventSeries::addEvent
  * @param event
  */
@@ -103,7 +91,7 @@ void MEDEA::EventSeries::addEvent(Event* event)
  * @brief MEDEA::EventSeries::getEvents
  * @return
  */
-const QList<MEDEA::Event*> &MEDEA::EventSeries::getEvents()
+const QList<MEDEA::Event*> &MEDEA::EventSeries::getEvents() const
 {
     return events_;
 }
@@ -146,16 +134,6 @@ QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS() const
 MEDEA::ChartDataKind MEDEA::EventSeries::getKind() const
 {
     return kind_;
-}
-
-
-/**
- * @brief MEDEA::EventSeries::getID
- * @return
- */
-const QString& MEDEA::EventSeries::getID() const
-{
-    return ID_;
 }
 
 

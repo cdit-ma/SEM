@@ -1,7 +1,7 @@
 #ifndef COMPINSTGRAPHICSITEM_H
 #define COMPINSTGRAPHICSITEM_H
 
-#include "../../../Widgets/Charts/Data/Events/protomessagestructs.h"
+#include "../../Charts/Data/componentinstancedata.h"
 #include "../GraphicsLayoutItems/pixmapgraphicsitem.h"
 #include "../GraphicsLayoutItems/textgraphicsitem.h"
 #include "portinstancegraphicsitem.h"
@@ -15,7 +15,7 @@ class ComponentInstanceGraphicsItem : public QGraphicsWidget
     Q_OBJECT
 
 public:
-    ComponentInstanceGraphicsItem(const AggServerResponse::ComponentInstance& comp_inst, QGraphicsItem* parent = nullptr);
+    ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, QGraphicsItem* parent = nullptr);
 
     void addPortInstanceItem(PortInstanceGraphicsItem* item);
 
@@ -55,8 +55,8 @@ private:
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
     TextGraphicsItem* label_text_item_ = nullptr;  
 
-    AggServerResponse::ComponentInstance comp_instance_;
-
+    QString comp_inst_name_;
+    QString comp_inst_graphml_id_;
 };
 
 #endif // COMPINSTGRAPHICSITEM_H

@@ -10,7 +10,7 @@
 #include "../../Widgets/Dialogs/progresspopup.h"
 #include "../../Widgets/ViewManager/viewmanagerwidget.h"
 //#include "../../Widgets/Charts/Timeline/chartdialog.h"
-#include "../../Widgets/Charts/ChartManager/chartmanager.h"
+#include "../../Widgets/Charts/ExperimentDataManager/experimentdatamanager.h"
 
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../Controllers/JenkinsManager/jenkinsmanager.h"
@@ -38,8 +38,8 @@
 
 
 /**
- * @brief MedeaMainWindow::MedeaMainWindow
- * @param vc
+ * @brief MainWindow::MainWindow
+ * @param view_controller
  * @param parent
  */
 MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
@@ -76,8 +76,8 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     connect(SearchManager::manager(), &SearchManager::SearchComplete, this, [=](){WindowManager::ShowDockWidget(dockwidget_Search);});
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, [=](){WindowManager::ShowDockWidget(dockwidget_Notification);});
 
-    connect(ChartManager::manager(), &ChartManager::showChartsPanel, this, [=]() {WindowManager::ShowDockWidget(dockwidget_Charts); });
-    connect(ChartManager::manager(), &ChartManager::showDataflowPanel, this, [=]() {WindowManager::ShowDockWidget(dockwidget_Dataflow); });
+    connect(ExperimentDataManager::manager(), &ExperimentDataManager::showChartsPanel, this, [=]() {WindowManager::ShowDockWidget(dockwidget_Charts); });
+    connect(ExperimentDataManager::manager(), &ExperimentDataManager::showDataflowPanel, this, [=]() {WindowManager::ShowDockWidget(dockwidget_Dataflow); });
 
     SettingsController* s = SettingsController::settings();
     connect(s, &SettingsController::settingChanged, this, &MainWindow::settingChanged);
@@ -628,7 +628,7 @@ void MainWindow::setupDockablePanels()
     dockwidget_Notification->setProtected(true);
 
     // Charts Panel
-    auto charts_dialog = &ChartManager::manager()->getChartDialog();
+    auto charts_dialog = &ExperimentDataManager::manager()->getChartDialog();
     dockwidget_Charts = window_manager->constructChartDockWidget("Charts", charts_dialog, this);
     dockwidget_Charts->setWidget(charts_dialog);
     dockwidget_Charts->setIconVisible(true);
@@ -636,7 +636,7 @@ void MainWindow::setupDockablePanels()
 
     // Dataflow Panel
     dockwidget_Dataflow = window_manager->constructDockWidget("Pulse", this);
-    dockwidget_Dataflow->setWidget(&ChartManager::manager()->getDataflowDialog());
+    dockwidget_Dataflow->setWidget(&ExperimentDataManager::manager()->getDataflowDialog());
     dockwidget_Dataflow->setIconVisible(true);
     dockwidget_Dataflow->setProtected(true);
 

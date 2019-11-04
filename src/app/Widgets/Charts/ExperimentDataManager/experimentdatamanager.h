@@ -1,22 +1,23 @@
-#ifndef CHARTMANAGER_H
-#define CHARTMANAGER_H
+#ifndef EXPERIMENTDATAMANAGER_H
+#define EXPERIMENTDATAMANAGER_H
 
 #include <QObject>
 
 #include "../../../Controllers/ViewController/viewcontroller.h"
+#include "../../Dataflow/dataflowdialog.h"
 #include "../Timeline/chartdialog.h"
 #include "../Timeline/chartinputpopup.h"
 #include "../Timeline/Chart/timelinechartview.h"
-#include "../../Dataflow/dataflowdialog.h"
+#include "../Data/experimentdata.h"
 
 class RequestBuilder;
-class ChartManager : public QObject
+class ExperimentDataManager : public QObject
 {
     Q_OBJECT
     friend class ViewController;
 
 public:
-    static ChartManager* manager();
+    static ExperimentDataManager* manager();
 
     ChartDialog& getChartDialog();
     DataflowDialog& getDataflowDialog();
@@ -36,11 +37,10 @@ protected:
     static void constructSingleton(ViewController* vc);
 
 private:
-    ChartManager(const ViewController &vc);
+    ExperimentDataManager(const ViewController &vc);
     AggregationProxy& aggregationProxy();
     TimelineChartView& timelineChartView();
 
-    void experimentRunStateReceived(AggServerResponse::ExperimentState experimentState);
     void setupRequestsForExperimentRun(const quint32 experimentRunID);
 
     void requestExperimentRuns(const QString& experimentName);
@@ -54,6 +54,16 @@ private:
     void requestMarkerEvents(const MarkerRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
     void requestPortEvents(const PortEventRequest& request, const AggServerResponse::ExperimentRun& experimentRun);
 
+    void processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs);
+    void processExperimentState(const QString &experiment_name, quint32 experiment_run_id, const AggServerResponse::ExperimentState& experiment_state);
+
+    void processPortLifecycleEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortLifecycleEvent*>& events);
+    void processWorkloadEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<WorkloadEvent*>& events);
+    void processCPUUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<CPUUtilisationEvent*>& events);
+    void processMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MemoryUtilisationEvent*>& events);
+    void processMarkerEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MarkerEvent*>& events);
+    void processPortEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortEvent*>& events);
+
     static void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
 
     QString getItemLabel(const ViewItem* item);
@@ -66,8 +76,10 @@ private:
     QList<MEDEA::ChartDataKind> selectedDataKinds_;
     AggServerResponse::ExperimentRun selectedExperimentRun_;
 
+    QHash<QString, MEDEA::ExperimentData*> experiment_data_hash_;
+
     const ViewController& viewController_;
-    static ChartManager* manager_;
+    static ExperimentDataManager* manager_;
 };
 
-#endif // CHARTMANAGER_H
+#endif // EXPERIMENTDATAMANAGER_H

@@ -1,35 +1,24 @@
 #ifndef EXPERIMENTRUNDATA_H
 #define EXPERIMENTRUNDATA_H
 
-#include "Events/portlifecycleevent.h"
-#include "Series/portlifecycleeventseries.h"
+#include "nodedata.h"
+#include "containerinstancedata.h"
+#include "componentinstancedata.h"
+#include "portinstancedata.h"
+#include "workerinstancedata.h"
+#include "portconnectiondata.h"
+#include "markersetdata.h"
+
+#include <QObject>
 
 namespace MEDEA {
 
-class ExperimentRunData {
+class ExperimentRunData : public QObject
+{
+    Q_OBJECT
 
 public:
-
-    // Passkey class is used in the constructor to guard against unknown classes
-    // calling it (ie only friends of PassKey can construct it, and can therefore
-    // call the constructor)
-    class PassKey {
-    private:
-        // List of friend classes that may make the passkey
-        friend class ExperimentData;
-
-        // Creates an empty PassKey with no extra bells or whistles
-        PassKey() = default;
-
-        //We need to be able to create a copy *in-place* from another PassKey reference
-        PassKey(const PassKey&) = default;
-
-        // We don't want anyone being able to store them anywhere, we want total control!
-        PassKey& operator=(const PassKey&) = delete;
-    };
-
-    ExperimentRunData(PassKey,
-                      quint32 experiemnt_run_id,
+    ExperimentRunData(quint32 experiment_run_id,
                       quint32 job_num,
                       qint64 start_time,
                       qint64 end_time = 0,
@@ -42,45 +31,40 @@ public:
     qint64 end_time() const;
     qint64 last_updated_time() const;
 
-    const QVector<AggServerResponse::Node>& nodes() const;
-    const QVector<AggServerResponse::Component>& components() const;
-    const QVector<AggServerResponse::Worker>& workers() const;
-    const QVector<AggServerResponse::PortConnection>& port_connections() const;
-
     bool hasState() const;
     void setExperimentState(const AggServerResponse::ExperimentState& exp_state);
 
     void updateEndTime(qint64 time);
     void updateLastUpdatedTime(qint64 time);
 
-    // Stubs for the new data classes
-    void addNodeData();
-    void addContainerInstanceData();
-    void addComponentInstanceData();
-    void addPortInstanceData();
-    void addWorkerInstanceData();
+    QList<NodeData> getNodeData(const QString& hostname = "") const;
+    QList<PortConnectionData> getPortConnectionData(int id = -1) const;
+    QList<MarkerSetData> getMarkerSetData(int id = -1) const;
 
-    void addPortConnections();
-    void addMarkers();
-
-    // TODO - Implement helper functions for getting specific series (include filters)
+signals:
+    void dataChanged();
 
 private:
+    void addNodeData(const AggServerResponse::Node& node);
+    void addPortConnection(const AggServerResponse::PortConnection& port_connection);
+    void addMarkerSet(const QString& marker_name);
+
+    void clearState();
+
+    // TODO? - Implement helper functions for getting specific series (include filters)
+
     quint32 experiment_run_id_;
     quint32 job_num_;
-    qint64 start_time_;
 
+    qint64 start_time_;
     qint64 end_time_;
     qint64 last_updated_time_;
 
     bool has_state_ = false;
 
-    // Experiment State Vectors
-    QVector<AggServerResponse::Node> nodes_;
-    QVector<AggServerResponse::Component> components_;
-    QVector<AggServerResponse::Worker> workers_;
-    QVector<AggServerResponse::PortConnection> port_connections_;
-
+    QHash<QString, NodeData> node_data_hash_;
+    QHash<int, PortConnectionData> port_connection_hash_;
+    QHash<int, MarkerSetData> marker_set_hash_;
 };
 
 }
