@@ -27,13 +27,13 @@
         <hudson.model.StringParameterDefinition>
           <name>db_ip_address</name>
           <description>The IP address of the database</description>
-          <defaultValue>null</defaultValue>
+          <defaultValue>${ENVIRONMENT_MANAGER_IP_ADDRESS}</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>db_password</name>
           <description>The password for the database</description>
-          <defaultValue></defaultValue>
+          <defaultValue>database_password</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -58,7 +58,7 @@
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
           <url>${ENVIRONMENT_MANAGER_IP_ADDRESS}:/srv/git/re</url>
-          <credentialsId>007c5e22-c1b7-4b91-a969-c1d8523c1e4b</credentialsId>
+          <credentialsId>##CREDENTIAL_ID##</credentialsId>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>

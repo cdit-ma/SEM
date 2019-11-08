@@ -1,11 +1,13 @@
 <?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.34">
+<flow-definition plugin="workflow-job@2.29">
   <actions>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.3.9"/>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.3.9">
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.3.2"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.3.2">
       <jobProperties/>
       <triggers/>
       <parameters>
+        <string>re_base_image_name</string>
+        <string>rebuild_logan_image</string>
         <string>rebuild_re_image</string>
       </parameters>
       <options/>
@@ -14,105 +16,51 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.29">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>re_base_image_name</name>
+          <description>Docker base image name (full_deps if other dependencies are not needed)</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>rebuild_re_image</name>
           <description>Rebuild re image</description>
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>rebuild_logan_image</name>
+          <description>Rebuild logan image</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
-      <autoRebuild>false</autoRebuild>
-      <rebuildDisabled>false</rebuildDisabled>
-    </com.sonyericsson.rebuild.RebuildSettings>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
-      <maxConcurrentPerNode>0</maxConcurrentPerNode>
-      <maxConcurrentTotal>0</maxConcurrentTotal>
-      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
-      <throttleEnabled>false</throttleEnabled>
-      <throttleOption>project</throttleOption>
-      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
-      <paramsToUseForLimit></paramsToUseForLimit>
-      <configVersion>1</configVersion>
-    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.73">
-    <script>#!groovy
-@Library(&apos;cditma-utils&apos;) _
-def utils = new cditma.Utils(this);
-
-final DOCKER_REGISTRY_ENDPOINT = env.DOCKER_REGISTRY_ENDPOINT
-def deploy_map = [:]
-
-pipeline{
-    agent none
-    parameters{
-        booleanParam(name: &apos;rebuild_re_image&apos;, defaultValue: true, description: &apos;Rebuild re image&apos;)
-    }
-    stages{
-        stage(&apos;Build docker images&apos;) {
-            steps{
-                script{
-                    node(&quot;docker_runtime&quot;) {
-                        
-                        if(params.rebuild_re_image){
-                            dir(&quot;${HOME}/re&quot;) {
-                                if(utils.runScript(&quot;docker build -t re_minimal -f docker/re_minimal/Dockerfile --build-arg base_image=${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/minimal_deps .&quot;) != 0) {
-                                    error(&quot;Failed to build re_minimal image&quot;)
-                                }
-                                if(utils.runScript(&quot;docker tag re_minimal ${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/re_minimal&quot;) != 0) {
-                                    error(&quot;Failed to tag re_minimal image&quot;)
-                                }
-                                if(utils.runScript(&quot;docker push ${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/re_minimal&quot;) != 0) {
-                                    error(&quot;Failed to push re_minimal image after build&quot;)
-                                }
-                                
-                                if(utils.runScript(&quot;docker build -t re_full -f docker/re_full/Dockerfile --build-arg base_image=${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/full_deps .&quot;) != 0) {
-                                    error(&quot;Failed to build re_full image&quot;)
-                                }
-                                if(utils.runScript(&quot;docker tag re_full ${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/re_full&quot;) != 0) {
-                                    error(&quot;Failed to tag re_full image&quot;)
-                                }
-                                if(utils.runScript(&quot;docker push ${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/re_full&quot;) != 0) {
-                                    error(&quot;Failed to push re_full image after build&quot;)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        stage(&apos;Deploy docker images&apos;){
-            steps{
-                script{
-                    for(def n in nodesByLabel(&apos;docker_runtime&apos;)){
-                        def node_name = n
-                        if(node_name == &apos;&apos;){
-                            node_name = &apos;master&apos;
-                        }
-
-                        deploy_map[node_name] = {
-                            node(node_name){
-                                if(utils.runScript(&quot;docker pull ${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/re_full&quot;) != 0){
-                                    error(&quot;Failed to pull re_full docker image on ${node_name}&quot;)
-                                }
-
-                                if(utils.runScript(&quot;docker pull ${DOCKER_REGISTRY_ENDPOINT}/cdit-ma/re_minimal&quot;) != 0) {
-                                    error(&quot;Failed to pull re_minimal docker image on ${node_name}&quot;)
-                                }
-                            }
-                        }
-                    }
-                    parallel deploy_map
-                }
-            }
-        }
-    }
-}
-</script>
-    <sandbox>true</sandbox>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.60">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.1">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>${ENVIRONMENT_MANAGER_IP_ADDRESS}:/srv/git/re</url>
+          <credentialsId>##CREDENTIAL_ID##</credentialsId>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>refs/heads/jenkins-rollout</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="list"/>
+      <extensions/>
+    </scm>
+    <scriptPath>jenkins/rebuild_docker_images.groovy</scriptPath>
+    <lightweight>false</lightweight>
   </definition>
   <triggers/>
   <disabled>false</disabled>

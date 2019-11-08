@@ -8,6 +8,14 @@ class JenkinsCLIError(Exception):
         self.message = message
 
 
+class JobConfig:
+
+    def __init__(self, job_name: str, credential_id: str, file_path: str):
+        self.job_name = job_name
+        self.credential_id = credential_id
+        self.file_path = file_path
+
+
 class NodeConfig:
     """Node config struct.
 
@@ -46,20 +54,21 @@ class JenkinsHandle:
         except:
             pass
 
-    def create_job(self, job_name: str, file_path: str):
-        print("Creating Jenkins job: " + job_name)
-        create_job_command = ["java", "-jar", self.jenkins_jar_file_name, "-s", self.server_url, "create-job", job_name]
+    def create_job(self, job: JobConfig):
+        print("Creating Jenkins job: " + job.job_name)
+        create_job_command = ["java", "-jar", self.jenkins_jar_file_name, "-s", self.server_url, "create-job", job.job_name]
         print(create_job_command)
-        with open(file_path) as job_descriptor_fh:
+        with open(job.file_path) as job_descriptor_fh:
             job_descriptor = job_descriptor_fh.read()
+            mutated_xml_string = job_descriptor.replace("##CREDENTIAL_ID##", job.credential_id)
             try:
                 process = subprocess.Popen(create_job_command, stdin=subprocess.PIPE)
-                process.communicate(job_descriptor.encode())
+                process.communicate(mutated_xml_string.encode())
                 process.wait()
                 if process.returncode != 0:
-                    raise JenkinsCLIError("Failed to create job: {0}".format(job_name))
+                    raise JenkinsCLIError("Failed to create job: {0}".format(job.job_name))
             except:
-                raise JenkinsCLIError("Failed to create job: {0}".format(job_name))
+                raise JenkinsCLIError("Failed to create job: {0}".format(job.job_name))
 
     def create_node(self, node_config: NodeConfig):
         print("Creating Jenkins node: " + node_config.node_name)

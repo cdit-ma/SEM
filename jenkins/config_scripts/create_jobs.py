@@ -16,15 +16,16 @@ job_list = []
 with open(job_list_csv_file_name) as job_list_csv:
     csv_reader = csv.DictReader(job_list_csv, delimiter=',')
     for row in csv_reader:
-        job_list.append(row["job_name"])
+        job_config = jenkins.JobConfig(job_name=row["job_name"],
+                                       credential_id=row["credential_id"])
+        job_list.append(job_config)
 
 # Create jenkins job for each name in list.
 # For each job name there must exist a directory of the same name containing a config.xml file.
 with jenkins.JenkinsHandle(server_url) as jenkins_handle:
     for job in job_list:
-        config_file_path = job + "/config.xml"
         try:
-            jenkins_handle.create_job(job, config_file_path)
+            jenkins_handle.create_job(job)
         except jenkins.JenkinsCLIError as err:
             print("Job creation error {0}".format(err))
         except:

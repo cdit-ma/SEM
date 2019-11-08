@@ -1,3 +1,3 @@
 node_name,ip_address,executor_count,credential_id,labels
-mitch_pc,192.168.111.230,4,default_cdit-ma_credential,re test asdf AAA a_b
-test_node,192.168.111.231,100,default_cdit-ma_credential,e a a s d v a f
+mitch_pc,192.168.111.230,4,default_cdit-ma_credential,deploy_re
+test_node,192.168.111.231,100,default_cdit-ma_credential,deploy_re
