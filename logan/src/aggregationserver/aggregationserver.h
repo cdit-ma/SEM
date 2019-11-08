@@ -7,11 +7,13 @@
 
 #include "databaseclient.h"
 #include "experimenttracker.h"
+
+#include "aggregationprotohandler.h"
+
 #include <zmq/protoreceiver/protoreceiver.h>
 #include <zmq/protorequester/protorequester.hpp>
 
-
-class AggregationProtoHandler;
+// class AggregationProtoHandler;
 
 namespace ModelEvent {
 class LifecycleEvent;
@@ -34,8 +36,9 @@ public:
 
     void InitialiseDatabase();
 
-    void
-    StimulatePorts(const std::vector<ModelEvent::LifecycleEvent>& events, zmq::ProtoWriter& writer);
+    /*void
+    StimulatePorts(const std::vector<ModelEvent::LifecycleEvent>& events, zmq::ProtoWriter&
+    writer);*/
 
 private:
     zmq::ProtoReceiver receiver;
