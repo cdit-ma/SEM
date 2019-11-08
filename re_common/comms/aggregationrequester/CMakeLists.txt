@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.6)
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -7,7 +5,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(PROJ_NAME aggregation_requester)
 set(LIB_NAME ${PROJ_NAME}_lib)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 

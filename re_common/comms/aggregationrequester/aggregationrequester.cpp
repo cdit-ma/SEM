@@ -134,3 +134,21 @@ std::unique_ptr<AggServer::MarkerResponse> AggServer::Requester::GetMarkers(cons
         throw std::runtime_error(ex.what());
     }
 }
+
+
+/**
+ * @brief AggServer::Requester::GetPortEvents
+ * @param request
+ * @return
+ */
+std::unique_ptr<AggServer::PortEventResponse> AggServer::Requester::GetPortEvents(const AggServer::PortEventRequest &request)
+{
+    auto reply = requester_.SendRequest<PortEventRequest, PortEventResponse>("GetPortEvents", request, 5000);
+    try{
+        return reply.get();
+    }catch(const zmq::RMIException& ex){
+        throw std::invalid_argument(ex.what());
+    }catch(const zmq::TimeoutException& ex){
+        throw std::runtime_error(ex.what());
+    }
+}

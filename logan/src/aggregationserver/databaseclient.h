@@ -64,6 +64,12 @@ public:
                                                  const std::vector<std::string>& condition_columns,
                                                  const std::vector<std::string>& condition_values);
 
+    const pqxx::result GetPortEventInfo(int experiment_run_id,
+                                        std::string start_time,
+                                        std::string end_time,
+                                        const std::vector<std::string>& condition_columns,
+                                        const std::vector<std::string>& condition_values);
+
     const pqxx::result GetWorkloadEventInfo(int experiment_run_id,
                                             std::string start_time,
                                             std::string end_time,

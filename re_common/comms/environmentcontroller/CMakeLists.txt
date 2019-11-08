@@ -1,5 +1,5 @@
 set(PROJ_NAME re_environment_controller)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 set(LIB_NAME ${PROJ_NAME}_lib)
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)

@@ -495,6 +495,68 @@ DatabaseClient::GetPortLifecycleEventInfo(int experiment_run_id,
 }
 
 const pqxx::result
+DatabaseClient::GetPortEventInfo(int experiment_run_id,
+                                 std::string start_time,
+                                 std::string end_time,
+                                 const std::vector<std::string>& condition_columns,
+                                 const std::vector<std::string>& condition_values)
+{
+    std::stringstream query_stream;
+
+    query_stream << "SELECT PortEvent.Type, " << StringToPSQLTimestamp("SampleTime")
+                 << " AS SampleTime, porteventsequencenum AS SequenceNum, PortEvent.Message AS "
+                    "Message, \n";
+    query_stream << "   Port.Name AS PortName, Port.Type AS PortType, Port.Kind AS PortKind, "
+                    "Port.Path AS PortPath, Port.Middleware, Port.GraphmlID AS PortGraphmlID, \n";
+    query_stream << "   ComponentInstance.Name AS ComponentInstanceName, ComponentInstance.Path AS "
+                    "ComponentInstancePath, ComponentInstance.GraphmlID AS "
+                    "ComponentInstanceGraphmlID,\n";
+    query_stream << "   Component.Name AS ComponentName, Component.GraphmlID AS "
+                    "ComponentGraphmlID, Component.ExperimentRunID AS RunID,\n";
+    query_stream << "   Container.Name AS ContainerName, Container.Type as ContainerType, "
+                    "Container.GraphmlID AS ContainerGraphmlID,\n";
+    query_stream << "   Node.Hostname AS NodeHostname, Node.IP AS NodeIP, Node.GraphmlID AS "
+                    "NodeGraphmlID\n";
+    query_stream << "FROM PortEvent INNER JOIN Port ON PortEvent.PortID = Port.PortID\n";
+    query_stream << "   INNER JOIN ComponentInstance ON Port.ComponentInstanceID = "
+                    "ComponentInstance.ComponentInstanceID\n";
+    query_stream << "   INNER JOIN Component ON ComponentInstance.ComponentID = "
+                    "Component.ComponentID\n";
+    query_stream << "   INNER JOIN Container ON ComponentInstance.ContainerID = "
+                    "Container.ContainerID\n";
+    query_stream << "   INNER JOIN Node ON Container.NodeID = Node.NodeID\n";
+
+    if(condition_columns.size() != 0) {
+        query_stream << BuildWhereLikeClause(condition_columns, condition_values) << " AND ";
+    } else {
+        query_stream << "WHERE ";
+    }
+    query_stream << "Node.ExperimentRunID = " << experiment_run_id << " AND ";
+
+    query_stream << "PortEvent.SampleTime >= '" << /*connection_.quote(*/ start_time /*)*/ << "'";
+
+    if(end_time != AggServer::FormatTimestamp(0.0)) {
+        query_stream << "AND PortEvent.SampleTime <= '"
+                     << /*connection_.quote(*/ end_time /*)*/ << "'";
+    }
+    query_stream << " ORDER BY PortEvent.SampleTime";
+    query_stream << std::endl;
+
+    std::lock_guard<std::mutex> conn_guard(conn_mutex_);
+
+    try {
+        pqxx::work transaction(connection_, "GetPortEventTransaction");
+        const auto& pg_result = transaction.exec(query_stream.str());
+        transaction.commit();
+
+        return pg_result;
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while querying PortEvents: " << e.what() << std::endl;
+        throw;
+    }
+}
+
+const pqxx::result
 DatabaseClient::GetWorkloadEventInfo(int experiment_run_id,
                                      std::string start_time,
                                      std::string end_time,

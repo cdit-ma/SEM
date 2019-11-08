@@ -1,7 +1,3 @@
-
-
-
-
 if(NOT RE_COMMON_FOUND)
     message(STATUS "Building re_common")
     set(RE_COMMON_FOUND true PARENT_SCOPE)
