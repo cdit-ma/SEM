@@ -22,6 +22,9 @@ class NodeConfig:
 
 
 class JenkinsHandle:
+    """Jenkins handle class. Enables RAII style use of a Jenkins CLI interface.
+
+    Automatically downloads a jenkins cli client and removes upon tidy up."""
     def __init__(self, server_url: str):
         self.jenkins_jar_file_name = "jenkins-cli.jar"
         self.server_url = server_url

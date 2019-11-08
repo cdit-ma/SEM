@@ -7,7 +7,7 @@
 
 # IDE config dirs
 /.vscode/
-/.idea/
+**/.idea/
 
 # Scripts and other artifacts
 .DS_Store

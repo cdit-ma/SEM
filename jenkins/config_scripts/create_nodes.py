@@ -2,7 +2,7 @@ import argparse
 import csv
 import jenkins
 
-parser = argparse.ArgumentParser(description="Configure jenkins jobs required for system modelling.")
+parser = argparse.ArgumentParser(description="Configure jenkins nodes required for system modelling.")
 parser.add_argument("jenkins_server_ip_addr", action="store")
 args = parser.parse_args()
 
@@ -11,7 +11,7 @@ server_url = "http://" + server_address + ":8080/"
 
 node_list_csv_file_name = "node_list.csv"
 
-# Get job list
+# Get node list
 node_list = []
 with open(node_list_csv_file_name) as node_list_csv:
     csv_reader = csv.DictReader(node_list_csv, delimiter=',')
@@ -23,8 +23,10 @@ with open(node_list_csv_file_name) as node_list_csv:
                                          labels=row["labels"])
         node_list.append(node_config)
 
-# Create jenkins job for each name in list.
-# For each job name there must exist a directory of the same name containing a config.xml file.
+# Create jenkins node for each name in list.
+# For each node there must be a csv entry of the following format:
+# node_name,ip_address,executor_count,credential_id,labels
+# Where labels are space separated
 with jenkins.JenkinsHandle(server_url) as jenkins_handle:
     for node in node_list:
         try:
