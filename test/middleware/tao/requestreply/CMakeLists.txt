@@ -1,6 +1,6 @@
 #Set our project names
 set(PROJ_NAME test_tao_requestreply)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 # Find package ZMQ
 find_package(TAO)

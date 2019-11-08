@@ -1,5 +1,5 @@
 set(PROJ_NAME test_ospl_pubsub)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 if(NOT OSPL_DDS_FOUND)
 	# Find package OSPL_DDS

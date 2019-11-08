@@ -1,7 +1,7 @@
 set(LOGAN_CLIENT "logan_client")
 set(LOGAN_CLIENT_LIB ${LOGAN_CLIENT}_lib)
 set(PROJ_NAME ${LOGAN_CLIENT})
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #find_package(SIGAR REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)

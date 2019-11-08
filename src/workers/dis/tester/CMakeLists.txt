@@ -1,7 +1,7 @@
 set(PROJ_NAME dis_worker_tester)
 set(TX_NAME dis_tx)
 set(RX_NAME dis_rx)
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #RX tester utility
 add_executable(${RX_NAME} "")

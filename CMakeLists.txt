@@ -1,28 +1,28 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required(VERSION 3.0)
 project(re_top_level_project)
 
 project("re"
-		VERSION 3.3.9
-		LANGUAGES CXX)
+        VERSION 3.3.9
+        LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-if(APPLE)
-	set(CMAKE_MACOSX_RPATH ON)
-	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
-elseif(UNIX)
-	set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
-endif()
+if (APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
+    set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+elseif (UNIX)
+    set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+endif ()
 
 # Use CCache where possible
 find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
+if (CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif (CCACHE_FOUND)
 
-set(RE_VERSION "3.3.9")
+set(RE_VERSION ${PROJECT_VERSION})
 
 option(BUILD_DOCS "Build re developer documentation" ON)
 option(BUILD_TEST "Build testing" OFF)
@@ -46,13 +46,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}/lib")
 
-if(MSVC)
-	SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}/bin")
-	SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}/lib")
-	SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}/lib")
+if (MSVC)
+    SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}/bin")
+    SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}/lib")
+    SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}/lib")
     #Protobuf says everything is rubbish on windows` https://github.com/google/protobuf/blob/master/cmake/README.md
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4267")
-endif()
+endif ()
 
 # Configure cmakevars.h to have correct string replaced vars
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/cmakevars.h @ONLY)
@@ -67,12 +67,19 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logan")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # Build documentation
-if(BUILD_DOCS)
-	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/docs")
-endif()
+if (BUILD_DOCS)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/docs")
+endif ()
 
-if(BUILD_TEST)
-	message(STATUS "Building re tests")
-	#Build tests
-	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
-endif(BUILD_TEST)
+if (BUILD_TEST)
+    message(STATUS "Building re tests")
+    set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
+    set(GOOGLE_MOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googlemock)
+
+    # Only add googlemock as googlemock builds googletest.
+    # Adding googletest subdirectory leads to multiple definition error
+    add_subdirectory(${GOOGLE_MOCK_DIR})
+
+    #Build tests
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
+endif (BUILD_TEST)

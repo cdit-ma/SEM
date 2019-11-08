@@ -1,7 +1,7 @@
 set(AGGREGATION_SERVER "aggregation_server")
 set(PROJ_NAME ${AGGREGATION_SERVER})
 
-project(${PROJ_NAME})
+project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #Find packages
 find_package(Protobuf REQUIRED)
@@ -49,6 +49,7 @@ set(HEADERS
 
 # Construct an aggregation_server binary
 add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 
 if (MSVC)
     # Windows requires protobuf in DLLs

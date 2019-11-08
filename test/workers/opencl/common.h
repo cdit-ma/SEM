@@ -3,6 +3,8 @@
 
 #include "gtest/gtest.h"
 
+#include <common/common.h>
+
 #include <core/loggers/print_logger.h>
 #include <iostream>
 #include <vector>
@@ -11,21 +13,6 @@
 #include <workers/opencl/utilities.h>
 
 #define EPS 1e-6
-
-namespace cditma::test::helpers {
-template<typename T>
-void expect_nearly_equal(const std::vector<T>& expected, const std::vector<T>& actual, float thresh)
-{
-    EXPECT_EQ(expected.size(), actual.size()) << "Array sizes differ.";
-    for(size_t idx = 0; idx < std::min(expected.size(), actual.size()); ++idx) {
-        if(actual[idx] == 0) {
-            EXPECT_NEAR(expected[idx], actual[idx], thresh) << "at index: " << idx;
-        } else {
-            EXPECT_NEAR(fabs((expected[idx]) / (actual[idx])), 1, thresh);
-        }
-    }
-}
-} // namespace cditma::test::helpers
 
 struct DeviceParam {
     DeviceParam() = default;
@@ -42,7 +29,7 @@ struct DeviceParam {
 
 class OpenCL_WorkerConstructor {
 public:
-    OpenCL_WorkerConstructor(DeviceParam device) :
+    explicit OpenCL_WorkerConstructor(DeviceParam device) :
         component_("component"),
         worker_(component_, "OpenCL_Worker")
     {
@@ -78,7 +65,7 @@ extern std::string GetPlatformName(int platform_id);
 
 class DummyWorker : public Worker {
 public:
-    DummyWorker(Component& component);
+    explicit DummyWorker(Component& component);
     const std::string& get_version() const override;
 };
 

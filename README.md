@@ -2,25 +2,35 @@
 "Runtime Environment"
 
 **_re_** aims to provide users with an easy to use runtime environment for system modeling. 
-**_re_** is best used in conjunction with [MEDEA](https://github.com/cdit-ma/MEDEA.git) for graphical modeling and 
- supported by [logan](https://github.com/cdit-ma/logan.git) for realtime performance metric gathering.
+**_re_** is best used in conjunction with [MEDEA](https://github.com/cdit-ma/MEDEA.git) for graphical modeling.
+
 
 ## Supported Operating Systems:
 * Windows 7 (> Visual Studio 2015)
 * MacOSX 10.10 (Or Newer)
-* Ubuntu 14.04 (or Newer)
+* Ubuntu 16.04 (or Newer)
 
 ## Requirements
-* https://github.com/google/protobuf
-* https://github.com/zeromq/libzmq
-* https://www.boost.org - Program\_Options, System, Filesystem and Date\_Time
-* https://pugixml.org
-
-## Build Tool
-* https://github.com/Kitware/CMake
+### Runtime
+* [Google Protobuf](https://github.com/google/protobuf)
+* [ZeroMQ](https://github.com/zeromq/libzmq)
+* [Boost](https://www.boost.org) - Program\_Options, System, Filesystem and Date\_Time
+* [PugiXML](https://pugixml.org)
+* [Saxon XSLT Processor](http://saxon.sourceforge.net/)
+* [CMake](https://github.com/Kitware/CMake)
+* A C++17 compliant compiler
+### Logging
+* libpqxx-dev
+* [SIGAR](https://github.com/cdit-ma/sigar)
 
 ## Installation
 See [Installation Guide](INSTALL.md)
+
+## License
+This project is licensed under the terms of the [MIT license](LICENSE.txt).
+
+## Support
+This work has been developed with the support of the Australian Government Defence Science and Technology Group.
 
 ## Usage
 ### Command line options
