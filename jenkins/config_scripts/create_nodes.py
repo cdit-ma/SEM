@@ -27,4 +27,9 @@ with open(node_list_csv_file_name) as node_list_csv:
 # For each job name there must exist a directory of the same name containing a config.xml file.
 with jenkins.JenkinsHandle(server_url) as jenkins_handle:
     for node in node_list:
-        jenkins_handle.create_node(node)
+        try:
+            jenkins_handle.create_node(node)
+        except jenkins.JenkinsCLIError as err:
+            print("Node creation error {0}".format(err))
+        except:
+            raise

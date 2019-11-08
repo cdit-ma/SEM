@@ -23,4 +23,9 @@ with open(job_list_csv_file_name) as job_list_csv:
 with jenkins.JenkinsHandle(server_url) as jenkins_handle:
     for job in job_list:
         config_file_path = job + "/config.xml"
-        jenkins_handle.create_job(job, config_file_path)
+        try:
+            jenkins_handle.create_job(job, config_file_path)
+        except jenkins.JenkinsCLIError as err:
+            print("Job creation error {0}".format(err))
+        except:
+            raise

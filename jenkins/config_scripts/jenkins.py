@@ -2,8 +2,6 @@ import subprocess
 import urllib.request
 import os
 
-from typing import List
-
 
 class JenkinsCLIError(Exception):
     def __init__(self, message):
@@ -11,6 +9,10 @@ class JenkinsCLIError(Exception):
 
 
 class NodeConfig:
+    """Node config struct.
+
+    Used to parse jenkins node configuration from CSV document. Example format can be found in containing directory."""
+
     def __init__(self, node_name: str, ip_address: str, executor_count: int, credential_id: str, labels: str):
         self.node_name = node_name
         self.executor_count = executor_count
@@ -43,17 +45,25 @@ class JenkinsHandle:
 
     def create_job(self, job_name: str, file_path: str):
         print("Creating Jenkins job: " + job_name)
-        # TODO: Replace print with subprocess call
         create_job_command = ["java", "-jar", self.jenkins_jar_file_name, "-s", self.server_url, "create-job", job_name]
         print(create_job_command)
-        # process = subprocess.Popen(create_job_command, stdin=subprocess.PIPE)
-        # process.communicate(input=open(file_path).read().encode())
+        with open(file_path) as job_descriptor_fh:
+            job_descriptor = job_descriptor_fh.read()
+            try:
+                process = subprocess.Popen(create_job_command, stdin=subprocess.PIPE)
+                process.communicate(job_descriptor.encode())
+                process.wait()
+                if process.returncode != 0:
+                    raise JenkinsCLIError("Failed to create job: {0}".format(job_name))
+            except:
+                raise JenkinsCLIError("Failed to create job: {0}".format(job_name))
 
     def create_node(self, node_config: NodeConfig):
         print("Creating Jenkins node: " + node_config.node_name)
 
-        # XXX: THIS IS AN UGLY HACK
         with open("default_node_config.xml", 'r') as default_node_config_fh:
+            # Replace instances of node attribute tags with attribute values.
+            # This is algorithmically poor. Poor performance doesn't really matter given input size.
             xml_string = default_node_config_fh.read()
             mutated_xml_string = xml_string \
                 .replace("##HOSTNAME##", node_config.node_name) \
@@ -62,12 +72,16 @@ class JenkinsHandle:
                 .replace("##CREDENTIAL_ID##", node_config.credential_id) \
                 .replace("##LABELS##", node_config.labels)
 
-            # TODO: Replace print with subprocess call
-            print(mutated_xml_string)
+            create_node_command = ["java", "-jar", self.jenkins_jar_file_name, "-s", self.server_url, "create-node",
+                                   node_config.node_name]
+            print(create_node_command)
+            try:
+                process = subprocess.Popen(create_node_command, stdin=subprocess.PIPE)
+                process.communicate(mutated_xml_string.encode())
+                process.wait()
+                if process.returncode != 0:
+                    raise JenkinsCLIError("Failed to create node: {0}".format(node_config.node_name))
+            except:
+                raise JenkinsCLIError("Failed to create node: {0}".format(node_config.node_name))
 
-        # TODO: Pipe mutated xml file into create_node_command run
-        create_node_command = ["java", "-jar", self.jenkins_jar_file_name, "-s", self.server_url, "create-node",
-                               node_config.node_name]
-        print(create_node_command)
-        # process = subprocess.Popen(create_node_command, stdin=subprocess.PIPE)
-        # process.communicate(input=mutated_xml_string)
+
