@@ -5,10 +5,10 @@
 #include <QGraphicsView>
 
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
+#include "../../Widgets/Charts/Data/Series/portlifecycleeventseries.h"
 #include "../Charts/Data/protomessagestructs.h"
-#include "EntityItems/portinstancegraphicsitem.h"
-
 #include "../Charts/Data/experimentrundata.h"
+#include "EntityItems/portinstancegraphicsitem.h"
 
 class DataflowDialog : public QFrame
 {
@@ -17,7 +17,7 @@ class DataflowDialog : public QFrame
 public:
     explicit DataflowDialog(QWidget* parent = nullptr);
 
-    void storePortLifecycleEvents(const QVector<PortLifecycleEvent *>& events);
+    void addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent *>& events);
 
     void playbackDataflow();
 
@@ -28,7 +28,6 @@ public slots:
     void themeChanged();
 
     void constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data);
-    void constructGraphicsItems(const AggServerResponse::ExperimentRun& exp_run, const AggServerResponse::ExperimentState& exp_state);
     void clearScene();
 
 protected:
@@ -47,16 +46,16 @@ private:
     QGraphicsView* view_ = nullptr;
 
     AggServerResponse::ExperimentRun experiment_run_;
-    //MEDEA::ExperimentRunData experiment_run_data_;
     qint64 exp_run_start_time_;
     qint64 exp_run_end_time_;
 
-    QVector<PortLifecycleEvent*> port_lifecycle_events_;
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
-    QMultiHash<qint64, QString> port_ids_at_elapsed_time_;
+    QHash<QString, PortLifecycleEventSeries*> series_list_;
 
-    qint64 playback_duration_ms_ = 0;
+    qint64 playback_duration_ = 0;
+    qint64 playback_current_time_ = 0;
     qint64 playback_elapsed_time_ = 0;
+
     bool timer_active_ = false;
     int timer_id_ = 0;
 };

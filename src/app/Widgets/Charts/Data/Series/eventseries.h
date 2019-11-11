@@ -36,9 +36,11 @@ public:
 
     MEDEA::ChartDataKind getKind() const;
 
+    const QString& getID() const;
     const QString& getEventSeriesID() const;
 
     QList<Event*>::const_iterator getFirstAfterTime(const qint64 timeMS) const;
+    QList<Event*> getEventsBetween(qint64 fromTimeMS = -1, qint64 toTimeMS = -1) const;
 
     virtual QString getHoveredDataString (
             qint64 fromTimeMS,

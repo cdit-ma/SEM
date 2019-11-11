@@ -417,7 +417,7 @@ void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::
         toastNotification("No port lifecycle events received for selection", "plug");
     } else {
         emit showChartsPanel();
-        getDataflowDialog().storePortLifecycleEvents(events);
+        getDataflowDialog().addPortLifecycleEventsToSeries(events);
         timelineChartView().addPortLifecycleEvents(exp_run, events);
     }
 }

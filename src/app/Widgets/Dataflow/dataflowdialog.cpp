@@ -12,12 +12,14 @@
 #include <QtConcurrent>
 
 const int invalid_experiment_id = -1;
+const int timer_interval_ms = 330;
 
 /**
  * @brief DataflowDialog::DataflowDialog
  * @param parent
  */
-DataflowDialog::DataflowDialog(QWidget *parent) : QFrame(parent)
+DataflowDialog::DataflowDialog(QWidget *parent)
+    : QFrame(parent)
 {
     view_ = new DataflowGraphicsView(this);
 
@@ -31,45 +33,36 @@ DataflowDialog::DataflowDialog(QWidget *parent) : QFrame(parent)
 
 
 /**
- * @brief DataflowDialog::storePortLifecycleEvents
+ * @brief DataflowDialog::addPortLifecycleEventsToSeries
  * @param events
  */
-void DataflowDialog::storePortLifecycleEvents(const QVector<PortLifecycleEvent*>& events)
+void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent*>& events)
 {
-    if (events.isEmpty()) {
-        return;
-    }
+    /**
+     * NOTE -  This function is only here to test getting events between a time interval from a series
+     * The series will already be constructed when using the new experiment data classes
+     */
 
-    // Clear the hash used for playback
-    port_ids_at_elapsed_time_.clear();
-    port_lifecycle_events_ = events;
+    series_list_.clear();
 
-    // There should be a valid selected experiment run at this point
-    if (experiment_run_.experiment_run_id == invalid_experiment_id) {
-        return;
-    }
-
-    auto start_time = experiment_run_.start_time;
-    auto end_time = experiment_run_.last_updated_time;
-    playback_duration_ms_ = static_cast<qint64>(end_time - start_time);
-
-    qDebug() << "\nExperiment Run Duration:\t" << playback_duration_ms_ / 1000.0 << "S";
-    qDebug() << "Experiment Start Time:\t" << QDateTime::fromMSecsSinceEpoch(start_time).toString("hh:mm:ss.zzz");
-    qDebug() << "Experiment End Time:\t" << QDateTime::fromMSecsSinceEpoch(end_time).toString("hh:mm:ss.zzz");
-
-    // Initialise the hash keys with the elapsed times (ms)
-    for (qint64 i = 0; i <= playback_duration_ms_; i++) {
-        port_ids_at_elapsed_time_.insert(i, QString());
-    }
-
-    for (int i = 0; i < port_lifecycle_events_.length(); i++) {
-        const auto& event = port_lifecycle_events_[i];
-        auto elapsed_time = event->getTimeMS() - start_time;
-        if (port_ids_at_elapsed_time_.contains(elapsed_time)) {
-            port_ids_at_elapsed_time_.insertMulti(elapsed_time, event->getID());
-        } else {
-            qWarning("DataflowDialog::storePortLifecycleEvents - Event time lies outside of the calculated experiment duration.");
-            qDebug() << "Event time: " + QDateTime::fromMSecsSinceEpoch(event->getTimeMS()).toString("hh:mm:ss.zzz");
+    for (const auto& event : events) {
+        if (event != nullptr) {
+            PortLifecycleEventSeries* series = nullptr;
+            auto series_id = event->getID();
+            // Check if a series for the event already exists
+            if (series_list_.contains(series_id)) {
+                series = series_list_.value(series_id);
+            } else {
+                // Construct new series
+                auto port_id = series_id.split("_").first();
+                auto series_label = event->getName() + "_" + port_id;
+                series = new PortLifecycleEventSeries(series_id);
+                series->setProperty("series_label", series_label);
+                series_list_[series_id] = series;
+            }
+            if (series) {
+                series->addEvent(event);
+            }
         }
     }
 }
@@ -80,14 +73,14 @@ void DataflowDialog::storePortLifecycleEvents(const QVector<PortLifecycleEvent*>
  */
 void DataflowDialog::playbackDataflow()
 {
-    if (port_lifecycle_events_.isEmpty()) {
+    if (series_list_.isEmpty()) {
         qInfo("DataflowDialog::playbackDataflow - There are no events to playback.");
         return;
     }
     if (!timer_active_) {
         qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
-        auto tick_interval_ms = 1;
-        timer_id_ = startTimer(tick_interval_ms);
+        playback_current_time_ = exp_run_start_time_;
+        timer_id_ = startTimer(timer_interval_ms);
         timer_active_ = true;
     }
 }
@@ -118,6 +111,9 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
 
     exp_run_start_time_ = exp_run_data.start_time();
     exp_run_end_time_ = exp_run_data.end_time();
+    playback_duration_ = exp_run_end_time_ - exp_run_start_time_;
+
+    // This sets the experiment info displays on the title bar of the panel
     setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
 
     // Clear previous items
@@ -142,69 +138,6 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
 
     // Construct the edges
     constructEdgeItems(port_items_, exp_run_data.getPortConnectionData());
-}
-
-
-/**
- * @brief DataflowDialog::constructGraphicsItems
- * @param exp_run
- * @param exp_state
- */
-void DataflowDialog::constructGraphicsItems(const AggServerResponse::ExperimentRun& exp_run, const AggServerResponse::ExperimentState& exp_state)
-{
-    auto exp_id = exp_run.experiment_run_id;
-    if (exp_id == invalid_experiment_id) {
-        return;
-    }
-
-    // This shouldn't be needed, but just in case
-    /*if (exp_id != exp_state.experiment_run_id) {
-        return;
-    }*/
-
-    experiment_run_ = exp_run;
-    experiment_run_.last_updated_time = exp_state.last_updated_time;
-    setExperimentInfo(exp_run.experiment_name, exp_id);
-
-    // Clear previous items
-    clearScene();
-
-    qDebug() << "-----------------------------------------------------------------------";
-    //qDebug() << "nodes#: " << expState.nodes.size();
-
-    for (const auto& n : exp_state.nodes) {
-        //qDebug() << "containers#: " << n.containers.size();
-        for (const auto& c : n.containers) {
-            //qDebug() << "comp inst#: " << c.component_instances.size();
-            for (const auto& inst : c.component_instances) {
-
-                qDebug() << "Component Instance: " << inst.name << " - " << inst.path;
-                auto c_instItem = new ComponentInstanceGraphicsItem(inst);
-                addItemToScene(c_instItem);
-
-                //qDebug() << "Comp Inst scene rect: " << c_instItem->sceneBoundingRect();
-
-                for (const auto& port : inst.ports) {
-                    qDebug() << "Port: " << port.name << " - " << port.path;
-                    auto p_instItem = new PortInstanceGraphicsItem(port);
-                    port_items_[port.graphml_id] = p_instItem;
-                    c_instItem->addPortInstanceItem(p_instItem);
-                    connect(c_instItem, &ComponentInstanceGraphicsItem::itemMoved, p_instItem, &PortInstanceGraphicsItem::itemMoved);
-
-                    /*
-                    // TODO - Figure out why the sceneBoundingRect is empty
-                    qDebug() << "Port scene rect: " << p_instItem->sceneBoundingRect();
-                    qDebug() << "Port mapped rect: " << view_->mapToScene(p_instItem->boundingRect().toRect());
-                    qDebug() << "Port geometry: " << p_instItem->geometry();
-                    */
-                }
-            }
-        }
-    }
-
-    // Construct the edges
-    constructEdgeItems(port_items_, exp_state.port_connections);
-    qDebug() << "-----------------------------------------------------------------------";
 }
 
 
@@ -238,6 +171,7 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
 void DataflowDialog::clearScene()
 {
     view_->scene()->clear();
+    series_list_.clear();
     port_items_.clear();
 }
 
@@ -261,7 +195,9 @@ void DataflowDialog::setExperimentInfo(const QString &exp_name, quint32 exp_run_
  */
 void DataflowDialog::clearPlaybackState()
 {
+    playback_current_time_ = exp_run_start_time_;
     playback_elapsed_time_ = 0;
+
     timer_active_ = false;
     timer_id_ = 0;
 }
@@ -278,28 +214,45 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
         return;
     }
 
-    if (playback_elapsed_time_ > playback_duration_ms_) {
-        killTimer(timer_id_);
-        clearPlaybackState();
-        qDebug() << "PLAYBACK FINISHED ----------------------------------------------------";
-        return;
-    }
+    /**
+     * NOTE: The difference between flashing per event instead of per series is that,
+     * per event will flash the port for each of the event that was received; while as
+     * per series will only flash the series once regardless of the number of events
+     * received berween the given time interval
+     */
 
-    if (playback_elapsed_time_ % 1000 == 0) {
-        qDebug() << "-" << playback_elapsed_time_ / 1000 << "S";
-    }
+    auto prev_time = playback_current_time_;
+    playback_current_time_ += timer_interval_ms;
 
-    if (port_ids_at_elapsed_time_.contains(playback_elapsed_time_)) {
-        for (const auto& id : port_ids_at_elapsed_time_.values(playback_elapsed_time_)) {
-            auto port = port_items_.value(id, nullptr);
+    playback_elapsed_time_ += timer_interval_ms;
+    qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << playback_elapsed_time_ / 1000.000 << "S";
+
+    for (const auto& s : series_list_) {
+        const auto& events = s->getEventsBetween(prev_time, playback_current_time_);
+        if (!events.isEmpty()) {
+            qDebug() << "------------------------------------------------";
+            qDebug() << "Time range: " << QDateTime::fromMSecsSinceEpoch(prev_time).toString("hh:mm:ss.zzz") << " to " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
+            qDebug() << "events#: " << events.size();
+            auto port = port_items_.value(s->getID(), nullptr);
             if (port) {
-                qDebug() << "------" << playback_elapsed_time_ / 1000.0 << "S - " << port->getPortName();
+                qDebug() << "Port: " << port->getPortName();
                 port->flashPort();
+                for (const auto& e : events) {
+                    qDebug() << "- event time: " << e->getDateTimeString("hh:mm:ss.zzz");
+                }
+            } else {
+                qDebug() << "No port item to flash for event";
             }
+            qDebug() << "------------------------------------------------";
         }
     }
 
-    playback_elapsed_time_++;
+    if (playback_current_time_ >= exp_run_end_time_) {
+        killTimer(timer_id_);
+        clearPlaybackState();
+        qDebug() << "PLAYBACK FINISHED ----------------------------------------------------";
+    }
+
     QFrame::timerEvent(event);
 }
 

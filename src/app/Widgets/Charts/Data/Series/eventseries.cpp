@@ -138,6 +138,16 @@ MEDEA::ChartDataKind MEDEA::EventSeries::getKind() const
 
 
 /**
+ * @brief MEDEA::EventSeries::getID
+ * @return
+ */
+const QString& MEDEA::EventSeries::getID() const
+{
+    return ID_;
+}
+
+
+/**
  * @brief MEDEA::EventSeries::getEventSeriesID
  * @return
  */
@@ -159,6 +169,45 @@ QList<MEDEA::Event*>::const_iterator MEDEA::EventSeries::getFirstAfterTime(const
         return e->getTimeMS() < time;
     });
     return firstItr;
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::getEventsBetween
+ * @param fromTimeMS - If -1 is provided, use the min time of the series
+ * @param toTimeMS - If -1 is provided, use the max time of the series
+ * @return
+ */
+QList<MEDEA::Event *> MEDEA::EventSeries::getEventsBetween(qint64 fromTimeMS, qint64 toTimeMS) const
+{
+    if (fromTimeMS == -1 && toTimeMS == -1) {
+        return events_;
+    }
+
+    QList<Event*> events;
+    if (fromTimeMS == -1) {
+        if (toTimeMS < minTime_) {
+            return events;
+        }
+        fromTimeMS = minTime_;
+    } else if (toTimeMS == -1) {
+        if (fromTimeMS > maxTime_) {
+            return events;
+        }
+        toTimeMS = maxTime_;
+    }
+
+    // Get the iterators to the first and last events within the given range
+    auto fromItr = getFirstAfterTime(fromTimeMS);
+    auto toItr = getFirstAfterTime(toTimeMS);
+    auto current = fromItr;
+
+    while (current != toItr) {
+        auto event = (*current);
+        events.append(event);
+        current++;
+    }
+    return events;
 }
 
 
