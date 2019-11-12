@@ -12,14 +12,13 @@ std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
  * @param parent
  */
 MEDEA::EventSeries::EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent)
-    : QObject(parent)
+    : QObject(parent),
+      ID_(ID),
+      label_(ID),
+      kind_(kind),
+      eventSeriesID_(eventSeries_ID++),
+      eventSeriesIDStr_(QString::number(eventSeriesID_))
 {
-    ID_ = ID;
-    kind_ = kind;
-
-    eventSeriesID_ = eventSeries_ID++;
-    eventSeriesIDStr_ = QString::number(eventSeriesID_);
-
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
 }
@@ -66,34 +65,49 @@ bool MEDEA::EventSeries::isEmpty() const
 
 
 /**
- * @brief MEDEA::EventSeries::addEvent
- * @param event
+ * @brief MEDEA::EventSeries::getEvents
+ * @return
  */
-void MEDEA::EventSeries::addEvent(Event* event)
+const QList<MEDEA::Event*>& MEDEA::EventSeries::getEvents() const
 {
-    if (event) {
-        // update the range
-        auto eventTime = event->getTimeMS();
-        if (eventTime < minTime_) {
-            minTime_ = eventTime;
-            emit minChanged(minTime_);
-        }
-        if (eventTime > maxTime_) {
-            maxTime_ = eventTime;
-            emit maxChanged(maxTime_);
-        }
-        events_.append(event);
+    return events_;
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::updateTimeRange
+ * @param new_timestamp
+ */
+void MEDEA::EventSeries::updateTimeRange(qint64 new_timestamp)
+{
+    if (new_timestamp < minTime_) {
+        minTime_ = new_timestamp;
+        emit minTimeChanged(minTime_);
+    }
+    if (new_timestamp > maxTime_) {
+        maxTime_ = new_timestamp;
+        emit maxTimeChanged(maxTime_);
     }
 }
 
 
 /**
- * @brief MEDEA::EventSeries::getEvents
+ * @brief MEDEA::EventSeries::setLabel
+ * @param label
+ */
+void MEDEA::EventSeries::setLabel(const QString& label)
+{
+    label_ = label;
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::getLabel
  * @return
  */
-const QList<MEDEA::Event*> &MEDEA::EventSeries::getEvents() const
+const QString& MEDEA::EventSeries::getLabel() const
 {
-    return events_;
+    return label_;
 }
 
 
@@ -271,6 +285,22 @@ QString MEDEA::EventSeries::getDataString (
     }
 
     return hoveredData.trimmed();
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::addEventToList
+ * @param event
+ * @throws std::invalid_argument
+ */
+void MEDEA::EventSeries::addEventToList(MEDEA::Event& event)
+{
+    // Add the new event to the list, update the time range
+    // and send the signal to notify that a new event has been added
+    auto&& new_event = &event;
+    events_.append(new_event);
+    updateTimeRange(new_event->getTimeMS());
+    emit eventAdded(new_event);
 }
 
 

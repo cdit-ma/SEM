@@ -1,7 +1,7 @@
 #include "markereventseries.h"
-#include "../Events/markerevent.h"
 
 #include <QSet>
+#include <QTextStream>
 
 /**
  * @brief MarkerEventSeries::MarkerEventSeries
@@ -38,40 +38,6 @@ const QMap<qint64, QSet<qint64>>& MarkerEventSeries::getMarkerIDsMappedByStartTi
 const QHash<qint64, qint64>& MarkerEventSeries::getMarkerIDSetDurations() const
 {
     return markerIDSetDurations_;
-}
-
-
-/**
- * @brief MarkerEventSeries::addEvent
- * @param event
- */
-void MarkerEventSeries::addEvent(MEDEA::Event* event)
-{
-    if (event->getKind() != MEDEA::ChartDataKind::MARKER) {
-        qCritical("MarkerEventSeries::addEvent - Cannot add event due to a mismatch of type.");
-        return;
-    }
-
-    auto markerEvent = qobject_cast<MarkerEvent*>(event);
-    auto markerID = markerEvent->getMarkerID();
-    auto minTime = event->getTimeMS();
-    auto maxTime = event->getTimeMS();
-
-    if (markerIDSetRanges_.contains(markerID)) {
-        minTime = qMin(minTime, markerIDSetRanges_.value(markerID).first);
-        maxTime = qMax(maxTime, markerIDSetRanges_.value(markerID).second);
-    }
-
-    markerIDSetRanges_.insert(markerID, {minTime, maxTime});
-    markerIDSetDurations_.insert(markerID, maxTime - minTime);
-
-    if (!startTimeMap_.contains(minTime)) {
-        startTimeMap_.insert(minTime, {markerID});
-    } else {
-        startTimeMap_[minTime].insert(markerID);
-    }
-
-    MEDEA::EventSeries::addEvent(event);
 }
 
 
@@ -138,10 +104,49 @@ QString MarkerEventSeries::getDataString (
     QTextStream stream(&hoveredData);
 
     if (numberOfIDSets > 0) {
-        double avgDuration = (double) totalDurationMS / numberOfIDSets;
+        double avgDuration = static_cast<double>(totalDurationMS / numberOfIDSets);
         stream << "Marker ID Sets Started#: " << numberOfIDSets << "\n"
                << "Average Duration: " << avgDuration << "ms \n\n";
     }
 
     return hoveredData.trimmed();
+}
+
+/**
+ * @brief MarkerEventSeries::addEvent
+ * @param event
+ * @throws std::invalid_argument
+ */
+void MarkerEventSeries::addEvent(MEDEA::Event* event)
+{
+    if (event == nullptr) {
+        throw std::invalid_argument("MarkerEventSeries::addEvent - Event parameter is null.");
+    }
+    if (event->getKind() != MEDEA::ChartDataKind::MARKER) {
+        throw std::invalid_argument("MarkerEventSeries::addEvent - Invalid event kind.");
+    }
+
+    if (!events_.contains(event)) {
+
+        auto markerEvent = qobject_cast<MarkerEvent*>(event);
+        auto markerID = markerEvent->getMarkerID();
+        qint64 eventTime = markerEvent->getTimeMS();
+        qint64 minTime = 0, maxTime = 0;
+
+        if (markerIDSetRanges_.contains(markerID)) {
+            minTime = qMin(eventTime, markerIDSetRanges_.value(markerID).first);
+            maxTime = qMax(eventTime, markerIDSetRanges_.value(markerID).second);
+        }
+
+        markerIDSetRanges_.insert(markerID, {minTime, maxTime});
+        markerIDSetDurations_.insert(markerID, maxTime - minTime);
+
+        if (!startTimeMap_.contains(minTime)) {
+            startTimeMap_.insert(minTime, {markerID});
+        } else {
+            startTimeMap_[minTime].insert(markerID);
+        }
+
+        addEventToList(*event);
+    }
 }

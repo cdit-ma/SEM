@@ -2,6 +2,10 @@
 #define MARKEREVENTSERIES_H
 
 #include "eventseries.h"
+#include "../Events/markerevent.h"
+
+#include <QHash>
+#include <QMap>
 
 class MarkerEventSeries : public MEDEA::EventSeries
 {
@@ -14,13 +18,13 @@ public:
     const QHash<qint64, QPair<qint64, qint64>>& getMarkerIDSetRanges() const;
     const QHash<qint64, qint64>& getMarkerIDSetDurations() const;
 
-    void addEvent(MEDEA::Event* event);
-
     QString getHoveredDataString (
             qint64 fromTimeMS,
             qint64 toTimeMS,
             int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(),
             const QString& displayFormat = getDefaultDisplayFormat()) const;
+
+    void addEvent(MEDEA::Event* event);
 
 protected:
     QString getDataString (

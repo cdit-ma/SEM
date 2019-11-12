@@ -17,7 +17,7 @@ class ComponentInstanceGraphicsItem : public QGraphicsWidget
 public:
     ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, QGraphicsItem* parent = nullptr);
 
-    void addPortInstanceItem(PortInstanceGraphicsItem* item);
+    PortInstanceGraphicsItem* addPortInstanceItem(PortInstanceData& port_data);
 
 signals:
     void toggleExpanded(bool expand);

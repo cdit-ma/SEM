@@ -2,6 +2,7 @@
 #define WORKLOADEVENTSERIES_H
 
 #include "eventseries.h"
+#include "../Events/workloadevent.h"
 
 class WorkloadEventSeries : public MEDEA::EventSeries
 {

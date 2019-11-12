@@ -1,5 +1,4 @@
 #include "memoryutilisationeventseries.h"
-#include "../Events/memoryutilisationevent.h"
 
 /**
  * @brief MemoryUtilisationEventSeries::MemoryUtilisationEventSeries
@@ -13,25 +12,29 @@ MemoryUtilisationEventSeries::MemoryUtilisationEventSeries(const QString& ID, QO
 /**
  * @brief MemoryUtilisationEventSeries::addEvent
  * @param event
+ * @throws std::invalid_argument
  */
-void MemoryUtilisationEventSeries::addEvent(MEDEA::Event *event)
+void MemoryUtilisationEventSeries::addEvent(MEDEA::Event* event)
 {
+    if (event == nullptr) {
+        throw std::invalid_argument("MemoryUtilisationEventSeries::addEvent - Event parameter is null.");
+    }
     if (event->getKind() != MEDEA::ChartDataKind::MEMORY_UTILISATION) {
-        qCritical("MemoryUtilisationEventSeries::addEvent - Cannot add event due to a mismatch of type.");
-        return;
+        throw std::invalid_argument("MemoryUtilisationEventSeries::addEvent - Invalid event kind.");
     }
 
-    auto utilisation = qobject_cast<MemoryUtilisationEvent*>(event)->getUtilisation();
-    if (utilisation < minUtilisation_) {
-        minUtilisation_ = utilisation;
-        emit minYValueChanged(utilisation);
+    if (!events_.contains(event)) {
+        auto utilisation = qobject_cast<MemoryUtilisationEvent*>(event)->getUtilisation();
+        if (utilisation < minUtilisation_) {
+            minUtilisation_ = utilisation;
+            emit minYValueChanged(utilisation);
+        }
+        if (utilisation > maxUtilisation_) {
+            maxUtilisation_ = utilisation;
+            emit maxYValueChanged(utilisation);
+        }
+        addEventToList(*event);
     }
-    if (utilisation > maxUtilisation_) {
-        maxUtilisation_ = utilisation;
-        emit maxYValueChanged(utilisation);
-    }
-
-    MEDEA::EventSeries::addEvent(event);
 }
 
 

@@ -2,11 +2,16 @@
 #define PORTCONNECTIONDATA_H
 
 #include "protomessagestructs.h"
+#include <QObject>
 
-class PortConnectionData {
+// TODO - This class is not finished; will figure out what else is needed whe Pulse moves to using these data classes
+
+class PortConnectionData : public QObject
+{
+    Q_OBJECT
 
 public:
-    PortConnectionData(const AggServerResponse::PortConnection& port_connection);
+    PortConnectionData(quint32 exp_run_id, const AggServerResponse::PortConnection& port_connection, QObject* parent = nullptr);
 
     int getID() const;
 
@@ -16,6 +21,8 @@ public:
     AggServerResponse::PortConnection::ConnectionType getPortConnectionType() const;
 
 private:
+    quint32 experiment_run_id_;
+
     QString from_port_graphml_id_;
     QString to_port_graphml_id_;
 

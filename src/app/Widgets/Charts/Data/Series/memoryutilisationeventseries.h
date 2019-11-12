@@ -3,6 +3,7 @@
 
 #include <cfloat>
 #include "eventseries.h"
+#include "../Events/memoryutilisationevent.h"
 
 class MemoryUtilisationEventSeries : public MEDEA::EventSeries
 {

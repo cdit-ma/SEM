@@ -5,30 +5,42 @@
 #include "portinstancedata.h"
 #include "workerinstancedata.h"
 
-class ComponentInstanceData {
+#include <QHash>
+
+class ComponentInstanceData : public QObject
+{
+    Q_OBJECT
 
 public:
-    ComponentInstanceData(const AggServerResponse::ComponentInstance& component_instance);
+    ComponentInstanceData(quint32 exp_run_id, const AggServerResponse::ComponentInstance& component_instance, QObject* parent = nullptr);
 
     const QString& getGraphmlID() const;
     const QString& getName() const;
     const QString& getPath() const;
     const QString& getType() const;
 
-    void addPortInstanceData(const AggServerResponse::Port& port);
-    QList<PortInstanceData> getPortInstanceData() const;
+    QList<PortInstanceData*> getPortInstanceData() const;
+    QList<WorkerInstanceData*> getWorkerInstanceData() const;
 
-    void addWorkerInstanceData(const AggServerResponse::WorkerInstance& worker_instance);
-    QList<WorkerInstanceData> getWorkerInstanceData() const;
+    void updateData(const AggServerResponse::ComponentInstance& component_instance, qint64 last_updated_time);
+
+signals:
+    void dataChanged(qint64 last_updated_time);
 
 private:
+    void addPortInstanceData(const AggServerResponse::Port& port);
+    void addWorkerInstanceData(const AggServerResponse::WorkerInstance& worker_instance);
+
+    quint32 experiment_run_id_;
+    qint64 last_updated_time_;
+
     QString graphml_id_;
     QString name_;
     QString path_;
     QString type_;
 
-    QHash<QString, PortInstanceData> port_inst_data_hash_;
-    QHash<QString, WorkerInstanceData> worker_inst_data_hash_;
+    QHash<QString, PortInstanceData*> port_inst_data_hash_;
+    QHash<QString, WorkerInstanceData*> worker_inst_data_hash_;
 };
 
 #endif // COMPONENTINSTANCEDATA_H

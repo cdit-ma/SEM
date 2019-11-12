@@ -5,18 +5,27 @@
 #include "protomessagestructs.h"
 #include <unordered_map>
 
+#include <QObject>
+
 namespace MEDEA {
 
-class ExperimentData {
+class ExperimentData : public QObject
+{
+    Q_OBJECT
 
 public:
-    ExperimentData(const QString& experiment_name);
+    ExperimentData(const QString& experiment_name, QObject* parent = nullptr);
 
     const QString& experiment_name() const;
 
     void addExperimentRun(const AggServerResponse::ExperimentRun& exp_run);
     ExperimentRunData& getExperimentRun(quint32 exp_run_id) const;
     //const std::vector<ExperimentRunData> &getExperimentRuns() const;
+
+    void updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state);
+
+signals:
+    void requestData(quint32 exp_run_id);
 
 private:
     QString experiment_name_;

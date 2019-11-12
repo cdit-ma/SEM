@@ -1,16 +1,42 @@
 #include "nodedata.h"
+#include "../ExperimentDataManager/experimentdatamanager.h"
+
+#include <QFuture>
+#include <QFutureWatcher>
 
 /**
  * @brief NodeData::NodeData
+ * @param exp_run_id
  * @param node
+ * @param parent
  */
-NodeData::NodeData(const AggServerResponse::Node& node)
-    : hostname_(node.hostname),
+NodeData::NodeData(quint32 exp_run_id, const AggServerResponse::Node& node, QObject *parent)
+    : QObject(parent),
+      experiment_run_id_(exp_run_id),
+      last_updated_time_(0),
+      hostname_(node.hostname),
       ip_(node.ip)
 {
+    // Construct Container data
     for (const auto& container : node.containers) {
         addContainerInstanceData(container);
     }
+
+    // Setup the requests
+    cpu_utilisation_request_.setExperimentRunID(exp_run_id);
+    cpu_utilisation_request_.setNodeHostnames({hostname_});
+
+    memory_utilisation_request_.setExperimentRunID(exp_run_id);
+    memory_utilisation_request_.setNodeHostnames({hostname_});
+
+    // Setup event series
+    cpu_utilisation_series_ = new CPUUtilisationEventSeries(hostname_);
+    cpu_utilisation_series_->setLabel(hostname_ + "_cpu");
+
+    memory_utilisation_series_ = new MemoryUtilisationEventSeries(hostname_);
+    memory_utilisation_series_->setLabel(hostname_ + "_mem");
+
+    connect(this, &NodeData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestNodeEvents);
 }
 
 
@@ -37,15 +63,16 @@ const QString& NodeData::getIP() const
 /**
  * @brief NodeData::addContainerInstanceData
  * @param container
- * @throws std::invalid_argument
  */
 void NodeData::addContainerInstanceData(const AggServerResponse::Container& container)
 {
-    if (container_inst_data_hash_.contains(container.graphml_id)) {
-        throw std::invalid_argument("NodeData::addContainerInstanceData - Attempting to add a container that already exists.");
+    auto container_data = container_inst_data_hash_.value(container.graphml_id, nullptr);
+    if (container_data == nullptr) {
+        qDebug() << "\nCreated conatiner data for: " << container.name;
+        container_data = new ContainerInstanceData(experiment_run_id_, container, this);
+        container_inst_data_hash_.insert(container_data->getGraphmlID(), container_data);
     }
-    ContainerInstanceData container_data(container);
-    container_inst_data_hash_.insert(container_data.getGraphmlID(), container_data);
+    container_data->updateData(container, last_updated_time_);
 }
 
 
@@ -53,9 +80,29 @@ void NodeData::addContainerInstanceData(const AggServerResponse::Container& cont
  * @brief NodeData::getContainerInstanceData
  * @return
  */
-QList<ContainerInstanceData> NodeData::getContainerInstanceData() const
+QList<ContainerInstanceData*> NodeData::getContainerInstanceData() const
 {
     return container_inst_data_hash_.values();
+}
+
+
+/**
+ * @brief NodeData::getCPUUtilisationRequest
+ * @return
+ */
+const CPUUtilisationRequest &NodeData::getCPUUtilisationRequest() const
+{
+    return cpu_utilisation_request_;
+}
+
+
+/**
+ * @brief NodeData::getMemoryUtilisationRequest
+ * @return
+ */
+const MemoryUtilisationRequest &NodeData::getMemoryUtilisationRequest() const
+{
+    return memory_utilisation_request_;
 }
 
 
@@ -65,15 +112,7 @@ QList<ContainerInstanceData> NodeData::getContainerInstanceData() const
  */
 void NodeData::addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events)
 {
-    if (events.isEmpty()) {
-        return;
-    }
-
-    if (cpu_utilisation_series_ == nullptr) {
-        cpu_utilisation_series_ = new CPUUtilisationEventSeries(getHostname());
-        cpu_utilisation_series_->setProperty("label", getHostname() + "_cpu");
-    }
-
+    qDebug() << "\nReceived CPU Events#: " << events.size();
     cpu_utilisation_series_->addEvents(events);
 }
 
@@ -94,15 +133,7 @@ CPUUtilisationEventSeries* NodeData::getCPUUtilisationSeries() const
  */
 void NodeData::addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events)
 {
-    if (events.isEmpty()) {
-        return;
-    }
-
-    if (memory_utilisation_series_ == nullptr) {
-        memory_utilisation_series_ = new MemoryUtilisationEventSeries(getHostname());
-        memory_utilisation_series_->setProperty("label", getHostname() + "_mem");
-    }
-
+    qDebug() << "\nReceived Memory Events#: " << events.size();
     memory_utilisation_series_->addEvents(events);
 }
 
@@ -114,4 +145,25 @@ void NodeData::addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>
 MemoryUtilisationEventSeries* NodeData::getMemoryUtilisationSeries() const
 {
     return memory_utilisation_series_;
+}
+
+
+/**
+ * @brief NodeData::updateData
+ * @param node
+ * @param last_updated_time
+ */
+void NodeData::updateData(const AggServerResponse::Node& node, qint64 last_updated_time)
+{
+    if (last_updated_time > last_updated_time_) {
+        // Setup/update the requests before sending the signal
+        cpu_utilisation_request_.setTimeInterval({last_updated_time});
+        memory_utilisation_request_.setTimeInterval({last_updated_time});
+        emit requestData(*this);
+
+        last_updated_time_ = last_updated_time;
+        for (const auto& container : node.containers) {
+            addContainerInstanceData(container);
+        }
+    }
 }

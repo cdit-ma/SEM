@@ -4,7 +4,6 @@
 #include "eventrequest.h"
 
 class PortEventRequest : public EventRequest {
-
 public:
     explicit PortEventRequest();
 
@@ -17,7 +16,6 @@ public:
 private:
     QVector<QString> portIDs_;
     QVector<QString> portPaths_;
-
 };
 
 #endif // PORTEVENTREQUEST_H

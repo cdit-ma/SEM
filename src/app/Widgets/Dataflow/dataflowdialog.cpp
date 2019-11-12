@@ -109,28 +109,35 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
         throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - Experiment name cannot be empty.");
     }
 
+    // Clear previous items
+    clearScene();
+
     exp_run_start_time_ = exp_run_data.start_time();
     exp_run_end_time_ = exp_run_data.end_time();
-    playback_duration_ = exp_run_end_time_ - exp_run_start_time_;
+    playback_duration_ms_ = exp_run_end_time_ - exp_run_start_time_;
 
     // This sets the experiment info displays on the title bar of the panel
     setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
 
-    // Clear previous items
-    clearScene();
-
     for (const auto& node_data : exp_run_data.getNodeData()) {
-        for (const auto& container_data : node_data.getContainerInstanceData()) {
-            for (const auto& comp_inst_data : container_data.getComponentInstanceData()) {
+        for (const auto& container_data : node_data->getContainerInstanceData()) {
+            for (const auto& comp_inst_data : container_data->getComponentInstanceData()) {
+                if (comp_inst_data) {
 
-                auto c_instItem = new ComponentInstanceGraphicsItem(comp_inst_data);
-                addItemToScene(c_instItem);
+                    auto comp_inst_item = new ComponentInstanceGraphicsItem(*comp_inst_data);
+                    addItemToScene(comp_inst_item);
 
-                for (const auto& port_data : comp_inst_data.getPortInstanceData()) {
-                    auto p_instItem = new PortInstanceGraphicsItem(port_data);
-                    port_items_.insert(port_data.getGraphmlID(), p_instItem);
-                    c_instItem->addPortInstanceItem(p_instItem);
-                    connect(c_instItem, &ComponentInstanceGraphicsItem::itemMoved, p_instItem, &PortInstanceGraphicsItem::itemMoved);
+                    for (const auto& port_data : comp_inst_data->getPortInstanceData()) {
+                        if (port_data) {
+                            auto port_inst_item = comp_inst_item->addPortInstanceItem(*port_data);
+                            port_items_.insert(port_data->getGraphmlID(), port_inst_item);
+                        } else {
+                            throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - PortInstanceData is null.");
+                        }
+                    }
+
+                } else {
+                    throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - ComponentInstanceData is null.");
                 }
             }
         }
@@ -142,34 +149,12 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
 
 
 /**
- * @brief DataflowDialog::constructEdgeItems
- * @param port_instances
- * @param port_connections
- */
-void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QVector<AggServerResponse::PortConnection>& port_connections)
-{
-    for (const auto& p_c : port_connections) {
-        auto from_port = port_instances.value(p_c.from_port_graphml, nullptr);
-        auto to_port = port_instances.value(p_c.to_port_graphml, nullptr);
-        if (!(from_port && to_port)) {
-            qWarning("DataflowDialog::displayExperimentState - Failed to construct edge; from_port/to_port is null.");
-            continue;
-        }
-        auto edge_item = new MEDEA::EdgeItem(from_port, to_port);
-        connect(from_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateSourcePos(); });
-        connect(to_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateDestinationPos(); });
-        addItemToScene(edge_item);
-        //qDebug() << "Edge scene rect: " << edge_item->sceneBoundingRect();
-    }
-}
-
-
-/**
  * @brief DataflowDialog::clearScene
  * This clears all the graphics items in the scene
  */
 void DataflowDialog::clearScene()
 {
+    setExperimentInfo("");
     view_->scene()->clear();
     series_list_.clear();
     port_items_.clear();
@@ -181,11 +166,15 @@ void DataflowDialog::clearScene()
  * @param exp_name
  * @param exp_run_id
  */
-void DataflowDialog::setExperimentInfo(const QString &exp_name, quint32 exp_run_id)
+void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_id)
 {
     if (parentWidget()) {
+        QString title = "Pulse";
+        if (!exp_name.isEmpty()) {
+            title += " [" + exp_name + " #" + QString::number(exp_run_id) + "]";
+        }
         auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
-        parent_dockwidget->setTitle("Pulse [" + exp_name + " #" + QString::number(exp_run_id) + "]");
+        parent_dockwidget->setTitle(title);
     }
 }
 
@@ -273,11 +262,11 @@ void DataflowDialog::mouseDoubleClickEvent(QMouseEvent *event)
  * @param port_instances
  * @param port_connections
  */
-void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem *> &port_instances, const QList<PortConnectionData> &port_connections)
+void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem *> &port_instances, const QList<PortConnectionData*> &port_connections)
 {
     for (const auto& p_c : port_connections) {
-        auto from_port = port_instances.value(p_c.getFromPortID(), nullptr);
-        auto to_port = port_instances.value(p_c.getToPortID(), nullptr);
+        auto from_port = port_instances.value(p_c->getFromPortID(), nullptr);
+        auto to_port = port_instances.value(p_c->getToPortID(), nullptr);
         if (!(from_port && to_port)) {
             qWarning("DataflowDialog::displayExperimentState - Failed to construct edge; from_port/to_port is null.");
             continue;

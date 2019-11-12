@@ -31,7 +31,6 @@ public:
     }
     void raise() const { throw *this; }
     NoRequesterException *clone() const { return new NoRequesterException(*this); }
-
 private:
     QString error_;
 };
@@ -57,7 +56,7 @@ class AggregationProxy : public QObject
 
 public:
     static AggregationProxy& singleton();
-    
+
     QFuture<QVector<AggServerResponse::ExperimentRun>> RequestExperimentRuns(const QString& experiment_name) const;
     QFuture<AggServerResponse::ExperimentState> RequestExperimentState(const quint32 experiment_run_id) const;
 

@@ -64,7 +64,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
             return false;
         auto kind = MEDEA::ChartDataKind::DATA;
         if (event->type() == QEvent::HoverEnter) {
-            kind = (MEDEA::ChartDataKind) watched->property(CHART_DATA_KIND).toUInt();
+            kind = static_cast<MEDEA::ChartDataKind>(watched->property(CHART_DATA_KIND).toUInt());
         }
         emit seriesLegendHovered(kind);
         return true;
@@ -302,6 +302,7 @@ void TimelineChartView::themeChanged()
     for (auto kind : MEDEA::Event::GetChartDataKinds()) {
         QIcon buttonIcon;
         switch (kind) {
+        case MEDEA::ChartDataKind::PORT_EVENT:
         case MEDEA::ChartDataKind::PORT_LIFECYCLE:
             buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
             break;
@@ -318,14 +319,17 @@ void TimelineChartView::themeChanged()
             buttonIcon = theme->getIcon("ToggleIcons", "markerHover");
             break;
         default:
+            qWarning("TimelineChartView::themeChanged - May be missing an icon for a ChartDataKind.");
             continue;
         }
-        auto button = hoverDisplayButtons_.value(kind, 0);
-        if (button)
+        auto button = hoverDisplayButtons_.value(kind, nullptr);
+        if (button) {
             button->setIcon(buttonIcon);
-        auto action = legendActions_.value(kind, 0);
-        if (action)
+        }
+        auto action = legendActions_.value(kind, nullptr);
+        if (action) {
             action->setIcon(theme->getIcon("ToggleIcons", MEDEA::Event::GetChartDataKindString(kind)));
+        }
     }
 
     emptyLabel_->setFont(QFont(theme->getFont().family(), 12));

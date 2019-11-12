@@ -2,6 +2,7 @@
 #define PORTEVENTSERIES_H
 
 #include "eventseries.h"
+#include "../Events/portevent.h"
 
 class PortEventSeries : public MEDEA::EventSeries
 {

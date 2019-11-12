@@ -2,15 +2,22 @@
 #define PORTINSTANCEDATA_H
 
 #include "protomessagestructs.h"
+
+#include "Requests/portlifecyclerequest.h"
+#include "Requests/porteventrequest.h"
+
 #include "Events/portlifecycleevent.h"
-#include "Series/portlifecycleeventseries.h"
 #include "Events/portevent.h"
+#include "Series/portlifecycleeventseries.h"
 #include "Series/porteventseries.h"
 
-class PortInstanceData {
+class ComponentInstanceData;
+class PortInstanceData : public QObject
+{
+    Q_OBJECT
 
 public:
-    PortInstanceData(const AggServerResponse::Port& port);
+    PortInstanceData(quint32 exp_run_id, const ComponentInstanceData& comp_inst, const AggServerResponse::Port& port, QObject* parent = nullptr);
 
     const QString& getGraphmlID() const;
     const QString& getName() const;
@@ -19,19 +26,33 @@ public:
 
     AggServerResponse::Port::Kind getKind() const;
 
+    const PortLifecycleRequest& getPortLifecycleRequest() const;
+    const PortEventRequest& getPortEventRequest() const;
+
     void addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events);
     PortLifecycleEventSeries* getPortLifecycleEventSeries() const;
 
     void addPortEvents(const QVector<PortEvent*>& events);
     PortEventSeries* getPortEventSeries() const;
 
+    void updateData(qint64 last_updated_time);
+
+signals:
+    void requestData(PortInstanceData& port);
+
 private:
+    quint32 experiment_run_id_;
+    qint64 last_updated_time_;
+
     QString graphml_id_;
     QString name_;
     QString path_;
     QString middleware_;
 
     AggServerResponse::Port::Kind kind_;
+
+    PortLifecycleRequest port_lifecycle_request_;
+    PortEventRequest port_event_request_;
 
     PortLifecycleEventSeries* port_lifecycle_series_ = nullptr;
     PortEventSeries* port_event_series_ = nullptr;

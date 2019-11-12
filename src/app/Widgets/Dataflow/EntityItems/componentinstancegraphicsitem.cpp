@@ -29,14 +29,12 @@ ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInst
 
 /**
  * @brief ComponentInstanceGraphicsItem::addPortInstanceItem
- * @param item
- * @throws std::invalid_argument
+ * @param port_data
  */
-void ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceGraphicsItem* item)
+PortInstanceGraphicsItem* ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceData& port_data)
 {
-    if (item == nullptr) {
-        throw std::invalid_argument("ComponentInstanceGraphicsItem::addPortInstanceItem - Cannot add a null PortInstanceGraphicsItem.");
-    }
+    auto port_inst_item = new PortInstanceGraphicsItem(port_data);
+    connect(this, &ComponentInstanceGraphicsItem::itemMoved, port_inst_item, &PortInstanceGraphicsItem::itemMoved);
 
     // If this is the first port item, the children layout still needs to be constructed
     if (children_layout_ == nullptr) {
@@ -52,26 +50,20 @@ void ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceGraphicsItem
 
     prepareGeometryChange();
 
-    auto alignment = Qt::AlignLeft;
-
-    switch (item->getPortKind()) {
-    case AggServerResponse::Port::Kind::PUBLISHER:
-    case AggServerResponse::Port::Kind::REQUESTER:
-        alignment = Qt::AlignRight;
-        break;
-    default:
-        break;
-    }
-
-    item->setAlignment(alignment);
-
-    if (alignment == Qt::AlignLeft) {
-        children_layout_->addItem(item, left_port_count_, 0, Qt::AlignLeft);
-        left_port_count_++;
-    } else {
-        children_layout_->addItem(item, right_port_count_, 1, Qt::AlignRight);
+    auto&& port_kind = port_inst_item->getPortKind();
+    if (port_kind == AggServerResponse::Port::Kind::PUBLISHER || port_kind == AggServerResponse::Port::Kind::REQUESTER) {
+        auto&& alignment = Qt::AlignRight;
+        port_inst_item->setAlignment(alignment);
+        children_layout_->addItem(port_inst_item, right_port_count_, 1, alignment);
         right_port_count_++;
+    } else {
+        auto&& alignment = Qt::AlignLeft;
+        port_inst_item->setAlignment(alignment);
+        children_layout_->addItem(port_inst_item, left_port_count_, 0, alignment);
+        left_port_count_++;
     }
+
+    return port_inst_item;
 }
 
 

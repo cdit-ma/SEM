@@ -3,9 +3,6 @@
 
 #include "../Events/event.h"
 
-#include <QList>
-#include <QDebug>
-
 namespace MEDEA {
 
 class EventSeries : public QObject
@@ -27,8 +24,11 @@ public:
         }
     }
 
-    virtual void addEvent(Event* event);
+    virtual void addEvent(Event* event) = 0;
     const QList<Event*>& getEvents() const;
+
+    void setLabel(const QString& label);
+    const QString& getLabel() const;
 
     qint64 getMinTimeMS() const;
     qint64 getMaxTimeMS() const;
@@ -52,8 +52,9 @@ public:
     static int getDefaultNumberOfItemsToDisplay();
 
 signals:
-    void minChanged(qint64 min);
-    void maxChanged(qint64 max);
+    void eventAdded(Event* event);
+    void minTimeChanged(qint64 min);
+    void maxTimeChanged(qint64 max);
     void minYValueChanged(double minY);
     void maxYValueChanged(double maxY);
 
@@ -64,14 +65,18 @@ protected:
             int numberOfItems,
             const QString& dateTimeFormat) const;
 
+    void addEventToList(Event& event);
+    void updateTimeRange(qint64 new_timestamp);
+
+    QList<Event*> events_;
+
 private:
     QString ID_;
+    QString label_;
     MEDEA::ChartDataKind kind_;
 
     qint64 minTime_;
     qint64 maxTime_;
-
-    QList<Event*> events_;
 
     int eventSeriesID_;
     QString eventSeriesIDStr_;

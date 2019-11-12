@@ -1,11 +1,18 @@
 #include "componentinstancedata.h"
 
+#include <QDebug>
+
 /**
  * @brief ComponentInstanceData::ComponentInstanceData
+ * @param exp_run_id
  * @param component_instance
+ * @param parent
  */
-ComponentInstanceData::ComponentInstanceData(const AggServerResponse::ComponentInstance& component_instance)
-    : graphml_id_(component_instance.graphml_id),
+ComponentInstanceData::ComponentInstanceData(quint32 exp_run_id, const AggServerResponse::ComponentInstance& component_instance, QObject *parent)
+    : QObject(parent),
+      experiment_run_id_(exp_run_id),
+      last_updated_time_(0),
+      graphml_id_(component_instance.graphml_id),
       name_(component_instance.name),
       path_(component_instance.path),
       type_(component_instance.type)
@@ -62,15 +69,16 @@ const QString& ComponentInstanceData::getType() const
 /**
  * @brief ComponentInstanceData::addPortInstanceData
  * @param port
- * @throws std::invalid_argument
  */
 void ComponentInstanceData::addPortInstanceData(const AggServerResponse::Port& port)
 {
-    if (port_inst_data_hash_.contains(port.graphml_id)) {
-        throw std::invalid_argument("ComponentInstanceData::addPortInstanceData - Attempting to add a port that already exists.");
+    auto port_data = port_inst_data_hash_.value(port.graphml_id, nullptr);
+    if (port_data == nullptr) {
+        qDebug() << "\nCreated data for: " << port.name;
+        port_data = new PortInstanceData(experiment_run_id_, *this, port, this);
+        port_inst_data_hash_.insert(port_data->getGraphmlID(), port_data);
     }
-    PortInstanceData port_data(port);
-    port_inst_data_hash_.insert(port_data.getGraphmlID(), port_data);
+    port_data->updateData(last_updated_time_);
 }
 
 
@@ -78,7 +86,7 @@ void ComponentInstanceData::addPortInstanceData(const AggServerResponse::Port& p
  * @brief ComponentInstanceData::getPortInstanceData
  * @return
  */
-QList<PortInstanceData> ComponentInstanceData::getPortInstanceData() const
+QList<PortInstanceData*> ComponentInstanceData::getPortInstanceData() const
 {
     return port_inst_data_hash_.values();
 }
@@ -87,15 +95,16 @@ QList<PortInstanceData> ComponentInstanceData::getPortInstanceData() const
 /**
  * @brief ComponentInstanceData::addWorkerInstanceData
  * @param worker_instance
- * @throws std::invalid_argument
  */
 void ComponentInstanceData::addWorkerInstanceData(const AggServerResponse::WorkerInstance& worker_instance)
 {
-    if (worker_inst_data_hash_.contains(worker_instance.graphml_id)) {
-        throw std::invalid_argument("ComponentInstanceData::addWorkerInstanceData - Attempting to add a worker instance that already exists.");
+    auto worker_inst_data = worker_inst_data_hash_.value(worker_instance.graphml_id, nullptr);
+    if (worker_inst_data == nullptr) {
+        qDebug() << "\nCreated data for: " << worker_instance.name;
+        worker_inst_data = new WorkerInstanceData(experiment_run_id_, *this, worker_instance, this);
+        worker_inst_data_hash_.insert(worker_inst_data->getGraphmlID(), worker_inst_data);
     }
-    WorkerInstanceData worker_inst_data(worker_instance);
-    worker_inst_data_hash_.insert(worker_inst_data.getGraphmlID(), worker_inst_data);
+    worker_inst_data->updateData(last_updated_time_);
 }
 
 
@@ -103,7 +112,26 @@ void ComponentInstanceData::addWorkerInstanceData(const AggServerResponse::Worke
  * @brief ComponentInstanceData::getWorkerInstanceData
  * @return
  */
-QList<WorkerInstanceData> ComponentInstanceData::getWorkerInstanceData() const
+QList<WorkerInstanceData*> ComponentInstanceData::getWorkerInstanceData() const
 {
     return worker_inst_data_hash_.values();
+}
+
+
+/**
+ * @brief ComponentInstanceData::updateData
+ * @param component_instance
+ * @param last_updated_time
+ */
+void ComponentInstanceData::updateData(const AggServerResponse::ComponentInstance& component_instance, qint64 last_updated_time)
+{
+    if (last_updated_time > last_updated_time_) {
+        last_updated_time_ = last_updated_time;
+        for (const auto& port : component_instance.ports) {
+            addPortInstanceData(port);
+        }
+        for (const auto& worker_inst : component_instance.worker_instances) {
+            addWorkerInstanceData(worker_inst);
+        }
+    }
 }

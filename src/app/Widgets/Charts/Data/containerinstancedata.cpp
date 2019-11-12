@@ -1,11 +1,18 @@
 #include "containerinstancedata.h"
 
+#include <QDebug>
+
 /**
  * @brief ContainerInstanceData::ContainerInstanceData
+ * @param exp_run_id
  * @param container
+ * @param parent
  */
-ContainerInstanceData::ContainerInstanceData(const AggServerResponse::Container& container)
-    : graphml_id_(container.graphml_id),
+ContainerInstanceData::ContainerInstanceData(quint32 exp_run_id, const AggServerResponse::Container& container, QObject* parent)
+    : QObject(parent),
+      experiment_run_id_(exp_run_id),
+      last_updated_time_(0),
+      graphml_id_(container.graphml_id),
       name_(container.name),
       type_(container.type)
 {
@@ -29,7 +36,7 @@ const QString& ContainerInstanceData::getGraphmlID() const
  * @brief ContainerInstanceData::getName
  * @return
  */
-const QString &ContainerInstanceData::getName() const
+const QString& ContainerInstanceData::getName() const
 {
     return name_;
 }
@@ -48,15 +55,16 @@ AggServerResponse::Container::ContainerType ContainerInstanceData::getType() con
 /**
  * @brief ContainerInstanceData::addComponentInstanceData
  * @param comp_inst
- * @throws std::invalid_argument
  */
 void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::ComponentInstance& comp_inst)
 {
-    if (comp_inst_data_hash_.contains(comp_inst.graphml_id)) {
-        throw std::invalid_argument("ContainerInstanceData::addComponentInstanceData - Attempting to add a component instance that already exists.");
+    auto comp_inst_data = comp_inst_data_hash_.value(comp_inst.graphml_id, nullptr);
+    if (comp_inst_data == nullptr) {
+        qDebug() << "\nCreated component data for: " << comp_inst.name;
+        comp_inst_data = new ComponentInstanceData(experiment_run_id_, comp_inst, this);
+        comp_inst_data_hash_.insert(comp_inst_data->getGraphmlID(), comp_inst_data);
     }
-    ComponentInstanceData comp_inst_data(comp_inst);
-    comp_inst_data_hash_.insert(comp_inst_data.getGraphmlID(), comp_inst_data);
+    comp_inst_data->updateData(comp_inst, last_updated_time_);
 }
 
 
@@ -64,7 +72,23 @@ void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::Co
  * @brief ContainerInstanceData::getComponentInstanceData
  * @return
  */
-QList<ComponentInstanceData> ContainerInstanceData::getComponentInstanceData() const
+QList<ComponentInstanceData*> ContainerInstanceData::getComponentInstanceData() const
 {
     return comp_inst_data_hash_.values();
+}
+
+
+/**
+ * @brief ContainerInstanceData::updateData
+ * @param container
+ * @param last_updated_time
+ */
+void ContainerInstanceData::updateData(const AggServerResponse::Container& container, qint64 last_updated_time)
+{
+    if (last_updated_time > last_updated_time_) {
+        last_updated_time_ = last_updated_time;
+        for (const auto& comp_inst : container.component_instances) {
+            addComponentInstanceData(comp_inst);
+        }
+    }
 }

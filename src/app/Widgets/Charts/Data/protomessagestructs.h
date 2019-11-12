@@ -5,7 +5,6 @@
 #include <QString>
 #include <QMetaType>
 
-
 namespace AggServerResponse {
 
 /*

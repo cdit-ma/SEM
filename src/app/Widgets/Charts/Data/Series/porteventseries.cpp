@@ -1,5 +1,4 @@
 #include "porteventseries.h"
-#include "../Events/portevent.h"
 
 /**
  * @brief PortEventSeries::PortEventSeries
@@ -13,14 +12,17 @@ PortEventSeries::PortEventSeries(const QString& ID, QObject* parent)
 /**
  * @brief PortEventSeries::addEvent
  * @param event
+ * @throws std::invalid_argument
  */
 void PortEventSeries::addEvent(MEDEA::Event* event)
 {
-    if (event->getKind() != MEDEA::ChartDataKind::PORT_EVENT) {
-        qCritical("PortEventSeries::addEvent - Cannot add event due to a mismatch of type.");
-        return;
-        // TODO - Replace above with the following statement for all the event series classes
-        //throw std::invalid_argument("PortEventSeries::addEvent - Cannot add event due to a mismatch of type.");
+    if (event == nullptr) {
+        throw std::invalid_argument("PortEventSeries::addEvent - Event parameter is null.");
     }
-    MEDEA::EventSeries::addEvent(event);
+    if (event->getKind() != MEDEA::ChartDataKind::PORT_EVENT) {
+        throw std::invalid_argument("PortEventSeries::addEvent - Invalid event kind.");
+    }
+    if (!events_.contains(event)) {
+        addEventToList(*event);
+    }
 }

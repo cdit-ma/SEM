@@ -1313,6 +1313,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "Line", "Icons", "connect", "Icons", "connect");
     setIconToggledImage("ToggleIcons", "Bar", "Icons", "chart", "Icons", "chart");
     setIconToggledImage("ToggleIcons", "PortLifecycle", "Icons", "plug", "Icons", "plug");
+    setIconToggledImage("ToggleIcons", "PortEvent", "Icons", "plug", "Icons", "plug");
     setIconToggledImage("ToggleIcons", "Workload", "Icons", "spanner", "Icons", "spanner");
     setIconToggledImage("ToggleIcons", "CPUUtilisation", "Icons", "cpu", "Icons", "cpu");
     setIconToggledImage("ToggleIcons", "MemoryUtilisation", "Icons", "memoryCard", "Icons", "memoryCard");

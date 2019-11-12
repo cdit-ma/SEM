@@ -1,5 +1,4 @@
 #include "requestbuilder.h"
-#include <QDebug>
 
 /**
  * @brief RequestBuilder::RequestBuilder
@@ -329,6 +328,7 @@ const MarkerRequest& RequestBuilder::getMarkerRequest() const
 
 /**
  * @brief RequestBuilder::getPortEventRequest
+ * @throws std::invalid_argument
  * @return
  */
 const PortEventRequest& RequestBuilder::getPortEventRequest() const

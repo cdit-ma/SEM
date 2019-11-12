@@ -2,14 +2,8 @@
 #define EXPERIMENTRUNDATA_H
 
 #include "nodedata.h"
-#include "containerinstancedata.h"
-#include "componentinstancedata.h"
-#include "portinstancedata.h"
-#include "workerinstancedata.h"
 #include "portconnectiondata.h"
 #include "markersetdata.h"
-
-#include <QObject>
 
 namespace MEDEA {
 
@@ -22,7 +16,8 @@ public:
                       quint32 job_num,
                       qint64 start_time,
                       qint64 end_time = 0,
-                      qint64 last_updated_time = 0);
+                      qint64 last_updated_time = 0,
+                      QObject* parent = nullptr);
 
     quint32 experiment_run_id() const;
     quint32 job_num() const;
@@ -32,24 +27,21 @@ public:
     qint64 last_updated_time() const;
 
     bool hasState() const;
-    void setExperimentState(const AggServerResponse::ExperimentState& exp_state);
+    void updateExperimentState(const AggServerResponse::ExperimentState& exp_state);
 
-    void updateEndTime(qint64 time);
-    void updateLastUpdatedTime(qint64 time);
+    QList<NodeData*> getNodeData(const QString& hostname = "") const;
+    QList<PortConnectionData*> getPortConnectionData(const QString& id = "") const;
+    QList<MarkerSetData*> getMarkerSetData(int id = -1) const;
 
-    QList<NodeData> getNodeData(const QString& hostname = "") const;
-    QList<PortConnectionData> getPortConnectionData(int id = -1) const;
-    QList<MarkerSetData> getMarkerSetData(int id = -1) const;
+    void updateData();
 
 signals:
-    void dataChanged();
+    void requestData(quint32 exp_run_id);
 
 private:
     void addNodeData(const AggServerResponse::Node& node);
     void addPortConnection(const AggServerResponse::PortConnection& port_connection);
     void addMarkerSet(const QString& marker_name);
-
-    void clearState();
 
     // TODO? - Implement helper functions for getting specific series (include filters)
 
@@ -62,9 +54,9 @@ private:
 
     bool has_state_ = false;
 
-    QHash<QString, NodeData> node_data_hash_;
-    QHash<int, PortConnectionData> port_connection_hash_;
-    QHash<int, MarkerSetData> marker_set_hash_;
+    QHash<QString, NodeData*> node_data_hash_;
+    QHash<QString, PortConnectionData*> port_connection_hash_;
+    QHash<int, MarkerSetData*> marker_set_hash_;
 };
 
 }

@@ -1,14 +1,26 @@
 #include "markersetdata.h"
+#include "../ExperimentDataManager/experimentdatamanager.h"
 
 std::atomic<int> MarkerSetData::marker_set_id(0);
 
 /**
  * @brief MarkerSetData::MarkerSetData
+ * @param exp_run_id
  * @param marker_name
+ * @param parent
  */
-MarkerSetData::MarkerSetData(const QString& marker_name)
-    : marker_name_(marker_name),
-      marker_set_id_(marker_set_id++) {}
+MarkerSetData::MarkerSetData(quint32 exp_run_id, const QString& marker_name, QObject* parent)
+    : QObject(parent),
+      experiment_run_id_(exp_run_id),
+      last_updated_time_(0),
+      marker_name_(marker_name),
+      marker_set_id_(marker_set_id++)
+{
+    marker_event_series_ = new MarkerEventSeries(marker_name);
+    marker_event_series_->setLabel(marker_name);
+
+    connect(this, &MarkerSetData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestMarkerSetEvents);
+}
 
 
 /**
@@ -32,20 +44,22 @@ const QString& MarkerSetData::getMarkerName() const
 
 
 /**
+ * @brief MarkerSetData::getMarkerRequest
+ * @return
+ */
+const MarkerRequest& MarkerSetData::getMarkerRequest() const
+{
+    return marker_request_;
+}
+
+
+/**
  * @brief MarkerSetData::addMarkerEvents
  * @param events
  */
 void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
 {
-    if (events.isEmpty()) {
-        return;
-    }
-
-    if (marker_event_series_ == nullptr) {
-        marker_event_series_ = new MarkerEventSeries(getMarkerName());
-        marker_event_series_->setProperty("label", getMarkerName());
-    }
-
+    qDebug() << "\nReceived Marker Events#: " << events.size();
     marker_event_series_->addEvents(events);
 }
 
@@ -57,4 +71,20 @@ void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
 MarkerEventSeries* MarkerSetData::getMarkerEventSeries() const
 {
     return marker_event_series_;
+}
+
+
+/**
+ * @brief MarkerSetData::updateData
+ * @param last_updated_time
+ */
+void MarkerSetData::updateData(qint64 last_updated_time)
+{
+    // NOTE: The requests need to be setup/updated before this signal is sent
+    if (last_updated_time > last_updated_time_) {
+        marker_request_.setTimeInterval({last_updated_time});
+        marker_request_.setTimeInterval({last_updated_time});
+        last_updated_time_ = last_updated_time;
+        emit requestData(*this);
+    }
 }

@@ -1,6 +1,4 @@
 #include "experimentdata.h"
-#include <memory>
-#include <utility>
 
 const int invalid_experiment_run_id = -1;
 
@@ -9,9 +7,11 @@ using namespace MEDEA;
 /**
  * @brief ExperimentData::ExperimentData
  * @param experiment_name
+ * @param parent
  */
-ExperimentData::ExperimentData(const QString& experiment_name)
-    : experiment_name_(experiment_name) {}
+ExperimentData::ExperimentData(const QString& experiment_name, QObject* parent)
+    : QObject(parent),
+      experiment_name_(experiment_name) {}
 
 
 /**
@@ -42,7 +42,7 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
                                                               exp_run.end_time,
                                                               exp_run.last_updated_time);
 
-// TODO: We should figure out what the emplace/insert functions actually do
+    // TODO: We should figure out what the emplace/insert functions actually do
     experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));
 }
 
@@ -59,4 +59,14 @@ MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) c
         throw std::invalid_argument("ExperimentData::getExperimentRun - No ExperimentRunData exists for experiment run id: " + std::to_string(exp_run_id));
     }
     return *exp_run;
+}
+
+
+/**
+ * @brief ExperimentData::updateData
+ * @param exp_run_id
+ */
+void ExperimentData::updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state)
+{
+    getExperimentRun(exp_run_id).updateExperimentState(exp_state);
 }

@@ -35,24 +35,22 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent* event);
 
 private:
-    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData> &port_connections);
-    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QVector<AggServerResponse::PortConnection>& port_connections);
+    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*> &port_connections);
     void addItemToScene(QGraphicsItem* item);
 
-    void setExperimentInfo(const QString& exp_name, quint32 exp_run_id);
+    void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);
 
     void clearPlaybackState();
 
     QGraphicsView* view_ = nullptr;
 
-    AggServerResponse::ExperimentRun experiment_run_;
     qint64 exp_run_start_time_;
     qint64 exp_run_end_time_;
 
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
     QHash<QString, PortLifecycleEventSeries*> series_list_;
 
-    qint64 playback_duration_ = 0;
+    qint64 playback_duration_ms_ = 0;
     qint64 playback_current_time_ = 0;
     qint64 playback_elapsed_time_ = 0;
 

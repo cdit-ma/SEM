@@ -1,5 +1,4 @@
 #include "workloadeventseries.h"
-#include "../Events/workloadevent.h"
 
 /**
  * @brief WorkloadEventSeries::WorkloadEventSeries
@@ -13,13 +12,17 @@ WorkloadEventSeries::WorkloadEventSeries(const QString& ID, QObject* parent)
 /**
  * @brief WorkloadEventSeries::addEvent
  * @param event
+ * @throws std::invalid_argument
  */
 void WorkloadEventSeries::addEvent(MEDEA::Event* event)
 {
-    if (event->getKind() != MEDEA::ChartDataKind::WORKLOAD) {
-        qCritical("WorkloadEventSeries::addEvent - Cannot add event due to a mismatch of type.");
-        return;
+    if (event == nullptr) {
+        throw std::invalid_argument("WorkloadEventSeries::addEvent - Event parameter is null.");
     }
-
-    MEDEA::EventSeries::addEvent(event);
+    if (event->getKind() != MEDEA::ChartDataKind::WORKLOAD) {
+        throw std::invalid_argument("WorkloadEventSeries::addEvent - Invalid event kind.");
+    }
+    if (!events_.contains(event)) {
+        addEventToList(*event);
+    }
 }

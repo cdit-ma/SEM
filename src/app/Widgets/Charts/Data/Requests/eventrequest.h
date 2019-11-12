@@ -21,7 +21,6 @@ private:
     QVector<QString> componentNames_;
     QVector<QString> componentInstanceIDs_;
     QVector<QString> componentInstancePaths_;
-
 };
 
 #endif // EVENTREQUEST_H

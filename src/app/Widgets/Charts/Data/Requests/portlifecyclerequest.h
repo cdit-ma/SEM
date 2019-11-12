@@ -17,7 +17,6 @@ public:
 private:
     QVector<QString> portIDs_;
     QVector<QString> portPaths_;
-
 };
 
 #endif // PORTLIFECYCLEREQUEST_H

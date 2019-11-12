@@ -3,6 +3,7 @@
 
 #include <cfloat>
 #include "eventseries.h"
+#include "../Events/cpuutilisationevent.h"
 
 class CPUUtilisationEventSeries : public MEDEA::EventSeries
 {

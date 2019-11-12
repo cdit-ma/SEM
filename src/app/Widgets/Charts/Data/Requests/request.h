@@ -22,7 +22,6 @@ private:
     QVector<qint64> timeInterval_;
 
     MEDEA::ChartDataKind kind_;
-
 };
 
 #endif // REQUEST_H
