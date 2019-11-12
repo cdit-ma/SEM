@@ -8,6 +8,7 @@ class LogController;
 
 class LoganClient : public Activatable{
     public:
+    // REVIEW (Mitch): The underlying Activatable is never instantiated.
         LoganClient(const std::string& id);
         ~LoganClient();
 
@@ -24,7 +25,9 @@ class LoganClient : public Activatable{
         
         bool live_mode_ = true;
         double frequency_ = 1;
+        // REVIEW (Mitch): Replace with endpoint class.
         std::string endpoint_;
+        // REVIEW (Mitch): Rename to "process_names_"
         std::vector<std::string> processes_;
 };
 #endif //CORE_NODEMANAGER_LOGANCLIENT_H

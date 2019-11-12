@@ -13,10 +13,15 @@
 #include <util/execution.hpp>
 #include <core/loggers/experiment_logger.h>
 
+// REVIEW (Mitch): Remove forward decl
 namespace zmq{class ProtoWriter;};
 
+// REVIEW (Mitch): DOCUMENTATION: Exactly one of these is started per experiment.
+//  Started iff the instance of the nodemanager executable is told by the environment manager that
+//  it will be the master.
 class ExecutionManager{
     public:
+    // REVIEW (Mitch): no reason for this enum to be public
         enum class SlaveState{
             OFFLINE = 0,
             REGISTERED = 1,
@@ -25,11 +30,13 @@ class ExecutionManager{
             ERROR_ = 4
         };
 
+    // REVIEW (Mitch): no reason for this struct to be public
         struct SlaveStatus{
             SlaveState state;
             std::chrono::steady_clock::time_point heartbeat_time;
         };
 
+        // REVIEW (Mitch): Use endpoint class
         ExecutionManager(Execution& execution,
                             int duration_sec,
                             const std::string& experiment_name,
@@ -53,28 +60,34 @@ class ExecutionManager{
 
 
         void HandleExperimentUpdate(const NodeManager::EnvironmentMessage& environment_update);
-        
+
+        // REVIEW (Mitch): Passing futures feels like a code smell.
         void ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future);
-        
+
+        // REVIEW (Mitch): Should investigate making these functions sync instead of async push.
+        //  Require a slave to respond with success or failure upon acting receiving a controlmessage
         void PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message);
         void PushStateChange(const NodeManager::ControlMessage::Type& state);
         static std::unique_ptr<NodeManager::ControlMessage> ConstructStateControlMessage(NodeManager::ControlMessage::Type type);
 
+        // REVIEW (Mitch): This comment scares me as none of these functions internally acquire said
+        //  mutex
         //These need slave_state_mutex_ Mutex
         SlaveState GetSlaveState(const std::string& slave_key);
         void SetSlaveState(const std::string& slave_key, SlaveState state);
         int GetSlaveStateCount(const SlaveState& state);
         void SetSlaveAlive(const std::string& slave_key);
 
+        // REVIEW (Mitch): What's the difference between slavestate and slavestatus?
         SlaveStatus& GetSlaveStatus(const std::string& slave_key);
         
         void HandleSlaveStateChange();
 
         const std::string experiment_name_;
-        const std::string master_ip_addr_;
+        const std::string master_ip_addr_; // REVIEW (Mitch): unused
         const std::string master_publisher_endpoint_;
         const std::string master_registration_endpoint_;
-        const std::string environment_manager_endpoint_;
+        const std::string environment_manager_endpoint_; // REVIEW (Mitch): unused
         const std::string experiment_logger_endpoint_;
 
         std::mutex execution_mutex_;
@@ -89,6 +102,7 @@ class ExecutionManager{
         std::condition_variable slave_state_cv_;
         std::unordered_map<std::string, SlaveStatus> slave_status_;
         std::unordered_map<std::string, SlaveStatus> late_joiner_slave_status_;
+        // REVIEW (Mitch): use atomic bool here?
         bool execution_valid_ = false;
 
         std::mutex control_message_mutex_;

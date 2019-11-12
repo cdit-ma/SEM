@@ -65,6 +65,7 @@ LoggerProxy& Activatable::logger() const{
     return *logger_;
 };
 
+// REVIEW (Mitch): This function is a check while it reads like an action, potential rename to "can_process_event"
 bool Activatable::process_event(){
     if(state_machine_.get_state() == StateMachine::State::RUNNING){
         return state_machine_.get_transition() == StateMachine::Transition::NO_TRANSITION;

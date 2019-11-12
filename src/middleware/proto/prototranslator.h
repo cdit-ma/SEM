@@ -3,6 +3,7 @@
 
 #include <core/ports/translator.h>
 
+// REVIEW (Mitch): This doesn't belong in "middlewares". Move to serialization::proto
 namespace Proto{
     template <class BaseType, class ProtoType>
     class Translator: public ::Base::Translator<BaseType, ProtoType>{

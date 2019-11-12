@@ -1,33 +1,51 @@
 #ifndef THREAD_MANAGER_H
 #define THREAD_MANAGER_H
 
-#include <thread>
-#include <mutex>
 #include <condition_variable>
 #include <future>
+#include <mutex>
 #include <set>
+#include <thread>
 
+// REVIEW (Mitch): From what I can tell, this class is used as a synchronised state-machine
+
+// REVIEW (Mitch): This is abused (especially) in the case of periodic port + subscriber port
+
+// REVIEW (Mitch): This class makes thread based code in PeriodicPort and
+//  SubscriberPort borderline impossible to reason about. The function started asynchronously is
+//  given a handle to thread manager, which manages the thread that function is running on. This gives
+//  the thread control over itself? While also introducing a state machine into the mix with a scattering
+//  of mutexes.
+
+// REVIEW (Jackson): Resolution, remove this class. Move current functionality to usage sites
+//  (should be able to use a condition variable to mimic this class).
 class ThreadManager{
     public:
+
+    // REVIEW (Mitch): Is none a valid state? Rename to unconfigured
         enum class State{NONE, CONFIGURED, ACTIVE, TERMINATED};
         enum class Transition{ACTIVATE, TERMINATE};
         
         ~ThreadManager();
         void SetThread(std::unique_ptr<std::thread> thread);
         void SetFuture(std::future<void> async_future);
-        
+
+        // REVIEW (Mitch): Potential for confusion with Activatable Activate/Passivate/Terminate
         bool Activate();
         bool Terminate();
-        
+
         void SetTerminate();
 
         bool WaitForActivated();
         bool WaitForConfigured();
     public:
+    // REVIEW (Mitch): I think these were meant to be for internal use only, hence the "maybe should
+    //  add access control". These functions have since leaked into public use
         //TODO: Maybe should add access control
         void Thread_Configured();
         void Thread_Terminated();
         void Thread_Activated();
+        // REVIEW (Mitch): What's the difference between Thread_WaitForActivate and WaitForActivated?
         bool Thread_WaitForActivate();
         void Thread_WaitForTerminate();
     private:

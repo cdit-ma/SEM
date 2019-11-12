@@ -45,6 +45,7 @@ class SubscriberPort : public Port{
         bool terminate_ = false;
 
         std::mutex thread_manager_mutex_;
+        // REVIEW (Mitch): What is ThreadManager used for in this context?
         std::unique_ptr<ThreadManager> thread_manager_;
 };
 
@@ -83,6 +84,7 @@ void SubscriberPort<BaseType>::HandleConfigure(){
     std::lock_guard<std::mutex> lock(thread_manager_mutex_);
     if(!thread_manager_){
         thread_manager_ = std::unique_ptr<ThreadManager>(new ThreadManager());
+        // REVIEW (Mitch): Unnecessary temporary.
         auto future = std::async(std::launch::async, &SubscriberPort<BaseType>::ProcessLoop, this);
         thread_manager_->SetFuture(std::move(future));
         thread_manager_->WaitForConfigured();
@@ -95,6 +97,7 @@ void SubscriberPort<BaseType>::HandleConfigure(){
 template <class BaseType>
 void SubscriberPort<BaseType>::HandleActivate(){
     std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    // REVIEW (Mitch): defensive programming, having a thread manager should be a class invariant
     if(thread_manager_){
         thread_manager_->Activate();
     }else{
@@ -114,6 +117,7 @@ template <class BaseType>
 void SubscriberPort<BaseType>::HandleTerminate(){
     InterruptLoop();
     std::lock_guard<std::mutex> lock(thread_manager_mutex_);
+    // REVIEW (Mitch): Half baked defensive programming, what do we do if we don't have a ThreadManager
     if(thread_manager_){
         thread_manager_->Terminate();
         thread_manager_.reset();
@@ -121,6 +125,7 @@ void SubscriberPort<BaseType>::HandleTerminate(){
     Port::HandleTerminate();
 };
 
+// REVIEW (Mitch): Break this function into two, rx and ignore_message? This breaks codegen(?)
 template <class BaseType>
 void SubscriberPort<BaseType>::rx(BaseType& message, bool process_message){
     //Only process the message if we are running and we have a callback, and we aren't meant to ignore
@@ -144,6 +149,7 @@ void SubscriberPort<BaseType>::ProcessLoop(){
     //Store a queue of messages
     std::queue< std::unique_ptr<BaseType> > queue;
 
+    // REVIEW (Mitch): This acts as a semaphore in SubscriberPort's HandleConfigure
     //Notify that the thread is configured
     thread_manager_->Thread_Configured();
 
@@ -152,6 +158,7 @@ void SubscriberPort<BaseType>::ProcessLoop(){
 
         bool running = true;
         while(running){
+            // REVIEW (Mitch): This scope block should be broken into a function
             {
                 std::unique_lock<std::mutex> lock(queue_mutex_);
                 queue_condition_.wait(lock, [this]{
@@ -175,6 +182,7 @@ void SubscriberPort<BaseType>::ProcessLoop(){
                 auto message = std::move(queue.front());
                 queue.pop();
 
+                // REVIEW (Mitch): What does this comment mean? We aren't capturing a return value.
                 //If the component is Passivated, this will return false instantaneously
                 rx(*message);
 
@@ -187,6 +195,7 @@ void SubscriberPort<BaseType>::ProcessLoop(){
     thread_manager_->Thread_Terminated();
 };
 
+// REVIEW (Mitch): Change this function signature to take a moved in value. Change std::unique<BaseType to BaseType&&
 template <class BaseType>
 void SubscriberPort<BaseType>::EnqueueMessage(std::unique_ptr<BaseType> message){
     if(message){

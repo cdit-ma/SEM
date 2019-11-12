@@ -29,6 +29,7 @@ bool ThreadManager::SetTransition(Transition transition){
     switch(transition){
         case Transition::ACTIVATE:{
             std::lock_guard<std::mutex> state_lock(state_mutex_);
+            // REVIEW (Mitch): use more explicit bool conversion, confusing...
             valid_transition = states_.count(State::CONFIGURED);
             break;
         }

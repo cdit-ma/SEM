@@ -10,7 +10,10 @@
 #include "requestreply/replierport.hpp"
 #include "requestreply/requesterport.hpp"
 
-
+// REVIEW (Mitch): Unused in non generated code?
+// REVIEW (Mitch): Named PortCConstructor intentionally. (The extra C is for C ffi I think)
+// REVIEW (Mitch): Should replace with modern type alias
+//  using PortCConstructor = Port (*) (const std::string&, std::weak_ptr<Component>);
 typedef Port* (PortCConstructor) (const std::string& port_name, std::weak_ptr<Component>);
 
 extern "C"{

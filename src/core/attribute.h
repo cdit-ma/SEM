@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <memory>
 
+// REVIEW (Mitch): Remove this entire class, use std::variant in all usage locations
+// REVIEW (Mitch): This is assuming that we want to continue using the `variant` pattern for dynamic
+//  runtime types
 enum class ATTRIBUTE_TYPE{
     STRING = 0,
     INTEGER = 1,

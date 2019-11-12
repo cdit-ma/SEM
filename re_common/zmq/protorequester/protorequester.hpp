@@ -82,6 +82,7 @@ namespace zmq{
     };
 }
 
+// REVIEW (Mitch): In-depth review required for this function...
 template<class RequestType, class ReplyType>
 std::future<std::unique_ptr<ReplyType> > zmq::ProtoRequester::SendRequest(const std::string& function_name, const RequestType& request, const int timeout_ms){
     static_assert(std::is_base_of<google::protobuf::MessageLite, RequestType>::value, "RequestType must inherit from google::protobuf::MessageLite");

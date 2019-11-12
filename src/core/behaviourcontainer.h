@@ -7,6 +7,8 @@
 
 class Worker;
 
+// REVIEW (Mitch): Currently Components and Workers inherit from BehaviourContainer.
+//  This seems terrible as workers can have workers...
 class BehaviourContainer : public Activatable{
     public:
         BehaviourContainer(Class c, const std::string& inst_name = "");
@@ -29,13 +31,14 @@ class BehaviourContainer : public Activatable{
         virtual void HandleTerminate();
     private:
         boost::shared_mutex worker_mutex_;
+        // REVIEW (Mitch): Why are worker pointers shared?
         std::unordered_map<std::string, std::shared_ptr<Worker> > workers_;
 };
-
 
 template<class T>
 std::shared_ptr<T> BehaviourContainer::AddTypedWorker(const std::string& inst_name){
     static_assert(std::is_base_of<Worker, T>::value, "T must inherit from Worker");
+    // REVIEW (Mitch): std::make_unique
     auto t_ptr = std::unique_ptr<T>(new T(*this, inst_name));
     auto t = std::dynamic_pointer_cast<T>(AddWorker(std::move(t_ptr)).lock());
     return t;

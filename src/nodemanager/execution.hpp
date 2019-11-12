@@ -6,6 +6,9 @@
 //#include "executionmanager.h"
 //#include "deploymentmanager.h"
 
+// REVIEW (Mitch): This file is a hard replication of execution.hpp found in re_common/util
+//  This version is, however, a few versions behind. Prefer version found in re_common.
+//  Delete this file.
 class Execution{
     private:
         std::mutex mutex_;

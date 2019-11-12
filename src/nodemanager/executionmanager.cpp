@@ -141,6 +141,7 @@ void ExecutionManager::HandleSlaveStateChange(){
     
     if(configured_count == slave_count){
         //All Slaves are configured, so Start
+        // REVIEW (Mitch): This future/promise pair is getting used as a semaphore, this is a bad D:
         execute_promise_.set_value();
     }
     else if((configured_count + error_count) == slave_count){
@@ -151,10 +152,13 @@ void ExecutionManager::HandleSlaveStateChange(){
     slave_state_cv_.notify_all();
 }
 
+// REVIEW (Mitch): This function should be called AllSlavesTerminatedOrTimedOut
+// REVIEW (Mitch): This function also hides any particular slave failure on heartbeat timeout
 bool ExecutionManager::AllSlavesTerminated(){
     const auto now = std::chrono::steady_clock::now();
 
     if(execution_valid_){
+        // REVIEW (Mitch): Re-designing this algorithm's control flow is probably a good idea
         for(const auto& ss : slave_status_){
             if(ss.second.state == SlaveState::TERMINATED){
                 continue;
@@ -179,6 +183,8 @@ const std::string ExecutionManager::GetSlaveKey(const NodeManager::SlaveId& slav
     return GetSlaveKey(slave.ip_address(), slave.container_id());
 }
 
+// REVIEW (Mitch): Slave operation failure should be handled when they're encountered. Currently we're
+//  waiting till we have messages from all slaves before acting on any one failure.
 std::unique_ptr<NodeManager::SlaveHeartbeatReply> ExecutionManager::HandleSlaveHeartbeat(const NodeManager::SlaveHeartbeatRequest request){
     using namespace NodeManager;
     const auto& slave_key = GetSlaveKey(request.id());
@@ -315,7 +321,7 @@ void ExecutionManager::PushStateChange(const NodeManager::ControlMessage::Type& 
             experiment_logger_->LogLifecycleEvent(lifecycle_event);
         }
     }catch(const std::exception& ex){
-
+// REVIEW (Mitch): Do something with this exception
     }
 }
 
@@ -325,6 +331,8 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
     bool should_execute = true;
     try{
         if(execute_future.valid()){
+            // REVIEW (Mitch): this future is used as a semaphore. It gets by a call to execute_promise_.set_value()
+            //  Use a condition variable here?
             execute_future.get();
             //Sleep to allow time for the publisher to be bound
             std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -339,7 +347,7 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
         std::cout << "-------------[Execution]------------" << std::endl;
         
         std::cout << "* Activating Deployment" << std::endl;
-        
+
         PushStateChange(ControlMessage::ACTIVATE);
         
 
@@ -352,6 +360,7 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
 
             if(status == std::future_status::ready){
                 try{
+                    // REVIEW (Mitch): what can this throw and under which circumstances?
                     terminate_future.get();
                 }catch(const std::exception& ex){
                 }

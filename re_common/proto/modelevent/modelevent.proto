@@ -1,3 +1,4 @@
+// REVIEW (Mitch): These license statements need to be removed before opensourcing
 /* re_common
  * Copyright (C) 2016-2017 The University of Adelaide
  *
@@ -24,6 +25,7 @@ import "google/protobuf/timestamp.proto";
 
 package ModelEvent;
 
+// REVIEW (Mitch): Remove this message type. Roll timestamp into event message types. Use worker/component/port ID to build association with deployment location.
 message Info{
     google.protobuf.Timestamp timestamp = 1;
     string hostname = 2;

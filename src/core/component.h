@@ -19,6 +19,11 @@ class Worker;
 
 #include "behaviourcontainer.h"
 #include "basemessage.h"
+
+// REVIEW (Mitch): Move callback wrapper into its own file.
+// REVIEW (Mitch): Trivial constructor, use =0
+
+// REVIEW (Mitch): Alternatively use decltype at usage sites to determine callback's type.
 struct GenericCallbackWrapper{
     GenericCallbackWrapper(){};
 };
@@ -67,7 +72,10 @@ struct CallbackWrapper<void, void> : GenericCallbackWrapper{
     std::function<void ()> callback_fn;
 };
 
+// REVIEW (Mitch): Enforce, at an organisation level, unit testing of all functions called only from
+//  code generated code.
 class Component : public BehaviourContainer{
+    // REVIEW (Mitch): Friend class DeploymentContainer, why??
     friend class DeploymentContainer;
     public:
         Component(const std::string& component_name = "");
@@ -89,6 +97,10 @@ class Component : public BehaviourContainer{
         template<class ReplyType, class RequestType>
         void RegisterCallback(const std::string& port_name, std::function<ReplyType (void)> fn);
 
+        // REVIEW (Mitch): Why does this function exist in Component?
+        //  Usage pattern for this function seems to be detailed in test/core/periodicevent/tests.cpp
+        // Consider redesigning how periodic callbacks are registered.
+        // Why does the component need to know about it's periodic port's callback?
         void RegisterPeriodicCallback(const std::string& port_name, std::function<void ()> fn){
             RegisterCallback<void, BaseMessage>(port_name, [=](BaseMessage&){
                 fn();
@@ -117,11 +129,14 @@ class Component : public BehaviourContainer{
     private:
         template<class ReplyType, class RequestType>
         void AddCallback(const std::string& port_name, std::unique_ptr< CallbackWrapper<ReplyType, RequestType> > wrapper);
+        // REVIEW (Mitch): Replace type_info with type_index
         void AddCallback(const std::string& port_name, const std::type_info& request_type, const std::type_info& reply_type, std::unique_ptr<GenericCallbackWrapper> wrapper);
 
         boost::shared_mutex port_mutex_;
         std::unordered_map<std::string, std::shared_ptr<Port> > ports_;
         std::unordered_map<std::string, std::unique_ptr<GenericCallbackWrapper> > callback_functions_;
+        // REVIEW (Mitch): Is there any reason for the type_info pair to be ref_wrappered?
+        //  Replace with std::type_index
         std::unordered_map<std::string, std::pair<std::reference_wrapper<const std::type_info>, std::reference_wrapper<const std::type_info> > > callback_type_hash_;
 
         std::vector<std::string> component_location_;
@@ -138,6 +153,8 @@ std::shared_ptr<PortType> Component::GetTypedPort(const std::string& port_name){
 
 template<class PortType>
 std::shared_ptr<PortType> Component::SafeGetTypedPort(const std::string& port_name){
+    // REVIEW (Mitch): read "process_event" as "can_process_event" (check to see if Activatable is
+    //  both running and not currently transitioning)
     if(process_event()){
         return GetTypedPort<PortType>(port_name);
     }

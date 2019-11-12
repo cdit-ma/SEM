@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cmath>
 
+// REVIEW (Mitch): Perform performance analysis, build performance regression tests.
 /*
 //Average Statistics over 1 Minute
 1hz: 0.983333hz
@@ -16,17 +17,22 @@
 10000hz: 7545.08hz
 */
 
+// REVIEW (Mitch): Actually investigate leaky bucket model, apply if suitable (or give modeller behaviour
+//   configuration options.
 //TODO: LOOKUP Leaky bucket model
 
 PeriodicPort::PeriodicPort(std::weak_ptr<Component> component, const std::string& name, const CallbackWrapper<void, BaseMessage>& callback, int milliseconds)
 : ::SubscriberPort<base_type>(component, name, callback, "periodic"){
     //Force set the kind
+    // REVIEW (Mitch): We should probably specify that we're calling Port's implementation of SetKind (ADL evil).
     SetKind(Port::Kind::PERIODIC);
     SetMaxQueueSize(1);
     set_type("periodic");
 
     //Construct an attribute called frequency
+    // REVIEW (Mitch): Qualify ConstructAttribute function call.
     frequency_ = ConstructAttribute(ATTRIBUTE_TYPE::DOUBLE, "frequency").lock();
+    // REVIEW (Mitch): How can ConstructAttribute fail? Why do we need this check?
     if(frequency_){
         frequency_->set_Double(0);
     }

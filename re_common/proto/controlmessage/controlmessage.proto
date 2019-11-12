@@ -2,8 +2,12 @@ syntax="proto3";
 
 import "google/protobuf/timestamp.proto";
 
+// REVIEW (Mitch): Rename package to anything other than "NodeManager"
+// REVIEW (Jackson): It almost makes sense to invert these, ie a package of ControlMessages
+//  which can then be used to send more specific commands to the NodeManager
 package NodeManager;
 message ControlMessage{
+    // REVIEW (Mitch): Update documentation comments for enum values.
     enum Type{
         NO_TYPE = 0;
         STARTUP = 1;        //Construct the NodeContainer; Setup all ports and topics for ALL Components/ports

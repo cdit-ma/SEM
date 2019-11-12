@@ -1,6 +1,7 @@
 #ifndef BASEMESSAGE_H
 #define BASEMESSAGE_H
 
+// REVIEW (Mitch): Context: This class is only ever used as a parent class for code generated classes
 class BaseMessage{
     public:
         BaseMessage();

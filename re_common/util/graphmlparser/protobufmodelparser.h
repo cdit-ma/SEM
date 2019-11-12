@@ -16,6 +16,7 @@
 
 class ProtobufModelParser{
     public:
+    // REVIEW (Mitch): These should be free functions.
         static std::unique_ptr<NodeManager::Experiment> ParseModel(const std::string& filename, const std::string& experiment_id);
         static std::unique_ptr<NodeManager::Experiment> ParseModelString(const std::string& filename, const std::string& experiment_id);
         static std::string GetDeploymentJSON(const NodeManager::Experiment& experiment);
