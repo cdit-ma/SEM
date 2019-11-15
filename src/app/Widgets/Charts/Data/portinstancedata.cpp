@@ -119,9 +119,8 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
  */
 void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events)
 {
-    qDebug() << "\nReceived Port Lifecycle Events#: " << events.size();
+    qDebug() << "Received Port Lifecycle Events#: " << events.size();
     port_lifecycle_series_->addEvents(events);
-    qDebug() << "----------------------- END addPortLifecycleEvents";
 }
 
 
@@ -131,7 +130,7 @@ void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>
  */
 void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
-    qDebug() << "\nReceived Port Events#: " << events.size();
+    qDebug() << "Received Port Events#: " << events.size();
     port_event_series_->addEvents(events);
 }
 

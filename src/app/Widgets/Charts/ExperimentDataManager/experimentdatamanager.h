@@ -41,6 +41,10 @@ public:
     ChartDialog& getChartDialog();
     DataflowDialog& getDataflowDialog();
 
+    void startTimerLoop(quint32 exp_run_id);
+    void stopTimerLoop(quint32 exp_run_id);
+    void timerEvent(QTimerEvent* event);
+
     static void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
 
 signals:
@@ -105,6 +109,11 @@ private:
     AggServerResponse::ExperimentRun selectedExperimentRun_;
 
     QHash<QString, MEDEA::ExperimentData*> experiment_data_hash_;
+    QHash<quint32, int> exp_run_timers_;
+
+    // Only for testing
+    int tick_current_ = 0;
+    int tick_max_;
 
     const ViewController& viewController_;
     static ExperimentDataManager* manager_;

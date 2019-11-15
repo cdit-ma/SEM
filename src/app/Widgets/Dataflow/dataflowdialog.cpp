@@ -262,7 +262,7 @@ void DataflowDialog::mouseDoubleClickEvent(QMouseEvent *event)
  * @param port_instances
  * @param port_connections
  */
-void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem *> &port_instances, const QList<PortConnectionData*> &port_connections)
+void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*>& port_connections)
 {
     for (const auto& p_c : port_connections) {
         auto from_port = port_instances.value(p_c->getFromPortID(), nullptr);

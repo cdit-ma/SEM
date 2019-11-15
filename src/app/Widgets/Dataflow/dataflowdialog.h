@@ -35,7 +35,8 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent* event);
 
 private:
-    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*> &port_connections);
+    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*>& port_connections);
+
     void addItemToScene(QGraphicsItem* item);
 
     void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);

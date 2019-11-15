@@ -164,7 +164,7 @@ void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
 {
     auto node_data = node_data_hash_.value(node.hostname, nullptr);
     if (node_data == nullptr) {
-        qDebug() << "\nCreated node data for: " << node.hostname;
+        qDebug() << "Created node data for: " << node.hostname;
         node_data = new NodeData(experiment_run_id_, node, this);
         node_data_hash_.insert(node_data->getHostname(), node_data);
     }

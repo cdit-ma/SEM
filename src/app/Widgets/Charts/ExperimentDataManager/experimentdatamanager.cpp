@@ -4,6 +4,7 @@
 
 #include <QFutureWatcher>
 
+const int timer_interval_ms = 33;
 const int invalid_experiment_id = -1;
 ExperimentDataManager* ExperimentDataManager::manager_ = nullptr;
 
@@ -11,8 +12,9 @@ ExperimentDataManager* ExperimentDataManager::manager_ = nullptr;
  * @brief ExperimentDataManager::ExperimentDataManager
  * @param vc
  */
-ExperimentDataManager::ExperimentDataManager(const ViewController &vc)
-    : viewController_(vc)
+ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
+    : viewController_(vc),
+      tick_max_(timer_interval_ms * 10)
 {
     chartDialog_ = new ChartDialog();
     dataflowDialog_ = new DataflowDialog();
@@ -257,7 +259,7 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
     }
 
     // Reset the selected experiment run
-    selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
+    //selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
 }
 
 
@@ -506,6 +508,8 @@ void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::
         emit showChartsPanel();
         getDataflowDialog().addPortLifecycleEventsToSeries(events);
         timelineChartView().addPortLifecycleEvents(exp_run, events);
+        qDebug() << "Requested PortLifecycle Events for exp run [" << exp_run.experiment_run_id << "]";
+        qDebug() << "Received#: " << events.size();
     }
 }
 
@@ -522,6 +526,8 @@ void ExperimentDataManager::processWorkloadEvents(const AggServerResponse::Exper
     } else {
         emit showChartsPanel();
         timelineChartView().addWorkloadEvents(exp_run, events);
+        qDebug() << "Requested Workload Events for exp run [" << exp_run.experiment_run_id << "]";
+        qDebug() << "Received#: " << events.size();
     }
 }
 
@@ -538,6 +544,8 @@ void ExperimentDataManager::processCPUUtilisationEvents(const AggServerResponse:
     } else {
         emit showChartsPanel();
         timelineChartView().addCPUUtilisationEvents(exp_run, events);
+        qDebug() << "Requested CPU Events for exp run [" << exp_run.experiment_run_id << "]";
+        qDebug() << "Received#: " << events.size();
     }
 }
 
@@ -554,6 +562,8 @@ void ExperimentDataManager::processMemoryUtilisationEvents(const AggServerRespon
     } else {
         emit showChartsPanel();
         timelineChartView().addMemoryUtilisationEvents(exp_run, events);
+        qDebug() << "Requested Memory Events for exp run [" << exp_run.experiment_run_id << "]";
+        qDebug() << "Received#: " << events.size();
     }
 }
 
@@ -570,6 +580,8 @@ void ExperimentDataManager::processMarkerEvents(const AggServerResponse::Experim
     } else {
         emit showChartsPanel();
         timelineChartView().addMarkerEvents(exp_run, events);
+        qDebug() << "Requested Marker Events for exp run [" << exp_run.experiment_run_id << "]";
+        qDebug() << "Received#: " << events.size();
     }
 }
 
@@ -584,11 +596,11 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
     if (events.isEmpty()) {
         toastNotification("No port events received for selection", "plug");
     } else {
-        qDebug() << "Requested Port Events for " << exp_run.experiment_name << "[" << exp_run.experiment_run_id << "]";
-        qDebug() << "Received#: " << events.size();
         // TODO - Next step; GUI side implementation
         //emit showChartsPanel();
         //timelineChartView().addPortEvents(experimentRun, events);
+        qDebug() << "Requested Port Events for exp run [" << exp_run.experiment_run_id << "]";
+        qDebug() << "Received#: " << events.size();
     }
 }
 
@@ -665,13 +677,73 @@ ChartDialog& ExperimentDataManager::getChartDialog()
  * @throws std::runtime_error
  * @return
  */
-DataflowDialog &ExperimentDataManager::getDataflowDialog()
+DataflowDialog& ExperimentDataManager::getDataflowDialog()
 {
     if (dataflowDialog_ != nullptr) {
         return *dataflowDialog_;
     } else {
         throw std::runtime_error("Could not get DataflowDialog referece; dataflowDialog_ is null.");
     }
+}
+
+
+/**
+ * @brief ExperimentDataManager::startTimerLoop
+ * @param exp_run_id
+ */
+void ExperimentDataManager::startTimerLoop(quint32 exp_run_id)
+{
+    // Stop the previous timer
+    stopTimerLoop(exp_run_id);
+    tick_current_ = 0;
+
+    // Start new timer
+    auto timer_id = startTimer(timer_interval_ms);
+    exp_run_timers_.insert(exp_run_id, timer_id);
+    qDebug() << "------------------------------------------------------------";
+    qDebug() << "Started timer for [" << exp_run_id << "]";
+}
+
+
+/**
+ * @brief ExperimentDataManager::stopTimerLoop
+ * @param timer_id
+ */
+void ExperimentDataManager::stopTimerLoop(quint32 exp_run_id)
+{
+    if (exp_run_timers_.contains(exp_run_id)) {
+        const auto& timer_id = exp_run_timers_.take(exp_run_id);
+        killTimer(timer_id);
+        qDebug() << "------------------------------------------------------------";
+        qDebug() << "Killed timer for [" << exp_run_id << "]";
+    }
+}
+
+
+/**
+ * @brief ExperimentDataManager::timerEvent
+ * @param event
+ */
+void ExperimentDataManager::timerEvent(QTimerEvent* event)
+{
+    qDebug() << "------------------------------------------------------------";
+    qDebug() << "Tick - " << tick_current_ << "ms";
+
+    // Request the selected experiment run's state every tick interval
+    for (const auto& exp_run_id : exp_run_timers_.keys()) {
+        requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id);
+        qDebug() << "Request state for experiment run [" << exp_run_id << "]";
+    }
+
+    // NOTE - Just added a max to automatically stop polling for testing purposes
+    tick_current_ += timer_interval_ms;
+    if (tick_current_ >= tick_max_) {
+        for (const auto& exp_run_id : exp_run_timers_.keys()) {
+            stopTimerLoop(exp_run_id);
+        }
+    }
+
+    qDebug() << "------------------------------------------------------------";
 }
 
 
@@ -750,9 +822,10 @@ void ExperimentDataManager::requestMarkerSetEvents(MarkerSetData& marker_set)
 void ExperimentDataManager::experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun)
 {
     if (experimentRun.experiment_run_id != invalid_experiment_id) {
-        auto expRunID = static_cast<quint32>(experimentRun.experiment_run_id);
         selectedExperimentRun_ = experimentRun;
-        requestExperimentData(ExperimentDataRequestType::ExperimentState, expRunID);
+        auto expRunID = static_cast<quint32>(experimentRun.experiment_run_id);
+        //requestExperimentData(ExperimentDataRequestType::ExperimentState, expRunID);
+        startTimerLoop(expRunID);
     }
 }
 

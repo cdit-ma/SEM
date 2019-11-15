@@ -60,7 +60,7 @@ void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::Co
 {
     auto comp_inst_data = comp_inst_data_hash_.value(comp_inst.graphml_id, nullptr);
     if (comp_inst_data == nullptr) {
-        qDebug() << "\nCreated component data for: " << comp_inst.name;
+        qDebug() << "Created component data for: " << comp_inst.name;
         comp_inst_data = new ComponentInstanceData(experiment_run_id_, comp_inst, this);
         comp_inst_data_hash_.insert(comp_inst_data->getGraphmlID(), comp_inst_data);
     }

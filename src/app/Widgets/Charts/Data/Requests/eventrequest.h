@@ -23,4 +23,6 @@ private:
     QVector<QString> componentInstancePaths_;
 };
 
+//Q_DECLARE_METATYPE(EventRequest);
+
 #endif // EVENTREQUEST_H

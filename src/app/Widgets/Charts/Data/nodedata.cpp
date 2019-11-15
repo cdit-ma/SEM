@@ -68,7 +68,7 @@ void NodeData::addContainerInstanceData(const AggServerResponse::Container& cont
 {
     auto container_data = container_inst_data_hash_.value(container.graphml_id, nullptr);
     if (container_data == nullptr) {
-        qDebug() << "\nCreated conatiner data for: " << container.name;
+        qDebug() << "Created container data for: " << container.name;
         container_data = new ContainerInstanceData(experiment_run_id_, container, this);
         container_inst_data_hash_.insert(container_data->getGraphmlID(), container_data);
     }
@@ -112,7 +112,7 @@ const MemoryUtilisationRequest &NodeData::getMemoryUtilisationRequest() const
  */
 void NodeData::addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events)
 {
-    qDebug() << "\nReceived CPU Events#: " << events.size();
+    qDebug() << "Received CPU Events#: " << events.size();
     cpu_utilisation_series_->addEvents(events);
 }
 
@@ -133,7 +133,7 @@ CPUUtilisationEventSeries* NodeData::getCPUUtilisationSeries() const
  */
 void NodeData::addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events)
 {
-    qDebug() << "\nReceived Memory Events#: " << events.size();
+    qDebug() << "Received Memory Events#: " << events.size();
     memory_utilisation_series_->addEvents(events);
 }
 

@@ -59,7 +59,7 @@ const MarkerRequest& MarkerSetData::getMarkerRequest() const
  */
 void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
 {
-    qDebug() << "\nReceived Marker Events#: " << events.size();
+    qDebug() << "Received Marker Events#: " << events.size();
     marker_event_series_->addEvents(events);
 }
 
