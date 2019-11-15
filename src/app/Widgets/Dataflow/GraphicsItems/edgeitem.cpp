@@ -1,7 +1,6 @@
 #include "edgeitem.h"
 
 #include <QPainter>
-#include <QTimer>
 #include <QtConcurrent>
 
 const qreal pen_width = 2.0;
@@ -33,20 +32,29 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem *src, PortInstanceGraphicsItem *dst,
         throw std::invalid_argument("Cannot construct EdgeItem - Destination item is null.");
     }
 
-    point_pen_ = QPen(Qt::gray, pen_width * 3, Qt::SolidLine, Qt::SquareCap);
-    highlight_pen_ = QPen(Qt::red, pen_width * 1.5); //, Qt::DashDotLine);
-    default_pen_ = QPen(Qt::gray, pen_width);
-    active_pen_ = default_pen_;
-
     // This initialises the src & dst points and the edge path
     updateSourcePos();
     updateDestinationPos();
+}
 
-    //setZValue(-1);
-    /*QtConcurrent::run([this]() {
-        QThread::currentThread()->msleep(5000);
-        flashEdge();
-    });*/
+
+/**
+ * @brief EdgeItem::getSourceGraphmlID
+ * @return
+ */
+const QString& EdgeItem::getSourceGraphmlID() const
+{
+    return src_item_->getGraphmlID();
+}
+
+
+/**
+ * @brief EdgeItem::getDestinationGraphmlID
+ * @return
+ */
+const QString& EdgeItem::getDestinationGraphmlID() const
+{
+    return dst_item_->getGraphmlID();
 }
 
 
@@ -109,30 +117,38 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
 /**
- * @brief EdgeItem::flashEdge
- * @param sleep_ms
+ * @brief EdgeItem::themeChanged
  */
-void EdgeItem::flashEdge(quint32 sleep_ms)
+void EdgeItem::themeChanged(Theme* theme)
 {
-    QtConcurrent::run([this, sleep_ms]() {
+    default_pen_color_ = theme->getAltTextColor();
+    highlight_pen_color_ = theme->getHighlightColor();
+    active_pen_ = QPen(default_pen_color_, pen_width);
+    point_pen_ = QPen(default_pen_color_, pen_width * 3, Qt::SolidLine, Qt::SquareCap);
+    update();
+}
 
-        int flash_count = 2;
-        quint32 sleep = 1;
-        quint32 time_left = sleep_ms;
 
-        while (time_left > 0) {
-            // Switch pen
-            active_pen_ = (--flash_count % 2 == 0) ? highlight_pen_ : default_pen_;
-            point_pen_.setColor(active_pen_.color());
-            update();
+/**
+ * @brief EdgeItem::flashEdge
+ * @param flash_duration_ms
+ */
+void EdgeItem::flashEdge(quint32 flash_duration_ms, qreal edge_width_multiplier)
+{
+    QtConcurrent::run([this, flash_duration_ms, edge_width_multiplier]() {
+        // Switch pen color
+        point_pen_.setColor(highlight_pen_color_);
+        active_pen_.setColor(highlight_pen_color_);
+        active_pen_.setWidthF(pen_width * edge_width_multiplier);
+        update();
 
-            QThread::currentThread()->msleep(sleep);
-            time_left -= sleep;
-        }
+        // Hold the highlight for the flash duration
+        QThread::currentThread()->msleep(flash_duration_ms);
 
-        // Reset the pen
-        active_pen_ = default_pen_;
-        point_pen_.setColor(active_pen_.color());
+        // Reset the pen color
+        point_pen_.setColor(default_pen_color_);
+        active_pen_.setColor(default_pen_color_);
+        active_pen_.setWidthF(pen_width);
         update();
     });
 }
@@ -147,6 +163,9 @@ void EdgeItem::updateEdgePath()
 {
     auto dx = dst_point_.x() - src_point_.x();
     auto dy = dst_point_.y() - src_point_.y();
+
+    //qDebug() << "src point: " << src_point_;
+    //qDebug() << "dst point: " << dst_point_;
 
     // Need to get the abs of dx because we are setting the direction of the horizontal offset
     auto x_offset = qMin(max_offset, min_offset + qAbs(dx) / 25.0);

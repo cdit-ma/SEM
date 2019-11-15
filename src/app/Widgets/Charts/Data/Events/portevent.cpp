@@ -71,7 +71,7 @@ PortEvent::PortEventType PortEvent::getType() const
  * @param type
  * @return
  */
-const QString &PortEvent::getTypeString(PortEvent::PortEventType type)
+const QString& PortEvent::getTypeString(PortEvent::PortEventType type)
 {
     switch (type) {
     case PortEvent::PortEventType::SENT: {

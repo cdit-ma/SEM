@@ -14,6 +14,7 @@
  */
 PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_data, QGraphicsItem* parent)
     : QGraphicsWidget(parent),
+      graphml_id_(port_data.getGraphmlID()),
       port_name_(port_data.getName()),
       port_kind_(port_data.getKind())
 {
@@ -52,6 +53,16 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
 
     themeChanged();
     connect(Theme::theme(), &Theme::theme_Changed, this, &PortInstanceGraphicsItem::themeChanged);
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::getGraphmlID
+ * @return
+ */
+const QString& PortInstanceGraphicsItem::getGraphmlID() const
+{
+    return graphml_id_;
 }
 
 
@@ -141,22 +152,22 @@ void PortInstanceGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphi
 
 /**
  * @brief PortInstanceGraphicsItem::flashPort
- * @param ms
+ * @param flash_duration_ms
  * @param flash_color
  */
-void PortInstanceGraphicsItem::flashPort(quint32 ms, QColor flash_color)
+void PortInstanceGraphicsItem::flashPort(quint32 flash_duration_ms, QColor flash_color)
 {
     if (!flash_color.isValid()) {
         flash_color = highlight_color_;
     }
 
-    QtConcurrent::run([this, ms, flash_color]() {
+    QtConcurrent::run([this, flash_duration_ms, flash_color]() {
         // Switch the ellipse color
         ellipse_color_ = flash_color;
         update();
 
-        // Hold the highlight for 300ms
-        QThread::currentThread()->msleep(ms);
+        // Hold the highlight for the flash duration
+        QThread::currentThread()->msleep(flash_duration_ms);
 
         // Reset the ellipse color
         ellipse_color_ = default_color_;

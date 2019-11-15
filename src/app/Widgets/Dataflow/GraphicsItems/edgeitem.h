@@ -1,7 +1,8 @@
-#ifndef EDGEITEM_H
-#define EDGEITEM_H
+#ifndef PULSE_EDGEITEM_H
+#define PULSE_EDGEITEM_H
 
 #include "../EntityItems/portinstancegraphicsitem.h"
+#include "../../../theme.h"
 
 #include <QGraphicsItem>
 #include <QPen>
@@ -13,8 +14,15 @@ class EdgeItem : public QGraphicsItem
 public:
     EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst, QGraphicsItem* parent = nullptr);
 
+    const QString& getSourceGraphmlID() const;
+    const QString& getDestinationGraphmlID() const;
+
     void updateSourcePos();
     void updateDestinationPos();
+
+    void flashEdge(quint32 flash_duration_ms = 33, qreal edge_width_multiplier = 1.0);
+
+    void themeChanged(Theme* theme);
 
 protected:
     // QGraphicsItem interface
@@ -22,7 +30,6 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
-    void flashEdge(quint32 sleep_ms = 300);
     void updateEdgePath();
 
     QPainterPath getArrowPath(QPointF arrow_point) const;
@@ -41,10 +48,11 @@ private:
 
     QPen point_pen_;
     QPen active_pen_;
-    QPen default_pen_;
-    QPen highlight_pen_;
+
+    QColor default_pen_color_;
+    QColor highlight_pen_color_;
 };
 
 }
 
-#endif // EDGEITEM_H
+#endif // PULSE_EDGEITEM_H

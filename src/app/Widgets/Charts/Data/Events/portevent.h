@@ -32,10 +32,9 @@ public:
     const AggServerResponse::Port& getPort() const;
 
     PortEventType getType() const;
-
-private:    
     static const QString& getTypeString(PortEventType type);
 
+private:    
     const AggServerResponse::Port port_;
     const PortEventType type_;
     const quint64 sequence_num_;

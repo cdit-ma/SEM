@@ -15,6 +15,7 @@ class PortInstanceGraphicsItem : public QGraphicsWidget
 public:
     PortInstanceGraphicsItem(const PortInstanceData& port_data, QGraphicsItem* parent = nullptr);
 
+    const QString& getGraphmlID() const;
     const QString& getPortName() const;
     AggServerResponse::Port::Kind getPortKind() const;
 
@@ -22,7 +23,7 @@ public:
 
     void setAlignment(Qt::Alignment alignment);
 
-    void flashPort(quint32 ms = 300, QColor flash_color = QColor());
+    void flashPort(quint32 flash_duration_ms = 33, QColor flash_color = QColor());
 
 signals:
     void itemMoved();
@@ -51,6 +52,7 @@ private:
     PixmapGraphicsItem* sub_icon_pixmap_item_ = nullptr;
     TextGraphicsItem* sub_label_text_item_ = nullptr;
 
+    QString graphml_id_;
     QString port_name_;
     AggServerResponse::Port::Kind port_kind_;
 };

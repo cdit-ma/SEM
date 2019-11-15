@@ -43,22 +43,50 @@ void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleE
      * The series will already be constructed when using the new experiment data classes
      */
 
-    series_list_.clear();
+    portlifecycle_series_list_.clear();
 
     for (const auto& event : events) {
         if (event != nullptr) {
             PortLifecycleEventSeries* series = nullptr;
-            auto series_id = event->getID();
+            auto&& series_id = event->getID();
             // Check if a series for the event already exists
-            if (series_list_.contains(series_id)) {
-                series = series_list_.value(series_id);
+            if (portlifecycle_series_list_.contains(series_id)) {
+                series = portlifecycle_series_list_.value(series_id);
             } else {
                 // Construct new series
                 auto port_id = series_id.split("_").first();
-                auto series_label = event->getName() + "_" + port_id;
                 series = new PortLifecycleEventSeries(series_id);
-                series->setProperty("series_label", series_label);
-                series_list_[series_id] = series;
+                portlifecycle_series_list_.insert(series_id, series);
+            }
+            if (series) {
+                series->addEvent(event);
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief DataflowDialog::addPortEventsToSeries
+ * NOTE - This is only used to prototyte the flashing of ports for port events
+ * @param events
+ */
+void DataflowDialog::addPortEventsToSeries(const QVector<PortEvent*>& events)
+{
+    portlifecycle_series_list_.clear();
+
+    for (const auto& event : events) {
+        if (event != nullptr) {
+            PortEventSeries* series = nullptr;
+            auto&& series_id = event->getID();
+            // Check if a series for the event already exists
+            if (portevent_series_list_.contains(series_id)) {
+                series = portevent_series_list_.value(series_id);
+            } else {
+                // Construct new series
+                auto port_id = series_id.split("_").first();
+                series = new PortEventSeries(series_id);
+                portevent_series_list_.insert(series_id, series);
             }
             if (series) {
                 series->addEvent(event);
@@ -73,10 +101,19 @@ void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleE
  */
 void DataflowDialog::playbackDataflow()
 {
-    if (series_list_.isEmpty()) {
+    auto&& no_portlifecycle = portlifecycle_series_list_.isEmpty();
+    auto&& no_portevents = portevent_series_list_.isEmpty();
+
+    if (no_portlifecycle) {
         qInfo("DataflowDialog::playbackDataflow - There are no events to playback.");
+    }
+    if (no_portevents) {
+        qInfo("DataflowDialog::playbackDataflow - There are no events to playback.");
+    }
+    if (no_portlifecycle && no_portevents) {
         return;
     }
+
     if (!timer_active_) {
         qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
         playback_current_time_ = exp_run_start_time_;
@@ -95,6 +132,10 @@ void DataflowDialog::themeChanged()
     setStyleSheet(theme->getScrollBarStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
+
+    for (const auto& edge_item : edge_items_) {
+        edge_item->themeChanged(theme);
+    }
 }
 
 
@@ -156,7 +197,8 @@ void DataflowDialog::clearScene()
 {
     setExperimentInfo("");
     view_->scene()->clear();
-    series_list_.clear();
+    portlifecycle_series_list_.clear();
+    portevent_series_list_.clear();
     port_items_.clear();
 }
 
@@ -175,6 +217,96 @@ void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_
         }
         auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
         parent_dockwidget->setTitle(title);
+    }
+}
+
+
+/**
+ * @brief DataflowDialog::playbackPortLifecycleEvents
+ * @param from_time
+ * @param to_time
+ */
+void DataflowDialog::playbackPortLifecycleEvents(qint64 from_time, qint64 to_time)
+{
+    for (const auto& s : portlifecycle_series_list_) {
+        const auto& events = s->getEventsBetween(from_time, to_time);
+        if (!events.isEmpty()) {
+            auto port = port_items_.value(s->getID(), nullptr);
+            if (port) {
+                qDebug() << "Port: " << port->getPortName();
+                port->flashPort(timer_interval_ms);
+                for (const auto& e : events) {
+                    qDebug() << "- port lifecycle event: " << e->toString("hh:mm:ss.zzz");
+                }
+            } else {
+                qDebug() << "No port item to flash for event";
+            }
+            qDebug() << "---------";
+        }
+    }
+}
+
+
+/**
+ * @brief DataflowDialog::playbackPortEvents
+ * @param from_time
+ * @param to_time
+ */
+void DataflowDialog::playbackPortEvents(qint64 from_time, qint64 to_time)
+{
+    QHash<QString, qreal> active_edges_traffic;
+
+    // The temporary min_traffic value should be set as close to 'infinity' as possible, so that any future updates are guaranteed to be smaller than the default. Same applies to max_traffic, but in reverse
+    qreal min_traffic = DBL_MAX;
+    qreal max_traffic = 0;
+
+    for (const auto& s : portevent_series_list_) {
+        const auto& events = s->getEventsBetween(from_time, to_time);
+        if (!events.isEmpty()) {
+            auto port = port_items_.value(s->getID(), nullptr);
+            if (port) {
+
+                const auto& port_id = port->getGraphmlID();
+                auto&& port_kind = port->getPortKind();
+                if (port_kind == AggServerResponse::Port::PUBLISHER || port_kind == AggServerResponse::Port::REQUESTER || port_kind == AggServerResponse::Port::REPLIER) {
+                    qreal traffic = events.size();
+                    min_traffic = qMin(traffic, min_traffic);
+                    max_traffic = qMax(traffic, max_traffic);
+
+                    // If the port is a Replier, insert the attached port connection's source graphml id
+                    if (port_kind == AggServerResponse::Port::REPLIER) {
+                        const auto& from_port_id = source_id_for_destination_id_.value(port_id, "");
+                        active_edges_traffic.insert(from_port_id, traffic);
+                    } else {
+                        active_edges_traffic.insert(port_id, traffic);
+                    }
+                }
+
+                qDebug() << "Port: " << port->getPortName();
+                port->flashPort(timer_interval_ms);
+                for (const auto& e : events) {
+                    qDebug() << "- port event: " << e->toString("hh:mm:ss.zzz");
+                }
+
+            } else {
+                qDebug() << "No port item to flash for event";
+            }
+            qDebug() << "---------";
+        }
+
+        min_traffic = 0.0;
+    }
+
+    auto&& traffic_range = (max_traffic > min_traffic) ? max_traffic - min_traffic : 0.0;
+    if (traffic_range > 0) {
+        // Flash the edges from ports that either sent out or requested messages
+        for (const auto& from_port_id : active_edges_traffic.keys()) {
+            const auto& from_edge = edge_items_.value(from_port_id, nullptr);
+            if (from_edge) {
+                auto&& traffic = (active_edges_traffic.value(from_port_id) - min_traffic) / traffic_range;
+                from_edge->flashEdge(timer_interval_ms, 1 + (traffic / 2.0));
+            }
+        }
     }
 }
 
@@ -212,29 +344,15 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
 
     auto prev_time = playback_current_time_;
     playback_current_time_ += timer_interval_ms;
-
     playback_elapsed_time_ += timer_interval_ms;
-    qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << playback_elapsed_time_ / 1000.000 << "S";
 
-    for (const auto& s : series_list_) {
-        const auto& events = s->getEventsBetween(prev_time, playback_current_time_);
-        if (!events.isEmpty()) {
-            qDebug() << "------------------------------------------------";
-            qDebug() << "Time range: " << QDateTime::fromMSecsSinceEpoch(prev_time).toString("hh:mm:ss.zzz") << " to " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-            qDebug() << "events#: " << events.size();
-            auto port = port_items_.value(s->getID(), nullptr);
-            if (port) {
-                qDebug() << "Port: " << port->getPortName();
-                port->flashPort();
-                for (const auto& e : events) {
-                    qDebug() << "- event time: " << e->getDateTimeString("hh:mm:ss.zzz");
-                }
-            } else {
-                qDebug() << "No port item to flash for event";
-            }
-            qDebug() << "------------------------------------------------";
-        }
-    }
+    qDebug() << "--------------------------------------------------------------------";
+    qDebug() << "Time range: " << QDateTime::fromMSecsSinceEpoch(prev_time).toString("hh:mm:ss.zzz")
+             << " to " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz")
+             << " - " << playback_elapsed_time_ / 1000.000 << "S";
+
+    //playbackPortLifecycleEvents(prev_time, playback_current_time_);
+    playbackPortEvents(prev_time, playback_current_time_);
 
     if (playback_current_time_ >= exp_run_end_time_) {
         killTimer(timer_id_);
@@ -271,11 +389,16 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
             qWarning("DataflowDialog::displayExperimentState - Failed to construct edge; from_port/to_port is null.");
             continue;
         }
+
         auto edge_item = new MEDEA::EdgeItem(from_port, to_port);
         connect(from_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateSourcePos(); });
         connect(to_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateDestinationPos(); });
+        edge_item->themeChanged(Theme::theme());
         addItemToScene(edge_item);
-        //qDebug() << "Edge scene rect: " << edge_item->sceneBoundingRect();
+
+        auto&& from_port_id = from_port->getGraphmlID();
+        edge_items_.insert(from_port_id, edge_item);
+        source_id_for_destination_id_.insert(from_port_id, to_port->getGraphmlID());
     }
 }
 

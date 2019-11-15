@@ -19,10 +19,9 @@ public:
     const AggServerResponse::Port& getPort() const;
 
     AggServerResponse::LifecycleType getType() const;
-
-private:    
     static const QString& getTypeString(AggServerResponse::LifecycleType type);
 
+private:
     AggServerResponse::Port port_;
     AggServerResponse::LifecycleType type_;
 };

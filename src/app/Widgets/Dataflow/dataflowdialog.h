@@ -6,9 +6,12 @@
 
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Series/portlifecycleeventseries.h"
+#include "../../Widgets/Charts/Data/Events/portevent.h"
+#include "../../Widgets/Charts/Data/Series/porteventseries.h"
 #include "../Charts/Data/protomessagestructs.h"
 #include "../Charts/Data/experimentrundata.h"
 #include "EntityItems/portinstancegraphicsitem.h"
+#include "GraphicsItems/edgeitem.h"
 
 class DataflowDialog : public QFrame
 {
@@ -17,8 +20,8 @@ class DataflowDialog : public QFrame
 public:
     explicit DataflowDialog(QWidget* parent = nullptr);
 
-    void addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent *>& events);
-
+    void addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent*>& events);
+    void addPortEventsToSeries(const QVector<PortEvent*>& events);
     void playbackDataflow();
 
 signals:
@@ -41,6 +44,8 @@ private:
 
     void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);
 
+    void playbackPortLifecycleEvents(qint64 from_time, qint64 to_time);
+    void playbackPortEvents(qint64 from_time, qint64 to_time);
     void clearPlaybackState();
 
     QGraphicsView* view_ = nullptr;
@@ -49,7 +54,11 @@ private:
     qint64 exp_run_end_time_;
 
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
-    QHash<QString, PortLifecycleEventSeries*> series_list_;
+    QHash<QString, MEDEA::EdgeItem*> edge_items_;
+    QHash<QString, QString> source_id_for_destination_id_;
+
+    QHash<QString, PortLifecycleEventSeries*> portlifecycle_series_list_;
+    QHash<QString, PortEventSeries*> portevent_series_list_;
 
     qint64 playback_duration_ms_ = 0;
     qint64 playback_current_time_ = 0;

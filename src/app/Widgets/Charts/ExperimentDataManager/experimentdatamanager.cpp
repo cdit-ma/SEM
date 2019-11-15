@@ -526,10 +526,8 @@ void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::
         }
     } else {
         emit showChartsPanel();
-        getDataflowDialog().addPortLifecycleEventsToSeries(events);
         timelineChartView().addPortLifecycleEvents(exp_run, events);
-        qDebug() << "Requested PortLifecycle Events for exp run [" << exp_run.experiment_run_id << "]";
-        qDebug() << "Received#: " << events.size();
+        getDataflowDialog().addPortLifecycleEventsToSeries(events);
     }
 }
 
@@ -629,7 +627,7 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
         // TODO - Next step; GUI side implementation
         //emit showChartsPanel();
         //timelineChartView().addPortEvents(experimentRun, events);
-        qDebug() << "Process Port events here . . . [" << exp_run.experiment_run_id << "]";
+        getDataflowDialog().addPortEventsToSeries(events);
     }
 }
 
