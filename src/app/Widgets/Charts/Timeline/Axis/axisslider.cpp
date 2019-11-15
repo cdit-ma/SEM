@@ -236,7 +236,7 @@ void AxisSlider::mouseReleaseEvent(QMouseEvent* event)
         sliderHitRect_ = getCursorHitRect(event->pos());
         switch (sliderHitRect_) {
         case HIT_RECT::NO_SLIDER: {
-            // NOTE - The cursor pos can't be outside of the slider's rect in this function
+            // NOTE: The cursor pos can't be outside of the slider's rect in this function
             QPointF cursorPos = event->pos();
             QPointF deltaMin = minSlider_.topLeft() - cursorPos;
             QPointF deltaMax = cursorPos - maxSlider_.bottomRight();

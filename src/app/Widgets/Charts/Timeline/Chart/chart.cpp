@@ -428,7 +428,7 @@ void Chart::paintEvent(QPaintEvent* event)
     Q_UNUSED(event);
 
     /*
-     * NOTE - This assumes that the data is ordered in ascending order time-wise
+     * NOTE: This assumes that the data is ordered in ascending order time-wise
      */
 
     auto start = QDateTime::currentMSecsSinceEpoch();
@@ -442,7 +442,7 @@ void Chart::paintEvent(QPaintEvent* event)
 
     clearHoveredLists();
 
-    // NOTE - If we decide to display multiple kinds of event series in one chart, we'll need to render the hovered one last
+    // NOTE: If we decide to display multiple kinds of event series in one chart, we'll need to render the hovered one last
     for (const auto& seriesKind : seriesList_.keys()) {
         paintSeries(painter, seriesKind);
     }

@@ -78,11 +78,11 @@ void DataflowGraphicsView::mouseReleaseEvent(QMouseEvent *event)
             }
             centerOn(hit_item);
 
-            // TODO - Need to do additional calculation to center the item within the view
+            // TODO: Need to do additional calculation to center the item within the view
             // if the scene rect is smaller than the viewport rect
 
             /*
-            // NOTE - Moving the center of the scene rect changes its size
+            // NOTE: Moving the center of the scene rect changes its size
             // The scene rect needs to be re-positioned if its size is smaller than the
             // viewport's rect, in order to properly center the viewport on the item
             auto center_point = hit_item->sceneBoundingRect().center();

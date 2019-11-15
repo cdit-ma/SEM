@@ -72,46 +72,6 @@ qint64 MEDEA::ExperimentRunData::last_updated_time() const
 
 
 /**
- * @brief MEDEA::ExperimentRunData::hasState
- * @return
- */
-bool MEDEA::ExperimentRunData::hasState() const
-{
-    return has_state_;
-}
-
-
-/**
- * @brief MEDEA::ExperimentRunData::updateExperimentState
- * @param exp_state
- */
-void MEDEA::ExperimentRunData::updateExperimentState(const AggServerResponse::ExperimentState& exp_state)
-{
-    has_state_ = true;
-    end_time_ = exp_state.end_time;
-    last_updated_time_ = exp_state.last_updated_time;
-
-    // Construct/update node data and port connections
-    for (const auto& node : exp_state.nodes) {
-        addNodeData(node);
-    }
-    for (const auto& p_c : exp_state.port_connections) {
-        addPortConnection(p_c);
-    }
-}
-
-
-/**
- * @brief MEDEA::ExperimentRunData::updateData
- */
-void MEDEA::ExperimentRunData::updateData()
-{
-    qDebug() << "Request experiment run data: " << experiment_run_id_;
-    emit requestData(experiment_run_id_);
-}
-
-
-/**
  * @brief MEDEA::ExperimentRunData::getNodeData
  * @param hostname
  * @return
@@ -157,6 +117,35 @@ QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(int id) const
 
 
 /**
+ * @brief MEDEA::ExperimentRunData::updateData
+ * @param exp_state
+ */
+void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentState& exp_state)
+{
+    // If the experiment run's last updated time has changed, update its children data
+    auto&& state_last_updated_time = exp_state.last_updated_time;
+    if (state_last_updated_time > last_updated_time_) {
+
+        qDebug() << "Update Experiment STATE for [" << QString::number(experiment_run_id_) << "]";
+
+        // NOTE: last_updated_time_ is passed through to update the children data
+        // Therefore, it needs to be updated before calling addNodeData and addPortConnection
+        last_updated_time_ = state_last_updated_time;
+        end_time_ = exp_state.end_time;
+
+        for (const auto& node : exp_state.nodes) {
+            addNodeData(node);
+        }
+        for (const auto& p_c : exp_state.port_connections) {
+            addPortConnection(p_c);
+        }
+    } else {
+        qDebug() << "Experiment run state for [" << QString::number(experiment_run_id_) << "] has not changed";
+    }
+}
+
+
+/**
  * @brief MEDEA::ExperimentRunData::addNodeData
  * @param node
  */
@@ -164,11 +153,13 @@ void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
 {
     auto node_data = node_data_hash_.value(node.hostname, nullptr);
     if (node_data == nullptr) {
-        qDebug() << "Created node data for: " << node.hostname;
+        qDebug() << "Create node data for: " << node.hostname;
         node_data = new NodeData(experiment_run_id_, node, this);
         node_data_hash_.insert(node_data->getHostname(), node_data);
+    } else {
+        qDebug() << "Update node data for: " << node.hostname;
+        node_data->updateData(node, last_updated_time_);
     }
-    node_data->updateData(node, last_updated_time_);
 }
 
 
@@ -192,7 +183,7 @@ void MEDEA::ExperimentRunData::addPortConnection(const AggServerResponse::PortCo
  */
 void MEDEA::ExperimentRunData::addMarkerSet(const QString& marker_name)
 {
-    // TODO - Figure out where to construct this and what key to store it by
+    // TODO: Figure out where to construct this and what key to store it by
     MarkerSetData* marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);
     marker_set_hash_.insert(marker_set_data->getID(), marker_set_data);
 }

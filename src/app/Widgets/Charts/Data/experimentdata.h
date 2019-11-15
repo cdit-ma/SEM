@@ -20,7 +20,6 @@ public:
 
     void addExperimentRun(const AggServerResponse::ExperimentRun& exp_run);
     ExperimentRunData& getExperimentRun(quint32 exp_run_id) const;
-    //const std::vector<ExperimentRunData> &getExperimentRuns() const;
 
     void updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state);
 
@@ -30,7 +29,6 @@ signals:
 private:
     QString experiment_name_;
     std::unordered_map<quint32, std::unique_ptr<ExperimentRunData>> experiment_run_map_;
-    //std::vector<ExperimentRunData> experiment_runs_;
 };
 
 }

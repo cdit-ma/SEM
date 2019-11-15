@@ -26,14 +26,11 @@ public:
     qint64 end_time() const;
     qint64 last_updated_time() const;
 
-    bool hasState() const;
-    void updateExperimentState(const AggServerResponse::ExperimentState& exp_state);
-
     QList<NodeData*> getNodeData(const QString& hostname = "") const;
     QList<PortConnectionData*> getPortConnectionData(const QString& id = "") const;
     QList<MarkerSetData*> getMarkerSetData(int id = -1) const;
 
-    void updateData();
+    void updateData(const AggServerResponse::ExperimentState& exp_state);
 
 signals:
     void requestData(quint32 exp_run_id);
@@ -51,8 +48,6 @@ private:
     qint64 start_time_;
     qint64 end_time_;
     qint64 last_updated_time_;
-
-    bool has_state_ = false;
 
     QHash<QString, NodeData*> node_data_hash_;
     QHash<QString, PortConnectionData*> port_connection_hash_;

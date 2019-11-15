@@ -682,7 +682,7 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
     }
 
     if (series) {
-        // NOTE - this needs to be set before the chart is constructed
+        // NOTE: This needs to be set before the chart is constructed
         series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
         series->setProperty(EXPERIMENT_RUN_START_TIME, experimentRun.start_time);
         constructChartForSeries(series, seriesID, seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
@@ -706,7 +706,7 @@ Chart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, co
     if (!series)
         return nullptr;
 
-    // NOTE - At the moment, a new entity chart is constructed per series
+    // NOTE: At the moment, a new entity chart is constructed per series
     // un-comment this and comment out the line below if we want to paint multiple series with that share an ID on the same chart
     /*if (eventEntityCharts.contains(ID)) {
         eventEntityCharts.value(ID)->addEventSeries(series);
@@ -765,8 +765,8 @@ Chart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, co
  */
 void TimelineChartView::removeChart(const QString &ID, bool clearing)
 {
-    // TODO - This needs to change if multiple series are allowed to be displayed in one entity chart
-    // NOTE - At the moment there should be a chart per series, hence a chart should only have one series
+    // TODO: This needs to change if multiple series are allowed to be displayed in one entity chart
+    // NOTE: At the moment there should be a chart per series, hence a chart should only have one series
     // ID is the chart's key, which is also the event series ID of the series it contains
 
     // remove chart series

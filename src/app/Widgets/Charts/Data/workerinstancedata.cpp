@@ -30,6 +30,7 @@ WorkerInstanceData::WorkerInstanceData(quint32 exp_run_id, const ComponentInstan
     workload_event_series_->setLabel(name_);
 
     connect(this, &WorkerInstanceData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestWorkerInstanceEvents);
+    emit requestData(*this);
 }
 
 
@@ -89,7 +90,7 @@ const WorkloadRequest& WorkerInstanceData::getWorkloadRequest() const
  */
 void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events)
 {
-    qDebug() << "Received Workload Events#: " << events.size();
+    qDebug() << name_ << " - Received Workload Events#: " << events.size();
     workload_event_series_->addEvents(events);
 }
 
@@ -106,14 +107,15 @@ WorkloadEventSeries* WorkerInstanceData::getWorkloadEventSeries() const
 
 /**
  * @brief WorkerInstanceData::updateData
- * @param last_updated_time
+ * This is called when the ExperimentRunData's last updated time has changed
+ * It sets the new time interval for the particular event requests that will
+ * be used by the ExperimentDataManager to update the corresponding event series
+ * @param new_last_updated_time
  */
-void WorkerInstanceData::updateData(qint64 last_updated_time)
+void WorkerInstanceData::updateData(qint64 new_last_updated_time)
 {
-    // NOTE: The requests need to be setup/updated before this signal is sent
-    if (last_updated_time > last_updated_time_) {
-        workload_request_.setTimeInterval({last_updated_time});
-        last_updated_time_ = last_updated_time;
-        emit requestData(*this);
-    }
+    // Setup/update the requests before sending the signal
+    workload_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
+    last_updated_time_ = new_last_updated_time;
+    emit requestData(*this);
 }

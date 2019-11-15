@@ -18,10 +18,9 @@ public:
 
     QList<ComponentInstanceData*> getComponentInstanceData() const;
 
-    void updateData(const AggServerResponse::Container& container, qint64 last_updated_time);
+    void updateData(const AggServerResponse::Container& container, qint64 new_last_updated_time);
 
 signals:
-    //void requestData(ContainerInstanceData& container);
     void dataChanged(qint64 last_updated_time);
 
 private:

@@ -33,7 +33,7 @@ public:
     void addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events);
     MemoryUtilisationEventSeries* getMemoryUtilisationSeries() const;
 
-    void updateData(const AggServerResponse::Node& node, qint64 last_updated_time);
+    void updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time);
 
 signals:
     void requestData(NodeData& node);

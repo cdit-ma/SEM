@@ -52,13 +52,16 @@ signals:
     void showDataflowPanel();
 
 public slots:
-    void displayChartPopup();
+    void showChartInputPopup();
+
     void filterRequestsBySelectedEntities(const QVector<ViewItem*>& selectedItems, const QList<MEDEA::ChartDataKind>& selectedDataKinds);
 
     void requestPortInstanceEvents(PortInstanceData& port);
     void requestWorkerInstanceEvents(WorkerInstanceData& worker_inst);
     void requestNodeEvents(NodeData& node);
     void requestMarkerSetEvents(MarkerSetData& marker_set);
+
+    void clear();
 
 private slots:
     void experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun);
@@ -73,8 +76,8 @@ private:
 
     void requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* sender_obj = nullptr);
 
-    void requestExperimentRuns(const QString& experimentName, MEDEA::ExperimentData* exp_data = nullptr);
-    void requestExperimentState(const quint32 experimentRunID, MEDEA::ExperimentData* exp_data = nullptr);
+    void requestExperimentRuns(const QString& experimentName, MEDEA::ExperimentData* exp_data_requester = nullptr);
+    void requestExperimentState(const quint32 experimentRunID, MEDEA::ExperimentData* exp_data_requester = nullptr);
 
     void setupRequestsForExperimentRun(const quint32 experimentRunID);
 
@@ -97,6 +100,7 @@ private:
     void processPortEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortEvent*>& events);
 
     MEDEA::ExperimentData* constructExperimentData(const QString& experiment_name);
+    MEDEA::ExperimentData* getExperimentData(quint32 exp_run_id) const;
 
     QString getItemLabel(const ViewItem* item);
 
@@ -109,11 +113,9 @@ private:
     AggServerResponse::ExperimentRun selectedExperimentRun_;
 
     QHash<QString, MEDEA::ExperimentData*> experiment_data_hash_;
+    QHash<quint32, QString> exp_run_names_;
     QHash<quint32, int> exp_run_timers_;
-
-    // Only for testing
-    int tick_current_ = 0;
-    int tick_max_;
+    qint32 live_exp_run_id_;
 
     const ViewController& viewController_;
     static ExperimentDataManager* manager_;

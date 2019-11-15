@@ -60,11 +60,13 @@ void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::Co
 {
     auto comp_inst_data = comp_inst_data_hash_.value(comp_inst.graphml_id, nullptr);
     if (comp_inst_data == nullptr) {
-        qDebug() << "Created component data for: " << comp_inst.name;
+        qDebug() << "Create component data for: " << comp_inst.name;
         comp_inst_data = new ComponentInstanceData(experiment_run_id_, comp_inst, this);
         comp_inst_data_hash_.insert(comp_inst_data->getGraphmlID(), comp_inst_data);
+    } else {
+        qDebug() << "Update component data for: " << comp_inst.name;
+        comp_inst_data->updateData(comp_inst, last_updated_time_);
     }
-    comp_inst_data->updateData(comp_inst, last_updated_time_);
 }
 
 
@@ -80,15 +82,16 @@ QList<ComponentInstanceData*> ContainerInstanceData::getComponentInstanceData() 
 
 /**
  * @brief ContainerInstanceData::updateData
+ * This is called when the ExperimentRunData's last updated time has changed
+ * It updates the children component instance data
  * @param container
- * @param last_updated_time
+ * @param new_last_updated_time
  */
-void ContainerInstanceData::updateData(const AggServerResponse::Container& container, qint64 last_updated_time)
+void ContainerInstanceData::updateData(const AggServerResponse::Container& container, qint64 new_last_updated_time)
 {
-    if (last_updated_time > last_updated_time_) {
-        last_updated_time_ = last_updated_time;
-        for (const auto& comp_inst : container.component_instances) {
-            addComponentInstanceData(comp_inst);
-        }
+    // NOTE: Update last_updated_time_ before calling addComponentInstanceData
+    last_updated_time_ = new_last_updated_time;
+    for (const auto& comp_inst : container.component_instances) {
+        addComponentInstanceData(comp_inst);
     }
 }

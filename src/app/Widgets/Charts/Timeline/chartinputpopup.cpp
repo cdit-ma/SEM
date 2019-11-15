@@ -40,7 +40,7 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
 
 /**
  * @brief ChartInputPopup::enableFilters
- * NOTE - Call this after setWidget(), otherwise the groupboxes won't be put in the right layout
+ * NOTE: Call this after setWidget(), otherwise the groupboxes won't be put in the right layout
  */
 void ChartInputPopup::enableFilters()
 {

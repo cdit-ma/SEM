@@ -24,7 +24,7 @@ public:
     void addMarkerEvents(const QVector<MarkerEvent*>& events);
     MarkerEventSeries* getMarkerEventSeries() const;
 
-    void updateData(qint64 last_updated_time);
+    void updateData(qint64 new_last_updated_time);
 
 signals:
     void requestData(MarkerSetData& marker_set);

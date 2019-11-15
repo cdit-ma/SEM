@@ -22,7 +22,7 @@ public:
     QList<PortInstanceData*> getPortInstanceData() const;
     QList<WorkerInstanceData*> getWorkerInstanceData() const;
 
-    void updateData(const AggServerResponse::ComponentInstance& component_instance, qint64 last_updated_time);
+    void updateData(const AggServerResponse::ComponentInstance& component_instance, qint64 new_last_updated_time);
 
 signals:
     void dataChanged(qint64 last_updated_time);

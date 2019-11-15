@@ -37,6 +37,7 @@ NodeData::NodeData(quint32 exp_run_id, const AggServerResponse::Node& node, QObj
     memory_utilisation_series_->setLabel(hostname_ + "_mem");
 
     connect(this, &NodeData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestNodeEvents);
+    emit requestData(*this);
 }
 
 
@@ -68,11 +69,13 @@ void NodeData::addContainerInstanceData(const AggServerResponse::Container& cont
 {
     auto container_data = container_inst_data_hash_.value(container.graphml_id, nullptr);
     if (container_data == nullptr) {
-        qDebug() << "Created container data for: " << container.name;
+        qDebug() << "Create container data for: " << container.name;
         container_data = new ContainerInstanceData(experiment_run_id_, container, this);
         container_inst_data_hash_.insert(container_data->getGraphmlID(), container_data);
+    } else {
+        qDebug() << "Update container data for: " << container.name;
+        container_data->updateData(container, last_updated_time_);
     }
-    container_data->updateData(container, last_updated_time_);
 }
 
 
@@ -112,7 +115,7 @@ const MemoryUtilisationRequest &NodeData::getMemoryUtilisationRequest() const
  */
 void NodeData::addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events)
 {
-    qDebug() << "Received CPU Events#: " << events.size();
+    qDebug() << hostname_ << " - Received CPU Events#: " << events.size();
     cpu_utilisation_series_->addEvents(events);
 }
 
@@ -133,7 +136,7 @@ CPUUtilisationEventSeries* NodeData::getCPUUtilisationSeries() const
  */
 void NodeData::addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events)
 {
-    qDebug() << "Received Memory Events#: " << events.size();
+    qDebug() << hostname_ << " - Received Memory Events#: " << events.size();
     memory_utilisation_series_->addEvents(events);
 }
 
@@ -150,20 +153,22 @@ MemoryUtilisationEventSeries* NodeData::getMemoryUtilisationSeries() const
 
 /**
  * @brief NodeData::updateData
+ * This is called when the ExperimentRunData's last updated time has changed
+ * It updates the container data and sets the new time interval for the particular event requests
+ * that will be used by the ExperimentDataManager to update the corresponding event series
  * @param node
- * @param last_updated_time
+ * @param new_last_updated_time
  */
-void NodeData::updateData(const AggServerResponse::Node& node, qint64 last_updated_time)
+void NodeData::updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time)
 {
-    if (last_updated_time > last_updated_time_) {
-        // Setup/update the requests before sending the signal
-        cpu_utilisation_request_.setTimeInterval({last_updated_time});
-        memory_utilisation_request_.setTimeInterval({last_updated_time});
-        emit requestData(*this);
+    // Setup/update the requests before sending the signal
+    cpu_utilisation_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
+    memory_utilisation_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
+    emit requestData(*this);
 
-        last_updated_time_ = last_updated_time;
-        for (const auto& container : node.containers) {
-            addContainerInstanceData(container);
-        }
+    // NOTE: Update last_updated_time_ before calling addContainerInstanceData
+    last_updated_time_ = new_last_updated_time;
+    for (const auto& container : node.containers) {
+        addContainerInstanceData(container);
     }
 }

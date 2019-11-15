@@ -24,7 +24,7 @@ public:
     void addWorkloadEvents(const QVector<WorkloadEvent*>& events);
     WorkloadEventSeries* getWorkloadEventSeries() const;
 
-    void updateData(qint64 last_updated_time);
+    void updateData(qint64 new_last_updated_time);
 
 signals:
     void requestData(WorkerInstanceData& worker_inst);

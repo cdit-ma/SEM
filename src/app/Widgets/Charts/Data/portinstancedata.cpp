@@ -40,6 +40,7 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     port_event_series_->setLabel(name_);
 
     connect(this, &PortInstanceData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestPortInstanceEvents);
+    emit requestData(*this);
 }
 
 
@@ -119,7 +120,7 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
  */
 void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events)
 {
-    qDebug() << "Received Port Lifecycle Events#: " << events.size();
+    qDebug() << name_ << " - Received Port Lifecycle Events#: " << events.size();
     port_lifecycle_series_->addEvents(events);
 }
 
@@ -130,7 +131,7 @@ void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>
  */
 void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
-    qDebug() << "Received Port Events#: " << events.size();
+    qDebug() << name_ << " - Received Port Events#: " << events.size();
     port_event_series_->addEvents(events);
 }
 
@@ -147,15 +148,16 @@ PortLifecycleEventSeries* PortInstanceData::getPortLifecycleEventSeries() const
 
 /**
  * @brief PortInstanceData::updateData
- * @param last_updated_time
+ * This is called when the ExperimentRunData's last updated time has changed
+ * It sets the new time interval for the particular event requests that will
+ * be used by the ExperimentDataManager to update the corresponding event series
+ * @param new_last_updated_time
  */
-void PortInstanceData::updateData(qint64 last_updated_time)
+void PortInstanceData::updateData(qint64 new_last_updated_time)
 {
-    // NOTE: The requests need to be setup/updated before this signal is sent
-    if (last_updated_time > last_updated_time_) {
-        port_lifecycle_request_.setTimeInterval({last_updated_time});
-        port_event_request_.setTimeInterval({last_updated_time});
-        last_updated_time_ = last_updated_time;
-        emit requestData(*this);
-    }
+    // Setup/update the requests before sending the signal
+    port_lifecycle_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
+    port_event_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
+    last_updated_time_ = new_last_updated_time;
+    emit requestData(*this);
 }

@@ -39,7 +39,7 @@ DataflowDialog::DataflowDialog(QWidget *parent)
 void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent*>& events)
 {
     /**
-     * NOTE -  This function is only here to test getting events between a time interval from a series
+     * NOTE: This function is only here to test getting events between a time interval from a series
      * The series will already be constructed when using the new experiment data classes
      */
 

@@ -20,6 +20,7 @@ MarkerSetData::MarkerSetData(quint32 exp_run_id, const QString& marker_name, QOb
     marker_event_series_->setLabel(marker_name);
 
     connect(this, &MarkerSetData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestMarkerSetEvents);
+    emit requestData(*this);
 }
 
 
@@ -59,7 +60,7 @@ const MarkerRequest& MarkerSetData::getMarkerRequest() const
  */
 void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
 {
-    qDebug() << "Received Marker Events#: " << events.size();
+    qDebug() << marker_name_ << " - Received Marker Events#: " << events.size();
     marker_event_series_->addEvents(events);
 }
 
@@ -76,15 +77,15 @@ MarkerEventSeries* MarkerSetData::getMarkerEventSeries() const
 
 /**
  * @brief MarkerSetData::updateData
- * @param last_updated_time
+ * This is called when the ExperimentRunData's last updated time has changed
+ * It sets the new time interval for the particular event requests that will
+ * be used by the ExperimentDataManager to update the corresponding event series
+ * @param new_last_updated_time
  */
-void MarkerSetData::updateData(qint64 last_updated_time)
+void MarkerSetData::updateData(qint64 new_last_updated_time)
 {
-    // NOTE: The requests need to be setup/updated before this signal is sent
-    if (last_updated_time > last_updated_time_) {
-        marker_request_.setTimeInterval({last_updated_time});
-        marker_request_.setTimeInterval({last_updated_time});
-        last_updated_time_ = last_updated_time;
-        emit requestData(*this);
-    }
+    // Setup/update the requests before sending the signal
+    marker_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
+    last_updated_time_ = new_last_updated_time;
+    emit requestData(*this);
 }
