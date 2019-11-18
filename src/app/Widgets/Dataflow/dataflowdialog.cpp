@@ -13,6 +13,7 @@
 
 const int invalid_experiment_id = -1;
 const int timer_interval_ms = 330;
+const int flash_time_ms = 200;
 
 /**
  * @brief DataflowDialog::DataflowDialog
@@ -20,9 +21,29 @@ const int timer_interval_ms = 330;
  */
 DataflowDialog::DataflowDialog(QWidget *parent)
     : QFrame(parent),
-      playback_controls(this)
+      view_(new DataflowGraphicsView(this)),
+      playback_controls(this),
+      playback_interval_(timer_interval_ms)
 {
-    view_ = new DataflowGraphicsView(this);
+    // Construct Spin Box
+    speed_multiplier_spinbox_ = new QSpinBox(this);
+    speed_multiplier_spinbox_->setRange(1, 5);
+    speed_multiplier_spinbox_->setValue(1);
+    speed_multiplier_spinbox_->setSuffix("x");
+    speed_multiplier_spinbox_->setSingleStep(1);
+
+    // set initial playback speed
+    int speed_mutipler = 3;
+    speed_multiplier_spinbox_->setValue(speed_mutipler);
+    speedMultiplierChanged(speed_mutipler);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->setSpacing(0);
+    mainLayout->setMargin(0);
+    mainLayout->addWidget(view_);
+    mainLayout->addWidget(&playback_controls);
+
+    connect(speed_multiplier_spinbox_, SIGNAL(valueChanged(int)), this, SLOT(speedMultiplierChanged(int)));
 
     connect(&playback_controls, &PlaybackControlsWidget::play, this, &DataflowDialog::playback);
     connect(&playback_controls, &PlaybackControlsWidget::pause, this, &DataflowDialog::pausePlayback);
@@ -32,14 +53,18 @@ DataflowDialog::DataflowDialog(QWidget *parent)
     connect(&playback_controls, &PlaybackControlsWidget::jumpToNextActivity, this, &DataflowDialog::jumpToNextActivity);
     connect(this, &DataflowDialog::playbackActivated, &playback_controls, &PlaybackControlsWidget::setPlayPauseCheckedState);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setSpacing(0);
-    mainLayout->setMargin(0);
-    mainLayout->addWidget(view_);
-    mainLayout->addWidget(&playback_controls);
-
     connect(Theme::theme(), &Theme::theme_Changed, this, &DataflowDialog::themeChanged);
     themeChanged();
+}
+
+
+/**
+ * @brief DataflowDialog::getSpeedMultiplierSpinBox
+ * @return
+ */
+QSpinBox& DataflowDialog::getSpeedMultiplierSpinBox() const
+{
+    return *speed_multiplier_spinbox_;
 }
 
 
@@ -118,12 +143,32 @@ void DataflowDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
     setStyleSheet(theme->getScrollBarStyleSheet());
+    speed_multiplier_spinbox_->setStyleSheet(theme->getSpinBoxStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
 
     for (const auto& edge_item : edge_items_) {
         edge_item->themeChanged(theme);
     }
+}
+
+
+/**
+ * @brief DataflowDialog::speedMultiplierChanged
+ * @param multiplier
+ */
+void DataflowDialog::speedMultiplierChanged(int multiplier)
+{
+    playback_interval_ = timer_interval_ms;
+    if (multiplier > 1) {
+        playback_interval_ = timer_interval_ms / ((multiplier - 1) * 5);
+    }
+
+    qDebug() << "Speed multiplier changed: " << multiplier;
+    qDebug() << "New speed: " << playback_interval_ << "ms";
+
+    calculateActiveTimes();
+    resetPlayback(); // should we reset playback?
 }
 
 
@@ -309,6 +354,7 @@ void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_
  */
 void DataflowDialog::calculateActiveTimes()
 {
+    // Clear previous times in case of re-calculation due to a change in playback speed
     active_times_.clear();
     active_series_.clear();
 
@@ -317,7 +363,7 @@ void DataflowDialog::calculateActiveTimes()
 
     auto current_time = exp_run_start_time_;
     while (current_time < exp_run_end_time_) {
-        auto to_time = current_time + timer_interval_ms;
+        auto to_time = current_time + playback_interval_;
         for (const auto& series : portlifecycle_series_list_) {
             const auto& events = series->getEventsBetween(current_time, to_time);
             if (!events.isEmpty()) {
@@ -347,20 +393,6 @@ void DataflowDialog::calculateActiveTimes()
 
 
 /**
- * @brief DataflowDialog::resetPlayback
- */
-void DataflowDialog::resetPlayback()
-{
-    stopPlaybackTimer();
-    playback_controls.resetTimeProgress();
-
-    playback_current_time_ = exp_run_start_time_;
-    playback_elapsed_time_ = 0;
-    last_active_time_index_ = -1;
-}
-
-
-/**
  * @brief DataflowDialog::startPlaybackTimer
  */
 void DataflowDialog::startPlaybackTimer()
@@ -383,6 +415,20 @@ void DataflowDialog::stopPlaybackTimer()
     }
     timer_id_ = -1;
     timer_active_ = false;
+}
+
+
+/**
+ * @brief DataflowDialog::resetPlayback
+ */
+void DataflowDialog::resetPlayback()
+{
+    stopPlaybackTimer();
+    playback_controls.resetTimeProgress();
+
+    playback_current_time_ = exp_run_start_time_;
+    playback_elapsed_time_ = 0;
+    last_active_time_index_ = -1;
 }
 
 
@@ -454,6 +500,13 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
         return;
     }
 
+    /**
+     * NOTE: The difference between flashing per event instead of per series is that,
+     * per event will flash the port for each of the event that was received; while as
+     * per series will only flash the series once regardless of the number of events
+     * received berween the given time interval
+     */
+
     auto from_time = playback_current_time_;
     if (from_time >= exp_run_end_time_) {
         if (!live_mode_) {
@@ -462,17 +515,28 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
             stopPlaybackTimer();
             qDebug() << "PLAYBACK FINISHED ----------------------------------------------------";
         }
+
     } else {
 
-        playback_controls.incrementCurrentTime(timer_interval_ms);
-        playback_current_time_ += timer_interval_ms;
-        playback_elapsed_time_ += timer_interval_ms;
+        playback_controls.incrementCurrentTime(playback_interval_);
+        playback_current_time_ += playback_interval_;
+        playback_elapsed_time_ += playback_interval_;
+        qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << playback_elapsed_time_ / 1000.000 << "S";
 
         if (active_series_.contains(from_time)) {
             qDebug() << "----------------------------------------------------";
             qDebug() << "Time range: " << QDateTime::fromMSecsSinceEpoch(from_time).toString("hh:mm:ss.zzz")
                      << " to " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-            playbackEvents(from_time, playback_current_time_);
+            for (const auto& series : active_series_.values(from_time)) {
+                auto port = port_items_.value(series->getID(), nullptr);
+                if (port) {
+                    qDebug() << "Port: " << port->getPortName() << " "
+                             << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
+                    port->flashPort(flash_time_ms);
+                } else {
+                    qDebug() << "No port item to flash for event";
+                }
+            }
             last_active_time_index_ = active_times_.indexOf(from_time);
             qDebug() << "----------------------------------------------------";
         }

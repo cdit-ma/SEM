@@ -153,6 +153,7 @@ public:
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
     QString getSliderStyleSheet();
+    QString getSpinBoxStyleSheet();
 
     QString getTitleLabelStyleSheet();
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);

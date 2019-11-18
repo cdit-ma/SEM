@@ -628,15 +628,14 @@ void MainWindow::setupDockablePanels()
     dockwidget_Notification->setProtected(true);
 
     // Charts Panel
-    auto charts_dialog = &ExperimentDataManager::manager()->getChartDialog();
+    auto&& charts_dialog = &ExperimentDataManager::manager()->getChartDialog();
     dockwidget_Charts = window_manager->constructChartDockWidget("Charts", charts_dialog, this);
-    dockwidget_Charts->setWidget(charts_dialog);
     dockwidget_Charts->setIconVisible(true);
     dockwidget_Charts->setProtected(true);
 
-    // Dataflow Panel
-    dockwidget_Dataflow = window_manager->constructDockWidget("Pulse", this);
-    dockwidget_Dataflow->setWidget(&ExperimentDataManager::manager()->getDataflowDialog());
+    // Pulse Panel
+    auto&& pulse_dialog = &ExperimentDataManager::manager()->getDataflowDialog();
+    dockwidget_Dataflow = window_manager->constructPulseDockWidget("Pulse", pulse_dialog, this);
     dockwidget_Dataflow->setIconVisible(true);
     dockwidget_Dataflow->setProtected(true);
 

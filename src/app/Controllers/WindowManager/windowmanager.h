@@ -7,6 +7,7 @@
 #include <QSet>
 
 #include "../../Widgets/Charts/Timeline/chartdialog.h"
+#include "../../Widgets/Dataflow/dataflowdialog.h"
 
 //Forward Class Declarations
 class BaseDockWidget;
@@ -57,6 +58,8 @@ public:
     InvisibleDockWidget* constructInvisibleDockWidget(QString title, QWidget* parent);
 
     DefaultDockWidget* constructChartDockWidget(QString title, ChartDialog* dialog, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    DefaultDockWidget* constructPulseDockWidget(QString title, DataflowDialog* dialog, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+
     void constructInnerDockWidget(ViewController* vc, BaseDockWidget* parentDockWidget, QString title = "");
 
     bool reparentDockWidget(BaseDockWidget* dockWidget);

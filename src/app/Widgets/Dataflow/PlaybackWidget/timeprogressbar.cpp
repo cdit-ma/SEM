@@ -10,11 +10,6 @@
  */
 TimeProgressBar::TimeProgressBar(QWidget* parent) : QWidget(parent)
 {
-    start_time_ = 0;
-    end_time_ = 0;
-    current_time_ = 0;
-    duration_ = 0;
-
     elapsed_time_label_ = new QLabel("00:20", this);
     total_time_label_ = new QLabel("03:14", this);
 

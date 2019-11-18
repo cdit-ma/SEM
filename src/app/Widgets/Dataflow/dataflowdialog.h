@@ -3,6 +3,7 @@
 
 #include <QFrame>
 #include <QGraphicsView>
+#include <QSpinBox>
 
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Series/portlifecycleeventseries.h"
@@ -22,12 +23,15 @@ class DataflowDialog : public QFrame
 public:
     explicit DataflowDialog(QWidget* parent = nullptr);
 
+    QSpinBox& getSpeedMultiplierSpinBox() const;
+
     void addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent*>& events);
     void addPortEventsToSeries(const QVector<PortEvent*>& events);
 
 signals:
-    void showDataflowDockWidget();
+    void showPulseDockWidget();
     void playbackActivated(bool active);
+    void updateLiveStatus(bool on);
 
 public slots:
     void themeChanged();
@@ -35,6 +39,7 @@ public slots:
     void constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data);
     void clearScene();
 
+private slots:
     // Playback Control Slots
     void playback();
     void pausePlayback();
@@ -43,29 +48,29 @@ public slots:
     void jumpToStart();
     void jumpToEnd();
 
+    void speedMultiplierChanged(int multiplier);
+
 protected:
     void timerEvent(QTimerEvent* event);
 
 private:
-    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*>& port_connections);
-
-    void addItemToScene(QGraphicsItem* item);
+    void playbackEvents(qint64 from_time, qint64 to_time);
 
     void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);
 
     void calculateActiveTimes();
 
+    void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*>& port_connections);
+    void addItemToScene(QGraphicsItem* item);
+
     void startPlaybackTimer();
     void stopPlaybackTimer();
 
-    void playbackEvents(qint64 from_time, qint64 to_time);
     void resetPlayback();
 
     QGraphicsView* view_ = nullptr;
+    QSpinBox* speed_multiplier_spinbox_ = nullptr;
     PlaybackControlsWidget playback_controls;
-
-    qint64 exp_run_start_time_;
-    qint64 exp_run_end_time_;
 
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
     QHash<QString, MEDEA::EdgeItem*> edge_items_;
@@ -78,13 +83,18 @@ private:
     QList<qint64> active_times_;
     int last_active_time_index_ = -1;
 
+    qint64 exp_run_start_time_ = 0;
+    qint64 exp_run_end_time_ = 0;
+
     qint64 playback_duration_ms_ = 0;
     qint64 playback_current_time_ = 0;
     qint64 playback_elapsed_time_ = 0;
 
     bool live_mode_ = false;
     bool timer_active_ = false;
+
     int timer_id_ = -1;
+    int playback_interval_;
 };
 
 #endif // DATAFLOWDIALOG_H

@@ -28,10 +28,10 @@ private:
 
     QString getDurationString(qint64 duration_ms) const;
 
-    qint64 start_time_;
-    qint64 end_time_;
-    qint64 current_time_;
-    qint64 duration_;
+    qint64 start_time_ = 0;
+    qint64 end_time_ = 0;
+    qint64 current_time_ = 0;
+    qint64 duration_ = 0;
 
     QLabel* elapsed_time_label_ = nullptr;
     QLabel* total_time_label_ = nullptr;

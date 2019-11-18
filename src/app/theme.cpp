@@ -579,7 +579,17 @@ QString Theme::getSliderStyleSheet()
            "}"
            "QSlider::handle:active{background: " % getHighlightColorHex() % ";}"
            "QSlider::sub-page {background: " % getDisabledBackgroundColorHex() % ";border: 1px solid " % getAltBackgroundColorHex() % ";}"
-           ;
+            ;
+}
+
+QString Theme::getSpinBoxStyleSheet()
+{
+    return "QSpinBox {"
+            "background: " % getBackgroundColorHex() % ";"
+            "color: " % getTextColorHex() % ";"
+            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+            "}";
+
 }
 
 QString Theme::getDialogStyleSheet()

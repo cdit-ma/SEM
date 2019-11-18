@@ -7,8 +7,7 @@
 #include <QObject>
 #include <QApplication>
 #include <QSplitter>
-
-
+#include <QWidgetAction>
 
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/Windows/centralwindow.h"
@@ -160,6 +159,7 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
         return nullptr;
 
     auto dockWidget = new DefaultDockWidget(title, parent, area);
+    dockWidget->setWidget(dialog);
     addDockWidget(dockWidget);
 
     // add actions to the dock widget's title bar for clearAll, toggle time display and screenshot
@@ -173,6 +173,38 @@ DefaultDockWidget* WindowManager::constructChartDockWidget(QString title, ChartD
     connect(clearChartsAction, &QAction::triggered, dialog, &ChartDialog::clear);
     connect(timeAction, &QAction::triggered, dialog, &ChartDialog::toggleTimelineAxisFormat);
     connect(snapShotAction, &QAction::triggered, dialog, &ChartDialog::snapShot);
+
+    return dockWidget;
+}
+
+DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, DataflowDialog* dialog, QWidget* parent, Qt::DockWidgetArea area)
+{
+    if (!dialog) {
+        return nullptr;
+    }
+
+    auto dockWidget = new DefaultDockWidget(title, parent, area);
+    dockWidget->setWidget(dialog);
+    addDockWidget(dockWidget);
+
+    // add actions to the dock widget's title bar for changing the playback speed and displaying live mode status
+    QAction* live_status_action = dockWidget->addAction("Live Experiment", "Icons", "circleRadio", Qt::AlignCenter);
+    live_status_action->setVisible(false);
+    connect(dialog, &DataflowDialog::updateLiveStatus, live_status_action, &QAction::setVisible);
+
+    QWidgetAction* widget_action = new QWidgetAction(dialog);
+    widget_action->setDefaultWidget(&dialog->getSpeedMultiplierSpinBox());
+
+    QAction* speed_settings_action = dockWidget->addAction("Change Playback Speed", "Icons", "speedGauge", Qt::AlignCenter);
+    speed_settings_action->setMenu(new QMenu(dialog));
+    speed_settings_action->menu()->addAction(widget_action);
+
+    const auto& titlebar = dockWidget->getTitleBar();
+    auto tool_button = qobject_cast<QToolButton*>(titlebar->widgetForAction(speed_settings_action));
+    if (tool_button) {
+        tool_button->setPopupMode(QToolButton::InstantPopup);
+        tool_button->setStyleSheet("QToolButton::menu-indicator{ image:none; }");
+    }
 
     return dockWidget;
 }
