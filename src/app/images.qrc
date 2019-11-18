@@ -418,5 +418,9 @@
         <file alias="envelopeTwoTone">Resources/Icons/envelopeTwoTone.png</file>
         <file alias="arrowBottomRight">Resources/Icons/arrowBottomRight.png</file>
         <file alias="arrowTopRight">Resources/Icons/arrowTopRight.png</file>
+        <file alias="fastForward">Resources/Icons/fastForward.png</file>
+        <file alias="fastRewind">Resources/Icons/fastRewind.png</file>
+        <file alias="skipNext">Resources/Icons/skipNext.png</file>
+        <file alias="skipPrevious">Resources/Icons/skipPrevious.png</file>
     </qresource>
 </RCC>

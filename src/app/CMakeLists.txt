@@ -145,6 +145,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentrundata.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/playbackcontrolswidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/timeprogressbar.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.cpp
@@ -299,6 +301,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentrundata.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/playbackcontrolswidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/timeprogressbar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.h
