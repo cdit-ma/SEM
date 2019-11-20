@@ -24,6 +24,8 @@ signals:
 
 public slots:
     void themeChanged();
+
+    void setControlsEnabled(bool enabled);
     void setPlayPauseCheckedState(bool checked);
 
     void setTimeRange(qint64 start_time, qint64 end_time);

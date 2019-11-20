@@ -73,15 +73,31 @@ void PlaybackControlsWidget::themeChanged()
 
     QIcon playPauseIcon;
     playPauseIcon.addPixmap(theme->getImage("Icons", "avPlay", QSize(), theme->getMenuIconColor()));
-    playPauseIcon.addPixmap(theme->getImage("Icons", "avPlay", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
     playPauseIcon.addPixmap(theme->getImage("Icons", "avPause", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
+    playPauseIcon.addPixmap(theme->getImage("Icons", "avPlay", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
     playPauseIcon.addPixmap(theme->getImage("Icons", "avPause", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active, QIcon::On);
+    playPauseIcon.addPixmap(theme->getImage("Icons", "avPause", QSize(), theme->getMenuIconColor(ColorRole::DISABLED)), QIcon::Disabled, QIcon::On);
+    playPauseIcon.addPixmap(theme->getImage("Icons", "avPause", QSize(), theme->getMenuIconColor(ColorRole::DISABLED)), QIcon::Disabled, QIcon::Off);
 
     play_pause_action_->setIcon(playPauseIcon);
     jump_to_start_action_->setIcon(theme->getIcon("Icons", "skipPrevious"));
     jump_to_prev_action_->setIcon(theme->getIcon("Icons", "fastRewind"));
     jump_to_next_action_->setIcon(theme->getIcon("Icons", "fastForward"));
     jump_to_end_action_->setIcon(theme->getIcon("Icons", "skipNext"));
+}
+
+
+/**
+ * @brief PlaybackControlsWidget::setControlsEnabled
+ * @param enabled
+ */
+void PlaybackControlsWidget::setControlsEnabled(bool enabled)
+{
+    if (!enabled) {
+        setPlayPauseCheckedState(false);
+    }
+    controls_toolbar_->setEnabled(enabled);
+    time_progressbar_.setEnabled(enabled);
 }
 
 
@@ -141,5 +157,5 @@ void PlaybackControlsWidget::incrementCurrentTime(int ms)
  */
 void PlaybackControlsWidget::resetTimeProgress()
 {
-    time_progressbar_.resetProgress();
+    time_progressbar_.resetTimeProgress();
 }

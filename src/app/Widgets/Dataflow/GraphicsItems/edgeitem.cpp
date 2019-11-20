@@ -4,7 +4,7 @@
 #include <QtConcurrent>
 
 const qreal pen_width = 2.0;
-const qreal arrow_length = 4.0;
+const qreal highlight_pen_width = pen_width * 1.1;
 
 const qreal min_offset = 40.0;
 const qreal max_offset = 60.0;
@@ -110,9 +110,6 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     painter->setPen(point_pen_);
     painter->drawPoint(src_point_);
     painter->drawPoint(dst_point_);
-
-    //painter->setBrush(active_pen_.color());
-    //painter->drawPath(arrow_);
 }
 
 
@@ -139,7 +136,7 @@ void EdgeItem::flashEdge(quint32 flash_duration_ms, qreal edge_width_multiplier)
         // Switch pen color
         point_pen_.setColor(highlight_pen_color_);
         active_pen_.setColor(highlight_pen_color_);
-        active_pen_.setWidthF(pen_width * edge_width_multiplier);
+        active_pen_.setWidthF(highlight_pen_width * edge_width_multiplier);
         update();
 
         // Hold the highlight for the flash duration
@@ -186,33 +183,8 @@ void EdgeItem::updateEdgePath()
     auto dst_path = getCubicPath(dst_point_, fixed_ctr2, ctrl_p2, mid_point);
     edge_path_ = src_path + dst_path;
 
-    // Calculate the arrow
-    arrow_ = getArrowPath(dst_point_);
-
     prepareGeometryChange();
     update();
-}
-
-
-/**
- * @brief EdgeItem::getArrowPath
- * @param arrow_point
- * @return
- */
-QPainterPath EdgeItem::getArrowPath(QPointF arrow_point) const
-{
-    int x = arrow_length;
-
-    QPointF start_point = arrow_point - QPointF(x, 0);
-    QPointF top_point = start_point + QPointF(x, -arrow_length / 2);
-    QPointF bottom_point = start_point + QPointF(x, arrow_length / 2);
-
-    QPainterPath path;
-    path.moveTo(start_point);
-    path.lineTo(top_point);
-    path.lineTo(bottom_point);
-    path.lineTo(start_point);
-    return path;
 }
 
 

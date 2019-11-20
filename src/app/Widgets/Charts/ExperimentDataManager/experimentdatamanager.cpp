@@ -621,11 +621,10 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
             toastNotification("No port events received for selection", "plug");
         }
     } else {
-        // TODO - Next step; GUI side implementation
-        //emit showChartsPanel();
-        //timelineChartView().addPortEvents(experimentRun, events);
-        qDebug() << "Received Port Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
+        emit showChartsPanel();
+        timelineChartView().addPortEvents(exp_run, events);
         getDataflowDialog().addPortEventsToSeries(events);
+        qDebug() << "Received Port Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 

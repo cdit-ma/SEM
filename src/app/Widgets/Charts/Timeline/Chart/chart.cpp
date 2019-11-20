@@ -300,18 +300,20 @@ void Chart::seriesKindHovered(ChartDataKind kind)
     utilisationColor_ = backgroundColor_;
     memoryColor_ = backgroundColor_;
     markerColor_ = backgroundColor_;
+    portEventColor_ = backgroundColor_;
 
     double alpha = 0.25;
-    portSeriesOpacity_ = alpha;
+    portLifecycleSeriesOpacity_ = alpha;
     workloadSeriesOpacity_ = alpha;
     cpuSeriesOpacity_ = alpha;
     memorySeriesOpacity_ = alpha;
     markerSeriesOpacity_ = alpha;
+    portEventSeriesOpacity_ = alpha;
 
     switch (kind) {
     case ChartDataKind::PORT_LIFECYCLE: {
         portLifecycleColor_ = defaultPortLifecycleColor_;
-        portSeriesOpacity_ = 1.0;
+        portLifecycleSeriesOpacity_ = 1.0;
         break;
     }
     case ChartDataKind::WORKLOAD: {
@@ -334,6 +336,11 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         markerSeriesOpacity_ = 1.0;
         break;
     }
+    case ChartDataKind::PORT_EVENT: {
+        portEventColor_ = defaultPortEventColor_;
+        portEventSeriesOpacity_ = 1.0;
+        break;
+    }
     default: {
         // clear hovered state
         portLifecycleColor_ = defaultPortLifecycleColor_;
@@ -341,11 +348,13 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         utilisationColor_ = defaultUtilisationColor_;
         memoryColor_ = defaultMemoryColor_;
         markerColor_ = defaultMarkerColor_;
-        portSeriesOpacity_ = 1.0;
+        portEventColor_ = defaultPortEventColor_;
+        portLifecycleSeriesOpacity_ = 1.0;
         workloadSeriesOpacity_ = 1.0;
         cpuSeriesOpacity_ = 1.0;
         memorySeriesOpacity_ = 1.0;
         markerSeriesOpacity_ = 1.0;
+        portEventSeriesOpacity_ = 1.0;
         break;
     }
     }
@@ -364,9 +373,6 @@ void Chart::themeChanged()
     Theme* theme = Theme::theme();
     setFont(theme->getSmallFont());
 
-    defaultPortLifecycleColor_ = Qt::gray;
-    defaultWorkloadColor_ = Qt::gray;
-
     defaultPortLifecycleColor_ = QColor(186,85,211);
     portLifecycleColor_ = defaultPortLifecycleColor_;
 
@@ -376,13 +382,14 @@ void Chart::themeChanged()
     defaultUtilisationColor_ = QColor(30,144,255);
     utilisationColor_ = defaultUtilisationColor_;
 
-    //defaultMemoryColor_ = QColor(50,205,50);
     defaultMemoryColor_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
     memoryColor_ = defaultMemoryColor_;
 
     defaultMarkerColor_ = QColor(221,188,153);
-    //defaultMarkerColor_ = QColor(240,128,128);
     markerColor_ = defaultMarkerColor_;
+
+    defaultPortEventColor_ = theme->getSeverityColor(Notification::Severity::WARNING);
+    portEventColor_ = defaultPortEventColor_;
 
     backgroundDefaultColor_ = theme->getAltBackgroundColor();
     backgroundDefaultColor_.setAlphaF(BACKGROUND_OPACITY);
@@ -401,8 +408,6 @@ void Chart::themeChanged()
     highlightPen_ = QPen(highlightColor_, 2.0);
     highlightBrush_ = QBrush(getContrastingColor(textColor_));
 
-    messagePixmap_ = theme->getImage("Icons", "exclamation", QSize(), theme->getMenuIconColor());
-    markerPixmap_ = theme->getImage("Icons", "bookmark", QSize(), theme->getMenuIconColor());
     updateSeriesPixmaps();
 }
 
@@ -526,6 +531,9 @@ void Chart::paintSeries(QPainter &painter, const ChartDataKind kind)
     case ChartDataKind::MARKER:
         paintMarkerEventSeries(painter);
         break;
+    case ChartDataKind::PORT_EVENT:
+        paintPortEventSeries(painter);
+        break;
     default:
         qWarning("Chart::paintSeries - Series kind not handled");
         break;
@@ -559,7 +567,6 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
     if (!eventSeries)
         return;
 
-
     double barWidth = BIN_WIDTH;
     double barCount = ceil((double)width() / barWidth);
 
@@ -586,7 +593,6 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
             break;
         }
     }
-//    /qDebug() << "Port series#: " << events.count();
 
     auto current_bucket = 0;
     auto current_bucket_ittr = bucket_endTimes.constBegin();
@@ -613,7 +619,7 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
     QPen textPen(textColor_, 2.0);
 
     int y = rect().center().y() - barWidth / 2.0;
-    painter.setOpacity(portSeriesOpacity_);
+    painter.setOpacity(portLifecycleSeriesOpacity_);
 
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
@@ -647,7 +653,7 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
-        qDebug() << "PORT Render Took: " << finish - start << "ms";
+        qDebug() << "PORT LIFECYCLE Render Took: " << finish - start << "ms";
 }
 
 
@@ -1239,10 +1245,113 @@ void Chart::paintMarkerEventSeries(QPainter &painter)
 
 
 /**
+ * @brief Chart::paintPortEventSeries
+ * @param painter
+ */
+void Chart::paintPortEventSeries(QPainter& painter)
+{
+    auto start = QDateTime::currentMSecsSinceEpoch();
+
+    const auto eventSeries = seriesList_.value(ChartDataKind::PORT_EVENT, nullptr);
+    if (!eventSeries)
+        return;
+
+
+    double barWidth = BIN_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
+
+    QVector< QList<Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
+
+    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
+    double current_left = displayMin_;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
+
+    const auto& events = eventSeries->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > displayMin_) {
+            break;
+        }
+    }
+
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
+
+    QColor seriesColor = portEventColor_;
+    QColor brushColor = seriesColor;
+    QPen textPen(textColor_, 2.0);
+
+    int y = rect().center().y() - barWidth / 2.0;
+    painter.setOpacity(portEventSeriesOpacity_);
+
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            auto event = (PortEvent*) buckets[i][0];
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                painter.fillRect(rect, highlightBrush_);
+            }
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.drawPixmap(rect.toRect(), portEventTypePixmaps_.value(event->getType()));
+            painter.setRenderHint(QPainter::Antialiasing, false);
+        } else {
+            if (rectHovered(eventSeries->getKind(), rect)) {
+                textPen.setColor(textColor_);
+                painter.fillRect(rect, highlightBrush_);
+            } else {
+                brushColor = seriesColor.darker(100 + (50 * (count - 1)));
+                textPen.setColor(getContrastingColor(brushColor));
+                painter.setPen(defaultRectPen_);
+                painter.setBrush(brushColor);
+                painter.drawRect(rect);
+            }
+            QString countStr = count > 99 ? "𝑛" : QString::number(count);
+            painter.setPen(textPen);
+            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
+        }
+    }
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "PORT EVENT Render Took: " << finish - start << "ms";
+}
+
+
+/**
  * @brief Chart::paintPortLifecycleSeries
  * @param painter
  */
-void Chart::paintPortLifecycleSeries(QPainter &painter)
+/*void Chart::paintPortLifecycleSeries(QPainter &painter)
 {
     if (portLifecycleBinnedData_.size() == 0)
         return;
@@ -1277,7 +1386,7 @@ void Chart::paintPortLifecycleSeries(QPainter &painter)
         }
     }
     qDebug() << "-------------------";
-}
+}*/
 
 
 /**
@@ -1421,31 +1530,36 @@ void Chart::updateBinnedData(ChartDataKind kind)
 void Chart::updateSeriesPixmaps()
 {
     Theme* theme = Theme::theme();
-    bool colorPortPixmaps = false;
+    bool colorLifecyclePixmaps = false;
     bool colorWorkerPixmaps = false;
+    bool colorPortEventPixmaps = false;
 
     switch (hoveredSeriesKind_) {
     case ChartDataKind::DATA: {
-        colorPortPixmaps = true;
+        colorLifecyclePixmaps = true;
         colorWorkerPixmaps = true;
+        colorPortEventPixmaps = true;
         break;
     }
     case ChartDataKind::PORT_LIFECYCLE:
-        colorPortPixmaps = true;
+        colorLifecyclePixmaps = true;
         break;
     case ChartDataKind::WORKLOAD:
         colorWorkerPixmaps = true;
         break;
-    default:
+    case ChartDataKind::PORT_EVENT:
+        colorPortEventPixmaps = true;
         break;
+    default:
+        return;
     }
 
-    if (colorPortPixmaps) {
+    if (colorLifecyclePixmaps) {
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), QColor(179, 204, 230)); //theme->getMenuIconColor());
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), QColor(179, 204, 230));
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::ACTIVATE] = theme->getImage("Icons", "power", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "bed", QSize(), QColor(255, 179, 102)); //theme->getSeverityColor(Notification::Severity::ERROR));
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "cancel", QSize(), theme->getSeverityColor(Notification::Severity::ERROR)); //theme->getMenuIconColor());
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "bed", QSize(), QColor(255, 179, 102));
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "cancel", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
     } else {
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), backgroundColor_);
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), backgroundColor_);
@@ -1457,17 +1571,35 @@ void Chart::updateSeriesPixmaps()
     if (colorWorkerPixmaps) {
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), QColor(72, 151, 189));
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleFilled", QSize(), QColor(72, 151, 189));
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), QColor(72, 151, 199));
     } else {
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), backgroundColor_);
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), backgroundColor_);
-        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), backgroundColor_);
+        workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleFilled", QSize(), backgroundColor_);
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), backgroundColor_);
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), backgroundColor_);
         workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), backgroundColor_);
+    }
+
+    if (colorPortEventPixmaps) {
+        portEventTypePixmaps_[PortEvent::PortEventType::SENT] = theme->getImage("Icons", "arrowTopRight", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
+        portEventTypePixmaps_[PortEvent::PortEventType::RECEIVED] = theme->getImage("Icons", "arrowBottomRight", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+        portEventTypePixmaps_[PortEvent::PortEventType::STARTED_FUNC] = theme->getImage("Icons", "arrowLineLeft", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
+        portEventTypePixmaps_[PortEvent::PortEventType::FINISHED_FUNC] = theme->getImage("Icons", "arrowToLineRight", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
+        portEventTypePixmaps_[PortEvent::PortEventType::IGNORED] = theme->getImage("Icons", "circleCross");
+        portEventTypePixmaps_[PortEvent::PortEventType::EXCEPTION] = theme->getImage("Icons", "circleCritical");
+        portEventTypePixmaps_[PortEvent::PortEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage");
+    } else {
+        portEventTypePixmaps_[PortEvent::PortEventType::SENT] = theme->getImage("Icons", "arrowTopRight", QSize(), backgroundColor_);
+        portEventTypePixmaps_[PortEvent::PortEventType::RECEIVED] = theme->getImage("Icons", "arrowBottomRight", QSize(), backgroundColor_);
+        portEventTypePixmaps_[PortEvent::PortEventType::STARTED_FUNC] = theme->getImage("Icons", "arrowLineLeft", QSize(), backgroundColor_);
+        portEventTypePixmaps_[PortEvent::PortEventType::FINISHED_FUNC] = theme->getImage("Icons", "arrowToLineRight", QSize(), backgroundColor_);
+        portEventTypePixmaps_[PortEvent::PortEventType::IGNORED] = theme->getImage("Icons", "circleCross", QSize(), backgroundColor_);
+        portEventTypePixmaps_[PortEvent::PortEventType::EXCEPTION] = theme->getImage("Icons", "circleCritical", QSize(), backgroundColor_);
+        portEventTypePixmaps_[PortEvent::PortEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), backgroundColor_);
     }
 }
 
@@ -1497,7 +1629,6 @@ QColor Chart::getContrastingColor(const QColor &color)
 int Chart::getBinIndexForTime(double time)
 {
     auto index = (time - dataMinX_) / binTimeWidth_;
-    //qDebug() << "index: " << index << " @ time " << (time - dataMinX_);
     return floor(index);
 }
 
@@ -1507,7 +1638,7 @@ int Chart::getBinIndexForTime(double time)
  * @param kind
  * @return
  */
-QVector<QList<Event*>> &Chart::getBinnedData(ChartDataKind kind)
+QVector<QList<Event*>>& Chart::getBinnedData(ChartDataKind kind)
 {
     switch (kind) {
     case ChartDataKind::PORT_LIFECYCLE:
@@ -1520,7 +1651,10 @@ QVector<QList<Event*>> &Chart::getBinnedData(ChartDataKind kind)
         return memoryUtilisationBinnedData_;
     case ChartDataKind::MARKER:
         return markerBinnedData_;
+    case ChartDataKind::PORT_EVENT:
+        return portEventBinnedData_;
     default:
+        qWarning("Chart::getBinnedData - Series kind not handled");
         return emptyBinnedData_;
     }
 }

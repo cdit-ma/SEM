@@ -32,9 +32,7 @@ protected:
 private:
     void updateEdgePath();
 
-    QPainterPath getArrowPath(QPointF arrow_point) const;
     QPainterPath getCubicPath(QPointF p1, QPointF p2) const;
-
     QPainterPath getCubicPath(QPointF p1, QPointF ctrl_p1, QPointF ctrl_p2, QPointF p2) const;
 
     PortInstanceGraphicsItem* src_item_ = nullptr;
