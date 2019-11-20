@@ -127,10 +127,6 @@ void DataflowDialog::themeChanged()
     setStyleSheet(theme->getScrollBarStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
-
-    for (const auto& edge_item : edge_items_) {
-        edge_item->themeChanged(theme);
-    }
 }
 
 
@@ -466,7 +462,8 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
                     }
                 }
             }
-            port->flashPort(flash_duration_ms);
+
+            port->flashPort(playback_current_time_, flash_duration_ms);
             qDebug() << "Port: " << port->getGraphmlID() << ", " << port->getPortName() << " "
                      << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
         } else {
@@ -481,7 +478,7 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
             const auto& from_edge = edge_items_.value(from_port_id, nullptr);
             if (from_edge) {
                 auto&& event_count_ratio = (active_edges_event_count.value(from_port_id) - min_event_count) / event_range;
-                from_edge->flashEdge(flash_duration_ms, 1 + event_count_ratio);
+                from_edge->flashEdge(playback_current_time_, flash_duration_ms, 1 + event_count_ratio);
             }
         }
     }
@@ -548,7 +545,6 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
         auto edge_item = new MEDEA::EdgeItem(from_port, to_port);
         connect(from_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateSourcePos(); });
         connect(to_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateDestinationPos(); });
-        edge_item->themeChanged(Theme::theme());
         addItemToScene(edge_item);
 
         auto&& from_port_id = from_port->getGraphmlID();

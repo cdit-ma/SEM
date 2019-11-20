@@ -2,14 +2,13 @@
 #define PULSE_EDGEITEM_H
 
 #include "../EntityItems/portinstancegraphicsitem.h"
-#include "../../../theme.h"
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 #include <QPen>
 
 namespace MEDEA {
 
-class EdgeItem : public QGraphicsItem
+class EdgeItem : public QGraphicsObject
 {
 public:
     EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst, QGraphicsItem* parent = nullptr);
@@ -20,9 +19,10 @@ public:
     void updateSourcePos();
     void updateDestinationPos();
 
-    void flashEdge(quint32 flash_duration_ms = 33, qreal edge_width_multiplier = 1.0);
+    void flashEdge(qint64 start_time, qint64 flash_duration_ms = 33, qreal edge_width_multiplier = 1.0);
 
-    void themeChanged(Theme* theme);
+private slots:
+    void unflashEdge(qint64 flash_end_time);
 
 protected:
     // QGraphicsItem interface
@@ -30,6 +30,7 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
+    void themeChanged();
     void updateEdgePath();
 
     QPainterPath getCubicPath(QPointF p1, QPointF p2) const;
@@ -49,6 +50,8 @@ private:
 
     QColor default_pen_color_;
     QColor highlight_pen_color_;
+
+    qint64 flash_end_time_ = 0;
 };
 
 }

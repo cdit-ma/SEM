@@ -1,10 +1,11 @@
 #include "edgeitem.h"
+#include "../../../theme.h"
 
 #include <QPainter>
-#include <QtConcurrent>
+#include <QTimer>
 
 const qreal pen_width = 2.0;
-const qreal highlight_pen_width = pen_width * 1.1;
+const qreal highlight_pen_width = pen_width * 1.15;
 
 const qreal min_offset = 40.0;
 const qreal max_offset = 60.0;
@@ -19,7 +20,7 @@ using namespace MEDEA;
  * @throws std::invalid_argument
  */
 EdgeItem::EdgeItem(PortInstanceGraphicsItem *src, PortInstanceGraphicsItem *dst, QGraphicsItem* parent)
-    : QGraphicsItem(parent)
+    : QGraphicsObject(parent)
 {
     if (src) {
         src_item_ = src;
@@ -35,6 +36,9 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem *src, PortInstanceGraphicsItem *dst,
     // This initialises the src & dst points and the edge path
     updateSourcePos();
     updateDestinationPos();
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &EdgeItem::themeChanged);
+    themeChanged();
 }
 
 
@@ -114,40 +118,60 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
 /**
- * @brief EdgeItem::themeChanged
+ * @brief EdgeItem::flashEdge
+ * @param start_time
+ * @param flash_duration_ms
+ * @param edge_width_multiplier
  */
-void EdgeItem::themeChanged(Theme* theme)
+void EdgeItem::flashEdge(qint64 start_time, qint64 flash_duration_ms, qreal edge_width_multiplier)
 {
-    default_pen_color_ = theme->getAltTextColor();
-    highlight_pen_color_ = theme->getHighlightColor();
-    active_pen_ = QPen(default_pen_color_, pen_width);
-    point_pen_ = QPen(default_pen_color_, pen_width * 3, Qt::SolidLine, Qt::SquareCap);
+    if (flash_duration_ms <= 0) {
+        return;
+    }
+
+    // Switch pen color
+    point_pen_.setColor(highlight_pen_color_);
+    active_pen_.setColor(highlight_pen_color_);
+    active_pen_.setWidthF(highlight_pen_width * edge_width_multiplier);
     update();
+
+    auto&& end_time = start_time + flash_duration_ms;
+    flash_end_time_ = qMax(end_time, flash_end_time_);
+
+    QTimer::singleShot(static_cast<int>(flash_duration_ms), this, [this, end_time]() {
+        unflashEdge(end_time);
+    });
 }
 
 
 /**
- * @brief EdgeItem::flashEdge
- * @param flash_duration_ms
+ * @brief EdgeItem::unflashEdge
+ * @param flash_end_time
  */
-void EdgeItem::flashEdge(quint32 flash_duration_ms, qreal edge_width_multiplier)
+void EdgeItem::unflashEdge(qint64 flash_end_time)
 {
-    QtConcurrent::run([this, flash_duration_ms, edge_width_multiplier]() {
-        // Switch pen color
-        point_pen_.setColor(highlight_pen_color_);
-        active_pen_.setColor(highlight_pen_color_);
-        active_pen_.setWidthF(highlight_pen_width * edge_width_multiplier);
-        update();
-
-        // Hold the highlight for the flash duration
-        QThread::currentThread()->msleep(flash_duration_ms);
-
+    if (flash_end_time_ == flash_end_time) {
         // Reset the pen color
         point_pen_.setColor(default_pen_color_);
         active_pen_.setColor(default_pen_color_);
         active_pen_.setWidthF(pen_width);
         update();
-    });
+        flash_end_time_ = 0;
+    }
+}
+
+
+/**
+ * @brief EdgeItem::themeChanged
+ */
+void EdgeItem::themeChanged()
+{
+    Theme* theme = Theme::theme();
+    default_pen_color_ = theme->getAltTextColor();
+    highlight_pen_color_ = theme->getHighlightColor();
+    active_pen_ = QPen(default_pen_color_, pen_width);
+    point_pen_ = QPen(default_pen_color_, pen_width * 3, Qt::SolidLine, Qt::SquareCap);
+    update();
 }
 
 
