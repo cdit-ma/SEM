@@ -582,9 +582,9 @@ QString Theme::getSliderStyleSheet()
             ;
 }
 
-QString Theme::getSpinBoxStyleSheet()
+QString Theme::getSpinBoxStyleSheet(const QString& spinbox_class)
 {
-    return "QSpinBox {"
+    return  spinbox_class % "{"
             "background: " % getBackgroundColorHex() % ";"
             "color: " % getTextColorHex() % ";"
             "border: 1px solid " % getDisabledBackgroundColorHex() % ";"

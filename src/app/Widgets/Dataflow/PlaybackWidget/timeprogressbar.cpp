@@ -54,6 +54,7 @@ void TimeProgressBar::setTimeRange(qint64 start_time, qint64 end_time)
         start_time_ = start_time;
         end_time_ = end_time;
         updateTotalDuration();
+        resetProgress();
     } else {
         throw std::invalid_argument("TimeProgressBar::setTimeRange - Time range provided is invalid");
     }

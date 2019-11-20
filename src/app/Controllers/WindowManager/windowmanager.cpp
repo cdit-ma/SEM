@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QSplitter>
 #include <QWidgetAction>
+#include <QDoubleSpinBox>
 
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/Windows/centralwindow.h"
@@ -192,8 +193,24 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     live_status_action->setVisible(false);
     connect(dialog, &DataflowDialog::updateLiveStatus, live_status_action, &QAction::setVisible);
 
+    double min_playback_speed = 0.25;
+    double max_playback_speed = 3.0;
+
+    auto playback_speed_spinbox = new QDoubleSpinBox(dialog);
+    playback_speed_spinbox->setRange(min_playback_speed, max_playback_speed);
+    playback_speed_spinbox->setSingleStep(min_playback_speed);
+    playback_speed_spinbox->setValue(1.0);
+    playback_speed_spinbox->setSuffix("x");
+    connect(playback_speed_spinbox, SIGNAL(valueChanged(double)), dialog, SLOT(playbackSpeedChanged(double)));
+
+    Theme* theme = Theme::theme();
+    playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
+    connect(theme, &Theme::theme_Changed, [playback_speed_spinbox, theme]() {
+        playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
+    });
+
     QWidgetAction* widget_action = new QWidgetAction(dialog);
-    widget_action->setDefaultWidget(&dialog->getSpeedMultiplierSpinBox());
+    widget_action->setDefaultWidget(playback_speed_spinbox);
 
     QAction* speed_settings_action = dockWidget->addAction("Change Playback Speed", "Icons", "speedGauge", Qt::AlignCenter);
     speed_settings_action->setMenu(new QMenu(dialog));

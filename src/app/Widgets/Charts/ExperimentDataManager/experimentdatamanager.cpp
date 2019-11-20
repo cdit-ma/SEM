@@ -4,7 +4,7 @@
 
 #include <QFutureWatcher>
 
-const int timer_interval_ms = 33;
+const int default_playback_interval_ms = 33;
 const int invalid_experiment_id = -1;
 ExperimentDataManager* ExperimentDataManager::manager_ = nullptr;
 
@@ -528,6 +528,7 @@ void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::
         emit showChartsPanel();
         timelineChartView().addPortLifecycleEvents(exp_run, events);
         getDataflowDialog().addPortLifecycleEventsToSeries(events);
+        qDebug() << "Received Port Lifecycle Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -546,8 +547,7 @@ void ExperimentDataManager::processWorkloadEvents(const AggServerResponse::Exper
     } else {
         emit showChartsPanel();
         timelineChartView().addWorkloadEvents(exp_run, events);
-        qDebug() << "Requested Workload Events for exp run [" << exp_run.experiment_run_id << "]";
-        qDebug() << "Received#: " << events.size();
+        qDebug() << "Received Workload Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -566,8 +566,7 @@ void ExperimentDataManager::processCPUUtilisationEvents(const AggServerResponse:
     } else {
         emit showChartsPanel();
         timelineChartView().addCPUUtilisationEvents(exp_run, events);
-        qDebug() << "Requested CPU Events for exp run [" << exp_run.experiment_run_id << "]";
-        qDebug() << "Received#: " << events.size();
+        qDebug() << "Received CPU Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -586,8 +585,7 @@ void ExperimentDataManager::processMemoryUtilisationEvents(const AggServerRespon
     } else {
         emit showChartsPanel();
         timelineChartView().addMemoryUtilisationEvents(exp_run, events);
-        qDebug() << "Requested Memory Events for exp run [" << exp_run.experiment_run_id << "]";
-        qDebug() << "Received#: " << events.size();
+        qDebug() << "Received Memory Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -606,8 +604,7 @@ void ExperimentDataManager::processMarkerEvents(const AggServerResponse::Experim
     } else {
         emit showChartsPanel();
         timelineChartView().addMarkerEvents(exp_run, events);
-        qDebug() << "Requested Marker Events for exp run [" << exp_run.experiment_run_id << "]";
-        qDebug() << "Received#: " << events.size();
+        qDebug() << "Received Marker Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -627,6 +624,7 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
         // TODO - Next step; GUI side implementation
         //emit showChartsPanel();
         //timelineChartView().addPortEvents(experimentRun, events);
+        qDebug() << "Received Port Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
         getDataflowDialog().addPortEventsToSeries(events);
     }
 }
@@ -733,7 +731,7 @@ DataflowDialog& ExperimentDataManager::getDataflowDialog()
 void ExperimentDataManager::startTimerLoop(quint32 exp_run_id)
 {
     if (!exp_run_timers_.contains(exp_run_id)) {
-        auto timer_id = startTimer(timer_interval_ms);
+        auto timer_id = startTimer(default_playback_interval_ms);
         exp_run_timers_.insert(exp_run_id, timer_id);
         qDebug() << "------------------------------------------------------------";
         qDebug() << "STARTED timer for [" << exp_run_id << "]";

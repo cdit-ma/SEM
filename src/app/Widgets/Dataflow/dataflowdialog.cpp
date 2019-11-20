@@ -12,8 +12,10 @@
 #include <QtConcurrent>
 
 const int invalid_experiment_id = -1;
-const int timer_interval_ms = 330;
-const int flash_time_ms = 200;
+
+const int default_playback_interval_ms = 33;
+const int frame_rate_ms = 33;
+const int flash_duration_ms = 200;
 
 /**
  * @brief DataflowDialog::DataflowDialog
@@ -23,27 +25,13 @@ DataflowDialog::DataflowDialog(QWidget *parent)
     : QFrame(parent),
       view_(new DataflowGraphicsView(this)),
       playback_controls(this),
-      playback_interval_(timer_interval_ms)
+      playback_interval_(default_playback_interval_ms)
 {
-    // Construct Spin Box
-    speed_multiplier_spinbox_ = new QSpinBox(this);
-    speed_multiplier_spinbox_->setRange(1, 5);
-    speed_multiplier_spinbox_->setValue(1);
-    speed_multiplier_spinbox_->setSuffix("x");
-    speed_multiplier_spinbox_->setSingleStep(1);
-
-    // set initial playback speed
-    int speed_mutipler = 3;
-    speed_multiplier_spinbox_->setValue(speed_mutipler);
-    speedMultiplierChanged(speed_mutipler);
-
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(0);
     mainLayout->setMargin(0);
     mainLayout->addWidget(view_);
     mainLayout->addWidget(&playback_controls);
-
-    connect(speed_multiplier_spinbox_, SIGNAL(valueChanged(int)), this, SLOT(speedMultiplierChanged(int)));
 
     connect(&playback_controls, &PlaybackControlsWidget::play, this, &DataflowDialog::playback);
     connect(&playback_controls, &PlaybackControlsWidget::pause, this, &DataflowDialog::pausePlayback);
@@ -59,17 +47,8 @@ DataflowDialog::DataflowDialog(QWidget *parent)
 
 
 /**
- * @brief DataflowDialog::getSpeedMultiplierSpinBox
- * @return
- */
-QSpinBox& DataflowDialog::getSpeedMultiplierSpinBox() const
-{
-    return *speed_multiplier_spinbox_;
-}
-
-
-/**
  * @brief DataflowDialog::addPortLifecycleEventsToSeries
+ * NOTE - This is only used to prototyte the flashing of ports for port lifecycle events
  * @param events
  */
 void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent*>& events)
@@ -79,11 +58,9 @@ void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleE
      * The series will already be constructed when using the new experiment data classes
      */
 
-    portlifecycle_series_list_.clear();
-
     for (const auto& event : events) {
         if (event != nullptr) {
-            PortLifecycleEventSeries* series = nullptr;
+            MEDEA::EventSeries* series = nullptr;
             auto&& series_id = event->getID();
             // Check if a series for the event already exists
             if (portlifecycle_series_list_.contains(series_id)) {
@@ -93,6 +70,9 @@ void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleE
                 auto port_id = series_id.split("_").first();
                 series = new PortLifecycleEventSeries(series_id);
                 portlifecycle_series_list_.insert(series_id, series);
+                if (!series_list_.contains(series)) {
+                    series_list_.append(series);
+                }
             }
             if (series) {
                 series->addEvent(event);
@@ -111,11 +91,10 @@ void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleE
  */
 void DataflowDialog::addPortEventsToSeries(const QVector<PortEvent*>& events)
 {
-    portevent_series_list_.clear();
 
     for (const auto& event : events) {
         if (event != nullptr) {
-            PortEventSeries* series = nullptr;
+            MEDEA::EventSeries* series = nullptr;
             auto&& series_id = event->getID();
             // Check if a series for the event already exists
             if (portevent_series_list_.contains(series_id)) {
@@ -125,6 +104,9 @@ void DataflowDialog::addPortEventsToSeries(const QVector<PortEvent*>& events)
                 auto port_id = series_id.split("_").first();
                 series = new PortEventSeries(series_id);
                 portevent_series_list_.insert(series_id, series);
+                if (!series_list_.contains(series)) {
+                    series_list_.append(series);
+                }
             }
             if (series) {
                 series->addEvent(event);
@@ -143,7 +125,6 @@ void DataflowDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
     setStyleSheet(theme->getScrollBarStyleSheet());
-    speed_multiplier_spinbox_->setStyleSheet(theme->getSpinBoxStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
 
@@ -157,18 +138,14 @@ void DataflowDialog::themeChanged()
  * @brief DataflowDialog::speedMultiplierChanged
  * @param multiplier
  */
-void DataflowDialog::speedMultiplierChanged(int multiplier)
+void DataflowDialog::playbackSpeedChanged(double multiplier)
 {
-    playback_interval_ = timer_interval_ms;
-    if (multiplier > 1) {
-        playback_interval_ = timer_interval_ms / ((multiplier - 1) * 5);
-    }
+    playback_interval_ = default_playback_interval_ms * multiplier;
 
-    qDebug() << "Speed multiplier changed: " << multiplier;
-    qDebug() << "New speed: " << playback_interval_ << "ms";
-
+    // TODO: Once the graphics items deal with rendering their own events at a given timeframe,
+    // we won't need the active time hash and we will no longer need to reset the playback here
     calculateActiveTimes();
-    resetPlayback(); // should we reset playback?
+    resetPlayback();
 }
 
 
@@ -188,8 +165,7 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
 
     exp_run_start_time_ = exp_run_data.start_time();
     exp_run_end_time_ = exp_run_data.end_time();
-    playback_duration_ms_ = exp_run_end_time_ - exp_run_start_time_;
-    playback_controls.setTimeRange(exp_run_start_time_, exp_run_end_time_);
+    setPlaybackTimeRange(exp_run_start_time_, exp_run_end_time_);
 
     // This sets the experiment info displays on the title bar of the panel
     setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
@@ -230,15 +206,15 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
 void DataflowDialog::clearScene()
 {
     setExperimentInfo("");
-
     view_->scene()->clear();
+    port_items_.clear();
+
     portlifecycle_series_list_.clear();
     portevent_series_list_.clear();
-    port_items_.clear();
+    series_list_.clear();
+
     active_series_.clear();
     active_times_.clear();
-
-    resetPlayback();
 }
 
 
@@ -247,15 +223,25 @@ void DataflowDialog::clearScene()
  */
 void DataflowDialog::playback()
 {
-    if (!timer_active_) {
-        if (playback_elapsed_time_ == 0) {
+    // If the timer is already running, do nothing
+    if (timer_active_) {
+        return;
+    }
+
+    if (playback_current_time_ >= exp_run_end_time_) {
+        if (!live_mode_) {
             qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
             resetPlayback();
+        }
+    } else {
+        if (playback_current_time_ == exp_run_start_time_) {
+            qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
         } else {
             qDebug() << "CONTINUE playback";
         }
-        startPlaybackTimer();
     }
+
+    startPlaybackTimer();
 }
 
 
@@ -275,17 +261,20 @@ void DataflowDialog::pausePlayback()
 void DataflowDialog::jumpToPreviousActivity()
 {
     qDebug() << "JUMP to PREVIOUS activity";
-    if (!active_times_.isEmpty()) {
-        if ((last_active_time_index_ > 0) && (last_active_time_index_ < active_times_.length())) {
-            auto&& last_active_time = active_times_.at(last_active_time_index_);
-            if (playback_current_time_ == last_active_time) {
-                last_active_time_index_--;
-            }
-            playback_current_time_ = active_times_.at(last_active_time_index_);
-            playback_elapsed_time_ = playback_current_time_ - exp_run_start_time_;
-            playback_controls.setCurrentTime(playback_current_time_);
-        }
+
+    if (active_times_.size() == 0) {
+        return;
     }
+
+    // Get the iterator to the first active time that is greater than or equal to the current playback time
+    auto prev_active_time_itr = active_times_.lower_bound(playback_current_time_);
+    if (prev_active_time_itr != active_times_.begin()) {
+        prev_active_time_itr--;
+    }
+
+    auto&& last_active_time = *prev_active_time_itr;
+    playback_current_time_ = last_active_time;
+    playback_controls.setCurrentTime(last_active_time);
 }
 
 
@@ -295,13 +284,22 @@ void DataflowDialog::jumpToPreviousActivity()
 void DataflowDialog::jumpToNextActivity()
 {
     qDebug() << "JUMP to NEXT activity";
-    if (!active_times_.isEmpty()) {
-        if (last_active_time_index_ < active_times_.length() - 1) {
-            playback_current_time_ = active_times_.at(++last_active_time_index_);
-            playback_elapsed_time_ = playback_current_time_ - exp_run_start_time_;
-            playback_controls.setCurrentTime(playback_current_time_);
-        }
+
+    if (active_times_.size() == 0) {
+        return;
     }
+
+    // Get the iterator to the first active time that is greater than the current playback time
+    auto next_active_time_itr = active_times_.upper_bound(playback_current_time_);
+
+    // If there is no active time after the current playback time, do nothing
+    if (next_active_time_itr == active_times_.end()) {
+        return;
+    }
+
+    auto&& last_active_time = *next_active_time_itr;
+    playback_current_time_ = last_active_time;
+    playback_controls.setCurrentTime(last_active_time);
 }
 
 
@@ -311,8 +309,6 @@ void DataflowDialog::jumpToNextActivity()
 void DataflowDialog::jumpToStart()
 {
     qDebug() << "JUMP to START";
-    last_active_time_index_ = -1;
-    playback_elapsed_time_ = 0;
     playback_current_time_ = exp_run_start_time_;
     playback_controls.setCurrentTime(playback_current_time_);
 }
@@ -324,8 +320,6 @@ void DataflowDialog::jumpToStart()
 void DataflowDialog::jumpToEnd()
 {
     qDebug() << "JUMP to END";
-    last_active_time_index_ = active_times_.length() - 1;
-    playback_elapsed_time_ = playback_duration_ms_;
     playback_current_time_ = exp_run_end_time_;
     playback_controls.setCurrentTime(playback_current_time_);
 }
@@ -335,17 +329,20 @@ void DataflowDialog::jumpToEnd()
  * @brief DataflowDialog::setExperimentInfo
  * @param exp_name
  * @param exp_run_id
+ * @throws std::runtime_error
  */
 void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_id)
 {
-    if (parentWidget()) {
-        QString title = "Pulse";
-        if (!exp_name.isEmpty()) {
-            title += " [" + exp_name + " #" + QString::number(exp_run_id) + "]";
-        }
-        auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
-        parent_dockwidget->setTitle(title);
+    if (parentWidget() == nullptr) {
+        throw std::runtime_error("DataflowDialog::setExperimentInfo - The parent widget is not set.");
     }
+
+    QString title = "Pulse";
+    if (!exp_name.isEmpty()) {
+        title += " [" + exp_name + " #" + QString::number(exp_run_id) + "]";
+    }
+    auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
+    parent_dockwidget->setTitle(title);
 }
 
 
@@ -354,40 +351,20 @@ void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_
  */
 void DataflowDialog::calculateActiveTimes()
 {
-    // Clear previous times in case of re-calculation due to a change in playback speed
     active_times_.clear();
     active_series_.clear();
-
-    // This is where the series that we want to see in the playback gets added
-    // Right now, it's adding both port lifecycle and port event series
 
     auto current_time = exp_run_start_time_;
     while (current_time < exp_run_end_time_) {
         auto to_time = current_time + playback_interval_;
-        for (const auto& series : portlifecycle_series_list_) {
+        for (const auto& series : series_list_) {
             const auto& events = series->getEventsBetween(current_time, to_time);
             if (!events.isEmpty()) {
-                if (!active_times_.contains(current_time)) {
-                    active_times_.append(current_time);
-                }
-                active_series_.insertMulti(current_time, series);
-            }
-        }
-        for (const auto& series : portevent_series_list_) {
-            const auto& events = series->getEventsBetween(current_time, to_time);
-            if (!events.isEmpty()) {
-                if (!active_times_.contains(current_time)) {
-                    active_times_.append(current_time);
-                }
+                active_times_.insert(current_time);
                 active_series_.insertMulti(current_time, series);
             }
         }
         current_time = to_time;
-    }
-
-    // TODO: Find a better way to do this
-    if (!active_times_.isEmpty()) {
-        qSort(active_times_.begin(), active_times_.end());
     }
 }
 
@@ -400,7 +377,7 @@ void DataflowDialog::startPlaybackTimer()
     if (timer_id_ != -1) {
         killTimer(timer_id_);
     }
-    timer_id_ = startTimer(timer_interval_ms);
+    timer_id_ = startTimer(frame_rate_ms);
     timer_active_ = true;
 }
 
@@ -419,16 +396,25 @@ void DataflowDialog::stopPlaybackTimer()
 
 
 /**
+ * @brief DataflowDialog::setPlaybackTimeRange
+ * @param start_time
+ * @param end_time
+ */
+void DataflowDialog::setPlaybackTimeRange(qint64 start_time, qint64 end_time)
+{
+    playback_current_time_ = start_time;
+    playback_controls.setTimeRange(start_time, end_time);
+}
+
+
+/**
  * @brief DataflowDialog::resetPlayback
  */
 void DataflowDialog::resetPlayback()
 {
     stopPlaybackTimer();
     playback_controls.resetTimeProgress();
-
     playback_current_time_ = exp_run_start_time_;
-    playback_elapsed_time_ = 0;
-    last_active_time_index_ = -1;
 }
 
 
@@ -467,8 +453,8 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
                     }
                 }
             }
-            port->flashPort(timer_interval_ms);
-            qDebug() << "Port: " << port->getPortName() << " "
+            port->flashPort(flash_duration_ms);
+            qDebug() << "Port: " << port->getGraphmlID() << ", " << port->getPortName() << " "
                      << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
         } else {
             qDebug() << "No port item to flash for event";
@@ -482,7 +468,7 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
             const auto& from_edge = edge_items_.value(from_port_id, nullptr);
             if (from_edge) {
                 auto&& traffic = (active_edges_traffic.value(from_port_id) - min_event_count) / event_range;
-                from_edge->flashEdge(timer_interval_ms, 1 + (traffic / 2.0));
+                from_edge->flashEdge(flash_duration_ms, 1 + (traffic / 2.0));
             }
         }
     }
@@ -500,19 +486,13 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
         return;
     }
 
-    /**
-     * NOTE: The difference between flashing per event instead of per series is that,
-     * per event will flash the port for each of the event that was received; while as
-     * per series will only flash the series once regardless of the number of events
-     * received berween the given time interval
-     */
-
     auto from_time = playback_current_time_;
     if (from_time >= exp_run_end_time_) {
+
         if (!live_mode_) {
             // Send a signal to the playback controls to update the play/pause button
             emit playbackActivated(false);
-            stopPlaybackTimer();
+            stopPlaybackTimer(); //  this stops the timer without resetting the playback time
             qDebug() << "PLAYBACK FINISHED ----------------------------------------------------";
         }
 
@@ -520,24 +500,15 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
 
         playback_controls.incrementCurrentTime(playback_interval_);
         playback_current_time_ += playback_interval_;
-        playback_elapsed_time_ += playback_interval_;
-        qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << playback_elapsed_time_ / 1000.000 << "S";
 
-        if (active_series_.contains(from_time)) {
-            qDebug() << "----------------------------------------------------";
+        //auto&& elapsed_time = playback_current_time_ - exp_run_start_time_;
+        //qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << elapsed_time / 1000.000 << "S";
+
+        auto&& active_time_itr = active_times_.find(from_time);
+        if (active_time_itr != active_times_.end()) {
             qDebug() << "Time range: " << QDateTime::fromMSecsSinceEpoch(from_time).toString("hh:mm:ss.zzz")
                      << " to " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-            for (const auto& series : active_series_.values(from_time)) {
-                auto port = port_items_.value(series->getID(), nullptr);
-                if (port) {
-                    qDebug() << "Port: " << port->getPortName() << " "
-                             << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
-                    port->flashPort(flash_time_ms);
-                } else {
-                    qDebug() << "No port item to flash for event";
-                }
-            }
-            last_active_time_index_ = active_times_.indexOf(from_time);
+            playbackEvents(from_time, playback_current_time_);
             qDebug() << "----------------------------------------------------";
         }
     }
