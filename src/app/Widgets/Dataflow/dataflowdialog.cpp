@@ -208,6 +208,8 @@ void DataflowDialog::clearScene()
 
     view_->scene()->clear();
     port_items_.clear();
+    edge_items_.clear();
+    source_id_for_destination_id_.clear();
 
     portlifecycle_series_list_.clear();
     portevent_series_list_.clear();
@@ -443,32 +445,33 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
 
     for (const auto& series : active_series_.values(from_time)) {
         auto port = port_items_.value(series->getID(), nullptr);
-        if (port) {
-            if (series->getKind() == MEDEA::ChartDataKind::PORT_EVENT) {
-                const auto& port_id = port->getGraphmlID();
-                auto&& port_kind = port->getPortKind();
-                if (port_kind == AggServerResponse::Port::PUBLISHER || port_kind == AggServerResponse::Port::REQUESTER || port_kind == AggServerResponse::Port::REPLIER) {
-                    auto&& events = series->getEventsBetween(from_time, to_time);
-                    int event_count = events.size();
-                    min_event_count = qMin(event_count, min_event_count);
-                    max_event_count = qMax(event_count, max_event_count);
-
-                    // If the port is a Replier, insert the attached port connection's source graphml id
-                    if (port_kind == AggServerResponse::Port::REPLIER) {
-                        const auto& from_port_id = source_id_for_destination_id_.value(port_id, "");
-                        active_edges_event_count.insert(from_port_id, event_count);
-                    } else {
-                        active_edges_event_count.insert(port_id, event_count);
-                    }
-                }
-            }
-
-            port->flashPort(playback_current_time_, flash_duration_ms);
-            qDebug() << "Port: " << port->getGraphmlID() << ", " << port->getPortName() << " "
-                     << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
-        } else {
-            qDebug() << "No port item to flash for event";
+        if (port == nullptr) {
+            qWarning("DataflowDialog::playbackEvents - There is no port graphics item to flash for this event");
+            continue;
         }
+
+        const auto& port_id = port->getGraphmlID();
+        const auto& port_kind = port->getPortKind();
+
+        if (port_kind == AggServerResponse::Port::PUBLISHER || port_kind == AggServerResponse::Port::REQUESTER || port_kind == AggServerResponse::Port::REPLIER) {
+
+            auto&& events = series->getEventsBetween(from_time, to_time);
+            int event_count = events.size();
+            min_event_count = qMin(event_count, min_event_count);
+            max_event_count = qMax(event_count, max_event_count);
+
+            // If the port is a Replier, insert the attached port connection's source graphml id
+            if (port_kind == AggServerResponse::Port::REPLIER) {
+                const auto& from_port_id = source_id_for_destination_id_.value(port_id, "");
+                active_edges_event_count.insert(from_port_id, event_count);
+            } else {
+                active_edges_event_count.insert(port_id, event_count);
+            }
+        }
+
+        port->flashPort(playback_current_time_, flash_duration_ms);
+        qDebug() << "Port: " << port->getGraphmlID() << ", " << port->getPortName() << " "
+                 << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
     }
 
     // Flash the edges from ports that either sent out, requested or received messages
