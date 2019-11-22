@@ -19,8 +19,6 @@ public:
 
     PortInstanceGraphicsItem* addPortInstanceItem(PortInstanceData& port_data);
 
-    //void update(qint64 from_time, qint64 to_time);
-
 signals:
     void toggleExpanded(bool expand);
     void itemMoved();
