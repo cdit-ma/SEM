@@ -39,8 +39,6 @@ private:
     const PortEventType type_;
     const quint64 sequence_num_;
     const QString message_;
-
-    //const QString id_;
 };
 
 #endif // PORTEVENT_H

@@ -1,5 +1,5 @@
 #include "portevent.h"
-
+#include <QDebug>
 /**
  * @brief PortEvent::PortEvent
  * @param port
@@ -19,8 +19,16 @@ PortEvent::PortEvent(const AggServerResponse::Port& port,
       port_(port),
       type_(type),
       sequence_num_(sequence_num),
-      message_(message) {}
-      //id_(port.graphml_id + "_" + QString::number(sequence_num)) {}
+      message_(message) //{}
+{
+    // TODO: Only using this to catch the weird events being received when adding the CompInst data into the request
+    /*
+    qDebug() << "Created Port Event for - " << port.name << "," << port.path;
+    qDebug() << "Event: " << toString("hh:mm:ss.zzz");
+    qDebug() << "---";
+    */
+}
+
 
 
 /**
@@ -42,7 +50,6 @@ QString PortEvent::toString(const QString& dateTimeFormat) const
 const QString& PortEvent::getID() const
 {
     return port_.graphml_id;
-    //return id_;
 }
 
 

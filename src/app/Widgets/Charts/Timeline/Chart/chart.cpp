@@ -373,7 +373,7 @@ void Chart::themeChanged()
     Theme* theme = Theme::theme();
     setFont(theme->getSmallFont());
 
-    defaultPortLifecycleColor_ = QColor(186,85,211);
+    defaultPortLifecycleColor_ = QColor(235,123,255);
     portLifecycleColor_ = defaultPortLifecycleColor_;
 
     defaultWorkloadColor_ = QColor(0,206,209);

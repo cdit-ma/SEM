@@ -44,7 +44,7 @@ qint64 MEDEA::Event::getTimeMS() const
  * @param format
  * @return
  */
-QString MEDEA::Event::getDateTimeString(const QString &format) const
+QString MEDEA::Event::getDateTimeString(const QString& format) const
 {
     return QDateTime::fromMSecsSinceEpoch(time_).toString(format);
 }

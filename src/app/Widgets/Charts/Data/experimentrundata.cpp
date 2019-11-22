@@ -126,7 +126,7 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
     auto&& state_last_updated_time = exp_state.last_updated_time;
     if (state_last_updated_time > last_updated_time_) {
 
-        qDebug() << "Update Experiment STATE for [" << QString::number(experiment_run_id_) << "]";
+        //qDebug() << "Update Experiment STATE for [" << QString::number(experiment_run_id_) << "]";
 
         // NOTE: last_updated_time_ is passed through to update the children data
         // Therefore, it needs to be updated before calling addNodeData and addPortConnection
@@ -140,7 +140,7 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
             addPortConnection(p_c);
         }
     } else {
-        qDebug() << "Experiment run state for [" << QString::number(experiment_run_id_) << "] has not changed";
+        //qDebug() << "Experiment run state for [" << QString::number(experiment_run_id_) << "] has not changed";
     }
 }
 
@@ -153,11 +153,11 @@ void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
 {
     auto node_data = node_data_hash_.value(node.hostname, nullptr);
     if (node_data == nullptr) {
-        qDebug() << "Create node data for: " << node.hostname;
+        //qDebug() << "Create node data for: " << node.hostname;
         node_data = new NodeData(experiment_run_id_, node, this);
         node_data_hash_.insert(node_data->getHostname(), node_data);
     } else {
-        qDebug() << "Update node data for: " << node.hostname;
+        //qDebug() << "Update node data for: " << node.hostname;
         node_data->updateData(node, last_updated_time_);
     }
 }
