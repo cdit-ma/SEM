@@ -36,9 +36,21 @@ TimeProgressBar::TimeProgressBar(QWidget* parent) : QWidget(parent)
 void TimeProgressBar::themeChanged()
 {
     Theme* theme = Theme::theme();
-    elapsed_time_label_->setStyleSheet(theme->getLabelStyleSheet());
-    total_time_label_->setStyleSheet(theme->getLabelStyleSheet());
+    elapsed_time_label_->setStyleSheet(theme->getLabelStyleSheet() + "QLabel:disabled{ color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}");
+    total_time_label_->setStyleSheet(theme->getLabelStyleSheet() + "QLabel:disabled{ color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}");
     time_bar_->setStyleSheet(theme->getProgressBarStyleSheet() + "QProgressBar{ margin: 5px; }");
+}
+
+
+/**
+ * @brief TimeProgressBar::setEnabled
+ * @param enabled
+ */
+void TimeProgressBar::setEnabled(bool enabled)
+{
+    elapsed_time_label_->setEnabled(enabled);
+    total_time_label_->setEnabled(enabled);
+    time_bar_->setEnabled(enabled);
 }
 
 
@@ -50,11 +62,11 @@ void TimeProgressBar::themeChanged()
  */
 void TimeProgressBar::setTimeRange(qint64 start_time, qint64 end_time)
 {
-    if (start_time < end_time) {
+    if (start_time <= end_time) {
         start_time_ = start_time;
         end_time_ = end_time;
         updateTotalDuration();
-        resetProgress();
+        resetTimeProgress();
     } else {
         throw std::invalid_argument("TimeProgressBar::setTimeRange - Time range provided is invalid");
     }
@@ -88,7 +100,7 @@ void TimeProgressBar::setCurrentTime(qint64 time)
         throw std::invalid_argument("TimeProgressBar::setCurrentTime - Time provided time is out of range");
     }
     if (time == start_time_) {
-        resetProgress();
+        resetTimeProgress();
     } else {
         current_time_ = time;
         elapsed_time_label_->setText(getDurationString(current_time_ - start_time_));
@@ -113,9 +125,9 @@ void TimeProgressBar::incrementCurrentTime(int ms)
 
 
 /**
- * @brief TimeProgressBar::resetProgress
+ * @brief TimeProgressBar::resetTimeProgress
  */
-void TimeProgressBar::resetProgress()
+void TimeProgressBar::resetTimeProgress()
 {
     current_time_ = start_time_;
     elapsed_time_label_->setText("00.000");

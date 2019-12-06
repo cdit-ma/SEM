@@ -12,6 +12,7 @@
 #include "../../Data/Events/cpuutilisationevent.h"
 #include "../../Data/Events/memoryutilisationevent.h"
 #include "../../Data/Events/markerevent.h"
+#include "../../Data/Events/portevent.h"
 
 #include <QWidget>
 #include <QToolBar>
@@ -39,6 +40,7 @@ public:
     void addCPUUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent *>& events);
     void addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent *>& events);
     void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent *>& events);
+    void addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent *>& events);
 
     void updateExperimentRunLastUpdatedTime(const quint32 experimentRunID, const qint64 time);
 

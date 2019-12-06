@@ -15,12 +15,14 @@ public:
 public slots:
     void themeChanged();
 
+    void setEnabled(bool enabled);
+
     void setTimeRange(qint64 start_time, qint64 end_time);
     void updateEndTime(qint64 time);
     void setCurrentTime(qint64 time);
     void incrementCurrentTime(int ms);
 
-    void resetProgress();
+    void resetTimeProgress();
 
 private:
     void updateProgressValue();

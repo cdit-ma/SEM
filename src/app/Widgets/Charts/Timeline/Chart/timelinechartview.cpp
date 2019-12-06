@@ -9,6 +9,7 @@
 #include "../../Data/Series/cpuutilisationeventseries.h"
 #include "../../Data/Series/memoryutilisationeventseries.h"
 #include "../../Data/Series/markereventseries.h"
+#include "../../Data/Series/porteventseries.h"
 
 #include <QScrollBar>
 #include <QHBoxLayout>
@@ -80,9 +81,6 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
  */
 void TimelineChartView::addPortLifecycleEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<PortLifecycleEvent*>& events)
 {
-    if (events.isEmpty())
-        return;
-
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
         auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::PORT_LIFECYCLE, event->getID(), event->getName());
@@ -107,10 +105,6 @@ void TimelineChartView::addPortLifecycleEvents(const AggServerResponse::Experime
  */
 void TimelineChartView::addWorkloadEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<WorkloadEvent *> &events)
 {
-    if (events.isEmpty())
-        return;
-
-
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
         auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::WORKLOAD, event->getID(), event->getName());
@@ -135,9 +129,6 @@ void TimelineChartView::addWorkloadEvents(const AggServerResponse::ExperimentRun
  */
 void TimelineChartView::addCPUUtilisationEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<CPUUtilisationEvent *> &events)
 {
-    if (events.isEmpty())
-        return;
-
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
         auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::CPU_UTILISATION, event->getID(), event->getName());
@@ -162,10 +153,6 @@ void TimelineChartView::addCPUUtilisationEvents(const AggServerResponse::Experim
  */
 void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<MemoryUtilisationEvent *> &events)
 {
-    if (events.isEmpty())
-        return;
-
-
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
         auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::MEMORY_UTILISATION, event->getID(), event->getName());
@@ -190,10 +177,6 @@ void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::Expe
  */
 void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<MarkerEvent *> &events)
 {
-    if (events.isEmpty())
-        return;
-
-
     QList<MEDEA::EventSeries*> clearedSeries;
     for (auto event : events) {
         auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::MARKER, event->getID(), event->getName());
@@ -208,6 +191,32 @@ void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun &
 
     if (!clearedSeries.isEmpty())
         addedChartEvents(MEDEA::ChartDataKind::MARKER, experimentRun);
+}
+
+
+/**
+ * @brief TimelineChartView::addPortEvents
+ * @param experimentRun
+ * @param events
+ * @throws std::invalid_argument
+ */
+void TimelineChartView::addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent*>& events)
+{
+    QList<MEDEA::EventSeries*> clearedSeries;
+    for (auto event : events) {
+        auto series = constructSeriesForEventKind(experimentRun, MEDEA::ChartDataKind::PORT_EVENT, event->getID(), event->getName());
+        if (series == nullptr) {
+            throw std::invalid_argument("TimelineChartView::addPortEvents - Error constructing event series for port events");
+        }
+        if (!clearedSeries.contains(series)) {
+            series->clear();
+            clearedSeries.append(series);
+        }
+        series->addEvent(event);
+    }
+
+    if (!clearedSeries.isEmpty())
+        addedChartEvents(MEDEA::ChartDataKind::PORT_EVENT, experimentRun);
 }
 
 
@@ -652,9 +661,6 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
     MEDEA::EventSeries* series = nullptr;
     auto seriesLabel = label;
 
-    //qDebug() << "seriesID: " << seriesID;
-    //qDebug() << "label: " << label;
-
     switch (kind) {
     case MEDEA::ChartDataKind::PORT_LIFECYCLE: {
         auto strList = seriesID.split("_");
@@ -677,7 +683,14 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(const AggServ
     case MEDEA::ChartDataKind::MARKER:
         series = new MarkerEventSeries(seriesID, this);
         break;
+    case MEDEA::ChartDataKind::PORT_EVENT: {
+        auto strList = seriesID.split("_");
+        seriesLabel += "_" + strList.first();
+        series = new PortEventSeries(seriesID, this);
+        break;
+    }
     default:
+        qWarning("TimelineChartView::constructSeriesForEventKind - Series kind not handled");
         return nullptr;
     }
 

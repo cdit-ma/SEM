@@ -163,9 +163,8 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
     // Clear previous items
     clearScene();
 
-    exp_run_start_time_ = exp_run_data.start_time();
-    exp_run_end_time_ = exp_run_data.end_time();
-    setPlaybackTimeRange(exp_run_start_time_, exp_run_end_time_);
+    setPlaybackTimeRange(exp_run_data.start_time(), exp_run_data.end_time());
+    playback_controls.setControlsEnabled(true);
 
     // This sets the experiment info displays on the title bar of the panel
     setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
@@ -206,6 +205,11 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
 void DataflowDialog::clearScene()
 {
     setExperimentInfo("");
+
+    stopPlaybackTimer();
+    setPlaybackTimeRange(0, 0);
+    playback_controls.setControlsEnabled(false);
+
     view_->scene()->clear();
     port_items_.clear();
 
@@ -223,6 +227,12 @@ void DataflowDialog::clearScene()
  */
 void DataflowDialog::playback()
 {
+    // If there are no graphics items, stop the current timer and send a signal to the playback controls to update the play/pause button
+    if (view_->scene()->items().isEmpty()) {
+        resetPlayback();
+        return;
+    }
+
     // If the timer is already running, do nothing
     if (timer_active_) {
         return;
@@ -402,6 +412,8 @@ void DataflowDialog::stopPlaybackTimer()
  */
 void DataflowDialog::setPlaybackTimeRange(qint64 start_time, qint64 end_time)
 {
+    exp_run_start_time_ = start_time;
+    exp_run_end_time_ = end_time;
     playback_current_time_ = start_time;
     playback_controls.setTimeRange(start_time, end_time);
 }
@@ -415,6 +427,7 @@ void DataflowDialog::resetPlayback()
     stopPlaybackTimer();
     playback_controls.resetTimeProgress();
     playback_current_time_ = exp_run_start_time_;
+    emit playbackActivated(false);
 }
 
 
@@ -425,12 +438,12 @@ void DataflowDialog::resetPlayback()
  */
 void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
 {
-    QHash<QString, qreal> active_edges_traffic;
+    QHash<QString, qreal> active_edges_event_count;
 
     // The temporary min_event_count value should be set as close to 'infinity' as possible, so that any future
     // updates are guaranteed to be smaller than the default. Same applies to max_event_count, but in reverse
-    qreal min_event_count = DBL_MAX;
-    qreal max_event_count = 0;
+    int min_event_count = INT_MAX;
+    int max_event_count = 0;
 
     for (const auto& series : active_series_.values(from_time)) {
         auto port = port_items_.value(series->getID(), nullptr);
@@ -440,16 +453,16 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
                 auto&& port_kind = port->getPortKind();
                 if (port_kind == AggServerResponse::Port::PUBLISHER || port_kind == AggServerResponse::Port::REQUESTER || port_kind == AggServerResponse::Port::REPLIER) {
                     auto&& events = series->getEventsBetween(from_time, to_time);
-                    qreal event_count = events.size();
+                    int event_count = events.size();
                     min_event_count = qMin(event_count, min_event_count);
                     max_event_count = qMax(event_count, max_event_count);
 
                     // If the port is a Replier, insert the attached port connection's source graphml id
                     if (port_kind == AggServerResponse::Port::REPLIER) {
                         const auto& from_port_id = source_id_for_destination_id_.value(port_id, "");
-                        active_edges_traffic.insert(from_port_id, event_count);
+                        active_edges_event_count.insert(from_port_id, event_count);
                     } else {
-                        active_edges_traffic.insert(port_id, event_count);
+                        active_edges_event_count.insert(port_id, event_count);
                     }
                 }
             }
@@ -461,14 +474,14 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
         }
     }
 
-    auto&& event_range = (max_event_count > min_event_count) ? max_event_count - min_event_count : 0.0;
-    if (event_range > 0) {
-        // Flash the edges from ports that either sent out or requested messages
-        for (const auto& from_port_id : active_edges_traffic.keys()) {
+    // Flash the edges from ports that either sent out, requested or received messages
+    if (!active_edges_event_count.isEmpty()) {
+        auto&& event_range = (max_event_count > min_event_count) ? max_event_count - min_event_count : 1.0;
+        for (const auto& from_port_id : active_edges_event_count.keys()) {
             const auto& from_edge = edge_items_.value(from_port_id, nullptr);
             if (from_edge) {
-                auto&& traffic = (active_edges_traffic.value(from_port_id) - min_event_count) / event_range;
-                from_edge->flashEdge(flash_duration_ms, 1 + (traffic / 2.0));
+                auto&& event_count_ratio = (active_edges_event_count.value(from_port_id) - min_event_count) / event_range;
+                from_edge->flashEdge(flash_duration_ms, 1 + event_count_ratio);
             }
         }
     }

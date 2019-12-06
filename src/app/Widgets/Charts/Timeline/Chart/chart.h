@@ -4,6 +4,7 @@
 #include "../Chart/chartlist.h"
 #include "../../Data/Series/eventseries.h"
 #include "../../Data/Events/workloadevent.h"
+#include "../../Data/Events/portevent.h"
 #include "../../../../Controllers/ViewController/viewitem.h"
 
 #include <QWidget>
@@ -69,8 +70,7 @@ private:
     void paintCPUUtilisationEventSeries(QPainter& painter);
     void paintMemoryUtilisationEventSeries(QPainter &painter);
     void paintMarkerEventSeries(QPainter &painter);
-
-    void paintPortLifecycleSeries(QPainter& painter);
+    void paintPortEventSeries(QPainter &painter);
 
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
@@ -107,8 +107,6 @@ private:
     double binPixelWidth_;
     double binTimeWidth_;
 
-    QPixmap messagePixmap_;
-    QPixmap markerPixmap_;
     QRectF hoveredRect_;
 
     QPen defaultRectPen_;
@@ -131,18 +129,21 @@ private:
     QColor defaultUtilisationColor_ = Qt::lightGray;
     QColor defaultMemoryColor_ = Qt::lightGray;
     QColor defaultMarkerColor_ = Qt::gray;
+    QColor defaultPortEventColor_ = Qt::gray;
 
     QColor portLifecycleColor_ = defaultUtilisationColor_;
     QColor workloadColor_ = defaultWorkloadColor_;
     QColor utilisationColor_ = defaultUtilisationColor_;
     QColor memoryColor_ = defaultMemoryColor_;
     QColor markerColor_ = defaultMarkerColor_;
+    QColor portEventColor_ = defaultPortEventColor_;
 
-    double portSeriesOpacity_ = 1.0;
+    double portLifecycleSeriesOpacity_ = 1.0;
     double workloadSeriesOpacity_ = 1.0;
     double cpuSeriesOpacity_ = 1.0;
     double memorySeriesOpacity_ = 1.0;
     double markerSeriesOpacity_ = 1.0;
+    double portEventSeriesOpacity_ = 1.0;
 
     QHash<ChartDataKind, bool> seriesKindVisible_;
     QHash<ChartDataKind, EventSeries*> seriesList_;
@@ -153,6 +154,7 @@ private:
     QVector<QList<Event*>> cpuUtilisationBinnedData_;
     QVector<QList<Event*>> memoryUtilisationBinnedData_;
     QVector<QList<Event*>> markerBinnedData_;
+    QVector<QList<Event*>> portEventBinnedData_;
     QVector<QList<Event*>> emptyBinnedData_;
 
     QHash<ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
@@ -162,6 +164,7 @@ private:
 
     QHash<AggServerResponse::LifecycleType, QPixmap> lifeCycleTypePixmaps_;
     QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;
+    QHash<PortEvent::PortEventType, QPixmap> portEventTypePixmaps_;
 
     /*
     struct Series{

@@ -127,6 +127,10 @@ const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
 const QString &MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind kind)
 {
     switch (kind) {
+    case ChartDataKind::PORT_LIFECYCLE: {
+        static const QString lifecycleSuffix = "_lifecycle";
+        return lifecycleSuffix;
+    }
     case ChartDataKind::CPU_UTILISATION: {
         static const QString cpuSuffix = "_cpu";
         return cpuSuffix;
@@ -136,8 +140,8 @@ const QString &MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind k
         return memorySuffix;
     }
     default: {
-        static const QString defaultStr = "";
-        return defaultStr;
+        static const QString defaultSuffix = "";
+        return defaultSuffix;
     }
     }
 }
