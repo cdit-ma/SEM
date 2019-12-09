@@ -373,7 +373,7 @@ void Chart::themeChanged()
     Theme* theme = Theme::theme();
     setFont(theme->getSmallFont());
 
-    defaultPortLifecycleColor_ = QColor(235,123,255);
+    defaultPortLifecycleColor_ = QColor(186,85,211);
     portLifecycleColor_ = defaultPortLifecycleColor_;
 
     defaultWorkloadColor_ = QColor(0,206,209);
@@ -1345,48 +1345,6 @@ void Chart::paintPortEventSeries(QPainter& painter)
     if (PRINT_RENDER_TIMES)
         qDebug() << "PORT EVENT Render Took: " << finish - start << "ms";
 }
-
-
-/**
- * @brief Chart::paintPortLifecycleSeries
- * @param painter
- */
-/*void Chart::paintPortLifecycleSeries(QPainter &painter)
-{
-    if (portLifecycleBinnedData_.size() == 0)
-        return;
-
-    int firstIndex = getBinIndexForTime(displayMin_);
-    int lastIndex = getBinIndexForTime(displayMax_)+1;
-
-    QColor seriesColor = portLifecycleColor_;
-    int y = rect().center().y() - BIN_WIDTH / 2.0;
-
-    for (int i = firstIndex; (i <= lastIndex) && (i < portLifecycleBinnedData_.size()); i++) {
-        int count = portLifecycleBinnedData_[i].count();
-        if (count == 0)
-            continue;
-        auto rectX = (i - firstIndex) * binPixelWidth_;
-        QRectF rect(rectX, y, BIN_WIDTH, BIN_WIDTH);
-        qDebug() << "i[" << i << "] - rect x: " << rect.x();
-        if (count == 1) {
-            auto event = (PortLifecycleEvent*) portLifecycleBinnedData_[i][0];
-            if (rectHovered(ChartDataKind::PORT_LIFECYCLE, rect))
-                painter.fillRect(rect, highlightColor_);
-            painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
-        } else {
-            QColor color = seriesColor.darker(100 + (50 * (count - 1)));
-            painter.setPen(Qt::lightGray);
-            if (rectHovered(ChartDataKind::PORT_LIFECYCLE, rect)) {
-                painter.setPen(highlightTextColor_);
-                color = highlightColor_;
-            }
-            painter.fillRect(rect, color);
-            painter.drawText(rect, QString::number(count), QTextOption(Qt::AlignCenter));
-        }
-    }
-    qDebug() << "-------------------";
-}*/
 
 
 /**

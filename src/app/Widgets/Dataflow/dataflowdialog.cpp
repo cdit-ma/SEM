@@ -139,9 +139,9 @@ void DataflowDialog::clearScene()
  */
 void DataflowDialog::playback()
 {
-    // If there are no graphics items, send a signal to the playback controls to update reset the play/pause button
+    // If there are no graphics items, stop the current timer and send a signal to the playback controls to update the play/pause button
     if (view_->scene()->items().isEmpty()) {
-        emit playbackActivated(false);
+        resetPlayback();
         return;
     }
 

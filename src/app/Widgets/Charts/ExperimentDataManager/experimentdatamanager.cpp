@@ -622,7 +622,6 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
     } else {
         emit showChartsPanel();
         timelineChartView().addPortEvents(exp_run, events);
-        //qDebug() << "Received Port Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
