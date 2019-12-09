@@ -41,6 +41,9 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
         case MEDEA::ChartDataKind::PORT_EVENT:
             portEventRequest_ = std::unique_ptr<PortEventRequest>(new PortEventRequest());
             break;
+        case MEDEA::ChartDataKind::NETWORK_UTILISATION:
+            networkUtilisationRequest_ = std::unique_ptr<NetworkUtilisationRequest>(new NetworkUtilisationRequest());
+            break;
         default:
             qWarning("RequestBuilder::buildRequests - Unknown chart data kind");
             break;
@@ -337,4 +340,18 @@ const PortEventRequest& RequestBuilder::getPortEventRequest() const
         throw std::invalid_argument("No PortEventRequest");
     }
     return *portEventRequest_;
+}
+
+
+/**
+ * @brief RequestBuilder::getNetworkUtilisationRequest
+ * @throws std::invalid_argument
+ * @return
+ */
+const NetworkUtilisationRequest& RequestBuilder::getNetworkUtilisationRequest() const
+{
+    if (!networkUtilisationRequest_) {
+        throw std::invalid_argument("No NetworkUtilisationRequest");
+    }
+    return *networkUtilisationRequest_;
 }

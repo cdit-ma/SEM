@@ -68,9 +68,10 @@ private:
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
-    void paintMemoryUtilisationEventSeries(QPainter &painter);
-    void paintMarkerEventSeries(QPainter &painter);
-    void paintPortEventSeries(QPainter &painter);
+    void paintMemoryUtilisationEventSeries(QPainter& painter);
+    void paintMarkerEventSeries(QPainter& painter);
+    void paintPortEventSeries(QPainter& painter);
+    void paintNetworkUtilisationEventSeries(QPainter& painter);
 
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
@@ -130,6 +131,7 @@ private:
     QColor defaultMemoryColor_ = Qt::lightGray;
     QColor defaultMarkerColor_ = Qt::gray;
     QColor defaultPortEventColor_ = Qt::gray;
+    QColor defaultNetworkColor_ = Qt::lightGray;
 
     QColor portLifecycleColor_ = defaultUtilisationColor_;
     QColor workloadColor_ = defaultWorkloadColor_;
@@ -137,6 +139,7 @@ private:
     QColor memoryColor_ = defaultMemoryColor_;
     QColor markerColor_ = defaultMarkerColor_;
     QColor portEventColor_ = defaultPortEventColor_;
+    QColor networkColor_ = defaultNetworkColor_;
 
     double portLifecycleSeriesOpacity_ = 1.0;
     double workloadSeriesOpacity_ = 1.0;
@@ -144,6 +147,7 @@ private:
     double memorySeriesOpacity_ = 1.0;
     double markerSeriesOpacity_ = 1.0;
     double portEventSeriesOpacity_ = 1.0;
+    double networkSeriesOpacity_ = 1.0;
 
     QHash<ChartDataKind, bool> seriesKindVisible_;
     QHash<ChartDataKind, EventSeries*> seriesList_;
@@ -155,6 +159,7 @@ private:
     QVector<QList<Event*>> memoryUtilisationBinnedData_;
     QVector<QList<Event*>> markerBinnedData_;
     QVector<QList<Event*>> portEventBinnedData_;
+    QVector<QList<Event*>> networkUtilisationBinnedData_;
     QVector<QList<Event*>> emptyBinnedData_;
 
     QHash<ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;

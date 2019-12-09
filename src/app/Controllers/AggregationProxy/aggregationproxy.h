@@ -17,6 +17,7 @@
 #include "../../Widgets/Charts/Data/Events/memoryutilisationevent.h"
 #include "../../Widgets/Charts/Data/Events/markerevent.h"
 #include "../../Widgets/Charts/Data/Events/portevent.h"
+#include "../../Widgets/Charts/Data/Events/networkutilisationevent.h"
 #include "../../Widgets/Charts/ExperimentDataManager/requestbuilder.h"
 
 
@@ -66,6 +67,7 @@ public:
     QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
     QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request) const;
     QFuture<QVector<PortEvent*>> RequestPortEvents(const PortEventRequest& request) const;
+    QFuture<QVector<NetworkUtilisationEvent*>> RequestNetworkUtilisationEvents(const NetworkUtilisationRequest& request) const;
 
 private:
     AggregationProxy();
@@ -82,6 +84,7 @@ private:
     QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
     QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request) const;
     QVector<PortEvent*> GetPortEvents(const PortEventRequest& request) const;
+    QVector<NetworkUtilisationEvent*> GetNetworkUtilisationEvents(const NetworkUtilisationRequest& request) const;
 
     // Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);

@@ -19,6 +19,4 @@ private:
     QVector<QString> portPaths_;
 };
 
-//Q_DECLARE_METATYPE(PortLifecycleRequest);
-
 #endif // PORTLIFECYCLEREQUEST_H

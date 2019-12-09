@@ -563,6 +563,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::COMPONENT_IMPL:
             case NODE_KIND::COMPONENT_INST: {
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
+                validDataKinds.insert(MEDEA::ChartDataKind::PORT_EVENT);
                 validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);
                 break;
             }
@@ -581,6 +582,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::PORT_SUBSCRIBER_IMPL:
             case NODE_KIND::PORT_SUBSCRIBER_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
+                validDataKinds.insert(MEDEA::ChartDataKind::PORT_EVENT);
                 break;
             case NODE_KIND::CLASS_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);
@@ -589,6 +591,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::HARDWARE_NODE: {
                 validDataKinds.insert(MEDEA::ChartDataKind::CPU_UTILISATION);
                 validDataKinds.insert(MEDEA::ChartDataKind::MEMORY_UTILISATION);
+                validDataKinds.insert(MEDEA::ChartDataKind::NETWORK_UTILISATION);
                 break;
             }
             default:

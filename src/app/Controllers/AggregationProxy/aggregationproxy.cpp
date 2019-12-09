@@ -126,6 +126,17 @@ QFuture<QVector<PortEvent*> > AggregationProxy::RequestPortEvents(const PortEven
 
 
 /**
+ * @brief AggregationProxy::RequestNetworkUtilisationEvents
+ * @param request
+ * @return
+ */
+QFuture<QVector<NetworkUtilisationEvent*> > AggregationProxy::RequestNetworkUtilisationEvents(const NetworkUtilisationRequest& request) const
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetNetworkUtilisationEvents, request);
+}
+
+
+/**
  * @brief AggregationProxy::SetServerEndpoint
  * @param endpoint
  * @throws NoRequesterException
@@ -498,6 +509,47 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &requ
             const auto& message = ConstructQString(item.message());
             const auto& time = ConstructQDateTime(item.time());
             events.append(new PortEvent(port, seqNum, type, message, time.toMSecsSinceEpoch()));
+        }
+
+        return events;
+
+    } catch (const std::exception& ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::GetNetworkUtilisationEvents
+ * @param request
+ * @return
+ */
+QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(const NetworkUtilisationRequest& request) const
+{
+    CheckRequester();
+
+    try {
+        QVector<NetworkUtilisationEvent*> events;
+
+        // TODO: Change thist to NetworkUtilisationRequest once its available
+        AggServer::MemoryUtilisationRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
+
+        for (const auto& id : request.node_ids()) {
+            agg_request.add_node_ids(id.toStdString());
+        }
+        for (const auto& name : request.node_hostnames()) {
+            agg_request.add_node_hostnames(name.toStdString());
+        }
+
+        auto results = requester_->GetMemoryUtilisation(agg_request);
+        for (const auto& node : results->nodes()) {
+            const auto& host_name = ConstructQString(node.node_info().hostname());
+            for (const auto& e : node.events()) {
+                const auto& utilisation = e.memory_utilisation();
+                const auto& time = ConstructQDateTime(e.time());
+                events.append(new NetworkUtilisationEvent(host_name, utilisation, time.toMSecsSinceEpoch()));
+            }
         }
 
         return events;

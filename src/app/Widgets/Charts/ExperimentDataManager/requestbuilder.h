@@ -7,6 +7,7 @@
 #include "../Data/Requests/memoryutilisationrequest.h"
 #include "../Data/Requests/markerrequest.h"
 #include "../Data/Requests/porteventrequest.h"
+#include "../Data/Requests/networkutilisationrequest.h"
 
 #include <memory>
 
@@ -40,6 +41,7 @@ public:
     const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
     const MarkerRequest& getMarkerRequest() const;
     const PortEventRequest& getPortEventRequest() const;
+    const NetworkUtilisationRequest& getNetworkUtilisationRequest() const;
 
 private:
     std::unique_ptr<PortLifecycleRequest> portLifecycleRequest_;
@@ -48,6 +50,7 @@ private:
     std::unique_ptr<MemoryUtilisationRequest> memoryUtilisationRequest_;
     std::unique_ptr<MarkerRequest> markerRequest_;
     std::unique_ptr<PortEventRequest> portEventRequest_;
+    std::unique_ptr<NetworkUtilisationRequest> networkUtilisationRequest_;
 };
 
 #endif // REQUESTBUILDER_H
