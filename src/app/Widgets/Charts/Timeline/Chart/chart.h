@@ -72,8 +72,6 @@ private:
     void paintMarkerEventSeries(QPainter &painter);
     void paintPortEventSeries(QPainter &painter);
 
-    //void paintPortLifecycleSeries(QPainter& painter);
-
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
 
