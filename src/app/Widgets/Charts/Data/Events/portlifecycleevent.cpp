@@ -13,8 +13,30 @@ PortLifecycleEvent::PortLifecycleEvent(const AggServerResponse::Port& port,
                                        qint64 time,
                                        QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::PORT_LIFECYCLE, time, port.name, parent),
-      port_(port),
-      type_(type) {}
+      type_(type),
+      series_id_(port.graphml_id),
+      id_(port.graphml_id + getTypeString(type) + QString::number(time)) {}
+
+
+/**
+ * @brief PortLifecycleEvent::toString
+ * @param dateTimeFormat
+ * @return
+ */
+QString PortLifecycleEvent::toString(const QString& dateTimeFormat) const
+{
+    return getTypeString(type_) + " - " + getDateTimeString(dateTimeFormat) + "\n";
+}
+
+
+/**
+ * @brief PortLifecycleEvent::getSeriesID
+ * @return
+ */
+const QString& PortLifecycleEvent::getSeriesID() const
+{
+    return series_id_;
+}
 
 
 /**
@@ -23,28 +45,7 @@ PortLifecycleEvent::PortLifecycleEvent(const AggServerResponse::Port& port,
  */
 const QString& PortLifecycleEvent::getID() const
 {
-    return port_.graphml_id;
-}
-
-
-/**
- * @brief PortLifecycleEvent::toString
- * @param dateTimeFormat
- * @return
- */
-QString PortLifecycleEvent::toString(const QString &dateTimeFormat) const
-{
-    return getTypeString(type_) + " - " + getDateTimeString(dateTimeFormat) + "\n";
-}
-
-
-/**
- * @brief PortLifecycleEvent::getPort
- * @return
- */
-const AggServerResponse::Port& PortLifecycleEvent::getPort() const
-{
-    return port_;
+    return id_;
 }
 
 
@@ -63,7 +64,7 @@ AggServerResponse::LifecycleType PortLifecycleEvent::getType() const
  * @param type
  * @return
  */
-const QString &PortLifecycleEvent::getTypeString(AggServerResponse::LifecycleType type)
+const QString& PortLifecycleEvent::getTypeString(AggServerResponse::LifecycleType type)
 {
     switch (type) {
     case AggServerResponse::LifecycleType::CONFIGURE: {

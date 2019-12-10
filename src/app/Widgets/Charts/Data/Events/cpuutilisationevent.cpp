@@ -1,6 +1,5 @@
 #include "cpuutilisationevent.h"
 
-
 /**
  * @brief CPUUtilisationEvent::CPUUtilisationEvent
  * @param hostname
@@ -13,6 +12,8 @@ CPUUtilisationEvent::CPUUtilisationEvent(const QString& hostname,
                                          qint64 time,
                                          QObject *parent)
     : MEDEA::Event(MEDEA::ChartDataKind::CPU_UTILISATION, time, hostname, parent),
+      series_id_(hostname),
+      id_(hostname + QString::number(time)),
       hostname_(hostname),
       utilisation_(utilisation) {}
 
@@ -26,7 +27,17 @@ QString CPUUtilisationEvent::toString(const QString &dateTimeFormat) const
 {
     return "Host: " + hostname_ + "\n" +
            "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
-           "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+}
+
+
+/**
+ * @brief CPUUtilisationEvent::getSeriesID
+ * @return
+ */
+const QString& CPUUtilisationEvent::getSeriesID() const
+{
+    return series_id_;
 }
 
 
@@ -36,7 +47,7 @@ QString CPUUtilisationEvent::toString(const QString &dateTimeFormat) const
  */
 const QString& CPUUtilisationEvent::getID() const
 {
-    return hostname_;
+    return id_;
 }
 
 

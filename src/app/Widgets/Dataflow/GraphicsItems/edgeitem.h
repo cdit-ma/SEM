@@ -19,9 +19,8 @@ public:
     void updateSourcePos();
     void updateDestinationPos();
 
-    void flashEdge(qint64 start_time, qint64 flash_duration_ms = 33, qreal edge_width_multiplier = 1.0);
-
 private slots:
+    void flashEdge(qint64 from_time, int flash_duration_ms);
     void unflashEdge(qint64 flash_end_time);
 
 protected:

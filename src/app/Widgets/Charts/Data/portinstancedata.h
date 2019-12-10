@@ -29,11 +29,14 @@ public:
     const PortLifecycleRequest& getPortLifecycleRequest() const;
     const PortEventRequest& getPortEventRequest() const;
 
+    qint64 getPreviousEventTime(qint64 time) const;
+    qint64 getNextEventTime(qint64 time) const;
+
     void addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events);
-    PortLifecycleEventSeries* getPortLifecycleEventSeries() const;
+    const PortLifecycleEventSeries& getPortLifecycleEventSeries() const;
 
     void addPortEvents(const QVector<PortEvent*>& events);
-    PortEventSeries* getPortEventSeries() const;
+    const PortEventSeries& getPortEventSeries() const;
 
     void updateData(qint64 new_last_updated_time);
 

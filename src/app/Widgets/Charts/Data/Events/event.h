@@ -1,6 +1,7 @@
 #ifndef MEDEAEVENT_H
 #define MEDEAEVENT_H
 
+#include <QDebug>
 #include <QObject>
 #include "../protomessagestructs.h"
 
@@ -19,29 +20,33 @@ public:
                    const QString& name = "no_name",
                    QObject* parent = nullptr);
 
+    /*~Event() {
+        qDebug() << "Event deleted - " << GetChartDataKindString(getKind());
+    }*/
+
     ChartDataKind getKind() const;
 
     qint64 getTimeMS() const;
     QString getDateTimeString(const QString& format) const;
 
-    const QString& getName() const;
+    const QString& getSeriesName() const;
 
-    // The ID is used to group the events together
-    // Combined with the ChartDataKind, it identifies the series that the event belongs to
+    // The getSeriesID is used to group the events together
+    // Combined with the ChartDataKind and experiment_run_id, it identifies the series that the event belongs to
+    virtual const QString& getSeriesID() const = 0;
     virtual const QString& getID() const = 0;
     virtual QString toString(const QString& dateTimeFormat) const = 0;
 
     static const QList<ChartDataKind>& GetChartDataKinds();
-    static const QString& toString(ChartDataKind kind);
     static const QString& GetChartDataKindString(ChartDataKind kind);
     static const QString& GetChartDataKindStringSuffix(ChartDataKind kind);
 
 private:
-    const ChartDataKind kind_;
-    const qint64 time_;
-    const QString name_;
+    ChartDataKind kind_;
+    qint64 time_;
+    QString series_name_;
 
-    const int eventID_;
+    int event_id_;
     static int event_ID;
 };
 

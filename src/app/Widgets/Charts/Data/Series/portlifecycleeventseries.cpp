@@ -22,7 +22,7 @@ void PortLifecycleEventSeries::addEvent(MEDEA::Event* event)
     if (event->getKind() != MEDEA::ChartDataKind::PORT_LIFECYCLE) {
         throw std::invalid_argument("PortLifecycleEventSeries::addEvent - Invalid event kind.");
     }
-    if (!events_.contains(event)) {
+    if (!contains(event)) {
         addEventToList(*event);
     }
 }
