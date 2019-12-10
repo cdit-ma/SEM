@@ -1,7 +1,10 @@
 -- ****************** SqlDBM: Modified for postgres ******************;
 -- ***************************************************;
 
-DROP TABLE IF EXISTS PortLifecycleEvent;
+DROP TABLE IF EXISTS ReqRepConnection;
+
+
+DROP TABLE IF EXISTS PubSubConnection;
 
 
 DROP TABLE IF EXISTS WorkloadEvent;
@@ -11,6 +14,9 @@ DROP TABLE IF EXISTS PortEvent;
 
 
 DROP TABLE IF EXISTS ComponentLifecycleEvent;
+
+
+DROP TABLE IF EXISTS PortLifecycleEvent;
 
 
 DROP TABLE IF EXISTS UserEvent;
@@ -553,3 +559,44 @@ CONSTRAINT FK_PortEvent_PortID_Port_PortID FOREIGN KEY (PortID) REFERENCES Port 
 );
 
 
+
+-- ************************************* PubSubConnection
+
+CREATE TABLE PubSubConnection
+(
+ PubPortID          INT NOT NULL ,
+ SubPortID          INT NOT NULL ,
+
+PRIMARY KEY (PubPortID, SubPortID),
+CONSTRAINT FK_PubSubConnection_PubPortID_Port_PortID FOREIGN KEY (PubPortID) REFERENCES Port (PortID),
+CONSTRAINT FK_PubSubConnection_SubPortID_Port_PortID FOREIGN KEY (SubPortID) REFERENCES Port (PortID)
+);
+
+-- ************************************* ReqRepConnection
+
+CREATE TABLE ReqRepConnection
+(
+ ReqPortID          INT NOT NULL ,
+ RepPortID          INT NOT NULL ,
+
+PRIMARY KEY (ReqPortID, RepPortID),
+CONSTRAINT FK_PubSubConnection_ReqPortID_Port_PortID FOREIGN KEY (ReqPortID) REFERENCES Port (PortID),
+CONSTRAINT FK_PubSubConnection_RepPortID_Port_PortID FOREIGN KEY (RepPortID) REFERENCES Port (PortID)
+);
+
+
+
+
+
+-- FUNCITONS
+
+-- getPortFromGraphml(ExperimentRunID, GraphmlID)
+DROP FUNCTION IF EXISTS getPortFromGraphml;
+CREATE FUNCTION getPortFromGraphml(int, text) RETURNS integer
+    AS 'SELECT PortID
+        FROM Port
+            INNER JOIN ComponentInstance ON Port.ComponentInstanceID = ComponentInstance.ComponentInstanceID
+            INNER JOIN Component ON Component.ComponentID = ComponentInstance.ComponentID
+        WHERE (Component.ExperimentRunID=$1 AND Port.GraphmlID=$2);'
+    LANGUAGE SQL
+    IMMUTABLE;

@@ -18,13 +18,17 @@ class Activatable;
 // REVIEW (Mitch): To improve testability, implement following:
 //   Logger pure virtual interface
 //   Log Sink pure virtual interface
-//  Dependency inject log sink into logger. Supply convenience functions that construct current logger instances
-//  Allows us to build a stubbed out log sink that we can assess state of during testing.
+//  Dependency inject log sink into logger. Supply convenience functions that construct current
+//  logger instances Allows us to build a stubbed out log sink that we can assess state of during
+//  testing.
 
-// REVIEW (Mitch): Pure virtual interface for logger. Thoughts on moving to a naming convention for interface only classes?
-//   e.g. in this case `LoggerInterface` given C++ doesn't have language support to strictly mark interfaces.
+// REVIEW (Mitch): Pure virtual interface for logger. Thoughts on moving to a naming convention for
+// interface only classes?
+//   e.g. in this case `LoggerInterface` given C++ doesn't have language support to strictly mark
+//   interfaces.
 
-// REVIEW (Mitch): Move Logger out of global unqualified namespace. This can lead to ugly, unexpected ADL rules
+// REVIEW (Mitch): Move Logger out of global unqualified namespace. This can lead to ugly,
+// unexpected ADL rules
 class Logger{
     public:
         enum class Mode {
@@ -34,7 +38,8 @@ class Logger{
         };
 
         // REVIEW (Mitch): Consider renaming to LifeCycleEventType (or similar).
-        //   Create LifeCycleEvent+others structs that capture EventType along with all relevant event info
+        //   Create LifeCycleEvent+others structs that capture EventType along with all relevant
+        //   event info
         enum class LifeCycleEvent{
             STARTED = 0,
             CONFIGURED = 1,
@@ -75,7 +80,8 @@ class Logger{
         virtual void LogMessage(const Activatable& entity, const std::string& message) = 0;
         virtual void LogException(const Activatable& entity, const std::string& message) = 0;
         virtual void LogLifecycleEvent(const Activatable& entity, const Logger::LifeCycleEvent& event) = 0;
-        // REVIEW (Mitch): Default arguments on pure virtual functions behave unexpectedly, Herb Sutter says "DON'T DO THAT"
+        // REVIEW (Mitch): Default arguments on pure virtual functions behave unexpectedly, Herb
+        // Sutter says "DON'T DO THAT"
         //   http://www.gotw.ca/gotw/005.htm
         virtual void LogWorkerEvent(const Worker& worker, const std::string& function_name, const Logger::WorkloadEvent& event, int work_id = -1, std::string args = "", int message_log_level = -1) = 0;
         virtual void LogPortUtilizationEvent(const Port& port, const ::BaseMessage& message, const Logger::UtilizationEvent& event, const std::string& message_str = "") = 0;

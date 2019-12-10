@@ -26,9 +26,10 @@
 //  an instance of re_node_manager running in a docker container
 class DeploymentManager{
     public:
-    // REVIEW (Mitch): Config struct, use endpoint class to be defined in util library, use std::filesystem path
-        DeploymentManager(
-            Execution& execution,
+    // REVIEW (Mitch): Config struct, use endpoint class to be defined in util library, use
+    //  std::filesystem path
+    // REVIEW(Jackson): Can't actually use std::filesystem at this point in time
+    DeploymentManager(Execution& execution,
             const std::string& experiment_name,
             const std::string& ip_address,
             const std::string& container_id,
@@ -49,17 +50,17 @@ class DeploymentManager{
     private:
         std::unique_ptr<NodeManager::SlaveId> GetSlaveID() const;
         void ProcessControlQueue();
-        void InteruptControlQueue();            // REVIEW (Mitch): Typo in Interrupt
-
+        void InteruptControlQueue(); // REVIEW (Mitch): Typo in Interrupt
 
         bool is_master_node_ = false;
         const std::string library_path_;
         const std::string ip_address_;
-        const std::string container_id_;            // REVIEW (Mitch): "Container" is misleading. See earlier review comment.
+        // REVIEW (Mitch): "Container" is misleading. See earlier review comment.
+        const std::string container_id_;
         const std::string experiment_name_;
         Execution& execution_;
-        
-        std::unique_ptr<zmq::ProtoReceiver> proto_receiever_;           // REVIEW (Mitch): Typo in receiver
+
+        std::unique_ptr<zmq::ProtoReceiver> proto_receiever_; // REVIEW (Mitch): Typo in receiver
         std::unique_ptr<zmq::ProtoRequester> proto_requester_;
         std::unique_ptr<SlaveHeartbeater> heartbeater_;
 

@@ -33,18 +33,24 @@ typedef std::function<ComponentCConstructor> ComponentConstructor;
 // REVIEW (Mitch): Move this away from being an Activatable
 class DeploymentContainer : public Activatable{
     public:
-    // REVIEW (Mitch): document differences between two constructors. Implement deployment container config struct?
-        DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path, const NodeManager::Container& container);
-        DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path);
-        // REVIEW (Mitch): Virtual destructors are many??
-        ~DeploymentContainer();
-        void Configure(const NodeManager::Container& container);
+    // REVIEW (Mitch): document differences between two constructors. Implement deployment container
+    //  config struct?
+    DeploymentContainer(const std::string& experiment_name,
+                        const std::string& host_name,
+                        const std::string& library_path,
+                        const NodeManager::Container& container);
+    DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path);
+    // REVIEW (Mitch): Virtual destructors are many??
+    ~DeploymentContainer();
+    void Configure(const NodeManager::Container& container);
 
-        // REVIEW (Mitch): weak_ptr and shared_ptr return types, why?
-        std::weak_ptr<Component> AddComponent(std::unique_ptr<Component> component, const std::string& name);
-        // REVIEW (Mitch): Indexing components by std::string seems like a bad idea. Move to using ComponentID type?
-        //  Supply pretty print get_name(ComponentID) -> std::string for human readability.
-        std::weak_ptr<Component> GetComponent(const std::string& name);
+    // REVIEW (Mitch): weak_ptr and shared_ptr return types, why?
+    std::weak_ptr<Component>
+    AddComponent(std::unique_ptr<Component> component, const std::string& name);
+    // REVIEW (Mitch): Indexing components by std::string seems like a bad idea. Move to using
+    //  ComponentID type?
+    //  Supply pretty print get_name(ComponentID) -> std::string for human readability.
+    std::weak_ptr<Component> GetComponent(const std::string& name);
         std::shared_ptr<Component> RemoveComponent(const std::string& name);
 
 
@@ -61,14 +67,14 @@ class DeploymentContainer : public Activatable{
     public:
         void SetLoggers(Activatable& entity);
     private:
-
-        // REVIEW (Mitch): can be static member or free function. Name better than GetNamespaceString
+        // REVIEW (Mitch): can be static member or free function. Name better than
+        //  GetNamespaceString
         std::string GetNamespaceString(const NodeManager::Info& port);
 
         // REVIEW (Mitch): Get/Constructors???
         //  Elaboration, why do these functions configure, register and return a configured x?
-        //  Upon review of call sites, these functions are regularly called without capturing a return value.
-        //  Rework and annotate as [[nodiscard]] if non-void return type.
+        //  Upon review of call sites, these functions are regularly called without capturing a
+        //  return value. Rework and annotate as [[nodiscard]] if non-void return type.
         //Get/Constructors
         // REVIEW (Mitch): are shared pointers needed here?
         std::shared_ptr<Worker> GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb);

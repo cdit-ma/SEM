@@ -21,7 +21,8 @@ class CallbackException : public std::runtime_error{
 //Interface for a standard Port
 // REVIEW (Mitch): Move to actually being an interface
 //  Potentially rename to better reflect that this is closer to a `task` interface.
-//  Implementors of interface should be able to specify how the task is triggered (periodic, callback, subscriber port etc...)
+//  Implementors of interface should be able to specify how the task is triggered (periodic,
+//  callback, subscriber port etc...)
 class Port : public Activatable
 {
     public:
@@ -35,7 +36,8 @@ class Port : public Activatable
         };
 
         // REVIEW (Mitch): Consider config struct initialisation.
-        // REVIEW (Mitch): This constructor becomes Port(ComponentID, port_name, Middleware) after all suggested refactors.
+        // REVIEW (Mitch): This constructor becomes Port(ComponentID, port_name, Middleware) after
+        //  all suggested refactors.
         Port(std::weak_ptr<Component> component, const std::string& port_name, const Port::Kind& port_kind, const std::string& port_middleware);
         
         Port::Kind get_kind() const;
@@ -52,7 +54,8 @@ class Port : public Activatable
         void HandleTerminate();
         void HandleActivate();
 
-        // REVIEW (Mitch): Why do EventRecEIved and EventProcessed take an argument? They only increment a counter
+        // REVIEW (Mitch): Why do EventRecEIved and EventProcessed take an argument? They only
+        //  increment a counter
         void EventRecieved(const BaseMessage& message);
         void EventProcessed(const BaseMessage& message);
         void EventIgnored(const BaseMessage& message);
@@ -63,12 +66,14 @@ class Port : public Activatable
         //  Periodic port continues to be a special snowflake, consider rework.
         void SetKind(const Port::Kind& port_kind);
     private:
-    // REVIEW (Mitch): Replace component ref with parent component ID.
+        // REVIEW (Mitch): Replace component ref with parent component ID.
         std::weak_ptr<Component> component_;
-    // REVIEW (Mitch): Why is this a string? Investigate replacing all instances of middleware (stored as string)
-    //  with an enum (specialisations of this enum required for req/rep vs pub/sub).
+        // REVIEW (Mitch): Why is this a string? Investigate replacing all instances of middleware
+        //  (stored as string) with an enum (specialisations of this enum required for req/rep vs
+        //  pub/sub).
         std::string port_middleware_;
-        // REVIEW (Mitch): Is a "invalid" type value needed here? Is this only done for initialisation reasons?
+        // REVIEW (Mitch): Is a "invalid" type value needed here? Is this only done for
+        // initialisation reasons?
         Port::Kind port_kind_ = Port::Kind::NONE;
 
         std::atomic<uint64_t> received_count_{0};

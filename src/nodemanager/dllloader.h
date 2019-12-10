@@ -12,7 +12,7 @@ class DllLoader {
 public:
     ~DllLoader();
 
-// REVIEW (Mitch): use std::filesystem path
+    // REVIEW (Mitch): use std::filesystem path
     template<class T>
     T* GetLibraryFunction(const std::string& lib_path,
                           const std::string& lib_name,
@@ -30,7 +30,8 @@ private:
 
     // Library Path -> void *
     std::mutex mutex_;
-    // REVIEW (Mitch): Create named type that either wraps or type erases loaded library and loaded function handles.
+    // REVIEW (Mitch): Create named type that either wraps or type erases loaded library and loaded
+    //  function handles.
     // REVIEW (Mitch): Use std::filesystem paths as keys?
     std::unordered_map<std::string, void*> loaded_libraries_;
     std::unordered_map<std::string, void*> loaded_library_functions_;

@@ -8,8 +8,8 @@
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 
-// REVIEW (Mitch): Refactor cmakevars.h.in to supply RE_VERSION as a type safe std::string_view rather than a
-//  #define
+// REVIEW (Mitch): Refactor cmakevars.h.in to supply RE_VERSION as a type safe std::string_view
+//  rather than a #define
 #include "cmakevars.h"
 #include <util/execution.hpp>
 #include <comms/environmentrequester/environmentrequester.h>
@@ -160,7 +160,6 @@ int main(int argc, char **argv){
         std::cout << "** Endpoint: " << ip_address << std::endl;
         std::cout << "** Library Path: " << dll_path << std::endl;
     }
-        
 
     // REVIEW (Mitch): Long running code exists from here to the end of main()
     std::unique_ptr<DeploymentManager> deployment_manager;

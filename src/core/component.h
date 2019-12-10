@@ -98,9 +98,10 @@ class Component : public BehaviourContainer{
         void RegisterCallback(const std::string& port_name, std::function<ReplyType (void)> fn);
 
         // REVIEW (Mitch): Why does this function exist in Component?
-        //  Usage pattern for this function seems to be detailed in test/core/periodicevent/tests.cpp
-        // Consider redesigning how periodic callbacks are registered.
-        // Why does the component need to know about it's periodic port's callback?
+        //  Usage pattern for this function seems to be detailed in
+        //  test/core/periodicevent/tests.cpp
+        //  Consider redesigning how periodic callbacks are registered.
+        //  Why does the component need to know about it's periodic port's callback?
         void RegisterPeriodicCallback(const std::string& port_name, std::function<void ()> fn){
             RegisterCallback<void, BaseMessage>(port_name, [=](BaseMessage&){
                 fn();

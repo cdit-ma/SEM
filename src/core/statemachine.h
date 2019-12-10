@@ -23,11 +23,11 @@ struct EnumClassHash
 // REVIEW (Mitch): Consider using [Boost].SML
 class StateMachine{
 public:
-
     // REVIEW (Mitch): Transition enum class seems unnecessary. Could be changed to an
     //  atomic bool member.
-    // REVIEW (Mitch): Upon further review, Transition enum class is used internally to call execute_transition function,
-    //  as such, keep enum but stop using as "currently transitioning" flag.
+    // REVIEW (Mitch): Upon further review, Transition enum class is used internally to call
+    //  execute_transition function, as such, keep enum but stop using as "currently transitioning"
+    //  flag.
     enum class Transition{
         NO_TRANSITION = 0,
         CONFIGURE = 1,
@@ -60,7 +60,6 @@ public:
         static const std::string& ToString(const Transition& transation);
         static const std::string& ToString(const State& transation);
     private:
-
         // REVIEW (Mitch): rename "transition_state" to clearer verb such as "execute_transition"
         bool transition_state(const Transition& transition);
         bool run_transition_function(const Transition& transition);
@@ -73,7 +72,8 @@ public:
         std::mutex state_mutex_;
         std::atomic<State> state_{State::NOT_CONFIGURED};
 
-        // REVIEW (Mitch): Keeping track of which transition we're currently performing is unused. Consider atomic<bool>
+        // REVIEW (Mitch): Keeping track of which transition we're currently performing is unused.
+        //  Consider atomic<bool>
         std::atomic<Transition> transition_{Transition::NO_TRANSITION};
 };
 

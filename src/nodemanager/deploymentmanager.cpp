@@ -33,7 +33,8 @@ DeploymentManager::DeploymentManager(Execution& execution,
         new zmq::ProtoRequester(master_registration_endpoint));
 
     // REVIEW (Mitch): Convention reversal, zmq callbacks are genrally called Handle*
-    //  in this case the Handle function is called in our "process" thread once we notify our condition variable
+    //  in this case the Handle function is called in our "process" thread once we notify our
+    //  condition variable
     // Subscribe to NodeManager::ControlMessage Types
     proto_receiever_->RegisterProtoCallback<NodeManager::ControlMessage>(
         std::bind(&DeploymentManager::GotExperimentUpdate, this, std::placeholders::_1));

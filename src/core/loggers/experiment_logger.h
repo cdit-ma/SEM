@@ -12,11 +12,14 @@
 namespace Logan{
 // REVIEW (Mitch): What's the difference between an ExperimentLogger and a LoganLogger?
 //   This doesn't inherit from Logger?
-    class ExperimentLogger{
-        public:
-        // REVIEW (Mitch): This constructor is a good candidate for and experimentLogger config struct argument
-            ExperimentLogger(const std::string& experiment_name, const std::string& endpoint, ::Logger::Mode mode);
-            void LogLifecycleEvent(const ::Logger::LifeCycleEvent& event);
+class ExperimentLogger {
+public:
+    // REVIEW (Mitch): This constructor is a good candidate for and experimentLogger config struct
+    // argument
+    ExperimentLogger(const std::string& experiment_name,
+                     const std::string& endpoint,
+                     ::Logger::Mode mode);
+    void LogLifecycleEvent(const ::Logger::LifeCycleEvent& event);
 
             const std::string& GetExperimentName() const;
         private:

@@ -86,7 +86,8 @@ void DeploymentContainer::Configure(const NodeManager::Container& container){
                     //Setup logan logger
                     if(!logan_logger_){
                         try{
-                            // REVIEW (Mitch): Improve this interface, remove enum casting. Remove NotNeededException entirely.
+                            // REVIEW (Mitch): Improve this interface, remove enum casting. Remove
+                            //  NotNeededException entirely.
                             logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, host_name_, container.info().name(), container.info().id(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
                         }catch(const Logan::Logger::NotNeededException&){
                             // REVIEW (Mitch): Perform this check before calling constructor.
@@ -123,7 +124,8 @@ void DeploymentContainer::SetLoggers(Activatable& entity){
     entity.logger().AddLogger(Print::Logger::get_logger());
 }
 
-// REVIEW (Mitch): This function should not be here. Components own workers, move functionality to Component
+// REVIEW (Mitch): This function should not be here. Components own workers, move functionality to
+//  Component
 std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){
     if(component){
         const auto& worker_info_pb = worker_pb.info();
@@ -151,8 +153,8 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
 
 // REVIEW (Mitch): This should be split into Get and Configure Component. If, for whatever reason,
 //  we want to keep GetConfiguredComponent it should be composed of Get and Configure Component
-// REVIEW (Mitch): Construction is also handled here, third function probably needed. Helper function
-//  more justified.
+// REVIEW (Mitch): Construction is also handled here, third function probably needed. Helper
+//  function more justified.
 std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const NodeManager::Component& component_pb){
     const auto& component_info_pb = component_pb.info();
      
@@ -405,7 +407,8 @@ void DeploymentContainer::HandleConfigure(){
 
     for(const auto& p : components_){
         auto& component = p.second;
-        // REVIEW (Mitch): Why are we doing a pointer validity check here but not for logan_clients_?
+        // REVIEW (Mitch): Why are we doing a pointer validity check here but not for
+        //  logan_clients_?
         if(component){
             //Construct a thread to run the terminate function, which is blocking
             results.push_back(std::async(std::launch::async, &Activatable::Configure, component));
@@ -600,7 +603,6 @@ std::shared_ptr<Port> DeploymentContainer::ConstructSubscriberPort(const std::st
     }
     return port;
 }
-
 
 std::shared_ptr<Component> DeploymentContainer::ConstructComponent(const std::string& component_type, const std::string& component_name, const std::string& namespace_str, const std::string& component_id){
     std::shared_ptr<Component> component;

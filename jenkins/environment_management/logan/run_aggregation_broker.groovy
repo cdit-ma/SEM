@@ -33,7 +33,7 @@ pipeline{
                     }
 
                     if (docker_registry_endpoint) {
-                        docker.image("${docker_registry_endpoint}/logan").inside("--network host") {
+                        docker.image("${docker_registry_endpoint}/cdit-ma/re_minimal").inside("--network host") {
                             if(!utils.runScript("/re/bin/aggregation_broker ${args}") == 0){
                                 error('Running aggregation broker failed!')
                             }

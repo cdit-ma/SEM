@@ -5,9 +5,9 @@
 #include "component.h"
 #include <string>
 #include <memory>
-// REVIEW (Mitch): Documentation: This header is used to specify the interface that code-generated out
-//  components will expose for construction at model run time
- 
+// REVIEW (Mitch): Documentation: This header is used to specify the interface that code-generated
+//  out components will expose for construction at model run time
+
 // REVIEW (Mitch): Use "using" type alias here?
 //  using ComponentCConstructor = Component (*) (const std::string&);
 typedef Component* (ComponentCConstructor) (const std::string&);

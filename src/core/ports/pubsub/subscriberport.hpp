@@ -117,7 +117,8 @@ template <class BaseType>
 void SubscriberPort<BaseType>::HandleTerminate(){
     InterruptLoop();
     std::lock_guard<std::mutex> lock(thread_manager_mutex_);
-    // REVIEW (Mitch): Half baked defensive programming, what do we do if we don't have a ThreadManager
+    // REVIEW (Mitch): Half baked defensive programming, what do we do if we don't have a
+    //  ThreadManager
     if(thread_manager_){
         thread_manager_->Terminate();
         thread_manager_.reset();
@@ -195,7 +196,8 @@ void SubscriberPort<BaseType>::ProcessLoop(){
     thread_manager_->Thread_Terminated();
 };
 
-// REVIEW (Mitch): Change this function signature to take a moved in value. Change std::unique<BaseType to BaseType&&
+// REVIEW (Mitch): Change this function signature to take a moved in value. Change
+//  std::unique<BaseType to BaseType&&
 template <class BaseType>
 void SubscriberPort<BaseType>::EnqueueMessage(std::unique_ptr<BaseType> message){
     if(message){

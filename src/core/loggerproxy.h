@@ -9,14 +9,15 @@
 
 // REVIEW (Mitch): This is a log multiplexer, at least rename to reflect behaviour.
 
-// REVIEW (Mitch): Pending refactor outlined in logger.h (re. logger + log sink design) this class can be removed.
+// REVIEW (Mitch): Pending refactor outlined in logger.h (re. logger + log sink design) this class
+//  can be removed.
 //  Behaviour is emulated by simply allowing multiple sinks per logger
 
 class LoggerProxy : public Logger{
     public:
         LoggerProxy();
-        // REVIEW (Mitch): Review ownership patterns used here. Upon redesign/rework potentially have Logger take
-        //  ownership of LogSinks
+        // REVIEW (Mitch): Review ownership patterns used here. Upon redesign/rework potentially
+        //  have Logger take ownership of LogSinks
         void AddLogger(Logger& logger);
 
         void LogMessage(const Activatable& entity, const std::string& message);

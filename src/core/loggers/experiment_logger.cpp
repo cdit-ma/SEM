@@ -11,7 +11,8 @@ void FillInfoPB(ModelEvent::Info& info, Logan::ExperimentLogger& logger){
     info.mutable_timestamp()->Swap(&timestamp);
 }
 
-// REVIEW (Mitch): Initialise writer in constructor initialiser list with switch wrapped in helper func
+// REVIEW (Mitch): Initialise writer in constructor initialiser list with switch wrapped in helper
+// func
 Logan::ExperimentLogger::ExperimentLogger(const std::string& experiment_name, const std::string& endpoint, ::Logger::Mode mode):
     experiment_name_(experiment_name)
 {

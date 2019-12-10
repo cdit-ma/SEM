@@ -91,7 +91,8 @@ template<class ProtoType>
 void zmq::ProtoReceiver::RegisterProtoCallback(std::function<void(const ProtoType&)> callback_function){
     static_assert(std::is_base_of<google::protobuf::MessageLite, ProtoType>::value, "ProtoType must inherit from google::protobuf::MessageLite");
 
-    // REVIEW (Mitch): Review this code path. Can we specialise the lambda signature we're passing into register new proto?
+    // REVIEW (Mitch): Review this code path. Can we specialise the lambda signature we're passing
+    // into register new proto?
     //Register the callbacks
     proto_register_.RegisterProto<ProtoType>();
 

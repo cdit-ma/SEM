@@ -16,7 +16,6 @@ class Activatable{
     // REVIEW: Ultimately this should be an interface, specifying the behaviour expected of
     //  anything inheriting from activatable
 public:
-
     // REVIEW: This enum should remain part of this interface. Activatable implementing classes
     //   must implement a get_class (probably rename to avoid ambiguity with C++ classes) method
     //   that must return a valid Class(rename) enum.
@@ -37,10 +36,11 @@ public:
 
         // REVIEW: Const refs/string_views on these params
         void set_name(std::string name);
-        void set_id(std::string id);  // REVIEW: This will be changed in the near future to be uuid based
+        // REVIEW: This will be changed in the near future to be uuid based
+        void set_id(std::string id);
 
-        // REVIEW: Resolve ambiguity with class, currently represents the (label && type) of the interface implemented by the component
-        //  or message type of port
+        // REVIEW: Resolve ambiguity with class, currently represents the (label && type) of the
+        //  interface implemented by the component or message type of port
         void set_type(std::string type);
 
         Class get_class() const; 
@@ -49,10 +49,12 @@ public:
         std::string get_id() const;
         std::string get_type() const;
 
-        // REVIEW (Mitch): This function is a check while it reads like an action, potential rename to "can_process_event"
+        // REVIEW (Mitch): This function is a check while it reads like an action, potential rename
+        // to "can_process_event"
         bool process_event();
 
-        // REVIEW (Mitch): This should be moved to a pure abstract function once this class is changed to being an interface
+        // REVIEW (Mitch): This should be moved to a pure abstract function once this class is
+        // changed to being an interface
         LoggerProxy& logger() const;
 
         StateMachine::State get_state();

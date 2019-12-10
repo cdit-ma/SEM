@@ -8,12 +8,14 @@
 #include <core/logger.h>
 // REVIEW (Mitch): See refactor strategy detailed in ../logger.h
 namespace Print{
-// REVIEW (Mitch): Move Print::Logger out of Print namespace. This seems like a bad way to name inherited
+// REVIEW (Mitch): Move Print::Logger out of Print namespace. This seems like a bad way to name
+// inherited
 //  classes
 
-// REVIEW (Mitch): Investigate using fmtlib (https://github.com/fmtlib/fmt) to format log output (implementation detail)
-    class Logger : public ::Logger{
-        public:
+// REVIEW (Mitch): Investigate using fmtlib (https://github.com/fmtlib/fmt) to format log output
+// (implementation detail)
+class Logger : public ::Logger {
+public:
             static Print::Logger& get_logger();
             void SetLogLevel(int level);
 
@@ -28,7 +30,8 @@ namespace Print{
             std::ostream& GetStream(int level) const;
             mutable std::mutex mutex_;
 
-            // REVIEW (Mitch): Change this to an atomic so we don't have to hit a mutex every time we go to log.
+            // REVIEW (Mitch): Change this to an atomic so we don't have to hit a mutex every time
+            // we go to log.
             //  Or remove ability to mutate logging level during execution
             int log_level_ = 10;
     };

@@ -8,7 +8,7 @@ class LogController;
 
 class LoganClient : public Activatable{
     public:
-    // REVIEW (Mitch): The underlying Activatable is never instantiated.
+        // REVIEW (Mitch): The underlying Activatable is never instantiated.
         LoganClient(const std::string& id);
         ~LoganClient();
 

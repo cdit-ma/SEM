@@ -1,14 +1,15 @@
 #Build Deps
 #UBUNTU
 sudo apt-get update && sudo apt-get install -y \
-    git \
-    cmake \
-    build-essential \
-    wget \
-    ninja-build \
-    openjdk-11-jre-headless \
-    ccache \
-    chrony
+  git \
+  cmake \
+  build-essential \
+  wget \
+  ninja-build \
+  openjdk-11-jre-headless \
+  ccache \
+  libpq-dev postgresql-server-dev-all \
+  chrony
 
 # Install Docker
 sudo apt-get install -y \
@@ -26,7 +27,6 @@ sudo add-apt-repository \
     stable" && \
 sudo apt update && \
 sudo apt install docker-ce docker-ce-cli containerd.io
-
 
 # Install Boost
 wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz -q && \
@@ -81,6 +81,17 @@ cmake -G Ninja .. && \
 sudo cmake --build . --target install && \
 cd ~ && \
 rm sigar-1.6.4B.tar.gz sigar-sigar-1.6.4B -rf
+
+# Install pqxx
+wget http://192.168.111.1/raid/software_share/UtilityLibraries/libpqxx7-0-0.tar.gz -q && \
+  tar xf libpqxx7-0-0.tar.gz && \
+  cd libpqxx && \
+  mkdir build && \
+  cd build && \
+  cmake -G Ninja .. && \
+  sudo cmake --build . --target install && \
+  cd ~ && \
+  rm libpqxx7-0-0.tar.gz libpqxx -rf
 
 # Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \

@@ -183,8 +183,8 @@ const std::string ExecutionManager::GetSlaveKey(const NodeManager::SlaveId& slav
     return GetSlaveKey(slave.ip_address(), slave.container_id());
 }
 
-// REVIEW (Mitch): Slave operation failure should be handled when they're encountered. Currently we're
-//  waiting till we have messages from all slaves before acting on any one failure.
+// REVIEW (Mitch): Slave operation failure should be handled when they're encountered. Currently
+//  we're waiting till we have messages from all slaves before acting on any one failure.
 std::unique_ptr<NodeManager::SlaveHeartbeatReply> ExecutionManager::HandleSlaveHeartbeat(const NodeManager::SlaveHeartbeatRequest request){
     using namespace NodeManager;
     const auto& slave_key = GetSlaveKey(request.id());
@@ -321,7 +321,7 @@ void ExecutionManager::PushStateChange(const NodeManager::ControlMessage::Type& 
             experiment_logger_->LogLifecycleEvent(lifecycle_event);
         }
     }catch(const std::exception& ex){
-// REVIEW (Mitch): Do something with this exception
+        // REVIEW (Mitch): Do something with this exception
     }
 }
 
@@ -331,8 +331,8 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
     bool should_execute = true;
     try{
         if(execute_future.valid()){
-            // REVIEW (Mitch): this future is used as a semaphore. It gets by a call to execute_promise_.set_value()
-            //  Use a condition variable here?
+            // REVIEW (Mitch): this future is used as a semaphore. It gets by a call to
+            //  execute_promise_.set_value(). Use a condition variable here?
             execute_future.get();
             //Sleep to allow time for the publisher to be bound
             std::this_thread::sleep_for(std::chrono::seconds(1));

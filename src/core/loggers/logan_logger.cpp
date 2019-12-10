@@ -9,7 +9,8 @@
 
 // REVIEW (Mitch): The following Fill* functions should be namespaced
 // REVIEW (Mitch): These functions are trivially unit testable
-// REVIEW (Mitch): Should these functions be changed to return a protobuf message of their respective type?
+// REVIEW (Mitch): Should these functions be changed to return a protobuf message of their
+// respective type?
 //  [[nodiscard]], rvo and protobuf message construction api should all be considered.
 void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
@@ -112,7 +113,8 @@ void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, con
 }
 
 void Logan::Logger::LogMessage(const Activatable& entity, const std::string& message){
-    // REVIEW (Mitch): Recursive call? No, name ambiguity resolved through argument count. Code smell
+    // REVIEW (Mitch): Recursive call? No, name ambiguity resolved through argument count. Code
+    // smell
     LogMessage(entity, false, message);
 }
 
@@ -129,8 +131,8 @@ void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& func
     FillInfoPB(*(event_pb->mutable_info()), *this);
 
     // REVIEW (Mitch): Clarify what loglevel as a concept means. I think the term is being used
-    //  interchangeably for 'current verbosity level' and 'verbosity level at which a particular event
-    //  type should be logged'.
+    //  interchangeably for 'current verbosity level' and 'verbosity level at which a particular
+    //  event type should be logged'.
     auto log_level = GetWorkloadLogLevel(event, message_log_level);
     
     try{

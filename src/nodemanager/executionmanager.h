@@ -21,7 +21,7 @@ namespace zmq{class ProtoWriter;};
 //  it will be the master.
 class ExecutionManager{
     public:
-    // REVIEW (Mitch): no reason for this enum to be public
+        // REVIEW (Mitch): no reason for this enum to be public
         enum class SlaveState{
             OFFLINE = 0,
             REGISTERED = 1,
@@ -30,7 +30,7 @@ class ExecutionManager{
             ERROR_ = 4
         };
 
-    // REVIEW (Mitch): no reason for this struct to be public
+        // REVIEW (Mitch): no reason for this struct to be public
         struct SlaveStatus{
             SlaveState state;
             std::chrono::steady_clock::time_point heartbeat_time;
@@ -65,7 +65,8 @@ class ExecutionManager{
         void ExecutionLoop(int duration_sec, std::future<void> execute_future, std::future<void> terminate_future);
 
         // REVIEW (Mitch): Should investigate making these functions sync instead of async push.
-        //  Require a slave to respond with success or failure upon acting receiving a controlmessage
+        //  Require a slave to respond with success or failure upon acting receiving a
+        //  controlmessage
         void PushControlMessage(const std::string& topic, std::unique_ptr<NodeManager::ControlMessage> message);
         void PushStateChange(const NodeManager::ControlMessage::Type& state);
         static std::unique_ptr<NodeManager::ControlMessage> ConstructStateControlMessage(NodeManager::ControlMessage::Type type);
