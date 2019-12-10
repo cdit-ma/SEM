@@ -181,9 +181,11 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
     /*
     for (const auto& e : port_events) {
         auto p_e = qobject_cast<PortEvent*>(e);
-        qDebug() << "event: " << p_e << "," << e; // << "-" << p_e->getTypeString(p_e->getType());
+        qDebug() << "event: " << p_e << "," << e << " - " << p_e->getTypeString(p_e->getType());
     }
-    qDebug() << "--------------------------------------------------------";
+    if (has_port_events) {
+        qDebug() << "--------------------------------------------------------";
+    }
     */
 }
 

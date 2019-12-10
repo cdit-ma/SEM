@@ -75,8 +75,6 @@ void DataflowDialog::playbackSpeedChanged(double multiplier)
  */
 void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data)
 {
-    //return;
-
     if (exp_name.isEmpty()) {
         throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - Experiment name cannot be empty.");
     }
