@@ -36,7 +36,6 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
         throw std::invalid_argument("ExperimentData::addExperimentRun - Invalid experiment run.");
     }
 
-    /*
     auto&& exp_run_data = std::make_unique<ExperimentRunData>(exp_run_id,
                                                               exp_run.job_num,
                                                               exp_run.start_time,
@@ -45,16 +44,6 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
 
     // TODO: We should figure out what the emplace/insert functions actually do
     experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));
-    */
-
-    auto&& exp_run_data = new ExperimentRunData(static_cast<quint32>(exp_run_id),
-                                                exp_run.job_num,
-                                                exp_run.start_time,
-                                                exp_run.end_time,
-                                                exp_run.last_updated_time);
-
-    // TODO: We should figure out what the emplace/insert functions actually do
-    experiment_run_map_.emplace(exp_run_id, exp_run_data);
 }
 
 

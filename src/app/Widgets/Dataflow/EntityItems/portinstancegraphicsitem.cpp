@@ -184,7 +184,7 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
         qDebug() << "event: " << p_e << "," << e << " - " << p_e->getTypeString(p_e->getType());
     }
     if (has_port_events) {
-        qDebug() << "--------------------------------------------------------";
+        qDebug() << "-----------------------------------------------------------";
     }
     */
 }
