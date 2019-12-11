@@ -23,10 +23,13 @@ public:
 
     void setAlignment(Qt::Alignment alignment);
 
-    void flashPort(quint32 flash_duration_ms = 33, QColor flash_color = QColor());
+    void flashPort(qint64 start_time, qint64 flash_duration_ms, QColor flash_color = QColor());
 
 signals:
     void itemMoved();
+
+private slots:
+    void unflashPort(qint64 flash_end_time);
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
@@ -34,6 +37,9 @@ protected:
 private:
     void themeChanged();
     void setupCentralisedIconLayout();
+
+    // This is used to prevent the flash from being stopped/reset prematurely due to previous flash timers ending
+    qint64 flash_end_time_ = 0;
 
     Qt::Alignment alignment_ = Qt::AlignLeft;
     QPair<QString, QString> icon_path;

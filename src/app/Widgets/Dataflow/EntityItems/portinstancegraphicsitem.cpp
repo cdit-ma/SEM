@@ -2,7 +2,7 @@
 #include "../../../theme.h"
 
 #include <QPainter>
-#include <QtConcurrent>
+#include <QTimer>
 
 //#define PIXMAP_PADDING 15 // better for square icons
 #define PIXMAP_PADDING 10
@@ -51,8 +51,8 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
 
     setupCentralisedIconLayout();
 
-    themeChanged();
     connect(Theme::theme(), &Theme::theme_Changed, this, &PortInstanceGraphicsItem::themeChanged);
+    themeChanged();
 }
 
 
@@ -131,12 +131,58 @@ void PortInstanceGraphicsItem::setAlignment(Qt::Alignment alignment)
 
 
 /**
+ * @brief PortInstanceGraphicsItem::flashPort
+ * @param start_time
+ * @param flash_duration_ms
+ * @param flash_color
+ */
+void PortInstanceGraphicsItem::flashPort(qint64 start_time, qint64 flash_duration_ms, QColor flash_color)
+{
+    if (flash_duration_ms <= 0) {
+        return;
+    }
+
+    if (!flash_color.isValid()) {
+        flash_color = highlight_color_;
+    }
+
+    // Switch the ellipse color
+    ellipse_color_ = flash_color;
+    update();
+
+    // This function can be called multiple times by multiple callers
+    // Due to this, the flash end time needs to be stored and updated to avoid the flash being stopped prematurely
+    auto&& end_time = start_time + flash_duration_ms;
+    flash_end_time_ = qMax(end_time, flash_end_time_);
+
+    QTimer::singleShot(static_cast<int>(flash_duration_ms), this, [this, end_time]() {
+        unflashPort(end_time);
+    });
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::unflashPort
+ * @param flash_end_time
+ */
+void PortInstanceGraphicsItem::unflashPort(qint64 flash_end_time)
+{
+    if (flash_end_time_ == flash_end_time) {
+        // Reset the ellipse color
+        ellipse_color_ = default_color_;
+        update();
+        flash_end_time_ = 0;
+    }
+}
+
+
+/**
  * @brief PortInstanceGraphicsItem::paint
  * @param painter
  * @param option
  * @param widget
  */
-void PortInstanceGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void PortInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -147,32 +193,6 @@ void PortInstanceGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphi
     auto icon_size = icon_pixmap_item_->preferredWidth() / 2.0;
     painter->setBrush(ellipse_color_);
     painter->drawEllipse(icon_pixmap_item_->geometry().center(), icon_size, icon_size);
-}
-
-
-/**
- * @brief PortInstanceGraphicsItem::flashPort
- * @param flash_duration_ms
- * @param flash_color
- */
-void PortInstanceGraphicsItem::flashPort(quint32 flash_duration_ms, QColor flash_color)
-{
-    if (!flash_color.isValid()) {
-        flash_color = highlight_color_;
-    }
-
-    QtConcurrent::run([this, flash_duration_ms, flash_color]() {
-        // Switch the ellipse color
-        ellipse_color_ = flash_color;
-        update();
-
-        // Hold the highlight for the flash duration
-        QThread::currentThread()->msleep(flash_duration_ms);
-
-        // Reset the ellipse color
-        ellipse_color_ = default_color_;
-        update();
-    });
 }
 
 

@@ -127,10 +127,6 @@ void DataflowDialog::themeChanged()
     setStyleSheet(theme->getScrollBarStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
-
-    for (const auto& edge_item : edge_items_) {
-        edge_item->themeChanged(theme);
-    }
 }
 
 
@@ -212,6 +208,8 @@ void DataflowDialog::clearScene()
 
     view_->scene()->clear();
     port_items_.clear();
+    edge_items_.clear();
+    source_id_for_destination_id_.clear();
 
     portlifecycle_series_list_.clear();
     portevent_series_list_.clear();
@@ -447,31 +445,32 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
 
     for (const auto& series : active_series_.values(from_time)) {
         auto port = port_items_.value(series->getID(), nullptr);
-        if (port) {
-            if (series->getKind() == MEDEA::ChartDataKind::PORT_EVENT) {
-                const auto& port_id = port->getGraphmlID();
-                auto&& port_kind = port->getPortKind();
-                if (port_kind == AggServerResponse::Port::PUBLISHER || port_kind == AggServerResponse::Port::REQUESTER || port_kind == AggServerResponse::Port::REPLIER) {
-                    auto&& events = series->getEventsBetween(from_time, to_time);
-                    int event_count = events.size();
-                    min_event_count = qMin(event_count, min_event_count);
-                    max_event_count = qMax(event_count, max_event_count);
-
-                    // If the port is a Replier, insert the attached port connection's source graphml id
-                    if (port_kind == AggServerResponse::Port::REPLIER) {
-                        const auto& from_port_id = source_id_for_destination_id_.value(port_id, "");
-                        active_edges_event_count.insert(from_port_id, event_count);
-                    } else {
-                        active_edges_event_count.insert(port_id, event_count);
-                    }
-                }
-            }
-            port->flashPort(flash_duration_ms);
-            qDebug() << "Port: " << port->getGraphmlID() << ", " << port->getPortName() << " "
-                     << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
-        } else {
-            qDebug() << "No port item to flash for event";
+        if (port == nullptr) {
+            qWarning("DataflowDialog::playbackEvents - There is no port graphics item to flash for this event");
+            continue;
         }
+
+        // We only want to flash the ports that send messages; hence, we don't visualise port events for Subscriber ports
+        const auto& port_id = port->getGraphmlID();
+        const auto& port_kind = port->getPortKind();
+
+        if (port_kind == AggServerResponse::Port::PUBLISHER || port_kind == AggServerResponse::Port::REQUESTER || port_kind == AggServerResponse::Port::REPLIER) {
+
+            auto&& events = series->getEventsBetween(from_time, to_time);
+            int event_count = events.size();
+            min_event_count = qMin(event_count, min_event_count);
+            max_event_count = qMax(event_count, max_event_count);
+
+            // If the port is a Replier, insert the attached port connection's source graphml id
+            if (port_kind == AggServerResponse::Port::REPLIER) {
+                const auto& from_port_id = source_id_for_destination_id_.value(port_id, "");
+                active_edges_event_count.insert(from_port_id, event_count);
+            } else {
+                active_edges_event_count.insert(port_id, event_count);
+            }
+        }
+
+        port->flashPort(playback_current_time_, flash_duration_ms);
     }
 
     // Flash the edges from ports that either sent out, requested or received messages
@@ -481,7 +480,7 @@ void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
             const auto& from_edge = edge_items_.value(from_port_id, nullptr);
             if (from_edge) {
                 auto&& event_count_ratio = (active_edges_event_count.value(from_port_id) - min_event_count) / event_range;
-                from_edge->flashEdge(flash_duration_ms, 1 + event_count_ratio);
+                from_edge->flashEdge(playback_current_time_, flash_duration_ms, 1 + event_count_ratio);
             }
         }
     }
@@ -548,7 +547,6 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
         auto edge_item = new MEDEA::EdgeItem(from_port, to_port);
         connect(from_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateSourcePos(); });
         connect(to_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateDestinationPos(); });
-        edge_item->themeChanged(Theme::theme());
         addItemToScene(edge_item);
 
         auto&& from_port_id = from_port->getGraphmlID();
