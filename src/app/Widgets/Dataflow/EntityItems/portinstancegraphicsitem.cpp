@@ -177,16 +177,6 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
             emit flashEdge(from_time, flash_duration_ms);
         }
     }
-
-    /*
-    for (const auto& e : port_events) {
-        auto p_e = qobject_cast<PortEvent*>(e);
-        qDebug() << "event: " << p_e << "," << e << " - " << p_e->getTypeString(p_e->getType());
-    }
-    if (has_port_events) {
-        qDebug() << "-----------------------------------------------------------";
-    }
-    */
 }
 
 
