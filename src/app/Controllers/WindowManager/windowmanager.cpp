@@ -203,18 +203,18 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     playback_speed_spinbox->setSuffix("x");
     connect(playback_speed_spinbox, SIGNAL(valueChanged(double)), dialog, SLOT(playbackSpeedChanged(double)));
 
-    Theme* theme = Theme::theme();
-    playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
-    connect(theme, &Theme::theme_Changed, [playback_speed_spinbox, theme]() {
-        playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
-    });
-
     QWidgetAction* widget_action = new QWidgetAction(dialog);
     widget_action->setDefaultWidget(playback_speed_spinbox);
 
-    QAction* speed_settings_action = dockWidget->addAction("Change Playback Speed", "Icons", "speedGauge", Qt::AlignCenter);
+    QAction* speed_settings_action = dockWidget->addAction("Change Playback Speed", "Icons", "speed", Qt::AlignCenter);
     speed_settings_action->setMenu(new QMenu(dialog));
     speed_settings_action->menu()->addAction(widget_action);
+
+    Theme* theme = Theme::theme();
+    playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
+    connect(theme, &Theme::theme_Changed, [theme, playback_speed_spinbox]() {
+        playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
+    });
 
     const auto& titlebar = dockWidget->getTitleBar();
     auto tool_button = qobject_cast<QToolButton*>(titlebar->widgetForAction(speed_settings_action));
