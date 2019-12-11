@@ -22,8 +22,7 @@ void NetworkUtilisationEventSeries::addEvent(MEDEA::Event* event)
     if (event->getKind() != MEDEA::ChartDataKind::NETWORK_UTILISATION) {
         throw std::invalid_argument("NetworkUtilisationEventSeries::addEvent - Invalid event kind.");
     }
-
-    if (!events_.contains(event)) {
+    if (!contains(event)) {
         auto utilisation = qobject_cast<NetworkUtilisationEvent*>(event)->getUtilisation();
         if (utilisation < minUtilisation_) {
             minUtilisation_ = utilisation;

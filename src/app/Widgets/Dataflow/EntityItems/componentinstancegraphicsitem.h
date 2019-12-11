@@ -23,16 +23,16 @@ signals:
     void toggleExpanded(bool expand);
     void itemMoved();
 
-protected:
+protected:    
+    QRectF boundingRect() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
     void moveEvent(QGraphicsSceneMoveEvent *event) override;
-
-    QRectF boundingRect() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     
 private:
     void themeChanged();
@@ -55,8 +55,7 @@ private:
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
     TextGraphicsItem* label_text_item_ = nullptr;  
 
-    QString comp_inst_name_;
-    QString comp_inst_graphml_id_;
+    const ComponentInstanceData& comp_inst_data_;
 };
 
 #endif // COMPINSTGRAPHICSITEM_H

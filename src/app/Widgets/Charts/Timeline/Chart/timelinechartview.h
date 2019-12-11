@@ -74,9 +74,12 @@ private slots:
     void timelineRubberbandUsed(double left, double right);
     
 private:
-    void addedChartEvents(const MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun);
+    void addEvent(MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun, MEDEA::Event* event);
+    void addedEvents(const AggServerResponse::ExperimentRun& experimentRun);
 
-    MEDEA::EventSeries* constructSeriesForEventKind(const AggServerResponse::ExperimentRun &experimentRun, const MEDEA::ChartDataKind kind, const QString& ID, const QString& label);
+    MEDEA::EventSeries* getSeriesForEventKind(MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun, const QString& eventSeriesID) const;
+    MEDEA::EventSeries* constructSeriesForEventKind(MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun, const QString& eventSeriesID, const QString& label);
+
     MEDEA::Chart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
     void removeChart(const QString& ID, bool clearing = false);
 
@@ -113,7 +116,7 @@ private:
     QHash<MEDEA::ChartDataKind, QAction*> legendActions_;
     QHash<MEDEA::ChartDataKind, QPushButton*> hoverDisplayButtons_;
 
-    QHash<quint32, int> experimentRunSeriesCount_;
+    QHash<qint32, int> experimentRunSeriesCount_;
     QHash<quint32, QPair<qint64, qint64>> experimentRunTimeRange_;
     QPair<quint32, qint64> longestExperimentRunDuration_;
     QPair<qint64, qint64> totalTimeRange_;

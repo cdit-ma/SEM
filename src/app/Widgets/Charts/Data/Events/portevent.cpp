@@ -16,11 +16,20 @@ PortEvent::PortEvent(const AggServerResponse::Port& port,
                      qint64 time,
                      QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::PORT_EVENT, time, port.name, parent),
-      port_(port),
       type_(type),
       sequence_num_(sequence_num),
-      message_(message) {}
-      //id_(port.graphml_id + "_" + QString::number(sequence_num)) {}
+      series_id_(port.graphml_id),
+      id_(port.graphml_id + getTypeString(type) + QString::number(time)),
+      message_(message)
+{
+    // TODO: Only using this to catch the weird events being received when adding the CompInst data into the request
+    /*
+    qDebug() << "Created Port Event for - " << port.name << "," << port.path;
+    qDebug() << "Event: " << toString("hh:mm:ss.zzz");
+    qDebug() << "---";
+    */
+}
+
 
 
 /**
@@ -36,23 +45,22 @@ QString PortEvent::toString(const QString& dateTimeFormat) const
 
 
 /**
+ * @brief PortEvent::getSeriesID
+ * @return
+ */
+const QString& PortEvent::getSeriesID() const
+{
+    return series_id_;
+}
+
+
+/**
  * @brief PortEvent::getID
  * @return
  */
 const QString& PortEvent::getID() const
 {
-    return port_.graphml_id;
-    //return id_;
-}
-
-
-/**
- * @brief PortEvent::getPort
- * @return
- */
-const AggServerResponse::Port& PortEvent::getPort() const
-{
-    return port_;
+    return id_;
 }
 
 

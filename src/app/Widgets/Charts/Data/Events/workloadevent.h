@@ -29,7 +29,9 @@ public:
 
     QString toString(const QString& dateTimeFormat) const;
 
+    const QString& getSeriesID() const;
     const QString& getID() const;
+
     const QString& getArgs() const;
     const QString& getFunctionName() const;
 
@@ -38,17 +40,15 @@ public:
     quint32 getLogLevel() const;
 
 private:
-    //const AggServerResponse::WorkerInstance& workerInstance_;
-    const AggServerResponse::WorkerInstance workerInstance_;
-    const WorkloadEventType type_;
+    WorkloadEventType type_;
 
-    const quint32 workloadID_;
-    const quint32 logLevel_;
+    quint32 workloadID_;
+    quint32 logLevel_;
 
-    const QString functionName_;
-    const QString args_;
-    const QString ID_;
-
+    QString series_id_;
+    QString id_;
+    QString functionName_;
+    QString args_;
 };
 
 #endif // WORKLOADEVENT_H

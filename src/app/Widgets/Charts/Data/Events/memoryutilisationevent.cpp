@@ -1,6 +1,5 @@
 #include "memoryutilisationevent.h"
 
-
 /**
  * @brief MemoryUtilisationEvent::MemoryUtilisationEvent
  * @param hostname
@@ -13,6 +12,8 @@ MemoryUtilisationEvent::MemoryUtilisationEvent(const QString& hostname,
                                                qint64 time,
                                                QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::MEMORY_UTILISATION, time, hostname, parent),
+      series_id_(hostname),
+      id_(hostname + QString::number(time)),
       hostname_(hostname),
       utilisation_(utilisation) {}
 
@@ -26,7 +27,17 @@ QString MemoryUtilisationEvent::toString(const QString &dateTimeFormat) const
 {
     return "Host: " + hostname_ + "\n" +
            "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
-           "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+}
+
+
+/**
+ * @brief MemoryUtilisationEvent::getSeriesID
+ * @return
+ */
+const QString& MemoryUtilisationEvent::getSeriesID() const
+{
+    return series_id_;
 }
 
 
@@ -34,9 +45,9 @@ QString MemoryUtilisationEvent::toString(const QString &dateTimeFormat) const
  * @brief MemoryUtilisationEvent::getID
  * @return
  */
-const QString &MemoryUtilisationEvent::getID() const
+const QString& MemoryUtilisationEvent::getID() const
 {
-    return hostname_;
+    return id_;
 }
 
 

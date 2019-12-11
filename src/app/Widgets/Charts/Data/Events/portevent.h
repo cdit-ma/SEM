@@ -28,6 +28,7 @@ public:
 
     QString toString(const QString& dateTimeFormat) const;
 
+    const QString& getSeriesID() const;
     const QString& getID() const;
     const AggServerResponse::Port& getPort() const;
 
@@ -35,12 +36,13 @@ public:
     static const QString& getTypeString(PortEventType type);
 
 private:    
-    const AggServerResponse::Port port_;
-    const PortEventType type_;
-    const quint64 sequence_num_;
-    const QString message_;
+    PortEventType type_;
 
-    //const QString id_;
+    quint64 sequence_num_;
+
+    QString series_id_;
+    QString id_;
+    QString message_;
 };
 
 #endif // PORTEVENT_H

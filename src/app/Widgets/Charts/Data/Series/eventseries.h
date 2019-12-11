@@ -39,6 +39,9 @@ public:
     const QString& getID() const;
     const QString& getEventSeriesID() const;
 
+    qint64 getPreviousTime(qint64 time) const;
+    qint64 getNextTime(qint64 time) const;
+
     QList<Event*>::const_iterator getFirstAfterTime(const qint64 timeMS) const;
     QList<Event*> getEventsBetween(qint64 fromTimeMS = -1, qint64 toTimeMS = -1) const;
 
@@ -65,12 +68,15 @@ protected:
             int numberOfItems,
             const QString& dateTimeFormat) const;
 
+    bool contains(Event* event) const;
+
     void addEventToList(Event& event);
     void updateTimeRange(qint64 new_timestamp);
 
-    QList<Event*> events_;
-
 private:
+    QList<Event*> events_;
+    QStringList event_ids_;
+
     QString ID_;
     QString label_;
     MEDEA::ChartDataKind kind_;

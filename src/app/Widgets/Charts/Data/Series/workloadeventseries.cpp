@@ -22,7 +22,7 @@ void WorkloadEventSeries::addEvent(MEDEA::Event* event)
     if (event->getKind() != MEDEA::ChartDataKind::WORKLOAD) {
         throw std::invalid_argument("WorkloadEventSeries::addEvent - Invalid event kind.");
     }
-    if (!events_.contains(event)) {
+    if (!contains(event)) {
         addEventToList(*event);
     }
 }

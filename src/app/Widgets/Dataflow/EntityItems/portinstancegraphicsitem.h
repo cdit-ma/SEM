@@ -21,12 +21,20 @@ public:
 
     QRectF getIconSceneRect() const;
 
+    qint64 getPreviousEventTime(qint64 time) const;
+    qint64 getNextEventTime(qint64 time) const;
+
     void setAlignment(Qt::Alignment alignment);
 
-    void flashPort(quint32 flash_duration_ms = 33, QColor flash_color = QColor());
+    void playEvents(qint64 from_time, qint64 to_time);
 
 signals:
     void itemMoved();
+    void flashEdge(qint64 from_time, int flash_duration_ms);
+
+private slots:
+    void flashPort(qint64 from_time, QColor flash_color = QColor());
+    void unflashPort(qint64 flash_end_time);
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
@@ -34,6 +42,9 @@ protected:
 private:
     void themeChanged();
     void setupCentralisedIconLayout();
+
+    qint64 flash_end_time_ = 0;
+    bool event_src_port_ = false;
 
     Qt::Alignment alignment_ = Qt::AlignLeft;
     QPair<QString, QString> icon_path;
@@ -52,9 +63,7 @@ private:
     PixmapGraphicsItem* sub_icon_pixmap_item_ = nullptr;
     TextGraphicsItem* sub_label_text_item_ = nullptr;
 
-    QString graphml_id_;
-    QString port_name_;
-    AggServerResponse::Port::Kind port_kind_;
+    const PortInstanceData& port_inst_data_;
 };
 
 #endif // PORTINSTGRAPHICSITEM_H

@@ -47,78 +47,6 @@ DataflowDialog::DataflowDialog(QWidget *parent)
 
 
 /**
- * @brief DataflowDialog::addPortLifecycleEventsToSeries
- * NOTE - This is only used to prototyte the flashing of ports for port lifecycle events
- * @param events
- */
-void DataflowDialog::addPortLifecycleEventsToSeries(const QVector<PortLifecycleEvent*>& events)
-{
-    /**
-     * NOTE: This function is only here to test getting events between a time interval from a series
-     * The series will already be constructed when using the new experiment data classes
-     */
-
-    for (const auto& event : events) {
-        if (event != nullptr) {
-            MEDEA::EventSeries* series = nullptr;
-            auto&& series_id = event->getID();
-            // Check if a series for the event already exists
-            if (portlifecycle_series_list_.contains(series_id)) {
-                series = portlifecycle_series_list_.value(series_id);
-            } else {
-                // Construct new series
-                auto port_id = series_id.split("_").first();
-                series = new PortLifecycleEventSeries(series_id);
-                portlifecycle_series_list_.insert(series_id, series);
-                if (!series_list_.contains(series)) {
-                    series_list_.append(series);
-                }
-            }
-            if (series) {
-                series->addEvent(event);
-            }
-        }
-    }
-
-    calculateActiveTimes();
-}
-
-
-/**
- * @brief DataflowDialog::addPortEventsToSeries
- * NOTE - This is only used to prototyte the flashing of ports for port events
- * @param events
- */
-void DataflowDialog::addPortEventsToSeries(const QVector<PortEvent*>& events)
-{
-
-    for (const auto& event : events) {
-        if (event != nullptr) {
-            MEDEA::EventSeries* series = nullptr;
-            auto&& series_id = event->getID();
-            // Check if a series for the event already exists
-            if (portevent_series_list_.contains(series_id)) {
-                series = portevent_series_list_.value(series_id);
-            } else {
-                // Construct new series
-                auto port_id = series_id.split("_").first();
-                series = new PortEventSeries(series_id);
-                portevent_series_list_.insert(series_id, series);
-                if (!series_list_.contains(series)) {
-                    series_list_.append(series);
-                }
-            }
-            if (series) {
-                series->addEvent(event);
-            }
-        }
-    }
-
-    calculateActiveTimes();
-}
-
-
-/**
  * @brief DataflowDialog::themeChanged
  */
 void DataflowDialog::themeChanged()
@@ -127,10 +55,6 @@ void DataflowDialog::themeChanged()
     setStyleSheet(theme->getScrollBarStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
-
-    for (const auto& edge_item : edge_items_) {
-        edge_item->themeChanged(theme);
-    }
 }
 
 
@@ -141,11 +65,6 @@ void DataflowDialog::themeChanged()
 void DataflowDialog::playbackSpeedChanged(double multiplier)
 {
     playback_interval_ = default_playback_interval_ms * multiplier;
-
-    // TODO: Once the graphics items deal with rendering their own events at a given timeframe,
-    // we won't need the active time hash and we will no longer need to reset the playback here
-    calculateActiveTimes();
-    resetPlayback();
 }
 
 
@@ -212,13 +131,6 @@ void DataflowDialog::clearScene()
 
     view_->scene()->clear();
     port_items_.clear();
-
-    portlifecycle_series_list_.clear();
-    portevent_series_list_.clear();
-    series_list_.clear();
-
-    active_series_.clear();
-    active_times_.clear();
 }
 
 
@@ -270,21 +182,17 @@ void DataflowDialog::pausePlayback()
  */
 void DataflowDialog::jumpToPreviousActivity()
 {
-    qDebug() << "JUMP to PREVIOUS activity";
+    qDebug() << "JUMP to PREVIOUS activity"; // from " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
 
-    if (active_times_.size() == 0) {
-        return;
+    qint64 prev_time = playback_current_time_;
+    for (const auto& port : port_items_) {
+        const auto& port_prev_time = port->getPreviousEventTime(playback_current_time_);
+        prev_time = qMin(port_prev_time, prev_time);
     }
-
-    // Get the iterator to the first active time that is greater than or equal to the current playback time
-    auto prev_active_time_itr = active_times_.lower_bound(playback_current_time_);
-    if (prev_active_time_itr != active_times_.begin()) {
-        prev_active_time_itr--;
+    if (prev_time < playback_current_time_) {
+        playback_current_time_ = prev_time;
+        playback_controls.setCurrentTime(prev_time);
     }
-
-    auto&& last_active_time = *prev_active_time_itr;
-    playback_current_time_ = last_active_time;
-    playback_controls.setCurrentTime(last_active_time);
 }
 
 
@@ -293,23 +201,17 @@ void DataflowDialog::jumpToPreviousActivity()
  */
 void DataflowDialog::jumpToNextActivity()
 {
-    qDebug() << "JUMP to NEXT activity";
+    qDebug() << "JUMP to NEXT activity"; // from " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
 
-    if (active_times_.size() == 0) {
-        return;
+    qint64 next_time = playback_current_time_;
+    for (const auto& port : port_items_) {
+        const auto& port_next_time = port->getNextEventTime(playback_current_time_);
+        next_time = qMax(port_next_time, next_time);
     }
-
-    // Get the iterator to the first active time that is greater than the current playback time
-    auto next_active_time_itr = active_times_.upper_bound(playback_current_time_);
-
-    // If there is no active time after the current playback time, do nothing
-    if (next_active_time_itr == active_times_.end()) {
-        return;
+    if (next_time > playback_current_time_) {
+        playback_current_time_ = next_time;
+        playback_controls.setCurrentTime(next_time);
     }
-
-    auto&& last_active_time = *next_active_time_itr;
-    playback_current_time_ = last_active_time;
-    playback_controls.setCurrentTime(last_active_time);
 }
 
 
@@ -353,29 +255,6 @@ void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_
     }
     auto parent_dockwidget = qobject_cast<BaseDockWidget*>(parentWidget());
     parent_dockwidget->setTitle(title);
-}
-
-
-/**
- * @brief DataflowDialog::calculateActiveTimes
- */
-void DataflowDialog::calculateActiveTimes()
-{
-    active_times_.clear();
-    active_series_.clear();
-
-    auto current_time = exp_run_start_time_;
-    while (current_time < exp_run_end_time_) {
-        auto to_time = current_time + playback_interval_;
-        for (const auto& series : series_list_) {
-            const auto& events = series->getEventsBetween(current_time, to_time);
-            if (!events.isEmpty()) {
-                active_times_.insert(current_time);
-                active_series_.insertMulti(current_time, series);
-            }
-        }
-        current_time = to_time;
-    }
 }
 
 
@@ -432,63 +311,6 @@ void DataflowDialog::resetPlayback()
 
 
 /**
- * @brief DataflowDialog::playbackEvents
- * @param from_time
- * @param to_time
- */
-void DataflowDialog::playbackEvents(qint64 from_time, qint64 to_time)
-{
-    QHash<QString, qreal> active_edges_event_count;
-
-    // The temporary min_event_count value should be set as close to 'infinity' as possible, so that any future
-    // updates are guaranteed to be smaller than the default. Same applies to max_event_count, but in reverse
-    int min_event_count = INT_MAX;
-    int max_event_count = 0;
-
-    for (const auto& series : active_series_.values(from_time)) {
-        auto port = port_items_.value(series->getID(), nullptr);
-        if (port) {
-            if (series->getKind() == MEDEA::ChartDataKind::PORT_EVENT) {
-                const auto& port_id = port->getGraphmlID();
-                auto&& port_kind = port->getPortKind();
-                if (port_kind == AggServerResponse::Port::PUBLISHER || port_kind == AggServerResponse::Port::REQUESTER || port_kind == AggServerResponse::Port::REPLIER) {
-                    auto&& events = series->getEventsBetween(from_time, to_time);
-                    int event_count = events.size();
-                    min_event_count = qMin(event_count, min_event_count);
-                    max_event_count = qMax(event_count, max_event_count);
-
-                    // If the port is a Replier, insert the attached port connection's source graphml id
-                    if (port_kind == AggServerResponse::Port::REPLIER) {
-                        const auto& from_port_id = source_id_for_destination_id_.value(port_id, "");
-                        active_edges_event_count.insert(from_port_id, event_count);
-                    } else {
-                        active_edges_event_count.insert(port_id, event_count);
-                    }
-                }
-            }
-            port->flashPort(flash_duration_ms);
-            qDebug() << "Port: " << port->getGraphmlID() << ", " << port->getPortName() << " "
-                     << series->getEventsBetween(from_time, playback_current_time_).count() << " events";
-        } else {
-            qDebug() << "No port item to flash for event";
-        }
-    }
-
-    // Flash the edges from ports that either sent out, requested or received messages
-    if (!active_edges_event_count.isEmpty()) {
-        auto&& event_range = (max_event_count > min_event_count) ? max_event_count - min_event_count : 1.0;
-        for (const auto& from_port_id : active_edges_event_count.keys()) {
-            const auto& from_edge = edge_items_.value(from_port_id, nullptr);
-            if (from_edge) {
-                auto&& event_count_ratio = (active_edges_event_count.value(from_port_id) - min_event_count) / event_range;
-                from_edge->flashEdge(flash_duration_ms, 1 + event_count_ratio);
-            }
-        }
-    }
-}
-
-
-/**
  * @brief DataflowDialog::timerEvent
  * @param event
  */
@@ -506,7 +328,7 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
             // Send a signal to the playback controls to update the play/pause button
             emit playbackActivated(false);
             stopPlaybackTimer(); //  this stops the timer without resetting the playback time
-            qDebug() << "PLAYBACK FINISHED ----------------------------------------------------";
+            qDebug() << "PLAYBACK FINISHED -----------------------------------------------------";
         }
 
     } else {
@@ -517,12 +339,12 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
         //auto&& elapsed_time = playback_current_time_ - exp_run_start_time_;
         //qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << elapsed_time / 1000.000 << "S";
 
-        auto&& active_time_itr = active_times_.find(from_time);
-        if (active_time_itr != active_times_.end()) {
-            qDebug() << "Time range: " << QDateTime::fromMSecsSinceEpoch(from_time).toString("hh:mm:ss.zzz")
-                     << " to " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-            playbackEvents(from_time, playback_current_time_);
-            qDebug() << "----------------------------------------------------";
+        /*qDebug() << "---";
+        qDebug() << "FROM: " << QDateTime::fromMSecsSinceEpoch(from_time).toString("hh:mm:ss.zzz")
+                 << " TO " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");*/
+
+        for (const auto& port_item : port_items_) {
+            port_item->playEvents(from_time, playback_current_time_);
         }
     }
 
@@ -544,16 +366,8 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
             qWarning("DataflowDialog::displayExperimentState - Failed to construct edge; from_port/to_port is null.");
             continue;
         }
-
         auto edge_item = new MEDEA::EdgeItem(from_port, to_port);
-        connect(from_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateSourcePos(); });
-        connect(to_port, &PortInstanceGraphicsItem::itemMoved, [edge_item]{ edge_item->updateDestinationPos(); });
-        edge_item->themeChanged(Theme::theme());
         addItemToScene(edge_item);
-
-        auto&& from_port_id = from_port->getGraphmlID();
-        edge_items_.insert(from_port_id, edge_item);
-        source_id_for_destination_id_.insert(from_port_id, to_port->getGraphmlID());
     }
 }
 

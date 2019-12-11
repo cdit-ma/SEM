@@ -2,32 +2,34 @@
 #include "../../../theme.h"
 
 #include <QPainter>
-#include <QtConcurrent>
+#include <QTimer>
+#include <QDateTime>
 
-//#define PIXMAP_PADDING 15 // better for square icons
-#define PIXMAP_PADDING 10
+//const int pixmap_padding = 15; // better for square icons
+const int pixmap_padding = 10;
+const int flash_duration_ms = 200;
 
 /**
  * @brief PortInstanceGraphicsItem::PortInstanceGraphicsItem
  * @param port_data
  * @param parent
+ * @throws std::invalid_argument
  */
 PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_data, QGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      graphml_id_(port_data.getGraphmlID()),
-      port_name_(port_data.getName()),
-      port_kind_(port_data.getKind())
+      port_inst_data_(port_data)
 {
     icon_path.first = "Icons";
 
     // Identify Port kind
-    switch (port_kind_) {
+    switch (port_data.getKind()) {
     case AggServerResponse::Port::Kind::PERIODIC: {
         icon_path.second = "clockCycle";
         break;
     }
     case AggServerResponse::Port::Kind::PUBLISHER: {
         icon_path.second = "arrowRightLong";
+        event_src_port_ = true;
         break;
     }
     case AggServerResponse::Port::Kind::SUBSCRIBER: {
@@ -36,14 +38,16 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
     }
     case AggServerResponse::Port::Kind::REQUESTER: {
         icon_path.second = "arrowTopRight";
+        event_src_port_ = true;
         break;
     }
     case AggServerResponse::Port::Kind::REPLIER: {
         icon_path.second = "arrowBottomRight";
+        event_src_port_ = true;
         break;
     }
-    default:
-        break;
+    case AggServerResponse::Port::Kind::NO_KIND:
+        throw std::invalid_argument("PortInstanceGraphicsItem::PortInstanceGraphicsItem - Port kind is unknown");
     }
 
     setFlags(flags() | QGraphicsWidget::ItemIsSelectable);
@@ -51,8 +55,8 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
 
     setupCentralisedIconLayout();
 
-    themeChanged();
     connect(Theme::theme(), &Theme::theme_Changed, this, &PortInstanceGraphicsItem::themeChanged);
+    themeChanged();
 }
 
 
@@ -62,7 +66,7 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
  */
 const QString& PortInstanceGraphicsItem::getGraphmlID() const
 {
-    return graphml_id_;
+    return port_inst_data_.getGraphmlID();
 }
 
 
@@ -72,7 +76,7 @@ const QString& PortInstanceGraphicsItem::getGraphmlID() const
  */
 const QString& PortInstanceGraphicsItem::getPortName() const
 {
-    return port_name_;
+    return port_inst_data_.getName();
 }
 
 
@@ -82,7 +86,7 @@ const QString& PortInstanceGraphicsItem::getPortName() const
  */
 AggServerResponse::Port::Kind PortInstanceGraphicsItem::getPortKind() const
 {
-    return port_kind_;
+    return port_inst_data_.getKind();
 }
 
 
@@ -94,6 +98,28 @@ QRectF PortInstanceGraphicsItem::getIconSceneRect() const
 {
     //return mapFromParent(icon_pixmap_item_->boundingRect()).boundingRect();
     return icon_pixmap_item_->sceneBoundingRect();
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::getPreviousEventTime
+ * @param time
+ * @return
+ */
+qint64 PortInstanceGraphicsItem::getPreviousEventTime(qint64 time) const
+{
+    return port_inst_data_.getPreviousEventTime(time);
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::getNextEventTime
+ * @param time
+ * @return
+ */
+qint64 PortInstanceGraphicsItem::getNextEventTime(qint64 time) const
+{
+    return port_inst_data_.getNextEventTime(time);
 }
 
 
@@ -131,12 +157,85 @@ void PortInstanceGraphicsItem::setAlignment(Qt::Alignment alignment)
 
 
 /**
+ * @brief PortInstanceGraphicsItem::playEvents
+ * @param from_time
+ * @param to_time
+ */
+void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
+{
+    const auto& port_lifecycle_event_series = port_inst_data_.getPortLifecycleEventSeries();
+    const auto& port_lifecycle_events = port_lifecycle_event_series.getEventsBetween(from_time, to_time);
+
+    const auto& port_event_series = port_inst_data_.getPortEventSeries();
+    const auto& port_events = port_event_series.getEventsBetween(from_time, to_time);
+
+    bool has_port_events = !port_events.isEmpty();
+    if (!port_lifecycle_events.isEmpty() || has_port_events) {
+        auto&& flash_color = has_port_events ? highlight_color_ : Theme::theme()->getMenuIconColor(ColorRole::SELECTED);
+        flashPort(from_time, flash_color);
+        if (event_src_port_ && has_port_events) {
+            emit flashEdge(from_time, flash_duration_ms);
+        }
+    }
+
+    /*
+    for (const auto& e : port_events) {
+        auto p_e = qobject_cast<PortEvent*>(e);
+        qDebug() << "event: " << p_e << "," << e << " - " << p_e->getTypeString(p_e->getType());
+    }
+    if (has_port_events) {
+        qDebug() << "--------------------------------------------------------";
+    }
+    */
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::flashPort
+ * @param from_time
+ * @param flash_color
+ */
+void PortInstanceGraphicsItem::flashPort(qint64 from_time, QColor flash_color)
+{
+    if (!flash_color.isValid()) {
+        flash_color = highlight_color_;
+    }
+
+    // Switch the ellipse color
+    ellipse_color_ = flash_color;
+    update();
+
+    auto&& end_time = from_time + flash_duration_ms;
+    flash_end_time_ = qMax(end_time, flash_end_time_);
+
+    QTimer::singleShot(flash_duration_ms, this, [this, end_time]() {
+        unflashPort(end_time);
+    });
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::unflashPort
+ * @param flash_end_time
+ */
+void PortInstanceGraphicsItem::unflashPort(qint64 flash_end_time)
+{
+    // Reset the ellipse color when we've reached the flash end time
+    if (flash_end_time_ == flash_end_time) {
+        ellipse_color_ = default_color_;
+        update();
+        flash_end_time_ = 0;
+    }
+}
+
+
+/**
  * @brief PortInstanceGraphicsItem::paint
  * @param painter
  * @param option
  * @param widget
  */
-void PortInstanceGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void PortInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -147,32 +246,6 @@ void PortInstanceGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphi
     auto icon_size = icon_pixmap_item_->preferredWidth() / 2.0;
     painter->setBrush(ellipse_color_);
     painter->drawEllipse(icon_pixmap_item_->geometry().center(), icon_size, icon_size);
-}
-
-
-/**
- * @brief PortInstanceGraphicsItem::flashPort
- * @param flash_duration_ms
- * @param flash_color
- */
-void PortInstanceGraphicsItem::flashPort(quint32 flash_duration_ms, QColor flash_color)
-{
-    if (!flash_color.isValid()) {
-        flash_color = highlight_color_;
-    }
-
-    QtConcurrent::run([this, flash_duration_ms, flash_color]() {
-        // Switch the ellipse color
-        ellipse_color_ = flash_color;
-        update();
-
-        // Hold the highlight for the flash duration
-        QThread::currentThread()->msleep(flash_duration_ms);
-
-        // Reset the ellipse color
-        ellipse_color_ = default_color_;
-        update();
-    });
 }
 
 
@@ -212,11 +285,11 @@ void PortInstanceGraphicsItem::setupCentralisedIconLayout()
 
     QPixmap pix = Theme::theme()->getImage(icon_path.first, icon_path.second);
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    icon_pixmap_item_->setPixmapPadding(PIXMAP_PADDING);
+    icon_pixmap_item_->setPixmapPadding(pixmap_padding);
     icon_pixmap_item_->setParentItem(this);
     icon_pixmap_item_->setSquareSize(size);
 
-    label_text_item_ = new TextGraphicsItem(port_name_, this);
+    label_text_item_ = new TextGraphicsItem(getPortName(), this);
     label_text_item_->setParentItem(this);
 
     int sub_size = size / 2;

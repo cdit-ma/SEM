@@ -28,7 +28,8 @@ signals:
 
 private:
     QString experiment_name_;
-    std::unordered_map<quint32, std::unique_ptr<ExperimentRunData>> experiment_run_map_;
+    std::unordered_map<quint32, ExperimentRunData*> experiment_run_map_;
+    //std::unordered_map<quint32, std::unique_ptr<ExperimentRunData>> experiment_run_map_;
 };
 
 }

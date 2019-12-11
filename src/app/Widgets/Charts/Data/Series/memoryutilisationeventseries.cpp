@@ -22,8 +22,7 @@ void MemoryUtilisationEventSeries::addEvent(MEDEA::Event* event)
     if (event->getKind() != MEDEA::ChartDataKind::MEMORY_UTILISATION) {
         throw std::invalid_argument("MemoryUtilisationEventSeries::addEvent - Invalid event kind.");
     }
-
-    if (!events_.contains(event)) {
+    if (!contains(event)) {
         auto utilisation = qobject_cast<MemoryUtilisationEvent*>(event)->getUtilisation();
         if (utilisation < minUtilisation_) {
             minUtilisation_ = utilisation;

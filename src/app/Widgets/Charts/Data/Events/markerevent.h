@@ -16,14 +16,16 @@ public:
 
     QString toString(const QString& dateTimeFormat) const;
 
+    const QString& getSeriesID() const;
     const QString& getID() const;
 
     qint64 getMarkerID() const;
 
 private:
-    const AggServerResponse::ComponentInstance componentInstance_;
-    const qint64 markerID_;
+    QString series_id_;
+    QString id_;
 
+    qint64 markerID_;
 };
 
 #endif // MARKEREVENT_H

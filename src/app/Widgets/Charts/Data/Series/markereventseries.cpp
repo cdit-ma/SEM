@@ -125,8 +125,7 @@ void MarkerEventSeries::addEvent(MEDEA::Event* event)
     if (event->getKind() != MEDEA::ChartDataKind::MARKER) {
         throw std::invalid_argument("MarkerEventSeries::addEvent - Invalid event kind.");
     }
-
-    if (!events_.contains(event)) {
+    if (!contains(event)) {
 
         auto markerEvent = qobject_cast<MarkerEvent*>(event);
         auto markerID = markerEvent->getMarkerID();

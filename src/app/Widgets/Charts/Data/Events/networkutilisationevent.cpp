@@ -13,6 +13,8 @@ NetworkUtilisationEvent::NetworkUtilisationEvent(const QString& hostname,
                                                qint64 time,
                                                QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::NETWORK_UTILISATION, time, hostname, parent),
+      series_id_(hostname),
+      id_(hostname + QString::number(time)),
       hostname_(hostname),
       utilisation_(utilisation) {}
 
@@ -25,8 +27,18 @@ NetworkUtilisationEvent::NetworkUtilisationEvent(const QString& hostname,
 QString NetworkUtilisationEvent::toString(const QString& dateTimeFormat) const
 {
     return "Host: " + hostname_ + "\n" +
-           "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
-           "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+            "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
+            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+}
+
+
+/**
+ * @brief NetworkUtilisationEvent::getSeriesID
+ * @return
+ */
+const QString& NetworkUtilisationEvent::getSeriesID() const
+{
+    return series_id_;
 }
 
 
@@ -36,7 +48,7 @@ QString NetworkUtilisationEvent::toString(const QString& dateTimeFormat) const
  */
 const QString& NetworkUtilisationEvent::getID() const
 {
-    return hostname_;
+    return id_;
 }
 
 

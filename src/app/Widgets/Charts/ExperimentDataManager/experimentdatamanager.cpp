@@ -197,7 +197,7 @@ void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID
     if (experimentRunID == static_cast<quint32>(live_exp_run_id_)) {
         qDebug() << "\n(TICK) - Request state for experiment run [" << experimentRunID << "] - " << exp_run_names_.value(experimentRunID, "");
     } else {
-        qDebug() << "\nRequest state for experiment run [" << experimentRunID << "] - " << exp_run_names_.value(experimentRunID, "");
+        qDebug() << "Request state for experiment run [" << experimentRunID << "] - " << exp_run_names_.value(experimentRunID, "");
     }
 
     connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [this, experimentRunID, futureWatcher, exp_data_requester]() {
@@ -300,8 +300,9 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
             auto&& events = futureWatcher->result();
             if (port_data_requester != nullptr) {
                 port_data_requester->addPortLifecycleEvents(events);
+            } else {
+                processPortLifecycleEvents(experimentRun, events);
             }
-            processPortLifecycleEvents(experimentRun, events);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -329,8 +330,9 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
             auto&& events = futureWatcher->result();
             if (worker_inst_data_requester != nullptr) {
                 worker_inst_data_requester->addWorkloadEvents(events);
+            } else {
+                processWorkloadEvents(experimentRun, events);
             }
-            processWorkloadEvents(experimentRun, events);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get workload events - " + QString::fromStdString(ex.what()), "spanner", Notification::Severity::ERROR);
         }
@@ -358,8 +360,9 @@ void ExperimentDataManager::requestCPUUtilisationEvents(const CPUUtilisationRequ
             auto&& events = futureWatcher->result();
             if (node_data_requester != nullptr) {
                 node_data_requester->addCPUUtilisationEvents(events);
+            } else {
+                processCPUUtilisationEvents(experimentRun, events);
             }
-            processCPUUtilisationEvents(experimentRun, events);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
         }
@@ -387,8 +390,9 @@ void ExperimentDataManager::requestMemoryUtilisationEvents(const MemoryUtilisati
             auto&& events = futureWatcher->result();
             if (node_data_requester != nullptr) {
                 node_data_requester->addMemoryUtilisationEvents(events);
+            } else {
+                processMemoryUtilisationEvents(experimentRun, events);
             }
-            processMemoryUtilisationEvents(experimentRun, events);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
         }
@@ -416,8 +420,9 @@ void ExperimentDataManager::requestMarkerEvents(const MarkerRequest& request, co
             auto&& events = futureWatcher->result();
             if (marker_data_requester != nullptr) {
                 marker_data_requester->addMarkerEvents(events);
+            } else {
+                processMarkerEvents(experimentRun, events);
             }
-            processMarkerEvents(experimentRun, events);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get marker events - " + QString::fromStdString(ex.what()), "bookmark", Notification::Severity::ERROR);
         }
@@ -445,8 +450,9 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
             auto&& events = futureWatcher->result();
             if (port_data_requester != nullptr) {
                 port_data_requester->addPortEvents(events);
+            } else {
+                processPortEvents(experimentRun, events);
             }
-            processPortEvents(experimentRun, events);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -571,8 +577,7 @@ void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::
     } else {
         emit showChartsPanel();
         timelineChartView().addPortLifecycleEvents(exp_run, events);
-        getDataflowDialog().addPortLifecycleEventsToSeries(events);
-        qDebug() << "Received Port Lifecycle Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
+        //qDebug() << "Received Port Lifecycle Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -591,7 +596,7 @@ void ExperimentDataManager::processWorkloadEvents(const AggServerResponse::Exper
     } else {
         emit showChartsPanel();
         timelineChartView().addWorkloadEvents(exp_run, events);
-        qDebug() << "Received Workload Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
+        //qDebug() << "Received Workload Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -610,7 +615,7 @@ void ExperimentDataManager::processCPUUtilisationEvents(const AggServerResponse:
     } else {
         emit showChartsPanel();
         timelineChartView().addCPUUtilisationEvents(exp_run, events);
-        qDebug() << "Received CPU Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
+        //qDebug() << "Received CPU Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -629,7 +634,7 @@ void ExperimentDataManager::processMemoryUtilisationEvents(const AggServerRespon
     } else {
         emit showChartsPanel();
         timelineChartView().addMemoryUtilisationEvents(exp_run, events);
-        qDebug() << "Received Memory Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
+        //qDebug() << "Received Memory Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -648,7 +653,7 @@ void ExperimentDataManager::processMarkerEvents(const AggServerResponse::Experim
     } else {
         emit showChartsPanel();
         timelineChartView().addMarkerEvents(exp_run, events);
-        qDebug() << "Received Marker Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
+        //qDebug() << "Received Marker Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 
@@ -667,8 +672,6 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
     } else {
         emit showChartsPanel();
         timelineChartView().addPortEvents(exp_run, events);
-        getDataflowDialog().addPortEventsToSeries(events);
-        qDebug() << "Received Port Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
     }
 }
 

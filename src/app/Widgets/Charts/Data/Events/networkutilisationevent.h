@@ -15,15 +15,18 @@ public:
 
     QString toString(const QString& dateTimeFormat) const;
 
+    const QString& getSeriesID() const;
     const QString& getID() const;
     const QString& getHostname() const;
 
     double getUtilisation() const;
 
 private:
-    const QString hostname_;
-    const double utilisation_;
+    QString series_id_;
+    QString id_;
+    QString hostname_;
 
+    double utilisation_;
 };
 
 #endif // NETWORKUTILISATIONEVENT_H

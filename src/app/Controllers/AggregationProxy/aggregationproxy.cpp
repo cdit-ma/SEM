@@ -503,6 +503,10 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &requ
 
         const auto& results = requester_->GetPortEvents(agg_request);
         for (const auto& item : results->events()) {
+            // TODO: Using this to filter unwanted port events for the moment
+            if (item.type() == AggServer::PortEvent::FINISHED_FUNC) {
+                continue;
+            }
             const auto& port = ConvertPort(item.port());
             const auto& seqNum = item.sequence_num();
             const auto& type = ConvertPortEventType(item.type());

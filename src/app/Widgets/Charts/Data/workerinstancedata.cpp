@@ -22,8 +22,8 @@ WorkerInstanceData::WorkerInstanceData(quint32 exp_run_id, const ComponentInstan
     workload_request_.setExperimentRunID(exp_run_id);
     workload_request_.setWorkerInstanceIDs({graphml_id_});
     workload_request_.setWorkerInstancePaths({path_});
-    workload_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
-    workload_request_.setComponentInstancePaths({comp_inst.getPath()});
+    //workload_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    //workload_request_.setComponentInstancePaths({comp_inst.getPath()});
 
     // Setup series
     workload_event_series_ = new WorkloadEventSeries(graphml_id_);
@@ -90,7 +90,7 @@ const WorkloadRequest& WorkerInstanceData::getWorkloadRequest() const
  */
 void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events)
 {
-    qDebug() << name_ << " - Received Workload Events#: " << events.size();
+    //qDebug() << name_ << " - Received Workload Events#: " << events.size();
     workload_event_series_->addEvents(events);
 }
 
