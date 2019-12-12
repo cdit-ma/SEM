@@ -87,6 +87,17 @@ message MemoryUtilisationResponse {
     repeated MemoryUtilisationNode nodes = 2;
 }
 
+message NetworkUtilisationRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    repeated string node_ids = 2;
+    uint32 experiment_run_id = 3;
+    repeated string node_hostnames = 4;
+}
+message NetworkUtilisationResponse {
+    repeated NodeNetworkEvents node_network_events = 1;
+}
+
+
 message MarkerRequest {
     repeated google.protobuf.Timestamp time_interval = 1;
     uint32 experiment_run_id = 2;
@@ -145,6 +156,7 @@ message WorkloadEvent {
     uint32 log_level = 7;
 }
 
+// TODO: Rename to NodeCPUEvents
 message CPUUtilisationNode {
     repeated CPUUtilisationEvent events = 1;
     Node node_info = 2;
@@ -155,6 +167,7 @@ message CPUUtilisationEvent {
     google.protobuf.Timestamp time = 3;
 }
 
+// TODO: Rename to NodeMemoryEvents
 message MemoryUtilisationNode {
     repeated MemoryUtilisationEvent events = 1;
     Node node_info = 2;
@@ -163,6 +176,24 @@ message MemoryUtilisationEvent {
     //Node node = 1;
     double memory_utilisation = 2;
     google.protobuf.Timestamp time = 3;
+}
+
+message NodeNetworkEvents {
+    repeated InterfaceNetworkEvents events = 1;
+    Node node_info = 2;
+}
+
+message InterfaceNetworkEvents{
+    string interface_mac_addr = 1;
+    repeated NetworkUtilisationEvent events = 2;
+}
+
+message NetworkUtilisationEvent {
+    int64 delta_packets_sent = 1;
+    int64 delta_packets_received = 2;
+    int64 delta_bytes_sent = 3;
+    int64 delta_bytes_received = 4;
+    google.protobuf.Timestamp time = 5;
 }
 
 message MarkerNameSet {
@@ -255,11 +286,22 @@ message Container {
     repeated ComponentInstance component_instances = 5;
 }
 
+message NetworkInterface {
+    string name = 1;
+    string type = 2; // eg "Ethernet" or "Local Loopback"
+    string description = 3;
+    string ipv4 = 4;
+    string ipv6 = 5;
+    string mac_address = 6;
+    int64 speed = 7;
+}
+
 message Node {
     string hostname = 1;
     string ip = 2;
     //string graphml_id = 3;
     repeated Container containers = 4;
+    repeated NetworkInterface interfaces = 5;
 }
 
 message PortConnection {
