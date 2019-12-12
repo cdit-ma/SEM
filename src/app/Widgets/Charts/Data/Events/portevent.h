@@ -35,7 +35,7 @@ public:
     PortEventType getType() const;
     static const QString& getTypeString(PortEventType type);
 
-private:    
+private:
     PortEventType type_;
 
     quint64 sequence_num_;
