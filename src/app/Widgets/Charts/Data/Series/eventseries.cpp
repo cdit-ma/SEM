@@ -2,6 +2,7 @@
 
 #include <QTextStream>
 #include <QDateTime>
+#include <QDebug>
 
 std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
 
@@ -48,6 +49,10 @@ void MEDEA::EventSeries::clear()
         event->deleteLater();
         i = events_.erase(i);
     }
+
+    // clear ids list
+    event_ids_.clear();
+
     // reset the time range
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
@@ -172,6 +177,53 @@ const QString& MEDEA::EventSeries::getEventSeriesID() const
 
 
 /**
+ * @brief MEDEA::EventSeries::getPreviousTime
+ * @param time
+ * @return
+ */
+qint64 MEDEA::EventSeries::getPreviousTime(qint64 time) const
+{
+    if (events_.isEmpty()) {
+        return time;
+    }
+
+    // This returns an iterator to the first event whose time is greater than or equal to the provided time
+    auto event_itr = getFirstAfterTime(time);
+
+    // If the returned iterator points to the first event, return it only if it's before the provided time
+    if (event_itr == events_.begin()) {
+        return qMin((*event_itr)->getTimeMS(), time);
+    } else {
+        event_itr--;
+        return (*event_itr)->getTimeMS();
+    }
+}
+
+
+/**
+ * @brief MEDEA::EventSeries::getNextTime
+ * @param time
+ * @return
+ */
+qint64 MEDEA::EventSeries::getNextTime(qint64 time) const
+{
+    // This returns an iterator to the first event whose time is greater than or equal to the provided time
+    auto event_itr = getFirstAfterTime(time);
+
+    // Get the iterator to the first event whose time is greater than the provided time
+    while (event_itr != events_.end()) {
+        auto&& event_time = (*event_itr)->getTimeMS();
+        if (event_time > time) {
+            return event_time;
+        }
+        event_itr++;
+    }
+
+    return time;
+}
+
+
+/**
  * @brief MEDEA::EventSeries::getFirstAfterTime
  * This returns a const iterator that points to the first item whose time is greater than or equal to the provided time
  * @param timeMS
@@ -192,7 +244,7 @@ QList<MEDEA::Event*>::const_iterator MEDEA::EventSeries::getFirstAfterTime(const
  * @param toTimeMS - If -1 is provided, use the max time of the series
  * @return
  */
-QList<MEDEA::Event *> MEDEA::EventSeries::getEventsBetween(qint64 fromTimeMS, qint64 toTimeMS) const
+QList<MEDEA::Event*> MEDEA::EventSeries::getEventsBetween(qint64 fromTimeMS, qint64 toTimeMS) const
 {
     if (fromTimeMS == -1 && toTimeMS == -1) {
         return events_;
@@ -211,16 +263,27 @@ QList<MEDEA::Event *> MEDEA::EventSeries::getEventsBetween(qint64 fromTimeMS, qi
         toTimeMS = maxTime_;
     }
 
-    // Get the iterators to the first and last events within the given range
+    // Get the iterator to the first event within the given range
     auto fromItr = getFirstAfterTime(fromTimeMS);
-    auto toItr = getFirstAfterTime(toTimeMS);
     auto current = fromItr;
 
+    // Get the iterator to the last event within the given range
+    auto toItr = getFirstAfterTime(toTimeMS);
+    while (toItr != events_.end()) {
+        auto toTime = (*toItr)->getTimeMS();
+        if (toTime > toTimeMS) {
+            break;
+        }
+        toItr++;
+    }
+
+    // Return the events up to, but not including the event the toItr points to
     while (current != toItr) {
         auto event = (*current);
         events.append(event);
         current++;
     }
+
     return events;
 }
 
@@ -289,16 +352,32 @@ QString MEDEA::EventSeries::getDataString (
 
 
 /**
+ * @brief MEDEA::EventSeries::contains
+ * @param event
+ * @return
+ */
+bool MEDEA::EventSeries::contains(MEDEA::Event* event) const
+{
+    return event_ids_.contains(event->getID());
+}
+
+
+/**
  * @brief MEDEA::EventSeries::addEventToList
  * @param event
- * @throws std::invalid_argument
+ * @throw std::invalid_argument
  */
 void MEDEA::EventSeries::addEventToList(MEDEA::Event& event)
 {
+    auto&& new_event = &event;
+    if (contains(new_event)) {
+        throw std::invalid_argument("MEDEA::EventSeries::addEventToList - Cannot add an already existing event");
+    }
+
     // Add the new event to the list, update the time range
     // and send the signal to notify that a new event has been added
-    auto&& new_event = &event;
     events_.append(new_event);
+    event_ids_.append(event.getID());
     updateTimeRange(new_event->getTimeMS());
     emit eventAdded(new_event);
 }

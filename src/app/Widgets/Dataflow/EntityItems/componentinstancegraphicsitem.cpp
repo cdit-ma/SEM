@@ -4,8 +4,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-#define PEN_WIDTH 2.0
-
+const qreal pen_windth = 2.0;
 
 /**
  * @brief ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem
@@ -14,8 +13,7 @@
  */
 ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, QGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      comp_inst_name_(comp_inst_data.getName()),
-      comp_inst_graphml_id_(comp_inst_data.getGraphmlID())
+      comp_inst_data_(comp_inst_data)
 {
     setFlags(flags() | QGraphicsWidget::ItemIsMovable | QGraphicsWidget::ItemIsSelectable);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -74,7 +72,7 @@ PortInstanceGraphicsItem* ComponentInstanceGraphicsItem::addPortInstanceItem(Por
 QRectF ComponentInstanceGraphicsItem::boundingRect() const
 {
     QRectF rect(0, 0, geometry().width(), geometry().height());
-    auto padding = PEN_WIDTH / 2.0;
+    auto padding = pen_windth / 2.0;
     return rect.adjusted(-padding, -padding, padding, padding);
 }
 
@@ -90,7 +88,7 @@ void ComponentInstanceGraphicsItem::paint(QPainter *painter, const QStyleOptionG
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    auto padding = PEN_WIDTH / 2.0;
+    auto padding = pen_windth / 2.0;
     QRectF rect = boundingRect().adjusted(padding, padding, -padding, -padding);
     painter->fillRect(rect, body_color_);
     painter->fillRect(top_layout_->geometry(), top_color_);
@@ -192,7 +190,7 @@ void ComponentInstanceGraphicsItem::setupLayout()
 {
     QPixmap pix = Theme::theme()->getImage("EntityIcons", "ComponentInstance");
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    label_text_item_ = new TextGraphicsItem(comp_inst_name_ + " [" + comp_inst_graphml_id_ + "]", this);
+    label_text_item_ = new TextGraphicsItem(comp_inst_data_.getName() + " [" + comp_inst_data_.getGraphmlID() + "]", this);
 
     icon_pixmap_item_->setParentItem(this);
     label_text_item_->setParentItem(this);

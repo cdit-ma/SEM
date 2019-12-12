@@ -23,14 +23,17 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     port_lifecycle_request_.setExperimentRunID(exp_run_id);
     port_lifecycle_request_.setPortIDs({graphml_id_});
     port_lifecycle_request_.setPortPaths({path_});
-    port_lifecycle_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
-    port_lifecycle_request_.setComponentInstancePaths({comp_inst.getPath()});
+    //port_lifecycle_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    //port_lifecycle_request_.setComponentInstancePaths({comp_inst.getPath()});
 
     port_event_request_.setExperimentRunID(exp_run_id);
     port_event_request_.setPortIDs({graphml_id_});
     port_event_request_.setPortPaths({path_});
-    port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
-    port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
+
+    // TODO: This extra request fields are returning unexpected events
+    // When they are added, they also return port events from other children ports of the parenting ComponentInstance
+    //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
 
     // Setup event series
     port_lifecycle_series_ = new PortLifecycleEventSeries(graphml_id_);
@@ -115,13 +118,68 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
 
 
 /**
+ * @brief PortInstanceData::getPreviousEventTime
+ * @param time
+ * @return
+ */
+qint64 PortInstanceData::getPreviousEventTime(qint64 time) const
+{
+    const auto& prev_port_lifecycle_event_time = getPortLifecycleEventSeries().getPreviousTime(time);
+    const auto& prev_port_event_time = getPortEventSeries().getPreviousTime(time);
+
+    if (prev_port_lifecycle_event_time == time) {
+        return prev_port_event_time;
+    }
+    if (prev_port_event_time == time) {
+        return prev_port_lifecycle_event_time;
+    }
+
+    return qMax(prev_port_lifecycle_event_time, prev_port_event_time);
+}
+
+
+/**
+ * @brief PortInstanceData::getNextEventTime
+ * @param time
+ * @return
+ */
+qint64 PortInstanceData::getNextEventTime(qint64 time) const
+{
+    const auto& next_port_lifecycle_event_time = getPortLifecycleEventSeries().getNextTime(time);
+    const auto& next_port_event_time = getPortEventSeries().getNextTime(time);
+
+    if (next_port_lifecycle_event_time == time) {
+        return next_port_event_time;
+    }
+    if (next_port_event_time == time) {
+        return next_port_lifecycle_event_time;
+    }
+
+    return qMin(next_port_lifecycle_event_time, next_port_event_time);
+}
+
+
+/**
  * @brief PortInstanceData::addPortLifecycleEvents
  * @param events
  */
 void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events)
 {
-    qDebug() << name_ << " - Received Port Lifecycle Events#: " << events.size();
+    //qDebug() << name_ << " - Received Port Lifecycle Events#: " << events.size();
     port_lifecycle_series_->addEvents(events);
+}
+
+
+/**
+ * @brief PortInstanceData::getPortLifecycleEventSeries
+ * @return
+ */
+const PortLifecycleEventSeries& PortInstanceData::getPortLifecycleEventSeries() const
+{
+    if (port_lifecycle_series_ == nullptr) {
+        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
+    }
+    return *port_lifecycle_series_;
 }
 
 
@@ -131,18 +189,22 @@ void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>
  */
 void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
-    qDebug() << name_ << " - Received Port Events#: " << events.size();
+    //qDebug() << name_ << " - Received Port Events#: " << events.size();
     port_event_series_->addEvents(events);
 }
 
 
 /**
- * @brief PortInstanceData::getPortLifecycleEventSeries
+ * @brief PortInstanceData::getPortEventSeries
+ * @throws std::runtime_error
  * @return
  */
-PortLifecycleEventSeries* PortInstanceData::getPortLifecycleEventSeries() const
+const PortEventSeries& PortInstanceData::getPortEventSeries() const
 {
-    return port_lifecycle_series_;
+    if (port_event_series_ == nullptr) {
+        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortEventSeries - Port event series is null");
+    }
+    return *port_event_series_;
 }
 
 

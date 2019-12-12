@@ -19,7 +19,7 @@ using namespace MEDEA;
  * @param parent
  * @throws std::invalid_argument
  */
-EdgeItem::EdgeItem(PortInstanceGraphicsItem *src, PortInstanceGraphicsItem *dst, QGraphicsItem* parent)
+EdgeItem::EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst, QGraphicsItem* parent)
     : QGraphicsObject(parent)
 {
     if (src) {
@@ -36,6 +36,11 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem *src, PortInstanceGraphicsItem *dst,
     // This initialises the src & dst points and the edge path
     updateSourcePos();
     updateDestinationPos();
+
+    connect(src, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateSourcePos);
+    connect(dst, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateDestinationPos);
+    connect(src, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
+    //connect(dst, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &EdgeItem::themeChanged);
     themeChanged();
@@ -104,7 +109,7 @@ QRectF EdgeItem::boundingRect() const
  * @param option
  * @param widget
  */
-void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void EdgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     Q_UNUSED(widget);
     Q_UNUSED(option);
@@ -119,28 +124,29 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 /**
  * @brief EdgeItem::flashEdge
- * @param start_time
+ * @param from_time
  * @param flash_duration_ms
- * @param edge_width_multiplier
  */
-void EdgeItem::flashEdge(qint64 start_time, qint64 flash_duration_ms, qreal edge_width_multiplier)
+void EdgeItem::flashEdge(qint64 from_time, int flash_duration_ms)
 {
     if (flash_duration_ms <= 0) {
         return;
     }
 
+    // NOTE: We can add an edge width multiplier here to vary the edge flash width based on how busy it is
+    //active_pen_.setWidthF(highlight_pen_width * edge_width_multiplier);
+
     // Switch pen color
     point_pen_.setColor(highlight_pen_color_);
     active_pen_.setColor(highlight_pen_color_);
-    active_pen_.setWidthF(highlight_pen_width * edge_width_multiplier);
     update();
 
     // This function can be called multiple times by multiple callers
     // Due to this, the flash end time needs to be stored and updated to avoid the flash being stopped prematurely
-    auto&& end_time = start_time + flash_duration_ms;
+    auto&& end_time = from_time + flash_duration_ms;
     flash_end_time_ = qMax(end_time, flash_end_time_);
 
-    QTimer::singleShot(static_cast<int>(flash_duration_ms), this, [this, end_time]() {
+    QTimer::singleShot(flash_duration_ms, this, [this, end_time]() {
         unflashEdge(end_time);
     });
 }
@@ -152,8 +158,8 @@ void EdgeItem::flashEdge(qint64 start_time, qint64 flash_duration_ms, qreal edge
  */
 void EdgeItem::unflashEdge(qint64 flash_end_time)
 {
+    // Reset the pen color when we've reached the flash end time
     if (flash_end_time_ == flash_end_time) {
-        // Reset the pen color
         point_pen_.setColor(default_pen_color_);
         active_pen_.setColor(default_pen_color_);
         active_pen_.setWidthF(pen_width);
@@ -186,9 +192,6 @@ void EdgeItem::updateEdgePath()
 {
     auto dx = dst_point_.x() - src_point_.x();
     auto dy = dst_point_.y() - src_point_.y();
-
-    //qDebug() << "src point: " << src_point_;
-    //qDebug() << "dst point: " << dst_point_;
 
     // Need to get the abs of dx because we are setting the direction of the horizontal offset
     auto x_offset = qMin(max_offset, min_offset + qAbs(dx) / 25.0);

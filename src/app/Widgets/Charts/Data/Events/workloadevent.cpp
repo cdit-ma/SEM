@@ -1,6 +1,5 @@
 #include "workloadevent.h"
 
-
 /**
  * @brief WorkloadEvent::WorkloadEvent
  * @param inst
@@ -21,13 +20,13 @@ WorkloadEvent::WorkloadEvent(const AggServerResponse::WorkerInstance& inst,
                              quint32 logLevel,
                              QObject *parent)
     : MEDEA::Event(MEDEA::ChartDataKind::WORKLOAD, time, inst.name, parent),
-      workerInstance_ (inst),
-      type_ (type),
+      type_(type),
       workloadID_(workloadID),
       logLevel_(logLevel),
+      series_id_(inst.graphml_id + QString::number(workloadID)),
+      id_(series_id_ + QString::number(time)),
       functionName_(functionName),
-      args_(args),
-      ID_(inst.graphml_id + QString::number(workloadID)) {}
+      args_(args) {}
 
 
 /**
@@ -47,12 +46,22 @@ QString WorkloadEvent::toString(const QString &dateTimeFormat) const
 
 
 /**
+ * @brief WorkloadEvent::getSeriesID
+ * @return
+ */
+const QString& WorkloadEvent::getSeriesID() const
+{
+    return series_id_;
+}
+
+
+/**
  * @brief WorkloadEvent::getID
  * @return
  */
-const QString &WorkloadEvent::getID() const
+const QString& WorkloadEvent::getID() const
 {
-    return ID_;
+    return id_;
 }
 
 

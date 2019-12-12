@@ -22,8 +22,7 @@ void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
     if (event->getKind() != MEDEA::ChartDataKind::CPU_UTILISATION) {
         throw std::invalid_argument("CPUUtilisationEventSeries::addEvent - Invalid event kind.");
     }
-
-    if (!events_.contains(event)) {
+    if (!contains(event)) {
         auto utilisation = qobject_cast<CPUUtilisationEvent*>(event)->getUtilisation();
         if (utilisation < minUtilisation_) {
             minUtilisation_ = utilisation;

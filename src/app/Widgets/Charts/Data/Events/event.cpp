@@ -1,8 +1,5 @@
 #include "event.h"
-
 #include <QDateTime>
-
-int MEDEA::Event::event_ID = 0;
 
 /**
  * @brief MEDEA::Event::Event
@@ -15,8 +12,7 @@ MEDEA::Event::Event(MEDEA::ChartDataKind kind, qint64 time, const QString& name,
     : QObject(parent),
       kind_(kind),
       time_(time),
-      name_(name),
-      eventID_(event_ID++) {}
+      series_name_(name) {}
 
 
 /**
@@ -44,7 +40,7 @@ qint64 MEDEA::Event::getTimeMS() const
  * @param format
  * @return
  */
-QString MEDEA::Event::getDateTimeString(const QString &format) const
+QString MEDEA::Event::getDateTimeString(const QString& format) const
 {
     return QDateTime::fromMSecsSinceEpoch(time_).toString(format);
 }
@@ -54,9 +50,9 @@ QString MEDEA::Event::getDateTimeString(const QString &format) const
  * @brief MEDEA::Event::getName
  * @return
  */
-const QString& MEDEA::Event::getName() const
+const QString& MEDEA::Event::getSeriesName() const
 {
-    return name_;
+    return series_name_;
 }
 
 

@@ -15,15 +15,18 @@ public:
 
     QString toString(const QString& dateTimeFormat) const;
 
+    const QString& getSeriesID() const;
     const QString& getID() const;
-    const AggServerResponse::Port& getPort() const;
 
     AggServerResponse::LifecycleType getType() const;
     static const QString& getTypeString(AggServerResponse::LifecycleType type);
 
 private:
-    AggServerResponse::Port port_;
     AggServerResponse::LifecycleType type_;
+
+    // The series_id_ is formed by what is required to group events together into a series
+    QString series_id_;
+    QString id_;
 };
 
 #endif // PORTLIFECYCLEEVENT_H
