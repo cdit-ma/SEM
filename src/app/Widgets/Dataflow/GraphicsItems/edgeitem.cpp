@@ -38,8 +38,11 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst,
     updateDestinationPos();
 
     connect(src, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateSourcePos);
-    connect(dst, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateDestinationPos);
+    connect(src, &PortInstanceGraphicsItem::geometryChanged, this, &EdgeItem::updateSourcePos);
     connect(src, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
+
+    connect(dst, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateDestinationPos);
+    connect(dst, &PortInstanceGraphicsItem::geometryChanged, this, &EdgeItem::updateDestinationPos);
     if (dst->getPortKind() == AggServerResponse::Port::Kind::REPLIER) {
         connect(dst, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
     }
@@ -74,9 +77,7 @@ const QString& EdgeItem::getDestinationGraphmlID() const
  */
 void EdgeItem::updateSourcePos()
 {
-    auto icon_rect = src_item_->getIconSceneRect();
-    src_point_.setX(icon_rect.right());
-    src_point_.setY(icon_rect.center().y());
+    src_point_ = src_item_->getEdgePoint();
     updateEdgePath();
 }
 
@@ -86,9 +87,7 @@ void EdgeItem::updateSourcePos()
  */
 void EdgeItem::updateDestinationPos()
 {
-    auto icon_rect = dst_item_->getIconSceneRect();
-    dst_point_.setX(icon_rect.left());
-    dst_point_.setY(icon_rect.center().y());
+    dst_point_ = dst_item_->getEdgePoint();
     updateEdgePath();
 }
 

@@ -111,6 +111,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_generateModelWorkspace, &QAction::triggered, viewController, &ViewController::generateProjectWorkspace);
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::executeModelLocal);
         connect(model_queryRunningExperiments, &QAction::triggered, viewController, &ViewController::QueryRunningExperiments);    
+        connect(model_displayExperimentDataflow, &QAction::triggered, viewController, &ViewController::vc_displayExperimentDataflow);
         connect(model_reloadWorkerDefinitions, &QAction::triggered, viewController, &ViewController::ReloadWorkerDefinitions);
 
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
@@ -780,6 +781,11 @@ void ActionController::setupActions()
     model_queryRunningExperiments->setShortcutContext(Qt::ApplicationShortcut);
     model_queryRunningExperiments->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
 
+    model_displayExperimentDataflow = createRootAction("Model", "Display Experiment Dataflow", "", "Icons", "arrowsLeftRight");
+    model_displayExperimentDataflow->setToolTip("Display Selected Experiment Run's Dataflow.");
+    model_displayExperimentDataflow->setShortcutContext(Qt::ApplicationShortcut);
+    model_displayExperimentDataflow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Q));
+
     dock_addPart = createRootAction("Dock", "Open Add Part Dock", "", "Icons", "plus");
     dock_addPart->setToolTip("Open the add parts dock");
     dock_addPart->setShortcutContext(Qt::ApplicationShortcut);
@@ -977,6 +983,7 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_executeLocalJob);
     menu_model->addSeparator();
     menu_model->addAction(model_queryRunningExperiments);
+    menu_model->addAction(model_displayExperimentDataflow);
     
     // Jenkins Menu
     menu_jenkins->addAction(jenkins_importNodes);

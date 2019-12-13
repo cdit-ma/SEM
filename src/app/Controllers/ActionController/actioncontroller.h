@@ -152,6 +152,7 @@ public:
     RootAction* model_reloadWorkerDefinitions;
 
     RootAction* model_queryRunningExperiments;
+    RootAction* model_displayExperimentDataflow;
 
     RootAction* options_settings;
 

@@ -11,7 +11,7 @@ TextGraphicsItem::TextGraphicsItem(const QString& text, QGraphicsItem* parent)
       MEDEA::GraphicsLayoutItem()
 {
     setFont(QFont("Verdana", 12));
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }
 
 

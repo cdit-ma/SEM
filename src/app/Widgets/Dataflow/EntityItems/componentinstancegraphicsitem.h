@@ -10,6 +10,8 @@
 #include <QGraphicsLinearLayout>
 #include <QGraphicsGridLayout>
 
+#include <vector>
+
 class ComponentInstanceGraphicsItem : public QGraphicsWidget
 {    
     Q_OBJECT
@@ -20,12 +22,14 @@ public:
     PortInstanceGraphicsItem* addPortInstanceItem(PortInstanceData& port_data);
 
 signals:
-    void toggleExpanded(bool expand);
+    void itemExpanded(bool expanded);
     void itemMoved();
 
 protected:    
     QRectF boundingRect() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+    QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
+
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -35,13 +39,21 @@ protected:
     void moveEvent(QGraphicsSceneMoveEvent *event) override;
     
 private:
+    //void toggleDetailsVisible();
+    void toggleExpanded();
+
+    qreal getWidth() const;
+    qreal getHeight() const;
+
     void themeChanged();
     void setupLayout();
 
+    bool moving_ = false;
+    bool expanded_ = true;
+    //bool details_shown_ = true;
+
     int left_port_count_ = 0;
     int right_port_count_ = 0;
-
-    bool moving_ = false;
 
     QPointF prev_move_origin_;
 
@@ -52,9 +64,11 @@ private:
     QGraphicsLinearLayout* top_layout_ = nullptr;
     QGraphicsGridLayout* children_layout_ = nullptr;
 
+    PixmapGraphicsItem* toggle_pixmap_item_ = nullptr;
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
-    TextGraphicsItem* label_text_item_ = nullptr;  
+    TextGraphicsItem* label_text_item_ = nullptr;
 
+    std::vector<PortInstanceGraphicsItem*> port_inst_items_;
     const ComponentInstanceData& comp_inst_data_;
 };
 

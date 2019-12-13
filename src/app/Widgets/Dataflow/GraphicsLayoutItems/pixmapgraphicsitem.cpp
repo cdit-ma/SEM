@@ -1,4 +1,5 @@
 #include "pixmapgraphicsitem.h"
+
 #include <QDebug>
 
 /**
@@ -12,7 +13,7 @@ PixmapGraphicsItem::PixmapGraphicsItem(const QPixmap& pixmap, QGraphicsItem* par
 {
     updatePixmap(pixmap);
     setTransformationMode(Qt::SmoothTransformation);
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }
 
 
@@ -25,6 +26,7 @@ void PixmapGraphicsItem::updatePixmap(const QPixmap& pixmap)
 {
     auto scaled_pix = pixmap.scaledToHeight(pixmap_size_ - pixmap_padding_,
                                     Qt::TransformationMode::SmoothTransformation);
+    prepareGeometryChange();
     setPixmap(scaled_pix);
     update();
 }
@@ -53,7 +55,6 @@ void PixmapGraphicsItem::setPixmapPadding(int padding)
  */
 void PixmapGraphicsItem::setSquareSize(int size)
 {
-    prepareGeometryChange();
     pixmap_size_ = size - getPadding();
     updatePixmap(pixmap());
 }
@@ -71,14 +72,14 @@ void PixmapGraphicsItem::setGeometry(const QRectF &geom)
     QGraphicsLayoutItem::setGeometry(geom);
     setPos(geom.topLeft());
 
-    // Work out the offset
+    // Work out the offset needed to center the pixmap
     auto diff_width = geom.width() - boundingRect().width();
-    auto diff_height = geom.height() - boundingRect().height();
-
     auto offset_x = 0.0;
     if (diff_width > 0) {
         offset_x = diff_width / 2.0;
     }
+
+    auto diff_height = geom.height() - boundingRect().height();
     auto offset_y = 0.0;
     if (diff_height > 0) {
         offset_y = diff_height / 2.0;
@@ -99,16 +100,12 @@ QSizeF PixmapGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF &constraint
 {
     switch (which) {
     case Qt::MinimumSize:
+    case Qt::PreferredSize:
         return QSizeF(pixmap_size_, pixmap_size_);
-    case Qt::PreferredSize: {
-        auto item_size = pixmap_size_ + getPadding();
-        return QSizeF(item_size, item_size);
-    }
     case Qt::MaximumSize:
         return QSizeF(10000, 10000);
     default:
         break;
     }
-
     return constraint;
 }

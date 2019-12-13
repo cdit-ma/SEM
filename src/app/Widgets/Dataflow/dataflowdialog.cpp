@@ -1,5 +1,6 @@
 #include "dataflowdialog.h"
 #include "dataflowgraphicsview.h"
+
 #include "../DockWidgets/basedockwidget.h"
 #include "../../theme.h"
 
@@ -116,6 +117,7 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
             }
         }
     }
+
 
     // Construct the edges
     constructEdgeItems(port_items_, exp_run_data.getPortConnectionData());
