@@ -165,7 +165,6 @@ qint64 PortInstanceData::getNextEventTime(qint64 time) const
  */
 void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events)
 {
-    //qDebug() << name_ << " - Received Port Lifecycle Events#: " << events.size();
     port_lifecycle_series_->addEvents(events);
 }
 
@@ -189,7 +188,6 @@ const PortLifecycleEventSeries& PortInstanceData::getPortLifecycleEventSeries() 
  */
 void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
-    //qDebug() << name_ << " - Received Port Events#: " << events.size();
     port_event_series_->addEvents(events);
 }
 

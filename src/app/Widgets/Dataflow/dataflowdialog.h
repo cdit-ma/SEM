@@ -3,7 +3,6 @@
 
 #include <QFrame>
 #include <QGraphicsView>
-#include <set>
 
 #include "../Charts/Data/protomessagestructs.h"
 #include "../Charts/Data/experimentrundata.h"
@@ -38,6 +37,9 @@ private slots:
     void jumpToStart();
     void jumpToEnd();
 
+    void turnOffLiveStatus();
+
+    void playbackEndTimeChanged(qint64 exp_run_last_updated_time);
     void themeChanged();
 
 protected:

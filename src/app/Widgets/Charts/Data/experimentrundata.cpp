@@ -122,25 +122,28 @@ QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(int id) const
  */
 void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentState& exp_state)
 {
-    // If the experiment run's last updated time has changed, update its children data
+    // TODO: Investigate why the last updated time is not "at least" the end time
+    // When the following code is placed inside the if-block further down, it doesn't execute
+
+    auto&& state_end_time = exp_state.end_time;
+    if (state_end_time != end_time_) {
+        // Send a signal to let listeners know that the experiment run has finished
+        end_time_ = state_end_time;
+        emit experimentRunFinished(experiment_run_id_);
+    }
+
     auto&& state_last_updated_time = exp_state.last_updated_time;
     if (state_last_updated_time > last_updated_time_) {
-
-        //qDebug() << "Update Experiment STATE for [" << QString::number(experiment_run_id_) << "]";
-
         // NOTE: last_updated_time_ is passed through to update the children data
         // Therefore, it needs to be updated before calling addNodeData and addPortConnection
         last_updated_time_ = state_last_updated_time;
-        end_time_ = exp_state.end_time;
-
         for (const auto& node : exp_state.nodes) {
             addNodeData(node);
         }
         for (const auto& p_c : exp_state.port_connections) {
             addPortConnection(p_c);
         }
-    } else {
-        //qDebug() << "Experiment run state for [" << QString::number(experiment_run_id_) << "] has not changed";
+        emit dataUpdated(last_updated_time_);
     }
 }
 

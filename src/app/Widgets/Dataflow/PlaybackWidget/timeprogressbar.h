@@ -28,7 +28,11 @@ private:
     void updateProgressValue();
     void updateTotalDuration();
 
+    qint64 getElapsedTime() const;
+    qint64 getDuration() const;
+
     QString getDurationString(qint64 duration_ms) const;
+    void leftPad(QString& str, int intended_length, char pad_char) const;
 
     qint64 start_time_ = 0;
     qint64 end_time_ = 0;

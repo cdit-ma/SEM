@@ -188,8 +188,15 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     dockWidget->setWidget(dialog);
     addDockWidget(dockWidget);
 
-    // add actions to the dock widget's title bar for changing the playback speed and displaying live mode status
+    // Add actions to the dock widget's title bar for changing the playback speed and displaying live mode status
+
+    Theme* theme = Theme::theme();
+    QIcon live_icon = theme->getImage("Icons", "circleRadio", QSize(), Qt::red);
+    live_icon.addPixmap(theme->getImage("Icons", "circleRadio", QSize(), Qt::red), QIcon::Disabled);
+
     QAction* live_status_action = dockWidget->addAction("Live Experiment", "Icons", "circleRadio", Qt::AlignCenter);
+    live_status_action->setIcon(live_icon);
+    live_status_action->setEnabled(false);
     live_status_action->setVisible(false);
     connect(dialog, &DataflowDialog::updateLiveStatus, live_status_action, &QAction::setVisible);
 
@@ -201,10 +208,8 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     playback_speed_spinbox->setSingleStep(min_playback_speed);
     playback_speed_spinbox->setValue(1.0);
     playback_speed_spinbox->setSuffix("x");
-    connect(playback_speed_spinbox, SIGNAL(valueChanged(double)), dialog, SLOT(playbackSpeedChanged(double)));
-
-    Theme* theme = Theme::theme();
     playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
+    connect(playback_speed_spinbox, SIGNAL(valueChanged(double)), dialog, SLOT(playbackSpeedChanged(double)));
     connect(theme, &Theme::theme_Changed, [playback_speed_spinbox, theme]() {
         playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
     });

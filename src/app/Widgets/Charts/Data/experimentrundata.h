@@ -34,6 +34,8 @@ public:
 
 signals:
     void requestData(quint32 exp_run_id);
+    void dataUpdated(qint64 last_updated_time);
+    void experimentRunFinished(quint32 exp_run_id);
 
 private:
     void addNodeData(const AggServerResponse::Node& node);

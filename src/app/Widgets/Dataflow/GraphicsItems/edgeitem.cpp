@@ -40,7 +40,9 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst,
     connect(src, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateSourcePos);
     connect(dst, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateDestinationPos);
     connect(src, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
-    //connect(dst, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
+    if (dst->getPortKind() == AggServerResponse::Port::Kind::REPLIER) {
+        connect(dst, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
+    }
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &EdgeItem::themeChanged);
     themeChanged();

@@ -58,18 +58,16 @@ void TimeProgressBar::setEnabled(bool enabled)
  * @brief TimeProgressBar::setTimeRange
  * @param start_time
  * @param end_time
- * @throws std::invalid_argument
  */
 void TimeProgressBar::setTimeRange(qint64 start_time, qint64 end_time)
 {
-    if (start_time <= end_time) {
-        start_time_ = start_time;
-        end_time_ = end_time;
-        updateTotalDuration();
-        resetTimeProgress();
-    } else {
-        throw std::invalid_argument("TimeProgressBar::setTimeRange - Time range provided is invalid");
+    if (start_time > end_time) {
+        end_time = start_time;
     }
+    start_time_ = start_time;
+    end_time_ = end_time;
+    updateTotalDuration();
+    resetTimeProgress();
 }
 
 
@@ -80,28 +78,26 @@ void TimeProgressBar::setTimeRange(qint64 start_time, qint64 end_time)
  */
 void TimeProgressBar::updateEndTime(qint64 time)
 {
-    if (time > start_time_) {
-        end_time_ = time;
-        updateTotalDuration();
-    } else {
+    if (time < start_time_) {
         throw std::invalid_argument("TimeProgressBar::updateEndTime - The provided end time is before the start time");
     }
+    end_time_ = time;
+    updateTotalDuration();
 }
 
 
 /**
  * @brief TimeProgressBar::setCurrentTime
  * @param time
- * @throws std::invalid_argument
  */
 void TimeProgressBar::setCurrentTime(qint64 time)
 {
-    if (time < start_time_ || time > end_time_) {
-        throw std::invalid_argument("TimeProgressBar::setCurrentTime - Time provided time is out of range");
-    }
-    if (time == start_time_) {
+    if (time <= start_time_) {
         resetTimeProgress();
     } else {
+        if (time > end_time_) {
+            time = end_time_;
+        }
         current_time_ = time;
         elapsed_time_label_->setText(getDurationString(current_time_ - start_time_));
         updateProgressValue();
@@ -160,7 +156,28 @@ void TimeProgressBar::updateTotalDuration()
 
 
 /**
+ * @brief TimeProgressBar::getElapsedTime
+ * @return
+ */
+qint64 TimeProgressBar::getElapsedTime() const
+{
+    return current_time_ - start_time_;
+}
+
+
+/**
+ * @brief TimeProgressBar::getDuration
+ * @return
+ */
+qint64 TimeProgressBar::getDuration() const
+{
+    return end_time_ - start_time_;
+}
+
+
+/**
  * @brief TimeProgressBar::getDurationString
+ * This returns a string representation of the provided time duration in the following display format - "00:00:00.000"
  * @param duration_ms
  * @return
  */
@@ -171,8 +188,9 @@ QString TimeProgressBar::getDurationString(qint64 duration_ms) const
     auto secs = duration_ms / 1e3;
     auto msecs = duration_ms;
 
-    QString time_str;
+    // This variable is used to check if the proceeding time strings need to be appended to time_str
     bool append = false;
+    QString time_str;
 
     if (hours >= 1) {
         auto&& h = static_cast<int>(hours);
@@ -184,9 +202,7 @@ QString TimeProgressBar::getDurationString(qint64 duration_ms) const
     if (mins >= 1) {
         auto&& m = static_cast<int>(mins);
         auto&& m_str = QString::number(m);
-        if (m_str.length() == 1) {
-            m_str = "0" + m_str;
-        }
+        leftPad(m_str, 2, '0');
         if (append) {
             time_str += ":" + m_str;
         } else {
@@ -196,26 +212,36 @@ QString TimeProgressBar::getDurationString(qint64 duration_ms) const
         append = true;
     }
 
-    auto&& s = static_cast<int>(secs);
-    auto&& s_str = QString::number(s);
-    if (s_str.length() == 1) {
-        s_str = "0" + s_str;
-    }
-    if (append) {
-        time_str += ":" + s_str;
-    } else {
-        time_str = s_str;
+    {
+        auto&& s = static_cast<int>(secs);
+        auto&& s_str = QString::number(s);
+        leftPad(s_str, 2, '0');
+        if (append) {
+            time_str += ":" + s_str;
+        } else {
+            time_str = s_str;
+        }
+        msecs -= s * 1000;
     }
 
-    msecs -= s * 1000;
     auto&& ms = static_cast<int>(msecs);
     auto&& ms_str = QString::number(ms);
-    if (ms_str.length() == 1) {
-        ms_str = "00" + ms_str;
-    } else if (ms_str.length() == 2) {
-        ms_str = "0" + ms_str;
-    }
+    leftPad(ms_str, 3, '0');
     time_str += "." + ms_str;
 
     return time_str;
+}
+
+
+/**
+ * @brief TimeProgressBar::leftPad
+ * @param str
+ * @param intended_length
+ * @param pad_char
+ */
+void TimeProgressBar::leftPad(QString& str, int intended_length, char pad_char) const
+{
+    while (str.length() < intended_length) {
+        str = pad_char + str;
+    }
 }
