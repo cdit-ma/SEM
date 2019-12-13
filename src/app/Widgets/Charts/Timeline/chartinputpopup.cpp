@@ -8,11 +8,11 @@
 #include <QStyledItemDelegate>
 #include <QKeyEvent>
 
-#define MIN_WIDTH 400
-#define PADDING 45
+#define MIN_WIDTH 425
+#define PADDING 50
 #define FILTER "filter"
 #define GROUPBOX_ITEM_SPACING 5
-#define GROUPBOX_MAX_HEIGHT 300
+#define GROUPBOX_MAX_HEIGHT 400
 
 
 /**
@@ -26,10 +26,8 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     setVisible(false);
     setModal(true);
 
-    //enableFilters();
-
     // initially hide all filter group boxes
-    for (auto filter : getFilterKeys()) {
+    for (const auto& filter : getFilterKeys()) {
         setGroupBoxVisible(filter, false);
     }
 
@@ -55,7 +53,7 @@ void ChartInputPopup::enableFilters()
  * @param event
  * @return
  */
-bool ChartInputPopup::eventFilter(QObject *watched, QEvent *event)
+bool ChartInputPopup::eventFilter(QObject* watched, QEvent* event)
 {
    if (event->type() == QEvent::KeyPress) {
        QKeyEvent* ke = dynamic_cast<QKeyEvent*>(event);
@@ -74,34 +72,43 @@ void ChartInputPopup::themeChanged()
 {
     Theme* theme = Theme::theme();
 
+    auto tooltipStyle = "QToolTip{ background: white; color: black; }";
     toolbar_->setIconSize(theme->getIconSize());
-    toolbar_->setStyleSheet(theme->getToolBarStyleSheet() + "QToolTip{ background: white; color: black; }");
+    toolbar_->setStyleSheet(theme->getToolBarStyleSheet() + tooltipStyle);
+
+    auto checkbox_style = "QCheckBox{color:" + theme->getTextColorHex() + ";}";
+    charts_checkbox_->setStyleSheet(checkbox_style);
+    charts_checkbox_->setIcon(theme->getIcon("Icons", "barChart"));
+    pulse_checkbox_->setStyleSheet(checkbox_style);
+    pulse_checkbox_->setIcon(theme->getIcon("Icons", "wave"));
 
     okAction_->setIcon(theme->getIcon("Icons", "tick"));
     cancelAction_->setIcon(theme->getIcon("Icons", "cross"));
 
-    if (filterAction_)
+    if (filterAction_) {
         filterAction_->setIcon(theme->getIcon("Icons", "triangleDown"));
+    }
 
-    experimentNameLineEdit_->setStyleSheet(theme->getLineEditStyleSheet());
-
-    for (auto radioButton : findChildren<QRadioButton*>()) {
-        radioButton->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
+    for (auto& radioButton : findChildren<QRadioButton*>()) {
+        radioButton->setStyleSheet("color:" + theme->getTextColorHex() + ";");
     }
 
     auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
                          "QGroupBox{color:" + theme->getAltTextColorHex() + "; margin-top: 15px;" + "border: 1px solid " + theme->getAltTextColorHex() + "}" +
                          "QGroupBox::title{ subcontrol-origin: margin; }";
 
-    auto scrollbarStyle =  "QScrollArea{ background: rgba(0,0,0,0); border: 0px; }"
-                           "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}";
+    auto scrollbarStyle = "QScrollArea{ background: rgba(0,0,0,0); border: 0px; }"
+                          "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}";
 
-    setStyleSheet(styleSheet() + groupBoxStyle + scrollbarStyle);
+    setStyleSheet(styleSheet() + groupBoxStyle + scrollbarStyle + tooltipStyle);
 
+    experimentNameLineEdit_->setStyleSheet(theme->getLineEditStyleSheet());
     experimentsCompleter_->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() +
                                                   theme->getScrollBarStyleSheet() +
                                                   "QAbstractItemView::item{ padding: 2px 0px; }"
                                                   "QAbstractItemView::item::selected{ background:red; }");
+
+    live_splitter_widget_->setStyleSheet("QFrame{ color:" + theme->getAltTextColorHex() + ";} QLabel{ color:" + theme->getAltTextColorHex() + ";}");
 }
 
 
@@ -134,14 +141,14 @@ void ChartInputPopup::setExperimentRuns(const QString& experimentName, const QLi
 {
     QStringList experimentNames;
     if (experimentName.isEmpty()) {
-        for (auto run : experimentRuns) {
+        for (const auto& run : experimentRuns) {
             auto&& exp_name = run.experiment_name;
             experimentNames.append(exp_name);
             experimentRuns_.insert(exp_name, run);
         }
         experimentNames.removeDuplicates();
     } else {
-        for (auto run : experimentRuns) {
+        for (const auto& run : experimentRuns) {
             experimentRuns_.insert(experimentName, run);
         }
         experimentNames.append(experimentName);
@@ -159,8 +166,9 @@ void ChartInputPopup::setExperimentRuns(const QString& experimentName, const QLi
  */
 void ChartInputPopup::filterMenuTriggered(QAction* action)
 {
-    if (!action)
+    if (action == nullptr) {
         return;
+    }
 
     // hiding then showing the groupbox stops the glitching
     if (action->isChecked()) {
@@ -181,7 +189,7 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
 void ChartInputPopup::accept()
 {
     if (selectedExperimentRunID_ != -1) {
-        emit selectedExperimentRun(selectedExperimentRun_);
+        emit visualiseExperimentRunData(selectedExperimentRun_, charts_checkbox_->isChecked(), pulse_checkbox_->isChecked());
     }
     PopupWidget::accept();
     resetPopup();
@@ -239,7 +247,6 @@ void ChartInputPopup::experimentRunSelected(const AggServerResponse::ExperimentR
     if (filterAction_) {
         filterAction_->setEnabled(false);
     }
-
     selectedExperimentRun_ = experimentRun;
     selectedExperimentRunID_ = experimentRun.experiment_run_id;
 }
@@ -251,10 +258,30 @@ void ChartInputPopup::experimentRunSelected(const AggServerResponse::ExperimentR
  */
 void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::ExperimentRun>& runs)
 {
+    if (runs.isEmpty()) {
+        return;
+    }
+
     bool firstButton = true;
     int maxButtonWidth = 0;
 
-    for (auto run : runs) {
+    // Sort the experiment runs with the most recent one at the top
+    auto sorted_runs = runs;
+    std::sort(sorted_runs.begin(), sorted_runs.end(), [](const AggServerResponse::ExperimentRun& a, const AggServerResponse::ExperimentRun& b) {
+       const auto& a_time = a.start_time;
+       const auto& b_time = b.start_time;
+       return a_time > b_time;
+    });
+
+    auto&& runs_layout = qobject_cast<QVBoxLayout*>(groupBoxLayouts.value(FILTER_KEY::RUNS_FILTER, nullptr));
+    if (runs_layout == nullptr) {
+        return;
+    }
+
+    bool show_live_splitter = false;
+    int top_index = 0;
+
+    for (const auto& run : sorted_runs) {
         auto ID = run.experiment_run_id;
         QString text = run.experiment_name + " [" + QString::number(ID) + "] - started at " +
                        QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss.zzz");
@@ -262,10 +289,16 @@ void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::Expe
         QRadioButton* button = new QRadioButton(text, this);
         button->setProperty("ID", ID);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
-        groupBoxLayouts[FILTER_KEY::RUNS_FILTER]->addWidget(button);
         connect(button, &QRadioButton::toggled, [=](bool checked) {
             if (checked) { experimentRunSelected(run); }
         });
+
+        if (run.end_time == 0) {
+            show_live_splitter = true;
+            runs_layout->addWidget(button);
+        } else {
+            runs_layout->insertWidget(top_index++, button);
+        }
 
         // select the first button by default
         if (firstButton) {
@@ -275,7 +308,8 @@ void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::Expe
         maxButtonWidth = qMax(button->sizeHint().width(), maxButtonWidth);
     }
 
-    setFixedWidth(qMax(MIN_WIDTH, maxButtonWidth) + PADDING);
+    live_splitter_widget_->setVisible(show_live_splitter);
+    setFixedWidth(qMax(MIN_WIDTH, maxButtonWidth) + PADDING * 2);
 }
 
 
@@ -286,18 +320,20 @@ void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::Expe
 void ChartInputPopup::populateGroupBox(ChartInputPopup::FILTER_KEY filter)
 {
     QGroupBox* groupBox = getFilterGroupBox(filter);
-    if (!groupBox)
+    if (groupBox == nullptr) {
         return;
+    }
 
     auto filterList = getFilterList(filter);
-    for (auto text : filterList) {
+    for (const auto& text : filterList) {
         QRadioButton* button = new QRadioButton(text, this);
         groupBoxLayouts[filter]->addWidget(button);
         button->setProperty("ID", text);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
         connect(button, &QRadioButton::toggled, [=](bool checked) {
-            if (checked)
+            if (checked) {
                 getSelectedFilter(filter) = button->text();
+            }
         });
     }
 
@@ -312,8 +348,9 @@ void ChartInputPopup::populateGroupBox(ChartInputPopup::FILTER_KEY filter)
 void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
 {
     QGroupBox* groupBox = getFilterGroupBox(filter);
-    if (!groupBox)
+    if (groupBox == nullptr) {
         return;
+    }
 
     switch (filter) {
     case FILTER_KEY::RUNS_FILTER:
@@ -325,8 +362,9 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
     }
 
     auto layout = groupBoxLayouts.value(filter, nullptr);
-    if (!layout)
+    if (layout == nullptr) {
         return;
+    }
 
     auto buttons = groupBox->findChildren<QRadioButton*>();
     while (!buttons.isEmpty()) {
@@ -459,12 +497,13 @@ void ChartInputPopup::setupLayout()
     QVBoxLayout* topLayout = constructVBoxLayout(experimentNameGroupBox_);
     topLayout->addWidget(experimentNameLineEdit_);
 
-    // EXPERIMENT RUNS GROUP BOX
+    /*
+     * Experiment Runs Layouts/Widgets
+     */
     {
         experimentRunsScrollWidget_ = new QWidget(this);
         experimentRunsScrollWidget_->setStyleSheet("background: rgba(0,0,0,0);");
         experimentRunsScrollWidget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-        groupBoxLayouts[FILTER_KEY::RUNS_FILTER] = constructVBoxLayout(experimentRunsScrollWidget_, GROUPBOX_ITEM_SPACING);
 
         QScrollArea* scroll = new QScrollArea(this);
         scroll->setWidget(experimentRunsScrollWidget_);
@@ -476,11 +515,59 @@ void ChartInputPopup::setupLayout()
 
         QVBoxLayout* layout = constructVBoxLayout(experimentRunsGroupBox_);
         layout->addWidget(scroll);
+
+        /*
+         * Live Section Splitter
+         */
+        auto live_label = new QLabel("Live Experiments:", this);
+
+        auto left_splitter = new QFrame(this);
+        left_splitter->setFrameShape(QFrame::HLine);
+        left_splitter->setLineWidth(2);
+
+        auto right_splitter = new QFrame(this);
+        right_splitter->setFrameShape(QFrame::HLine);
+        right_splitter->setLineWidth(2);
+
+        live_splitter_widget_ = new QWidget(this);
+        auto live_splitter_layout = new QHBoxLayout(live_splitter_widget_);
+        live_splitter_layout->setMargin(0);
+        live_splitter_layout->setSpacing(5);
+        live_splitter_layout->addWidget(left_splitter, 1);
+        live_splitter_layout->addWidget(live_label, 0);
+        live_splitter_layout->addWidget(right_splitter, 1);
+
+        auto runs_layout = constructVBoxLayout(experimentRunsScrollWidget_, GROUPBOX_ITEM_SPACING);
+        runs_layout->addItem(new QSpacerItem(0, 5));
+        runs_layout->addWidget(live_splitter_widget_);
+        runs_layout->addItem(new QSpacerItem(0, 5));
+        groupBoxLayouts[FILTER_KEY::RUNS_FILTER] = runs_layout;
     }
+
+    /*
+     * Bottom ToolBar
+     */
 
     toolbar_ = new QToolBar(this);
     toolbar_->setMinimumWidth(MIN_WIDTH);
     toolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+    charts_checkbox_ = new QCheckBox("Charts", this);
+    charts_checkbox_->setLayoutDirection(Qt::RightToLeft);
+    toolbar_->addWidget(charts_checkbox_);
+    toolbar_->addSeparator();
+
+    auto splitter = new QFrame(this);
+    splitter->setFrameShape(QFrame::VLine);
+    splitter->setLineWidth(1);
+    splitter->setStyleSheet("color: gray;");
+    toolbar_->addWidget(splitter);
+
+    pulse_checkbox_ = new QCheckBox("Pulse", this);
+    pulse_checkbox_->setChecked(true);
+    pulse_checkbox_->setLayoutDirection(Qt::RightToLeft);
+    toolbar_->addWidget(pulse_checkbox_);
+    toolbar_->addSeparator();
 
     QWidget* spacerWidget = new QWidget(this);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

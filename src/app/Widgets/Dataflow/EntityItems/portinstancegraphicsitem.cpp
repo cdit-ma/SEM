@@ -186,7 +186,6 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
     }
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::flashPort
  * @param from_time

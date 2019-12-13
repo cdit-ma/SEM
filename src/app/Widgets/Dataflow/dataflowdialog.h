@@ -20,7 +20,6 @@ public:
     void constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data);
 
 signals:
-    void showPulseDockWidget();
     void playbackActivated(bool active);
     void updateLiveStatus(bool on);
 

@@ -76,8 +76,6 @@ ViewController::ViewController()
     jenkins_manager = new JenkinsManager(this);
     execution_manager = new ExecutionManager(this);
 
-    connect(ExperimentDataManager::manager(), &ExperimentDataManager::showChartsPanel, [=](){ emit  });
-
     connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &ViewController::notification_Added);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &ViewController::notification_Destructed);
 

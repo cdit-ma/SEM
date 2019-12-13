@@ -19,12 +19,10 @@ ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
     dataflowDialog_ = new DataflowDialog();
 
     connect(&vc, &ViewController::modelClosed, this, &ExperimentDataManager::clear);
-
     connect(&vc, &ViewController::vc_displayChartPopup, this, &ExperimentDataManager::showChartInputPopup);
     connect(&vc, &ViewController::vc_viewItemsInChart, this, &ExperimentDataManager::filterRequestsBySelectedEntities);
 
-    connect(this, &ExperimentDataManager::showChartsPanel, &ExperimentDataManager::showDataflowPanel);
-    connect(&chartPopup_, &ChartInputPopup::selectedExperimentRun, this, &ExperimentDataManager::experimentRunSelected);
+    connect(&chartPopup_, &ChartInputPopup::visualiseExperimentRunData, this, &ExperimentDataManager::visualiseSelectedExperimentRun);
 }
 
 
@@ -185,12 +183,6 @@ void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID
 {
     auto future = aggregationProxy().RequestExperimentState(experimentRunID);
     auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
-
-    if (experimentRunID == static_cast<quint32>(live_exp_run_id_)) {
-        qDebug() << "\n(TICK) - Request state for experiment run [" << experimentRunID << "] - " << exp_run_names_.value(experimentRunID, "");
-    } else {
-        qDebug() << "Request state for experiment run [" << experimentRunID << "] - " << exp_run_names_.value(experimentRunID, "");
-    }
 
     connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [this, experimentRunID, futureWatcher, exp_data_requester]() {
         try {
@@ -420,8 +412,6 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
     auto future = aggregationProxy().RequestPortEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<PortEvent*>>(this);
 
-    //qDebug() << "Requested Port Events for exp run [" << experimentRun.experiment_run_id << "] - " << request.port_paths();
-
     connect(futureWatcher, &QFutureWatcher<QVector<PortEvent*>>::finished, [this, futureWatcher, experimentRun, port_data_requester]() {
         try {
             auto&& events = futureWatcher->result();
@@ -490,23 +480,24 @@ void ExperimentDataManager::processExperimentRuns(const QString& experiment_name
 void ExperimentDataManager::processExperimentState(const QString& experiment_name, quint32 experiment_run_id, const AggServerResponse::ExperimentState& experiment_state)
 {
     if (selectedExperimentRun_.experiment_run_id != invalid_experiment_id) {
-
         auto exp_data = experiment_data_hash_.value(selectedExperimentRun_.experiment_name, nullptr);
         if (exp_data == nullptr) {
             throw std::invalid_argument("ExperimentDataManager::processExperimentState - There is no ExperimentData with experiment name: " + experiment_name.toStdString());
         }
-
-        // Setup/display experiment data for PULSE
-        auto& exp_run_data = exp_data->getExperimentRun(experiment_run_id);
-        exp_run_data.updateData(experiment_state);
-        getDataflowDialog().constructGraphicsItemsForExperimentRun(experiment_name, exp_run_data);
-
-        // Updated the selected experiment run's last updated time - the selected run is passed on to the chartview
-        auto last_updated_time = experiment_state.last_updated_time;
-        selectedExperimentRun_.last_updated_time = last_updated_time;
-
-        // Let the chartview know to update the time-range for the charts associated with the experiment_run_id
-        timelineChartView().updateExperimentRunLastUpdatedTime(experiment_run_id, last_updated_time);
+        if (show_in_pulse_) {
+            // Setup/display experiment data for PULSE
+            auto& exp_run_data = exp_data->getExperimentRun(experiment_run_id);
+            exp_run_data.updateData(experiment_state);
+            getDataflowDialog().constructGraphicsItemsForExperimentRun(experiment_name, exp_run_data);
+            emit showDataflowPanel();
+        }
+        if (show_in_charts_) {
+            // Updated the selected experiment run's last updated time - the selected run is passed on to the chartview
+            auto&& last_updated_time = experiment_state.last_updated_time;
+            selectedExperimentRun_.last_updated_time = last_updated_time;
+            // Let the chartview know to update the time-range for the charts associated with the experiment_run_id
+            timelineChartView().updateExperimentRunLastUpdatedTime(experiment_run_id, last_updated_time);
+        }
     }
 }
 
@@ -518,13 +509,13 @@ void ExperimentDataManager::processExperimentState(const QString& experiment_nam
  */
 void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortLifecycleEvent*>& events)
 {
-    if (events.isEmpty()) {
-        if (exp_run.end_time != 0) {
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
             toastNotification("No port lifecycle events received for selection", "plug");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addPortLifecycleEvents(exp_run, events);
         }
-    } else {
-        emit showChartsPanel();
-        timelineChartView().addPortLifecycleEvents(exp_run, events);
     }
 }
 
@@ -536,13 +527,13 @@ void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::
  */
 void ExperimentDataManager::processWorkloadEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<WorkloadEvent*>& events)
 {
-    if (events.isEmpty()) {
-        if (exp_run.end_time != 0) {
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
             toastNotification("No workload events received for selection", "spanner");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addWorkloadEvents(exp_run, events);
         }
-    } else {
-        emit showChartsPanel();
-        timelineChartView().addWorkloadEvents(exp_run, events);
     }
 }
 
@@ -554,13 +545,13 @@ void ExperimentDataManager::processWorkloadEvents(const AggServerResponse::Exper
  */
 void ExperimentDataManager::processCPUUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<CPUUtilisationEvent*>& events)
 {
-    if (events.isEmpty()) {
-        if (exp_run.end_time != 0) {
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
             toastNotification("No cpu utilisation events received for selection", "cpu");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addCPUUtilisationEvents(exp_run, events);
         }
-    } else {
-        emit showChartsPanel();
-        timelineChartView().addCPUUtilisationEvents(exp_run, events);
     }
 }
 
@@ -572,13 +563,13 @@ void ExperimentDataManager::processCPUUtilisationEvents(const AggServerResponse:
  */
 void ExperimentDataManager::processMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MemoryUtilisationEvent*>& events)
 {
-    if (events.isEmpty()) {
-        if (exp_run.end_time != 0) {
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
             toastNotification("No memory utilisation events received for selection", "memoryCard");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addMemoryUtilisationEvents(exp_run, events);
         }
-    } else {
-        emit showChartsPanel();
-        timelineChartView().addMemoryUtilisationEvents(exp_run, events);
     }
 }
 
@@ -590,13 +581,13 @@ void ExperimentDataManager::processMemoryUtilisationEvents(const AggServerRespon
  */
 void ExperimentDataManager::processMarkerEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MarkerEvent*>& events)
 {
-    if (events.isEmpty()) {
-        if (exp_run.end_time != 0) {
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
             toastNotification("No marker events received for selection", "bookmark");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addMarkerEvents(exp_run, events);
         }
-    } else {
-        emit showChartsPanel();
-        timelineChartView().addMarkerEvents(exp_run, events);
     }
 }
 
@@ -608,13 +599,13 @@ void ExperimentDataManager::processMarkerEvents(const AggServerResponse::Experim
  */
 void ExperimentDataManager::processPortEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortEvent*>& events)
 {
-    if (events.isEmpty()) {
-        if (exp_run.end_time != 0) {
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
             toastNotification("No port events received for selection", "plug");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addPortEvents(exp_run, events);
         }
-    } else {
-        emit showChartsPanel();
-        timelineChartView().addPortEvents(exp_run, events);
     }
 }
 
@@ -664,7 +655,7 @@ void ExperimentDataManager::toastNotification(const QString &description, const 
  * @param item
  * @return
  */
-QString ExperimentDataManager::getItemLabel(const ViewItem *item)
+QString ExperimentDataManager::getItemLabel(const ViewItem *item) const
 {
     if (item) {
         return item->getData("label").toString();
@@ -877,14 +868,19 @@ void ExperimentDataManager::clear()
 
 
 /**
- * @brief ExperimentDataManager::experimentRunSelected
+ * @brief ExperimentDataManager::visualiseSelectedExperimentRun
  * This slot is called when an experiment run was selected from the ChartInputPopup and "OK" was clicked
  * This is where the chart data request chain starts
  * @param experimentRun
+ * @param charts
+ * @param pulse
  */
-void ExperimentDataManager::experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun)
+void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerResponse::ExperimentRun& experimentRun, bool charts, bool pulse)
 {
     if (experimentRun.experiment_run_id != invalid_experiment_id) {
+
+        show_in_charts_ = charts;
+        show_in_pulse_ = pulse;
 
         // Stop the previous timer if there is one
         stopTimerLoop(static_cast<quint32>(live_exp_run_id_));

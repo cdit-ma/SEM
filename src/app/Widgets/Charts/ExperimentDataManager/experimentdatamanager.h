@@ -64,7 +64,7 @@ public slots:
     void clear();
 
 private slots:
-    void experimentRunSelected(const AggServerResponse::ExperimentRun& experimentRun);
+    void visualiseSelectedExperimentRun(const AggServerResponse::ExperimentRun& experimentRun, bool charts, bool pulse);
 
 protected:
     static void constructSingleton(ViewController* vc);
@@ -102,7 +102,7 @@ private:
     MEDEA::ExperimentData* constructExperimentData(const QString& experiment_name);
     MEDEA::ExperimentData* getExperimentData(quint32 exp_run_id) const;
 
-    QString getItemLabel(const ViewItem* item);
+    QString getItemLabel(const ViewItem* item) const;
 
     DataflowDialog* dataflowDialog_ = nullptr;
     ChartDialog* chartDialog_ = nullptr;
@@ -111,6 +111,9 @@ private:
     QVector<ViewItem*> selectedViewItems_;
     QList<MEDEA::ChartDataKind> selectedDataKinds_;
     AggServerResponse::ExperimentRun selectedExperimentRun_;
+
+    bool show_in_charts_ = false;
+    bool show_in_pulse_ = false;
 
     QHash<QString, MEDEA::ExperimentData*> experiment_data_hash_;
     QHash<quint32, QString> exp_run_names_;

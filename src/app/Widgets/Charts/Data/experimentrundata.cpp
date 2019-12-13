@@ -122,16 +122,6 @@ QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(int id) const
  */
 void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentState& exp_state)
 {
-    // TODO: Investigate why the last updated time is not "at least" the end time
-    // When the following code is placed inside the if-block further down, it doesn't execute
-
-    auto&& state_end_time = exp_state.end_time;
-    if (state_end_time != end_time_) {
-        // Send a signal to let listeners know that the experiment run has finished
-        end_time_ = state_end_time;
-        emit experimentRunFinished(experiment_run_id_);
-    }
-
     auto&& state_last_updated_time = exp_state.last_updated_time;
     if (state_last_updated_time > last_updated_time_) {
         // NOTE: last_updated_time_ is passed through to update the children data
@@ -144,6 +134,13 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
             addPortConnection(p_c);
         }
         emit dataUpdated(last_updated_time_);
+
+        // If the experiment run was live, send a signal to let listeners know if it has finished
+        auto&& state_end_time = exp_state.end_time;
+        if (state_end_time != end_time_) {
+            end_time_ = state_end_time;
+            emit experimentRunFinished(experiment_run_id_);
+        }
     }
 }
 
@@ -156,11 +153,9 @@ void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
 {
     auto node_data = node_data_hash_.value(node.hostname, nullptr);
     if (node_data == nullptr) {
-        //qDebug() << "Create node data for: " << node.hostname;
         node_data = new NodeData(experiment_run_id_, node, this);
         node_data_hash_.insert(node_data->getHostname(), node_data);
     } else {
-        //qDebug() << "Update node data for: " << node.hostname;
         node_data->updateData(node, last_updated_time_);
     }
 }

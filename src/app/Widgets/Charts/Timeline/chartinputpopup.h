@@ -9,6 +9,7 @@
 
 #include <QVBoxLayout>
 #include <QGroupBox>
+#include <QCheckBox>
 #include <QLineEdit>
 #include <QToolBar>
 #include <QAction>
@@ -35,7 +36,7 @@ public:
 
 signals:
     void setChartTitle(QString title);
-    void selectedExperimentRun(const AggServerResponse::ExperimentRun& experimentRun);
+    void visualiseExperimentRunData(const AggServerResponse::ExperimentRun& experimentRun, bool showCharts, bool showPulse);
 
 public slots:
     void themeChanged();
@@ -85,6 +86,11 @@ private:
     QGroupBox* workersGroupBox_ = nullptr;
 
     QHash<FILTER_KEY, QLayout*> groupBoxLayouts;
+
+    QWidget* live_splitter_widget_ = nullptr;
+
+    QCheckBox* charts_checkbox_ = nullptr;
+    QCheckBox* pulse_checkbox_ = nullptr;
 
     QToolBar* toolbar_ = nullptr;
     QAction* okAction_ = nullptr;
