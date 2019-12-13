@@ -7,6 +7,7 @@
 
 #include <QGraphicsWidget>
 #include <QGraphicsLinearLayout>
+#include <QPen>
 
 class PortInstanceGraphicsItem : public QGraphicsWidget
 {
@@ -33,8 +34,8 @@ signals:
     void flashEdge(qint64 from_time, int flash_duration_ms);
 
 private slots:
-    void flashPort(qint64 from_time, QColor flash_color = QColor());
-    void unflashPort(qint64 flash_end_time);
+    void flashPort(MEDEA::ChartDataKind event_kind, qint64 from_time, QColor flash_color = QColor());
+    void unflashPort(MEDEA::ChartDataKind event_kind, qint64 flash_end_time);
 
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
@@ -49,6 +50,12 @@ private:
 
     Qt::Alignment alignment_ = Qt::AlignLeft;
     QPair<QString, QString> icon_path;
+
+    qint64 port_lifecycle_flash_end_time_ = 0;
+    qint64 port_event_flash_end_time_ = 0;
+
+    QPen ellipse_pen_;
+    QColor ellipse_pen_color_;
 
     QColor ellipse_color_;
     QColor default_color_;

@@ -194,7 +194,7 @@ void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::Expe
  * @param experimentRun
  * @param events
  */
-void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<MarkerEvent *> &events)
+void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent*>& events)
 {
     /*
     QList<MEDEA::EventSeries*> clearedSeries;

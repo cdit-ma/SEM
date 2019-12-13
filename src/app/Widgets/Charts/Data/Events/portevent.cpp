@@ -20,10 +20,7 @@ PortEvent::PortEvent(const AggServerResponse::Port& port,
       sequence_num_(sequence_num),
       series_id_(port.graphml_id),
       id_(port.graphml_id + getTypeString(type) + QString::number(time)),
-      message_(message)
-{
-}
-
+      message_(message) {}
 
 
 /**

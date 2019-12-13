@@ -164,10 +164,12 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
 {
     const auto& port_lifecycle_event_series = port_inst_data_.getPortLifecycleEventSeries();
     const auto& port_lifecycle_events = port_lifecycle_event_series.getEventsBetween(from_time, to_time);
+    if (!port_lifecycle_events.isEmpty()) {
+        flashPort(MEDEA::ChartDataKind::PORT_LIFECYCLE, from_time);
+    }
 
     const auto& port_event_series = port_inst_data_.getPortEventSeries();
     const auto& port_events = port_event_series.getEventsBetween(from_time, to_time);
-
     bool has_port_events = false;
     for (const auto& event : port_events) {
         auto port_event = qobject_cast<PortEvent*>(event);
@@ -176,11 +178,9 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
             break;
         }
     }
-
-    if (!port_lifecycle_events.isEmpty() || has_port_events) {
-        auto&& flash_color = has_port_events ? highlight_color_ : Theme::theme()->getMenuIconColor(ColorRole::SELECTED);
-        flashPort(from_time, flash_color);
-        if (event_src_port_ && has_port_events) {
+    if (has_port_events) {
+        flashPort(MEDEA::ChartDataKind::PORT_EVENT, from_time);
+        if (event_src_port_) {
             emit flashEdge(from_time, flash_duration_ms);
         }
     }
@@ -188,40 +188,54 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
 
 /**
  * @brief PortInstanceGraphicsItem::flashPort
+ * @param event_kind
  * @param from_time
  * @param flash_color
  */
-void PortInstanceGraphicsItem::flashPort(qint64 from_time, QColor flash_color)
+void PortInstanceGraphicsItem::flashPort(MEDEA::ChartDataKind event_kind, qint64 from_time, QColor flash_color)
 {
     if (!flash_color.isValid()) {
         flash_color = highlight_color_;
     }
 
-    // Switch the ellipse color
-    ellipse_color_ = flash_color;
+    auto&& end_time = from_time + flash_duration_ms;
+
+    // Switch the color
+    if (event_kind == MEDEA::ChartDataKind::PORT_LIFECYCLE) {
+        ellipse_pen_.setColor(ellipse_pen_color_);
+        port_lifecycle_flash_end_time_ = qMax(end_time, port_lifecycle_flash_end_time_);
+    } else if (event_kind == MEDEA::ChartDataKind::PORT_EVENT) {
+        ellipse_color_ = flash_color;
+        port_event_flash_end_time_ = qMax(end_time, port_event_flash_end_time_);
+    }
     update();
 
-    auto&& end_time = from_time + flash_duration_ms;
-    flash_end_time_ = qMax(end_time, flash_end_time_);
-
-    QTimer::singleShot(flash_duration_ms, this, [this, end_time]() {
-        unflashPort(end_time);
+    QTimer::singleShot(flash_duration_ms, this, [this, event_kind, end_time]() {
+        unflashPort(event_kind, end_time);
     });
 }
 
 
 /**
  * @brief PortInstanceGraphicsItem::unflashPort
+ * @param event_kind
  * @param flash_end_time
  */
-void PortInstanceGraphicsItem::unflashPort(qint64 flash_end_time)
+void PortInstanceGraphicsItem::unflashPort(MEDEA::ChartDataKind event_kind, qint64 flash_end_time)
 {
-    // Reset the ellipse color when we've reached the flash end time
-    if (flash_end_time_ == flash_end_time) {
-        ellipse_color_ = default_color_;
-        update();
-        flash_end_time_ = 0;
+    // Reset the color when we've reached the flash end time
+    if (event_kind == MEDEA::ChartDataKind::PORT_LIFECYCLE) {
+        if (port_lifecycle_flash_end_time_ == flash_end_time) {
+            ellipse_pen_.setColor(Qt::transparent);
+            port_lifecycle_flash_end_time_ = 0;
+        }
+    } else if (event_kind == MEDEA::ChartDataKind::PORT_EVENT) {
+        if (port_event_flash_end_time_ == flash_end_time) {
+            ellipse_color_ = default_color_;
+            port_event_flash_end_time_ = 0;
+        }
     }
+    update();
 }
 
 
@@ -237,9 +251,9 @@ void PortInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphi
     Q_UNUSED(widget);
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(Qt::NoPen);
 
     auto icon_size = icon_pixmap_item_->preferredWidth() / 2.0;
+    painter->setPen(ellipse_pen_);
     painter->setBrush(ellipse_color_);
     painter->drawEllipse(icon_pixmap_item_->geometry().center(), icon_size, icon_size);
 }
@@ -261,6 +275,8 @@ void PortInstanceGraphicsItem::themeChanged()
     }
 
     ellipse_color_ = default_color_;
+    ellipse_pen_color_ = theme->getTextColor();
+    ellipse_pen_ = QPen(Qt::transparent, 3.0);
 
     auto pixmap = theme->getImage(icon_path.first, icon_path.second, QSize(), pixmap_color);
     icon_pixmap_item_->updatePixmap(pixmap);
