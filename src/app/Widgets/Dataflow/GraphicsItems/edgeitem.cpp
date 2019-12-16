@@ -33,16 +33,12 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst,
         throw std::invalid_argument("Cannot construct EdgeItem - Destination item is null.");
     }
 
-    // This initialises the src & dst points and the edge path
-    updateSourcePos();
-    updateDestinationPos();
-
-    connect(src, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateSourcePos);
-    connect(src, &PortInstanceGraphicsItem::geometryChanged, this, &EdgeItem::updateSourcePos);
+    connect(src, &PortInstanceGraphicsItem::updateConnectionPos, this, &EdgeItem::updateSourcePos);
+    connect(src, &PortInstanceGraphicsItem::visibleChanged, this, &EdgeItem::updateVisibility);
     connect(src, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
 
-    connect(dst, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateDestinationPos);
-    connect(dst, &PortInstanceGraphicsItem::geometryChanged, this, &EdgeItem::updateDestinationPos);
+    connect(dst, &PortInstanceGraphicsItem::updateConnectionPos, this, &EdgeItem::updateDestinationPos);
+    connect(dst, &PortInstanceGraphicsItem::visibleChanged, this, &EdgeItem::updateVisibility);
     if (dst->getPortKind() == AggServerResponse::Port::Kind::REPLIER) {
         connect(dst, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
     }
@@ -215,6 +211,46 @@ void EdgeItem::updateEdgePath()
 
     prepareGeometryChange();
     update();
+}
+
+
+/**
+ * @brief EdgeItem::updateVisibility
+ * This checks if at least one of the top-most parent item for either the src or dst is visible.
+ * If there is no parent item visible, hide the edge item
+ */
+void EdgeItem::updateVisibility()
+{    
+    QGraphicsItem* src_top_visible_parent = src_item_->parentItem();
+    bool src_visible = src_item_->isVisible();
+    if (!src_visible) {
+        while (src_top_visible_parent != nullptr) {
+            if (src_top_visible_parent->isVisible()) {
+                src_visible = true;
+                break;
+            }
+            src_top_visible_parent = src_top_visible_parent->parentItem();
+        }
+    }
+
+    QGraphicsItem* dst_top_visible_parent = dst_item_->parentItem();
+    bool dst_visible = dst_item_->isVisible();
+    if (!dst_visible) {
+        while (dst_top_visible_parent != nullptr) {
+            if (dst_top_visible_parent->isVisible()) {
+                dst_visible = true;
+                break;
+            }
+            dst_top_visible_parent = dst_top_visible_parent->parentItem();
+        }
+    }
+
+    // If both the top-most src and dst items are not null and are the same, hide the edge item
+    if (src_top_visible_parent && dst_top_visible_parent && (src_top_visible_parent == dst_top_visible_parent)) {
+        setVisible(false);
+    } else {
+        setVisible(src_visible || dst_visible);
+    }
 }
 
 

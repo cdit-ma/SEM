@@ -55,6 +55,7 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     setFlags(flags() | QGraphicsWidget::ItemIsSelectable | QGraphicsWidget::ItemSendsGeometryChanges);
 
+    connect(this, &PortInstanceGraphicsItem::geometryChanged, this, &PortInstanceGraphicsItem::updateConnectionPos);
     connect(Theme::theme(), &Theme::theme_Changed, this, &PortInstanceGraphicsItem::themeChanged);
     themeChanged();
 }
@@ -198,6 +199,7 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
 
     const auto& port_event_series = port_inst_data_.getPortEventSeries();
     const auto& port_events = port_event_series.getEventsBetween(from_time, to_time);
+
     bool has_port_events = false;
     for (const auto& event : port_events) {
         auto port_event = qobject_cast<PortEvent*>(event);
@@ -364,9 +366,12 @@ void PortInstanceGraphicsItem::themeChanged()
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
+    /*
+    // TODO - Uncomment when we add the Aggregate messgae type
     pixmap = theme->getImage("Icons", "envelopeTwoTone", QSize(), theme->getAltTextColor());
     sub_icon_pixmap_item_->updatePixmap(pixmap);
     sub_label_text_item_->setDefaultTextColor(theme->getTextColor());
+    */
 }
 
 
@@ -409,8 +414,8 @@ void PortInstanceGraphicsItem::setupLayout()
 
     prepareGeometryChange();
     setContentsMargins(0, 0, 0, 0);
-    setupSubInfoLayout();
     setLayout(main_layout_);
+    //setupSubInfoLayout();
 }
 
 

@@ -4,7 +4,7 @@
 #include "../DockWidgets/basedockwidget.h"
 #include "../../theme.h"
 
-#include "EntityItems/componentinstancegraphicsitem.h"
+#include "EntityItems/nodegraphicsitem.h"
 #include "GraphicsItems/edgeitem.h"
 
 #include <QGraphicsRectItem>
@@ -99,14 +99,21 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
         emit updateLiveStatus(live_mode_);
     }
 
+    // REVIEW (Jackson): The nesting here is getting pretty deep - the inner functionality can be
+    //  fairly safely moved to the classes you're iterating over
     for (const auto& node_data : exp_run_data.getNodeData()) {
+
+        auto node_item = new NodeGraphicsItem(*node_data);
+        addItemToScene(node_item);
+
         for (const auto& container_data : node_data->getContainerInstanceData()) {
             for (const auto& comp_inst_data : container_data->getComponentInstanceData()) {
                 if (comp_inst_data == nullptr) {
                     throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - ComponentInstanceData is null.");
                 }
-                auto comp_inst_item = new ComponentInstanceGraphicsItem(*comp_inst_data);
-                addItemToScene(comp_inst_item);
+
+                auto comp_inst_item = node_item->addComponentInstanceItem(*comp_inst_data);
+                comp_inst_items_.insert(comp_inst_data->getGraphmlID(), comp_inst_item);
                 for (const auto& port_data : comp_inst_data->getPortInstanceData()) {
                     if (port_data == nullptr) {
                         throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - PortInstanceData is null.");
@@ -139,6 +146,7 @@ void DataflowDialog::clearScene()
 
     view_->scene()->clear();
     port_items_.clear();
+    comp_inst_items_.clear();
 }
 
 
@@ -152,25 +160,15 @@ void DataflowDialog::playback()
         resetPlayback();
         return;
     }
-
     // If the timer is already running, do nothing
     if (timer_active_) {
         return;
     }
-
     if (playback_current_time_ >= exp_run_end_time_) {
         if (!live_mode_) {
-            qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
             resetPlayback();
         }
-    } else {
-        if (playback_current_time_ == exp_run_start_time_) {
-            qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
-        } else {
-            qDebug() << "CONTINUE playback";
-        }
     }
-
     startPlaybackTimer();
 }
 
@@ -180,7 +178,6 @@ void DataflowDialog::playback()
  */
 void DataflowDialog::pausePlayback()
 {
-    qDebug() << "PAUSE playback";
     stopPlaybackTimer();
 }
 
@@ -190,8 +187,6 @@ void DataflowDialog::pausePlayback()
  */
 void DataflowDialog::jumpToPreviousActivity()
 {
-    qDebug() << "JUMP to PREVIOUS activity from: " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-
     qint64 prev_time = playback_current_time_;
     for (const auto& port : port_items_) {
         const auto& port_prev_time = port->getPreviousEventTime(playback_current_time_);
@@ -209,8 +204,6 @@ void DataflowDialog::jumpToPreviousActivity()
  */
 void DataflowDialog::jumpToNextActivity()
 {
-    qDebug() << "JUMP to NEXT activity from: " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-
     qint64 next_time = playback_current_time_;
     for (const auto& port : port_items_) {
         const auto& port_next_time = port->getNextEventTime(playback_current_time_);
@@ -228,7 +221,6 @@ void DataflowDialog::jumpToNextActivity()
  */
 void DataflowDialog::jumpToStart()
 {
-    qDebug() << "JUMP to START";
     playback_current_time_ = exp_run_start_time_;
     playback_controls.setCurrentTime(playback_current_time_);
 }
@@ -239,7 +231,6 @@ void DataflowDialog::jumpToStart()
  */
 void DataflowDialog::jumpToEnd()
 {
-    qDebug() << "JUMP to END";
     playback_current_time_ = exp_run_end_time_;
     playback_controls.setCurrentTime(playback_current_time_);
 }
@@ -358,7 +349,6 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
             // Send a signal to the playback controls to update the play/pause button
             emit playbackActivated(false);
             stopPlaybackTimer(); //  this stops the timer without resetting the playback time
-            qDebug() << "PLAYBACK FINISHED -----------------------------------------------------";
         }
 
     } else {

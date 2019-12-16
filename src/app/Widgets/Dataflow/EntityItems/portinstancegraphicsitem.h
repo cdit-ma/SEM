@@ -31,7 +31,7 @@ public:
     void playEvents(qint64 from_time, qint64 to_time);
 
 signals:
-    void itemMoved();
+    void updateConnectionPos();
     void flashEdge(qint64 from_time, int flash_duration_ms);
 
 private slots:
@@ -50,8 +50,6 @@ private:
     void themeChanged();
     void setupLayout();
     void setupSubInfoLayout();
-
-    //bool info_visible_ = true;
 
     // This is used to prevent the flash from being stopped/reset prematurely due to previous flash timers ending
     qint64 flash_end_time_ = 0;

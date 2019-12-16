@@ -6,6 +6,7 @@
 
 #include "../Charts/Data/protomessagestructs.h"
 #include "../Charts/Data/experimentrundata.h"
+#include "EntityItems/componentinstancegraphicsitem.h"
 #include "EntityItems/portinstancegraphicsitem.h"
 #include "GraphicsItems/edgeitem.h"
 #include "PlaybackWidget/playbackcontrolswidget.h"
@@ -59,6 +60,7 @@ private:
     QGraphicsView* view_ = nullptr;
     PlaybackControlsWidget playback_controls;
 
+    QHash<QString, ComponentInstanceGraphicsItem*> comp_inst_items_;
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
 
     qint64 exp_run_start_time_ = 0;

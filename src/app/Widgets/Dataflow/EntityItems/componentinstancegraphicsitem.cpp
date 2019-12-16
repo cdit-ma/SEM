@@ -1,8 +1,9 @@
 #include "componentinstancegraphicsitem.h"
+#include "nodegraphicsitem.h"
 #include "../../../theme.h"
 
-#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QGraphicsSceneMouseEvent>
 
 const qreal pen_width = 2.0;
 const int icon_size = 50;
@@ -14,14 +15,16 @@ const int top_layout_horizontal_margin = 10;
  * @param comp_inst_data
  * @param parent
  */
-ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, QGraphicsItem* parent)
+ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, NodeGraphicsItem* parent)
     : QGraphicsWidget(parent),
       comp_inst_data_(comp_inst_data)
 {
     setupLayout();
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     setFlags(flags() | QGraphicsWidget::ItemIsMovable | QGraphicsWidget::ItemIsSelectable);
+    setAcceptedMouseButtons(Qt::LeftButton);
 
+    connect(this, &ComponentInstanceGraphicsItem::geometryChanged, this, &ComponentInstanceGraphicsItem::updateConnectionPos);
     connect(Theme::theme(), &Theme::theme_Changed, this, &ComponentInstanceGraphicsItem::themeChanged);
     themeChanged();
 }
@@ -34,8 +37,8 @@ ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInst
 PortInstanceGraphicsItem* ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceData& port_data)
 {
     auto port_inst_item = new PortInstanceGraphicsItem(port_data, this);
-    connect(this, &ComponentInstanceGraphicsItem::itemMoved, port_inst_item, &PortInstanceGraphicsItem::itemMoved);
-    connect(this, &ComponentInstanceGraphicsItem::itemExpanded, port_inst_item, &PortInstanceGraphicsItem::geometryChanged);
+    connect(this, &ComponentInstanceGraphicsItem::visibleChanged, port_inst_item, &PortInstanceGraphicsItem::visibleChanged);
+    connect(this, &ComponentInstanceGraphicsItem::updateConnectionPos, port_inst_item, &PortInstanceGraphicsItem::updateConnectionPos);
 
     port_inst_item->setParentItem(this);
     port_inst_items_.push_back(port_inst_item);
@@ -105,14 +108,12 @@ void ComponentInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionG
     auto padding = pen_width / 2.0;
     QRectF rect = boundingRect().adjusted(padding, padding, -padding, -padding);
     painter->fillRect(rect, body_color_);
-    //painter->fillRect(top_layout_->geometry(), top_color_);
 
     auto top_rect = top_layout_->geometry();
     top_rect.setWidth(rect.width());
     painter->fillRect(top_rect, top_color_);
 
     painter->setPen(QPen(top_color_, 2));
-    painter->setBrush(Qt::NoBrush);
     painter->drawRoundedRect(rect, 2, 2);
 }
 
@@ -123,7 +124,7 @@ void ComponentInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionG
  */
 void ComponentInstanceGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (top_layout_->geometry().contains(event->pos())) {
         prev_move_origin_ = mapToScene(event->pos());
         moving_ = true;
     }
@@ -141,9 +142,8 @@ void ComponentInstanceGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* eve
         auto cursor_pos = mapToScene(event->pos());
         auto delta = cursor_pos - prev_move_origin_;
         prev_move_origin_ = cursor_pos;
-        moveBy(delta.x(), delta.y());
+        emit attemptMove(this, pos() + delta);
     }
-    QGraphicsWidget::mouseMoveEvent(event);
 }
 
 
@@ -176,17 +176,6 @@ void ComponentInstanceGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEve
 
 
 /**
- * @brief ComponentInstanceGraphicsItem::moveEvent
- * @param event
- */
-void ComponentInstanceGraphicsItem::moveEvent(QGraphicsSceneMoveEvent* event)
-{
-    emit itemMoved();
-    QGraphicsWidget::moveEvent(event);
-}
-
-
-/**
  * @brief ComponentInstanceGraphicsItem::toggleExpanded
  */
 void ComponentInstanceGraphicsItem::toggleExpanded()
@@ -198,7 +187,20 @@ void ComponentInstanceGraphicsItem::toggleExpanded()
         port_inst->setVisible(expanded_);
     }
 
+    update();
     emit itemExpanded(expanded_);
+}
+
+
+/**
+ * @brief ComponentInstanceGraphicsItem::moveTo
+ * @param x
+ * @param y
+ */
+void ComponentInstanceGraphicsItem::moveTo(int x, int y)
+{
+    prepareGeometryChange();
+    setPos(x, y);
     update();
 }
 
@@ -287,11 +289,11 @@ void ComponentInstanceGraphicsItem::setupLayout()
     //top_layout_->setStretchFactor(toggle_pixmap_item_, 0);
 
     auto spacing = MEDEA::GraphicsLayoutItem::DEFAULT_GRAPHICS_ITEM_HEIGHT * 0.75;
-    auto margin = spacing / 3;
+    auto margin = spacing / 4;
     children_layout_ = new QGraphicsGridLayout;
-    children_layout_->setContentsMargins(margin, margin - 5, margin, margin);
+    children_layout_->setContentsMargins(margin, margin, margin, margin);
     children_layout_->setHorizontalSpacing(spacing);
-    children_layout_->setVerticalSpacing(spacing / 3);
+    children_layout_->setVerticalSpacing(margin);
 
     main_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
     main_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
