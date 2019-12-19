@@ -7,11 +7,14 @@
 
 namespace EnvironmentManager{
 
+// REVIEW (Mitch): Dead code.
 struct ExternalEventPort{
     std::string unique_label;
     std::set<std::string> endpoints;
 };
 
+// REVIEW (Mitch): Move this to a util library. This could be a fairly generic wrapper around a
+//  unique_queue, unsure what to name.
 class PortTracker{
     public:
         PortTracker(const std::string& ip_address, unique_queue<int> port_set){

@@ -71,6 +71,9 @@ if (BUILD_DOCS)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/docs")
 endif ()
 
+# Build Docker client library
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/DockerClient")
+
 if (BUILD_TEST)
     message(STATUS "Building re tests")
     set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)

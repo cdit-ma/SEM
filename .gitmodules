@@ -2,3 +2,6 @@
 	path = extern/googletest
 	url = https://github.com/google/googletest
 
+[submodule "extern/DockerClient"]
+	path = extern/DockerClient
+	url = https://github.com/cdit-ma/DockerClient

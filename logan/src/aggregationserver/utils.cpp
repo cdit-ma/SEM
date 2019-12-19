@@ -1,11 +1,6 @@
 #include "utils.h"
 
-#include <sstream>
-#include <iomanip>
-#include <chrono>
-#include <iostream>
 #include <algorithm>
-#include <ctime>
 
 #include <google/protobuf/util/time_util.h>
 
@@ -43,6 +38,7 @@ void ltrim(std::string& str, char token) {
     }
 }
 
+// REVIEW(Jackson): Namespace and stringview
 std::string strip_schema(const std::string& str) {
     std::string new_str = str;
     ltrim(new_str, '.');

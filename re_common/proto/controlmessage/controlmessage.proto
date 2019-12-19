@@ -2,9 +2,13 @@ syntax="proto3";
 
 import "google/protobuf/timestamp.proto";
 
+// REVIEW (Mitch): Rename package to anything other than "NodeManager"
+// REVIEW (Jackson): It almost makes sense to invert these, ie a package of ControlMessages
+//  which can then be used to send more specific commands to the NodeManager
 package NodeManager;
-message ControlMessage{
-    enum Type{
+message ControlMessage {
+    // REVIEW (Mitch): Update documentation comments for enum values.
+    enum Type {
         NO_TYPE = 0;
         STARTUP = 1;        //Construct the NodeContainer; Setup all ports and topics for ALL Components/ports
         TEARDOWN = 2;       //Destruct the NodeContainer; Implicitly tears down all components and ports.
@@ -271,42 +275,42 @@ message SlaveStartupRequest{
     SlaveId id = 1;
 }
 
-message SlaveStartupReply{
+message SlaveStartupReply {
     string host_name = 1;
     Container configuration = 2;
 }
 
-message SlaveConfiguredRequest{
+message SlaveConfiguredRequest {
     SlaveId id = 1;
     bool success = 2;
     repeated string error_messages = 3;
 }
 
-message SlaveConfiguredReply{
+message SlaveConfiguredReply {
 
 }
 
 
-message SlaveTerminatedRequest{
+message SlaveTerminatedRequest {
     SlaveId id = 1;
 }
 
-message SlaveTerminatedReply{
+message SlaveTerminatedReply {
 
 }
 
-message SlaveStartup{
+message SlaveStartup {
     string slave_host_name = 1;
     Node configuration = 2;
 }
 
-message SlaveStartupResponse{
+message SlaveStartupResponse {
     string slave_ip = 1;
     bool success = 2;
     repeated string error_codes = 3;
 }
 
-message SlaveStartupMessage{
+message SlaveStartupMessage {
     enum Type{
         REQUEST = 0;
         STARTUP = 1;
@@ -320,25 +324,25 @@ message SlaveStartupMessage{
     SlaveStartupResponse response = 4;
 }
 
-message MEDEAInterfaceRequest{
+message MEDEAInterfaceRequest {
 
 }
 
-message MEDEAInterfaceReply{
+message MEDEAInterfaceReply {
     repeated string experiment_names = 1;
 
     repeated ExternalPort external_ports = 2;
 }
 
-message InspectExperimentRequest{
+message InspectExperimentRequest {
     string experiment_name = 1;
 }
 
-message InspectExperimentReply{
+message InspectExperimentReply {
     EnvironmentMessage environment_message = 1;
 }
 
-message SlaveHeartbeatRequest{
+message SlaveHeartbeatRequest {
     enum Type{
         HEARBEAT = 0;
         END_HEARTBEAT = 1;
@@ -347,6 +351,6 @@ message SlaveHeartbeatRequest{
     Type type = 2;
 }
 
-message SlaveHeartbeatReply{
+message SlaveHeartbeatReply {
 
 }

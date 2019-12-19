@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
         build-essential \
         wget \
         ninja-build \
-	libpqxx-dev \
+        libpq-dev postgresql-server-dev-all \
     && rm -rf /var/lib/apt/lists/*
 
 #Install Boost
@@ -60,6 +60,17 @@ RUN wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q -P /opt
         cmake --build . --target install > /dev/null 2>&1 && \
         cd / && \
         rm /opt/sigar* -rf
+
+# Install pqxx
+RUN wget http://192.168.111.1/raid/software_share/UtilityLibraries/libpqxx7-0-0.tar.gz -q && \
+    tar xf libpqxx7-0-0.tar.gz && \
+    cd libpqxx && \
+    mkdir build && \
+    cd build && \
+    cmake -G Ninja .. && \
+    cmake --build . --target install && \
+    cd ~ && \
+    rm libpqxx7-0-0.tar.gz libpqxx -rf
 
 ENV PUGIXML_PATH /usr/local
 

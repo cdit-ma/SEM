@@ -11,28 +11,14 @@
 
 #include <google/protobuf/timestamp.pb.h>
 
-#include <zmq/protoreceiver/protoreceiver.h>
-
-#include "systemeventprotohandler.h"
-#include "modeleventprotohandler.h"
+#include "experimentruninfo.h"
 
 class DatabaseClient;
+// struct ExperimentRunInfo;
 
 namespace NodeManager {
     class ControlMessage;
 }
-
-struct ExperimentRunInfo {
-    std::string name;
-    int job_num;
-    bool running;
-    int experiment_run_id;
-    std::unique_ptr<zmq::ProtoReceiver> receiver;
-    std::unique_ptr<SystemEventProtoHandler> system_handler;
-    std::unique_ptr<ModelEventProtoHandler> model_handler;
-
-    std::map<std::string, int> hostname_node_id_cache;
-};
 
 class ExperimentTracker {
 public:

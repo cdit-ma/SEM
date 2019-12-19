@@ -19,7 +19,6 @@ public:
 private:
     
     std::unique_ptr<AggregationReplier> replier;
-    std::shared_ptr<DatabaseClient> database_client;
 };
 
 }

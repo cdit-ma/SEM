@@ -12,6 +12,7 @@ PeriodicPort::PeriodicPort(::EnvironmentManager::Component& parent, const NodeMa
     frequency_ = attribute.d();
 }
 
+// REVIEW (Mitch): =default
 PeriodicPort::~PeriodicPort(){
 }
 

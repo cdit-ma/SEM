@@ -7,9 +7,11 @@
 #include <core/worker.h>
 #include <google/protobuf/util/time_util.h>
 
-
-
-
+// REVIEW (Mitch): The following Fill* functions should be namespaced
+// REVIEW (Mitch): These functions are trivially unit testable
+// REVIEW (Mitch): Should these functions be changed to return a protobuf message of their
+// respective type?
+//  [[nodiscard]], rvo and protobuf message construction api should all be considered.
 void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
     info.set_hostname(logger.GetHostName());
@@ -46,6 +48,8 @@ Logan::Logger::Logger(const std::string& experiment_name, const std::string& hos
     container_name_(container_name),
     container_id_(container_id)
 {
+    // REVIEW (Mitch): build endpoint and address structs that supply 'to_string' funcs s.t. we can
+    //  enforce invariants. Add this class to a util namespace/library somewhere
     const auto& endpoint = "tcp://" + address + ":" + port;
         
     switch(mode){
@@ -57,9 +61,12 @@ Logan::Logger::Logger(const std::string& experiment_name, const std::string& hos
             writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
             break;
         }
+        // REVIEW (Mitch):
         case Mode::OFF:{
             throw NotNeededException("Offline Logging");
         }
+        // REVIEW (Mitch): Use of default should be reviewed
+        //  enable -Wswitch for this to be a compiler warning
         default:{
             throw std::runtime_error("Invalid logging Mode");
         }
@@ -78,6 +85,8 @@ void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, con
 
     FillInfoPB(*(event_pb->mutable_info()), *this);
 
+    // REVIEW (Mitch): Runtime reflection. Exploiting 'Activatable' base class as location to stick
+    //  runtime type info...
     switch(entity.get_class()){
         case Activatable::Class::COMPONENT:{
             const auto& component = (const Component&)entity;
@@ -94,6 +103,7 @@ void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, con
             }
             break;
         };
+        // REVIEW (Mitch): Silent failure on invalid entity type
         default:{
             return;
         }
@@ -103,6 +113,8 @@ void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, con
 }
 
 void Logan::Logger::LogMessage(const Activatable& entity, const std::string& message){
+    // REVIEW (Mitch): Recursive call? No, name ambiguity resolved through argument count. Code
+    // smell
     LogMessage(entity, false, message);
 }
 
@@ -112,16 +124,22 @@ void Logan::Logger::LogException(const Activatable& entity, const std::string& m
 
 void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const ::Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
     auto event_pb = std::unique_ptr<ModelEvent::WorkloadEvent>(new ModelEvent::WorkloadEvent());
+
+    // REVIEW (Mitch): This is terrible. Matching enums by index
     event_pb->set_event_type((ModelEvent::WorkloadEvent::Type)(int)event);
 
     FillInfoPB(*(event_pb->mutable_info()), *this);
 
+    // REVIEW (Mitch): Clarify what loglevel as a concept means. I think the term is being used
+    //  interchangeably for 'current verbosity level' and 'verbosity level at which a particular
+    //  event type should be logged'.
     auto log_level = GetWorkloadLogLevel(event, message_log_level);
     
     try{
         auto& component = worker.get_component();
         FillComponentPB(*(event_pb->mutable_component()), component);
     }catch(const std::exception& e){
+        // REVIEW (Mitch): Silent failure
     }
 
     FillWorkerPB(*(event_pb->mutable_worker()), worker);
@@ -199,7 +217,7 @@ void Logan::Logger::LogPortUtilizationEvent(const Port& port, const ::BaseMessag
     }
 
     event_pb->set_port_event_id(message.get_base_message_id());
-    
+
     if(message_str.size()){
         event_pb->set_message(message_str);
     }
@@ -208,10 +226,12 @@ void Logan::Logger::LogPortUtilizationEvent(const Port& port, const ::BaseMessag
 
 void Logan::Logger::PushMessage(std::unique_ptr<google::protobuf::MessageLite> message){
     if(writer_){
+        // REVIEW (Mitch): silent failure
         writer_->PushMessage("ModelEvent*", std::move(message));
     }
 }
 
+// REVIEW (Mitch): These mutexes are all unnecessary
 const std::string& Logan::Logger::GetExperimentName() const{
     std::lock_guard<std::mutex> lock(mutex_);
     return experiment_name_;

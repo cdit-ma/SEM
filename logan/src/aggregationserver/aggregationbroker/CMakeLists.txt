@@ -9,7 +9,7 @@ find_package(ZMQ REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/../databaseclient.cpp
+        #	${CMAKE_CURRENT_SOURCE_DIR}/../databaseclient.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../utils.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationbroker.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationreplier.cpp
@@ -59,3 +59,5 @@ target_link_libraries(${PROJ_NAME} re_common_proto_aggregation_message)
 target_link_libraries(${PROJ_NAME} ${PQXX_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+
+target_link_libraries(${PROJ_NAME} logan_database_client_lib)

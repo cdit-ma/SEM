@@ -4,6 +4,7 @@
 #include <core/ports/port.h>
 #include <core/worker.h>
 
+// REVIEW (Mitch): Document that this class is a singleton
 Print::Logger& Print::Logger::get_logger(){
     static std::unique_ptr<Print::Logger> logger(new Print::Logger());
     return *logger;
@@ -19,6 +20,7 @@ bool Print::Logger::ShouldPrint(const int& level) const{
     return log_level_ >= level; 
 }
 
+// REVIEW (Mitch): Print* functions should be namespaced
 std::ostream& PrintComponent(std::ostream& stream, const Component& component){
     stream << component.GetLocalisedName() <<  " [" << component.get_type() << "|" << component.get_id() << "]: ";
     return stream;
@@ -62,6 +64,8 @@ std::ostream& PrintEntity(std::ostream& stream, const Activatable& entity){
         case Activatable::Class::WORKER:
             return PrintWorker(stream, (const Worker&) entity);
         default:
+            // REVIEW (Mitch): Silent failure if type of Activatable not supported
+            //  Template out print functions for types required.
             return stream;
     }
 }
@@ -98,6 +102,7 @@ void Print::Logger::LogLifecycleEvent(const Activatable& entity, const ::Logger:
 }
 
 std::ostream& Print::Logger::GetStream(int level) const{
+    // REVIEW (Mitch): What does this 2 mean?
     return level <= 2 ? std::cerr : std::cout;
 }
 

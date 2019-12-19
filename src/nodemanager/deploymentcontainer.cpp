@@ -18,11 +18,14 @@
 #include <future>
 
 //Converts std::string to lower
+// REVIEW (Mitch): belongs in a util namespace/file
 std::string to_lower(std::string str){
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     return str;
 }
 
+// REVIEW (Mitch): replace params with config struct. Use std::filesystem path for library path
+// REVIEW (Mitch): This constructor is not used, roll into other constructor
 DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path):
     Activatable(Activatable::Class::DEPLOYMENT_CONTAINER),
     experiment_name_(experiment_name),
@@ -31,6 +34,8 @@ DeploymentContainer::DeploymentContainer(const std::string& experiment_name, con
 
 }
 
+// REVIEW (Mitch): Document differences between constructors
+//  Appears that this is just a convenience constructor that also calls configure.
 DeploymentContainer::DeploymentContainer(const std::string& experiment_name, const std::string& host_name, const std::string& library_path, const NodeManager::Container& container):
     DeploymentContainer(experiment_name, host_name, library_path)
 {
@@ -38,6 +43,7 @@ DeploymentContainer::DeploymentContainer(const std::string& experiment_name, con
 }
 
 DeploymentContainer::~DeploymentContainer(){
+    // REVIEW (Mitch): Specify that we're calling activatable's Terminate function.
     Terminate();
 }
 
@@ -55,6 +61,8 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<C
     return nullptr;
 }
 
+// REVIEW (Mitch): Silent failure if we already have one.
+//  This is probably unused, hard to tell without checking codegen.
 void DeploymentContainer::AddLoganLogger(std::unique_ptr<Logan::Logger> logan_logger){
     if(!logan_logger_){
         logan_logger_ = std::move(logan_logger);
@@ -78,19 +86,23 @@ void DeploymentContainer::Configure(const NodeManager::Container& container){
                     //Setup logan logger
                     if(!logan_logger_){
                         try{
+                            // REVIEW (Mitch): Improve this interface, remove enum casting. Remove
+                            //  NotNeededException entirely.
                             logan_logger_ = std::unique_ptr<Logan::Logger>(new Logan::Logger(experiment_name_, host_name_, container.info().name(), container.info().id(), logger_pb.publisher_address(), logger_pb.publisher_port(), (Logger::Mode)logger_pb.mode()));
                         }catch(const Logan::Logger::NotNeededException&){
-                            
+                            // REVIEW (Mitch): Perform this check before calling constructor.
                         }
                     }
                     break;
                 }
+                // REVIEW (Mitch): Use of default in switch case?
                 default:
                     break;
             }
         }
         
         for(const auto& component : container.components()){
+            // REVIEW (Mitch): Why does this return a weak_ptr if we're never capturing it?
             GetConfiguredComponent(component);
         }
 
@@ -112,6 +124,8 @@ void DeploymentContainer::SetLoggers(Activatable& entity){
     entity.logger().AddLogger(Print::Logger::get_logger());
 }
 
+// REVIEW (Mitch): This function should not be here. Components own workers, move functionality to
+//  Component
 std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr<Component> component, const NodeManager::Worker& worker_pb){
     if(component){
         const auto& worker_info_pb = worker_pb.info();
@@ -137,6 +151,10 @@ std::shared_ptr<Worker> DeploymentContainer::GetConfiguredWorker(std::shared_ptr
     return nullptr;
 }
 
+// REVIEW (Mitch): This should be split into Get and Configure Component. If, for whatever reason,
+//  we want to keep GetConfiguredComponent it should be composed of Get and Configure Component
+// REVIEW (Mitch): Construction is also handled here, third function probably needed. Helper
+//  function more justified.
 std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const NodeManager::Component& component_pb){
     const auto& component_info_pb = component_pb.info();
      
@@ -169,6 +187,8 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
             auto port = GetConfiguredPort(component, port_pb);
             try{
                 if(port->get_state() != StateMachine::State::NOT_CONFIGURED){
+                    // REVIEW (Mitch): UHHHHHHHH WHAT??
+                    //  Why do we do a full tour of our state machine?
                     //Terminate and reactivate?
                     std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
                     port->Terminate();
@@ -189,9 +209,13 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
     }else{
         throw std::runtime_error("Cannot Construct Component: " + component_info_pb.name());
     }
+
+    // REVIEW (Mitch): unreachable code
     return nullptr;
 }
 
+// REVIEW (Mitch): As with above, split into multiple functions; Get, Configure, Construct
+//  Supply helper function to expose legacy behaviour
 std::shared_ptr<LoganClient> DeploymentContainer::GetConfiguredLoganClient(const NodeManager::Logger& logger_pb){
     if(logger_pb.type() == NodeManager::Logger::CLIENT && logger_pb.mode() != NodeManager::Logger::OFF){
         //Try and get the Component first
@@ -262,6 +286,7 @@ std::string DeploymentContainer::GetNamespaceString(const NodeManager::Info& inf
     return concatenated_stream.str();
 }
 
+// REVIEW (Mitch): Break into Get, Configure, Construct
 std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Component> component, const NodeManager::Port& port_pb){
     if(component){
         
@@ -294,6 +319,7 @@ std::shared_ptr<Port> DeploymentContainer::GetConfiguredPort(std::shared_ptr<Com
                     port = ConstructReplierPort(middleware, port_info_pb.type(), component, port_info_pb.name(), namespace_str);
                     break;
                 }
+                // REVIEW (Mitch): Review use of default switch cases.
                 default:
                     break;
             }
@@ -341,8 +367,10 @@ void DeploymentContainer::HandlePassivate(){
 }
 
 void DeploymentContainer::HandleTerminate(){
+    // REVIEW (Mitch): Why do we take this lock here, but not in HandleActivate or HandlePassivate?
     std::lock_guard<std::mutex> component_lock(component_mutex_);
-    
+
+    // REVIEW (Mitch): Does this order matter? Probably
     for(const auto& p : components_){
         auto& component = p.second;
         if(component){
@@ -356,7 +384,7 @@ void DeploymentContainer::HandleTerminate(){
             logan_client->Terminate();
         }
     }
-    
+    // REVIEW (Mitch): Does this order matter? Probably
     components_.clear();
     logan_clients_.clear();
 
@@ -366,14 +394,21 @@ void DeploymentContainer::HandleTerminate(){
 }
 
 void DeploymentContainer::HandleConfigure(){
+    // REVIEW (Mitch): Citation needed
+    // REVIEW (Mitch): Justified by arbitrary 1 second sleeps in some middleware ports.
     //Using async allows concurrent configuration of components, which gives orders of magnitude improvements
+    // REVIEW (Mitch): success is unused
     auto success = true;
     std::lock_guard<std::mutex> component_lock(component_mutex_);
 
+    // REVIEW (Mitch): This becomes a list of std::future<void> upon Activatable interface change.
+    //  Signal error by setting exception on future, catch on future.get() call.
     std::list<std::future<bool> > results;
 
     for(const auto& p : components_){
         auto& component = p.second;
+        // REVIEW (Mitch): Why are we doing a pointer validity check here but not for
+        //  logan_clients_?
         if(component){
             //Construct a thread to run the terminate function, which is blocking
             results.push_back(std::async(std::launch::async, &Activatable::Configure, component));
@@ -383,15 +418,21 @@ void DeploymentContainer::HandleConfigure(){
     for(const auto& c : logan_clients_){
         results.push_back(std::async(std::launch::async, &Activatable::Configure, c.second));
     }
-    
+
+    // REVIEW (Mitch): This loop needs to complete even if we get an exception. Un-joined std::async
+    //  destructor calls std::terminate.
+    // XXX: This is a hard std::terminate call if we ever throw while other std::threads are in a
+    //  joinable state.
     for(auto& result : results){
         try{
+            // REVIEW (Mitch): Use boolean short-circuiting here?
             if(result.valid()){
                 if(!result.get()){
                     throw std::runtime_error("DeploymentContainer failed to Configure Component");
                 }
             }
         }catch(const std::exception& ex){
+            // REVIEW (Mitch): What happens to incomplete futures/threads if one throws?
             throw;
         }
     }
@@ -400,6 +441,9 @@ void DeploymentContainer::HandleConfigure(){
 std::weak_ptr<Component> DeploymentContainer::AddComponent(std::unique_ptr<Component> component, const std::string& name){
     std::lock_guard<std::mutex> component_lock(component_mutex_);
     if(component && components_.count(name) == 0){
+        // REVIEW (Mitch): Change this to using insert with structured binding capture.
+        //  auto [ref, success] = components_.insert(name, component);
+        //  also check success.
         components_[name] = std::move(component);
         return components_[name];
     }else if(component){
@@ -421,6 +465,7 @@ std::weak_ptr<LoganClient> DeploymentContainer::AddLoganClient(std::unique_ptr<L
     }
 }
 
+// REVIEW (Mitch): Replace check, lookup and nullptr return with components_.at()
 std::weak_ptr<Component> DeploymentContainer::GetComponent(const std::string& name){
     std::lock_guard<std::mutex> component_lock(component_mutex_);
     if(components_.count(name)){
@@ -440,6 +485,8 @@ std::shared_ptr<Component> DeploymentContainer::RemoveComponent(const std::strin
     return nullptr;
 }
 
+// REVIEW (Mitch): These can be constexpr if they exist in a header
+// REVIEW (Mitch): This is a helper function that should live somewhere else.
 std::string DeploymentContainer::get_port_library_name(const std::string& port_type, const std::string& middleware, const std::string& namespace_str, const std::string& datatype){
     std::string p = "port_";
     p += port_type + "_";
@@ -460,6 +507,7 @@ std::string DeploymentContainer::get_component_library_name(const std::string& c
     return to_lower(c);
 }
 
+// REVIEW (Mitch): Investigate reduction of code repetition
 std::shared_ptr<Port> DeploymentContainer::ConstructPublisherPort(const std::string& middleware, const std::string& datatype, std::weak_ptr<Component> component, const std::string& port_name, const std::string&  namespace_name){
     std::shared_ptr<Port> port;
     const auto& library_name = get_port_library_name("pubsub", middleware, namespace_name, datatype);
@@ -561,6 +609,8 @@ std::shared_ptr<Component> DeploymentContainer::ConstructComponent(const std::st
     const auto& library_name = get_component_library_name(component_type, namespace_str);
 
     if(!component_constructors_.count(library_name)){
+        // REVIEW (Mitch): This can throw from two function calls deeper. We aren't catching here,
+        //  where are we catching?
         auto function = dll_loader.GetLibraryFunction<ComponentCConstructor>(library_path_, library_name, "ConstructComponent");
         if(function){
             component_constructors_[library_name] = function;

@@ -21,10 +21,15 @@
 #include <proto/controlmessage/controlmessage.pb.h>
 #include <util/execution.hpp>
 
+// REVIEW (Mitch): DOCUMENTATION: One of these started per node used in the experiment.
+//  A "node" in this context is either an instance of re_node_manager running on a node or
+//  an instance of re_node_manager running in a docker container
 class DeploymentManager{
     public:
-        DeploymentManager(
-            Execution& execution,
+    // REVIEW (Mitch): Config struct, use endpoint class to be defined in util library, use
+    //  std::filesystem path
+    // REVIEW(Jackson): Can't actually use std::filesystem at this point in time
+    DeploymentManager(Execution& execution,
             const std::string& experiment_name,
             const std::string& ip_address,
             const std::string& container_id,
@@ -34,6 +39,7 @@ class DeploymentManager{
             bool is_master_node);
         ~DeploymentManager();
 
+        // REVIEW (Mitch): Why are these public, internal use only
         NodeManager::SlaveStartupResponse HandleSlaveStartup(const NodeManager::SlaveStartup startup);
         void HandleExperimentUpdate(const NodeManager::ControlMessage& control_message);
         void GotExperimentUpdate(const NodeManager::ControlMessage& control_message);
@@ -44,22 +50,23 @@ class DeploymentManager{
     private:
         std::unique_ptr<NodeManager::SlaveId> GetSlaveID() const;
         void ProcessControlQueue();
-        void InteruptControlQueue();
-
+        void InteruptControlQueue(); // REVIEW (Mitch): Typo in Interrupt
 
         bool is_master_node_ = false;
         const std::string library_path_;
         const std::string ip_address_;
+        // REVIEW (Mitch): "Container" is misleading. See earlier review comment.
         const std::string container_id_;
         const std::string experiment_name_;
         Execution& execution_;
-        
-        std::unique_ptr<zmq::ProtoReceiver> proto_receiever_;
+
+        std::unique_ptr<zmq::ProtoReceiver> proto_receiever_; // REVIEW (Mitch): Typo in receiver
         std::unique_ptr<zmq::ProtoRequester> proto_requester_;
         std::unique_ptr<SlaveHeartbeater> heartbeater_;
 
         //Storage of DeploymentContainers
         std::mutex container_mutex_;
+        // REVIEW (Mitch): what goes in this std::string?
         std::unordered_map<std::string, std::shared_ptr<DeploymentContainer> > deployment_containers_;
 
         

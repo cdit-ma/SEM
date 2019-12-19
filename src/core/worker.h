@@ -9,6 +9,9 @@
 
 class Component;
 
+// REVIEW (Mitch): A worker shouldn't be able to have workers... This is currently allowed.
+//  This is to enable MEDEA classes having workers.
+//  Move medea classes to not being workers, allow classes to have workers.
 class Worker : public BehaviourContainer {
     public:
     Worker(const BehaviourContainer& container,
