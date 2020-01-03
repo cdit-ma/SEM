@@ -779,12 +779,13 @@ void ActionController::setupActions()
     model_queryRunningExperiments = createRootAction("Model", "Query Experiment", "", "Icons", "barChart");
     model_queryRunningExperiments->setToolTip("Query Running Experiments");
     model_queryRunningExperiments->setShortcutContext(Qt::ApplicationShortcut);
-    model_queryRunningExperiments->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    model_queryRunningExperiments->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 
     model_displayExperimentDataflow = createRootAction("Model", "Display Experiment Dataflow", "", "Icons", "arrowsLeftRight");
     model_displayExperimentDataflow->setToolTip("Display Selected Experiment Run's Dataflow.");
     model_displayExperimentDataflow->setShortcutContext(Qt::ApplicationShortcut);
     model_displayExperimentDataflow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Q));
+    model_displayExperimentDataflow->setVisible(false);
 
     dock_addPart = createRootAction("Dock", "Open Add Part Dock", "", "Icons", "plus");
     dock_addPart->setToolTip("Open the add parts dock");
