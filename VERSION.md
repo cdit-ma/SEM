@@ -1,52 +1,17 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# MEDEA v3.3.5-VIS
+# MEDEA v3.4.0
 ## New Features:
-* Added visualisation for Marker events
-* CPU and memory utilisation data are now charted as line graphs
-* Chart queries can now be sent without having to waiting for previous reuqest responses
-* Added functionality that allows the user to trigger and filter chart data by kind by right-clicking on the aspects
+* Added charts for Port events
+* Added Pulse panel 
+    * A view that displays experiment state and allows playback of Port lifecycle and Port events for a selected experiment run
+    * Includes live-polling capability
+* Added a selection at the bottom of the chart popup (used to select the experiment run) for which type of visualisation the experiment run data should be displayed
+* Separated live experiments from finished experiments in the chart popup 
 
-## Bug Fixes:
-* Re-implemented the ability to query chart data by paths as graphml IDs may be inconsistent
-* Fixed chart popup hanging when there is an error with the connection to the Aggregation broker
+## Visual Bugs:
+In the process of upgrading Qt version, it's been noticed that several theme bugs exist. It has been hard to comprehensively identify all of these bugs. We have fixed the ones we have found; if any further bugs are experienced please report them. 
 
-## Resolved JIRA Tickets:
-* MED-534
-* MED-551
-* MED-553
-* MED-557
-* MED-558
-* MED-559
-* MED-562
-* MED-556
-=======
-# MEDEA v3.3.8
-=======
-# MEDEA v3.3.9
->>>>>>> develop
-
-## Workers:
-* Fixed FFT FPGA hanging bug, now safe to run with vectos of 8192 floats (4096 complex pairs)
-
-## Tests:
-* No updates
-
-## Examples:
-* No updates
-
-## Bug Fixes:
-* Fixed code gen issue preventing project containing OpenCL Worker from building with C++17 features
-
-## Resolved JIRA Tickets:
-<<<<<<< HEAD
-* RE-456
-* RE-437
-* RE-436
-* RE-127
-* MED-540
->>>>>>> develop
-=======
-* RE-468
-* REGEN-99
->>>>>>> develop
+## New Dependencies:
+* Changed active development to Qt version 5.12.14 
+* Added a dependency on Protobuf 3.6
+* Added dependency on ZeroMQ 4.2.5
+* Added entire RE repository as a submodule to replace re_common submodule
