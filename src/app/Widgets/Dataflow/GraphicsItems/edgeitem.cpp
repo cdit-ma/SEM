@@ -33,14 +33,15 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst,
         throw std::invalid_argument("Cannot construct EdgeItem - Destination item is null.");
     }
 
-    // This initialises the src & dst points and the edge path
-    updateSourcePos();
-    updateDestinationPos();
-
-    connect(src, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateSourcePos);
-    connect(dst, &PortInstanceGraphicsItem::itemMoved, this, &EdgeItem::updateDestinationPos);
+    connect(src, &PortInstanceGraphicsItem::updateConnectionPos, this, &EdgeItem::updateSourcePos);
+    connect(src, &PortInstanceGraphicsItem::visibleChanged, this, &EdgeItem::updateVisibility);
     connect(src, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
-    //connect(dst, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
+
+    connect(dst, &PortInstanceGraphicsItem::updateConnectionPos, this, &EdgeItem::updateDestinationPos);
+    connect(dst, &PortInstanceGraphicsItem::visibleChanged, this, &EdgeItem::updateVisibility);
+    if (dst->getPortKind() == AggServerResponse::Port::Kind::REPLIER) {
+        connect(dst, &PortInstanceGraphicsItem::flashEdge, this, &EdgeItem::flashEdge);
+    }
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &EdgeItem::themeChanged);
     themeChanged();
@@ -72,9 +73,7 @@ const QString& EdgeItem::getDestinationGraphmlID() const
  */
 void EdgeItem::updateSourcePos()
 {
-    auto icon_rect = src_item_->getIconSceneRect();
-    src_point_.setX(icon_rect.right());
-    src_point_.setY(icon_rect.center().y());
+    src_point_ = src_item_->getEdgePoint();
     updateEdgePath();
 }
 
@@ -84,9 +83,7 @@ void EdgeItem::updateSourcePos()
  */
 void EdgeItem::updateDestinationPos()
 {
-    auto icon_rect = dst_item_->getIconSceneRect();
-    dst_point_.setX(icon_rect.left());
-    dst_point_.setY(icon_rect.center().y());
+    dst_point_ = dst_item_->getEdgePoint();
     updateEdgePath();
 }
 
@@ -141,6 +138,8 @@ void EdgeItem::flashEdge(qint64 from_time, int flash_duration_ms)
     active_pen_.setColor(highlight_pen_color_);
     update();
 
+    // This function can be called multiple times by multiple callers
+    // Due to this, the flash end time needs to be stored and updated to avoid the flash being stopped prematurely
     auto&& end_time = from_time + flash_duration_ms;
     flash_end_time_ = qMax(end_time, flash_end_time_);
 
@@ -212,6 +211,46 @@ void EdgeItem::updateEdgePath()
 
     prepareGeometryChange();
     update();
+}
+
+
+/**
+ * @brief EdgeItem::updateVisibility
+ * This checks if at least one of the top-most parent item for either the src or dst is visible.
+ * If there is no parent item visible, hide the edge item
+ */
+void EdgeItem::updateVisibility()
+{    
+    QGraphicsItem* src_top_visible_parent = src_item_->parentItem();
+    bool src_visible = src_item_->isVisible();
+    if (!src_visible) {
+        while (src_top_visible_parent != nullptr) {
+            if (src_top_visible_parent->isVisible()) {
+                src_visible = true;
+                break;
+            }
+            src_top_visible_parent = src_top_visible_parent->parentItem();
+        }
+    }
+
+    QGraphicsItem* dst_top_visible_parent = dst_item_->parentItem();
+    bool dst_visible = dst_item_->isVisible();
+    if (!dst_visible) {
+        while (dst_top_visible_parent != nullptr) {
+            if (dst_top_visible_parent->isVisible()) {
+                dst_visible = true;
+                break;
+            }
+            dst_top_visible_parent = dst_top_visible_parent->parentItem();
+        }
+    }
+
+    // If both the top-most src and dst items are not null and are the same, hide the edge item
+    if (src_top_visible_parent && dst_top_visible_parent && (src_top_visible_parent == dst_top_visible_parent)) {
+        setVisible(false);
+    } else {
+        setVisible(src_visible || dst_visible);
+    }
 }
 
 

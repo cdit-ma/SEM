@@ -13,13 +13,11 @@ public:
     void setTextAlignment(Qt::Alignment alignment);
 
 protected:
-    // QGraphicsLayoutItem interface
     void setGeometry(const QRectF &geom) override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override;
 
 private:
     QPointF getAlignedPos() const;
-
     Qt::Alignment alignment_ = Qt::AlignVCenter | Qt::AlignLeft;
 };
 

@@ -1,11 +1,11 @@
 #include "portinstancegraphicsitem.h"
+#include "componentinstancegraphicsitem.h"
 #include "../../../theme.h"
 
 #include <QPainter>
 #include <QTimer>
-#include <QDateTime>
 
-//const int pixmap_padding = 15; // better for square icons
+const int icon_size = 50;
 const int pixmap_padding = 10;
 const int flash_duration_ms = 200;
 
@@ -15,8 +15,9 @@ const int flash_duration_ms = 200;
  * @param parent
  * @throws std::invalid_argument
  */
-PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_data, QGraphicsItem* parent)
+PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_data, ComponentInstanceGraphicsItem* parent)
     : QGraphicsWidget(parent),
+      parent_comp_inst_item_(parent),
       port_inst_data_(port_data)
 {
     icon_path.first = "Icons";
@@ -50,11 +51,11 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
         throw std::invalid_argument("PortInstanceGraphicsItem::PortInstanceGraphicsItem - Port kind is unknown");
     }
 
-    setFlags(flags() | QGraphicsWidget::ItemIsSelectable);
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    setupLayout();
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    setFlags(flags() | QGraphicsWidget::ItemIsSelectable | QGraphicsWidget::ItemSendsGeometryChanges);
 
-    setupCentralisedIconLayout();
-
+    connect(this, &PortInstanceGraphicsItem::geometryChanged, this, &PortInstanceGraphicsItem::updateConnectionPos);
     connect(Theme::theme(), &Theme::theme_Changed, this, &PortInstanceGraphicsItem::themeChanged);
     themeChanged();
 }
@@ -91,13 +92,39 @@ AggServerResponse::Port::Kind PortInstanceGraphicsItem::getPortKind() const
 
 
 /**
- * @brief PortInstanceGraphicsItem::getIconSceneRect
+ * @brief PortInstanceGraphicsItem::getEdgePoint
+ * This returns the point from which the edge will come out of or in to
  * @return
  */
-QRectF PortInstanceGraphicsItem::getIconSceneRect() const
+QPointF PortInstanceGraphicsItem::getEdgePoint() const
 {
-    //return mapFromParent(icon_pixmap_item_->boundingRect()).boundingRect();
-    return icon_pixmap_item_->sceneBoundingRect();
+    bool left_point = true;
+
+    switch (port_inst_data_.getKind()) {
+    case AggServerResponse::Port::Kind::PUBLISHER:
+    case AggServerResponse::Port::Kind::REQUESTER:
+        left_point = false;
+    case AggServerResponse::Port::Kind::SUBSCRIBER:
+    case AggServerResponse::Port::Kind::REPLIER:
+        break;
+    default:
+        return QPoint(0,0);
+    }
+
+    // If this item is invisible, use its parent item's scene bouding rect for the edge point
+    QRectF scene_rect;
+    if (isVisible()) {
+        scene_rect = icon_pixmap_item_->sceneBoundingRect();
+    } else if (parent_comp_inst_item_) {
+        scene_rect = parent_comp_inst_item_->sceneBoundingRect();
+    }
+
+    qreal x = scene_rect.right();
+    if (left_point) {
+        x = scene_rect.left();
+    }
+
+    return QPointF(x, scene_rect.center().y());
 }
 
 
@@ -133,16 +160,16 @@ void PortInstanceGraphicsItem::setAlignment(Qt::Alignment alignment)
 
     // Remove them from the layout before re-ordering them
     main_layout_->removeItem(icon_pixmap_item_);
-    main_layout_->removeItem(top_layout_);
+    main_layout_->removeItem(info_layout_);
 
     QGraphicsLayoutItem* first_item = nullptr;
     QGraphicsLayoutItem* second_item = nullptr;
 
     if (alignment == Qt::AlignLeft) {
         first_item = icon_pixmap_item_;
-        second_item = top_layout_;
+        second_item = info_layout_;
     } else {
-        first_item = top_layout_;
+        first_item = info_layout_;
         second_item = icon_pixmap_item_;
     }
 
@@ -150,8 +177,9 @@ void PortInstanceGraphicsItem::setAlignment(Qt::Alignment alignment)
     main_layout_->insertItem(0, second_item);
     main_layout_->insertItem(0, first_item);
 
-    main_layout_->setAlignment(top_layout_, Qt::AlignCenter);
+    main_layout_->setAlignment(info_layout_, Qt::AlignCenter);
     main_layout_->setAlignment(icon_pixmap_item_, Qt::AlignCenter);
+
     themeChanged();
 }
 
@@ -165,15 +193,24 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
 {
     const auto& port_lifecycle_event_series = port_inst_data_.getPortLifecycleEventSeries();
     const auto& port_lifecycle_events = port_lifecycle_event_series.getEventsBetween(from_time, to_time);
+    if (!port_lifecycle_events.isEmpty()) {
+        flashPort(MEDEA::ChartDataKind::PORT_LIFECYCLE, from_time);
+    }
 
     const auto& port_event_series = port_inst_data_.getPortEventSeries();
     const auto& port_events = port_event_series.getEventsBetween(from_time, to_time);
 
-    bool has_port_events = !port_events.isEmpty();
-    if (!port_lifecycle_events.isEmpty() || has_port_events) {
-        auto&& flash_color = has_port_events ? highlight_color_ : Theme::theme()->getMenuIconColor(ColorRole::SELECTED);
-        flashPort(from_time, flash_color);
-        if (event_src_port_ && has_port_events) {
+    bool has_port_events = false;
+    for (const auto& event : port_events) {
+        auto port_event = qobject_cast<PortEvent*>(event);
+        if (port_event->getType() != PortEvent::PortEventType::FINISHED_FUNC) {
+            has_port_events = true;
+            break;
+        }
+    }
+    if (has_port_events) {
+        flashPort(MEDEA::ChartDataKind::PORT_EVENT, from_time);
+        if (event_src_port_) {
             emit flashEdge(from_time, flash_duration_ms);
         }
     }
@@ -182,40 +219,87 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
 
 /**
  * @brief PortInstanceGraphicsItem::flashPort
+ * @param event_kind
  * @param from_time
  * @param flash_color
  */
-void PortInstanceGraphicsItem::flashPort(qint64 from_time, QColor flash_color)
+void PortInstanceGraphicsItem::flashPort(MEDEA::ChartDataKind event_kind, qint64 from_time, QColor flash_color)
 {
     if (!flash_color.isValid()) {
         flash_color = highlight_color_;
     }
 
-    // Switch the ellipse color
-    ellipse_color_ = flash_color;
+    // This function can be called multiple times by multiple callers
+    // Due to this, the flash end time needs to be stored and updated to avoid the flash being stopped prematurely
+    auto&& end_time = from_time + flash_duration_ms;
+
+    // Switch the color
+    if (event_kind == MEDEA::ChartDataKind::PORT_LIFECYCLE) {
+        ellipse_pen_.setColor(ellipse_pen_color_);
+        port_lifecycle_flash_end_time_ = qMax(end_time, port_lifecycle_flash_end_time_);
+    } else if (event_kind == MEDEA::ChartDataKind::PORT_EVENT) {
+        ellipse_color_ = flash_color;
+        port_event_flash_end_time_ = qMax(end_time, port_event_flash_end_time_);
+    }
     update();
 
-    auto&& end_time = from_time + flash_duration_ms;
-    flash_end_time_ = qMax(end_time, flash_end_time_);
-
-    QTimer::singleShot(flash_duration_ms, this, [this, end_time]() {
-        unflashPort(end_time);
+    QTimer::singleShot(flash_duration_ms, this, [this, event_kind, end_time]() {
+        unflashPort(event_kind, end_time);
     });
 }
 
 
 /**
  * @brief PortInstanceGraphicsItem::unflashPort
+ * @param event_kind
  * @param flash_end_time
  */
-void PortInstanceGraphicsItem::unflashPort(qint64 flash_end_time)
+void PortInstanceGraphicsItem::unflashPort(MEDEA::ChartDataKind event_kind, qint64 flash_end_time)
 {
-    // Reset the ellipse color when we've reached the flash end time
-    if (flash_end_time_ == flash_end_time) {
-        ellipse_color_ = default_color_;
-        update();
-        flash_end_time_ = 0;
+    // Reset the color when we've reached the flash end time
+    if (event_kind == MEDEA::ChartDataKind::PORT_LIFECYCLE) {
+        if (port_lifecycle_flash_end_time_ == flash_end_time) {
+            ellipse_pen_.setColor(Qt::transparent);
+            port_lifecycle_flash_end_time_ = 0;
+        }
+    } else if (event_kind == MEDEA::ChartDataKind::PORT_EVENT) {
+        if (port_event_flash_end_time_ == flash_end_time) {
+            ellipse_color_ = default_color_;
+            port_event_flash_end_time_ = 0;
+        }
     }
+    update();
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::boundingRect
+ * @return
+ */
+QRectF PortInstanceGraphicsItem::boundingRect() const
+{
+    return QRectF(0, 0, getWidth(), getHeight());
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::sizeHint
+ * @param which
+ * @param constraint
+ * @return
+ */
+QSizeF PortInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& constraint) const
+{
+    switch (which) {
+    case Qt::MinimumSize:
+    case Qt::PreferredSize:
+        return main_layout_->minimumSize();
+    case Qt::MaximumSize:
+        return QSizeF(10000, 10000);
+    default:
+        break;
+    }
+    return constraint;
 }
 
 
@@ -231,11 +315,31 @@ void PortInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphi
     Q_UNUSED(widget);
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(Qt::NoPen);
 
-    auto icon_size = icon_pixmap_item_->preferredWidth() / 2.0;
+    auto ellipse_size = icon_size / 2.0;
+    painter->setPen(ellipse_pen_);
     painter->setBrush(ellipse_color_);
-    painter->drawEllipse(icon_pixmap_item_->geometry().center(), icon_size, icon_size);
+    painter->drawEllipse(icon_pixmap_item_->geometry().center(), ellipse_size, ellipse_size);
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::getWidth
+ * @return
+ */
+qreal PortInstanceGraphicsItem::getWidth() const
+{
+    return main_layout_->geometry().width();
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::getHeight
+ * @return
+ */
+qreal PortInstanceGraphicsItem::getHeight() const
+{
+    return main_layout_->minimumHeight();
 }
 
 
@@ -255,36 +359,74 @@ void PortInstanceGraphicsItem::themeChanged()
     }
 
     ellipse_color_ = default_color_;
+    ellipse_pen_color_ = theme->getTextColor();
+    ellipse_pen_ = QPen(Qt::transparent, 3.0);
 
     auto pixmap = theme->getImage(icon_path.first, icon_path.second, QSize(), pixmap_color);
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
+    /*
+    // TODO - Uncomment when we add the Aggregate messgae type
     pixmap = theme->getImage("Icons", "envelopeTwoTone", QSize(), theme->getAltTextColor());
     sub_icon_pixmap_item_->updatePixmap(pixmap);
     sub_label_text_item_->setDefaultTextColor(theme->getTextColor());
+    */
 }
 
 
 /**
- * @brief PortInstanceGraphicsItem::setupCentralisedIconLayout
+ * @brief PortInstanceGraphicsItem::setupLayout
  */
-void PortInstanceGraphicsItem::setupCentralisedIconLayout()
+void PortInstanceGraphicsItem::setupLayout()
 {
-    int size = 50;
-
     QPixmap pix = Theme::theme()->getImage(icon_path.first, icon_path.second);
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
     icon_pixmap_item_->setPixmapPadding(pixmap_padding);
     icon_pixmap_item_->setParentItem(this);
-    icon_pixmap_item_->setSquareSize(size);
+    icon_pixmap_item_->setSquareSize(icon_size);
+    icon_pixmap_item_->setMaximumHeight(icon_pixmap_item_->minimumHeight());
 
     label_text_item_ = new TextGraphicsItem(getPortName(), this);
     label_text_item_->setParentItem(this);
+    label_text_item_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    label_text_item_->setTextAlignment(Qt::AlignVCenter | alignment_);
 
-    int sub_size = size / 2;
+    info_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
+    info_layout_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    info_layout_->setSpacing(0);
+    info_layout_->setContentsMargins(0, 0, 0, 0);
+    info_layout_->addItem(label_text_item_);
+    info_layout_->setAlignment(label_text_item_, Qt::AlignVCenter | alignment_);
 
-    pix = Theme::theme()->getImage("Icons", "envelopeTwoTone");
+    main_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
+    main_layout_->setSpacing(10);
+    main_layout_->setContentsMargins(0, 0, 0, 0);
+    main_layout_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+
+    if (alignment_ == Qt::AlignLeft) {
+        main_layout_->addItem(icon_pixmap_item_);
+        main_layout_->addItem(info_layout_);
+    } else {
+        main_layout_->addItem(info_layout_);
+        main_layout_->addItem(icon_pixmap_item_);
+    }
+
+    prepareGeometryChange();
+    setContentsMargins(0, 0, 0, 0);
+    setLayout(main_layout_);
+    //setupSubInfoLayout();
+}
+
+
+/**
+ * @brief PortInstanceGraphicsItem::setupSubInfoLayout
+ */
+void PortInstanceGraphicsItem::setupSubInfoLayout()
+{
+    int sub_size = icon_size / 2;
+
+    QPixmap pix = Theme::theme()->getImage("Icons", "envelopeTwoTone");
     sub_icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
     sub_icon_pixmap_item_->setParentItem(this);
     sub_icon_pixmap_item_->setSquareSize(sub_size);
@@ -292,43 +434,20 @@ void PortInstanceGraphicsItem::setupCentralisedIconLayout()
     sub_label_text_item_ = new TextGraphicsItem("Message", this);
     sub_label_text_item_->setFont(QFont("Verdana", 8));
     sub_label_text_item_->setParentItem(this);
-    sub_label_text_item_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    sub_label_text_item_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-    children_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
-    children_layout_->setSpacing(5);
-    children_layout_->setContentsMargins(0, 0, 0, 0);
-    children_layout_->addItem(sub_icon_pixmap_item_);
-    children_layout_->addItem(sub_label_text_item_);
-    children_layout_->setAlignment(sub_icon_pixmap_item_, Qt::AlignCenter);
-    children_layout_->setAlignment(sub_label_text_item_, Qt::AlignLeft);
-    children_layout_->setStretchFactor(sub_icon_pixmap_item_, 0);
-    children_layout_->setStretchFactor(sub_label_text_item_, 1);
+    sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
+    sub_info_layout_->setSpacing(5);
+    sub_info_layout_->setContentsMargins(0, 0, 0, 0);
+    sub_info_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-    top_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
-    top_layout_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    top_layout_->setSpacing(0);
-    top_layout_->setContentsMargins(0, 0, 0, 0);
-    top_layout_->addItem(label_text_item_);
-    top_layout_->addItem(children_layout_);
-    top_layout_->setAlignment(label_text_item_, Qt::AlignVCenter | alignment_);
-    label_text_item_->setTextAlignment(Qt::AlignVCenter | alignment_);
+    sub_info_layout_->addItem(sub_icon_pixmap_item_);
+    sub_info_layout_->setAlignment(sub_icon_pixmap_item_, Qt::AlignCenter);
+    sub_info_layout_->setStretchFactor(sub_icon_pixmap_item_, 0);
 
-    main_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
-    main_layout_->setSpacing(10);
-    main_layout_->setContentsMargins(0, 0, 0, 0);
+    sub_info_layout_->addItem(sub_label_text_item_);
+    sub_info_layout_->setAlignment(sub_label_text_item_, Qt::AlignLeft);
+    sub_info_layout_->setStretchFactor(sub_label_text_item_, 1);
 
-    if (alignment_ == Qt::AlignLeft) {
-        main_layout_->addItem(icon_pixmap_item_);
-        main_layout_->addItem(top_layout_);
-    } else {
-        main_layout_->addItem(top_layout_);
-        main_layout_->addItem(icon_pixmap_item_);
-    }
-
-    main_layout_->setAlignment(top_layout_, Qt::AlignCenter);
-    main_layout_->setAlignment(icon_pixmap_item_, Qt::AlignCenter);
-
-    prepareGeometryChange();
-    setContentsMargins(0, 0, 0, 0);
-    setLayout(main_layout_);
+    info_layout_->addItem(sub_info_layout_);
 }

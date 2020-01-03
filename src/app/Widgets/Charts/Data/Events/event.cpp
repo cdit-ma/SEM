@@ -1,8 +1,6 @@
 #include "event.h"
 #include <QDateTime>
 
-int MEDEA::Event::event_ID = 0;
-
 /**
  * @brief MEDEA::Event::Event
  * @param kind
@@ -14,8 +12,7 @@ MEDEA::Event::Event(MEDEA::ChartDataKind kind, qint64 time, const QString& name,
     : QObject(parent),
       kind_(kind),
       time_(time),
-      series_name_(name),
-      event_id_(event_ID++) {}
+      series_name_(name) {}
 
 
 /**

@@ -45,6 +45,7 @@ private:
     quint32 workloadID_;
     quint32 logLevel_;
 
+    // The series_id_ is formed by what is required to group events together into a series
     QString series_id_;
     QString id_;
     QString functionName_;

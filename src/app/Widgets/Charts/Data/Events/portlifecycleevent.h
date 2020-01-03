@@ -24,6 +24,7 @@ public:
 private:
     AggServerResponse::LifecycleType type_;
 
+    // The series_id_ is formed by what is required to group events together into a series
     QString series_id_;
     QString id_;
 };

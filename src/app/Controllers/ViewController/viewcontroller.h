@@ -153,6 +153,7 @@ signals:
 
     void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<MEDEA::ChartDataKind>& dataKinds);
     void vc_displayChartPopup();
+    void vc_displayExperimentDataflow();
 
     void modelClosed();
 

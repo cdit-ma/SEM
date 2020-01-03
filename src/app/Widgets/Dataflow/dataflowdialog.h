@@ -3,10 +3,10 @@
 
 #include <QFrame>
 #include <QGraphicsView>
-#include <set>
 
 #include "../Charts/Data/protomessagestructs.h"
 #include "../Charts/Data/experimentrundata.h"
+#include "EntityItems/componentinstancegraphicsitem.h"
 #include "EntityItems/portinstancegraphicsitem.h"
 #include "GraphicsItems/edgeitem.h"
 #include "PlaybackWidget/playbackcontrolswidget.h"
@@ -21,7 +21,6 @@ public:
     void constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data);
 
 signals:
-    void showPulseDockWidget();
     void playbackActivated(bool active);
     void updateLiveStatus(bool on);
 
@@ -38,6 +37,9 @@ private slots:
     void jumpToStart();
     void jumpToEnd();
 
+    void turnOffLiveStatus();
+
+    void playbackEndTimeChanged(qint64 exp_run_last_updated_time);
     void themeChanged();
 
 protected:
@@ -58,6 +60,7 @@ private:
     QGraphicsView* view_ = nullptr;
     PlaybackControlsWidget playback_controls;
 
+    QHash<QString, ComponentInstanceGraphicsItem*> comp_inst_items_;
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
 
     qint64 exp_run_start_time_ = 0;

@@ -32,6 +32,10 @@ struct PortConnection {
     ConnectionType type;
     QString from_port_graphml;
     QString to_port_graphml;
+    // REVIEW (Jackson): this field doesn't make sense by itself (connections are usually between
+    //  two different nodes?), needs more documentation as to what it is, why its here and
+    //  potentially why not in another class
+    QString node_hostname;
 };
 
 
@@ -104,7 +108,6 @@ struct ExperimentState {
     QVector<Component> components;
     QVector<Worker> workers;
     QVector<PortConnection> port_connections;
-    //qint32 experiment_run_id;
     qint64 end_time;
     qint64 last_updated_time = 0;
 };

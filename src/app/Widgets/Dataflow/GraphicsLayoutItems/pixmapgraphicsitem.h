@@ -2,6 +2,7 @@
 #define PIXMAPGRAPHICSITEM_H
 
 #include "graphicslayoutitem.h"
+
 #include <QGraphicsPixmapItem>
 
 class PixmapGraphicsItem : public QGraphicsPixmapItem, public MEDEA::GraphicsLayoutItem
@@ -14,9 +15,9 @@ public:
     void setPixmapPadding(int padding);
     void setSquareSize(int size);
 
+    void setGeometry(const QRectF &geom) override;
 protected:
     // QGraphicsLayoutItem interface
-    void setGeometry(const QRectF &geom) override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override;
 
 private:

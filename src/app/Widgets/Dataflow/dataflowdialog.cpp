@@ -1,9 +1,10 @@
 #include "dataflowdialog.h"
 #include "dataflowgraphicsview.h"
+
 #include "../DockWidgets/basedockwidget.h"
 #include "../../theme.h"
 
-#include "EntityItems/componentinstancegraphicsitem.h"
+#include "EntityItems/nodegraphicsitem.h"
 #include "GraphicsItems/edgeitem.h"
 
 #include <QGraphicsRectItem>
@@ -15,7 +16,6 @@ const int invalid_experiment_id = -1;
 
 const int default_playback_interval_ms = 33;
 const int frame_rate_ms = 33;
-const int flash_duration_ms = 200;
 
 /**
  * @brief DataflowDialog::DataflowDialog
@@ -72,6 +72,7 @@ void DataflowDialog::playbackSpeedChanged(double multiplier)
  * @brief DataflowDialog::constructGraphicsItemsForExperimentRun
  * @param exp_name
  * @param exp_run_data
+ * @throws std::invalid_argument
  */
 void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data)
 {
@@ -82,35 +83,48 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
     // Clear previous items
     clearScene();
 
+    // This sets the experiment info displays on the title bar of the panel
+    setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
     setPlaybackTimeRange(exp_run_data.start_time(), exp_run_data.end_time());
     playback_controls.setControlsEnabled(true);
 
-    // This sets the experiment info displays on the title bar of the panel
-    setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
+    // Connect the experiment run's signals
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, this, &DataflowDialog::playbackEndTimeChanged);
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::experimentRunFinished, this, &DataflowDialog::turnOffLiveStatus);
 
+    live_mode_ = exp_run_data.end_time() == 0;
+    if (live_mode_) {
+        // Set the last updated time as the initial playback end time if the experiment is live
+        playbackEndTimeChanged(exp_run_data.last_updated_time());
+        emit updateLiveStatus(live_mode_);
+    }
+
+    // REVIEW (Jackson): The nesting here is getting pretty deep - the inner functionality can be
+    //  fairly safely moved to the classes you're iterating over
     for (const auto& node_data : exp_run_data.getNodeData()) {
+
+        auto node_item = new NodeGraphicsItem(*node_data);
+        addItemToScene(node_item);
+
         for (const auto& container_data : node_data->getContainerInstanceData()) {
             for (const auto& comp_inst_data : container_data->getComponentInstanceData()) {
-                if (comp_inst_data) {
-
-                    auto comp_inst_item = new ComponentInstanceGraphicsItem(*comp_inst_data);
-                    addItemToScene(comp_inst_item);
-
-                    for (const auto& port_data : comp_inst_data->getPortInstanceData()) {
-                        if (port_data) {
-                            auto port_inst_item = comp_inst_item->addPortInstanceItem(*port_data);
-                            port_items_.insert(port_data->getGraphmlID(), port_inst_item);
-                        } else {
-                            throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - PortInstanceData is null.");
-                        }
-                    }
-
-                } else {
+                if (comp_inst_data == nullptr) {
                     throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - ComponentInstanceData is null.");
+                }
+
+                auto comp_inst_item = node_item->addComponentInstanceItem(*comp_inst_data);
+                comp_inst_items_.insert(comp_inst_data->getGraphmlID(), comp_inst_item);
+                for (const auto& port_data : comp_inst_data->getPortInstanceData()) {
+                    if (port_data == nullptr) {
+                        throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - PortInstanceData is null.");
+                    }
+                    auto port_inst_item = comp_inst_item->addPortInstanceItem(*port_data);
+                    port_items_.insert(port_data->getGraphmlID(), port_inst_item);
                 }
             }
         }
     }
+
 
     // Construct the edges
     constructEdgeItems(port_items_, exp_run_data.getPortConnectionData());
@@ -125,12 +139,14 @@ void DataflowDialog::clearScene()
 {
     setExperimentInfo("");
 
+    turnOffLiveStatus();
     stopPlaybackTimer();
     setPlaybackTimeRange(0, 0);
     playback_controls.setControlsEnabled(false);
 
     view_->scene()->clear();
     port_items_.clear();
+    comp_inst_items_.clear();
 }
 
 
@@ -144,25 +160,15 @@ void DataflowDialog::playback()
         resetPlayback();
         return;
     }
-
     // If the timer is already running, do nothing
     if (timer_active_) {
         return;
     }
-
     if (playback_current_time_ >= exp_run_end_time_) {
         if (!live_mode_) {
-            qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
             resetPlayback();
         }
-    } else {
-        if (playback_current_time_ == exp_run_start_time_) {
-            qDebug() << "\nPLAYBACK STARTED ------------------------------------------------------";
-        } else {
-            qDebug() << "CONTINUE playback";
-        }
     }
-
     startPlaybackTimer();
 }
 
@@ -172,7 +178,6 @@ void DataflowDialog::playback()
  */
 void DataflowDialog::pausePlayback()
 {
-    qDebug() << "PAUSE playback";
     stopPlaybackTimer();
 }
 
@@ -182,8 +187,6 @@ void DataflowDialog::pausePlayback()
  */
 void DataflowDialog::jumpToPreviousActivity()
 {
-    qDebug() << "JUMP to PREVIOUS activity"; // from " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-
     qint64 prev_time = playback_current_time_;
     for (const auto& port : port_items_) {
         const auto& port_prev_time = port->getPreviousEventTime(playback_current_time_);
@@ -201,8 +204,6 @@ void DataflowDialog::jumpToPreviousActivity()
  */
 void DataflowDialog::jumpToNextActivity()
 {
-    qDebug() << "JUMP to NEXT activity"; // from " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");
-
     qint64 next_time = playback_current_time_;
     for (const auto& port : port_items_) {
         const auto& port_next_time = port->getNextEventTime(playback_current_time_);
@@ -220,7 +221,6 @@ void DataflowDialog::jumpToNextActivity()
  */
 void DataflowDialog::jumpToStart()
 {
-    qDebug() << "JUMP to START";
     playback_current_time_ = exp_run_start_time_;
     playback_controls.setCurrentTime(playback_current_time_);
 }
@@ -231,9 +231,31 @@ void DataflowDialog::jumpToStart()
  */
 void DataflowDialog::jumpToEnd()
 {
-    qDebug() << "JUMP to END";
     playback_current_time_ = exp_run_end_time_;
     playback_controls.setCurrentTime(playback_current_time_);
+}
+
+
+/**
+ * @brief DataflowDialog::turnOffLiveStatus
+ * This is triggered when the live experiment being visualised has finished
+ * It sends a signal to remove the live indicator from Pulse's titlebar
+ */
+void DataflowDialog::turnOffLiveStatus()
+{
+    live_mode_ = false;
+    emit updateLiveStatus(false);
+}
+
+
+/**
+ * @brief DataflowDialog::playbackEndTimeChanged
+ * @param exp_run_last_updated_time
+ */
+void DataflowDialog::playbackEndTimeChanged(qint64 exp_run_last_updated_time)
+{
+    exp_run_end_time_ = exp_run_last_updated_time;
+    playback_controls.updateEndTime(exp_run_last_updated_time);
 }
 
 
@@ -248,7 +270,6 @@ void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_
     if (parentWidget() == nullptr) {
         throw std::runtime_error("DataflowDialog::setExperimentInfo - The parent widget is not set.");
     }
-
     QString title = "Pulse";
     if (!exp_name.isEmpty()) {
         title += " [" + exp_name + " #" + QString::number(exp_run_id) + "]";
@@ -328,7 +349,6 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
             // Send a signal to the playback controls to update the play/pause button
             emit playbackActivated(false);
             stopPlaybackTimer(); //  this stops the timer without resetting the playback time
-            qDebug() << "PLAYBACK FINISHED -----------------------------------------------------";
         }
 
     } else {
@@ -338,10 +358,6 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
 
         //auto&& elapsed_time = playback_current_time_ - exp_run_start_time_;
         //qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << elapsed_time / 1000.000 << "S";
-
-        /*qDebug() << "---";
-        qDebug() << "FROM: " << QDateTime::fromMSecsSinceEpoch(from_time).toString("hh:mm:ss.zzz")
-                 << " TO " << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz");*/
 
         for (const auto& port_item : port_items_) {
             port_item->playEvents(from_time, playback_current_time_);
@@ -363,7 +379,7 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
         auto from_port = port_instances.value(p_c->getFromPortID(), nullptr);
         auto to_port = port_instances.value(p_c->getToPortID(), nullptr);
         if (!(from_port && to_port)) {
-            qWarning("DataflowDialog::displayExperimentState - Failed to construct edge; from_port/to_port is null.");
+            qWarning("DataflowDialog::constructEdgeItems - Failed to construct edge; from_port/to_port is null.");
             continue;
         }
         auto edge_item = new MEDEA::EdgeItem(from_port, to_port);
@@ -379,9 +395,8 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
  */
 void DataflowDialog::addItemToScene(QGraphicsItem *item)
 {
-    if (item) {
-        view_->scene()->addItem(item);
-    } else {
+    if (item == nullptr) {
         throw std::invalid_argument("DataflowDialog::addItemToScene - Trying to add a null item.");
     }
+    view_->scene()->addItem(item);
 }

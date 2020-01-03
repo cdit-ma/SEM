@@ -45,9 +45,6 @@ private:
     ChartDataKind kind_;
     qint64 time_;
     QString series_name_;
-
-    int event_id_;
-    static int event_ID;
 };
 
 }

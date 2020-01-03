@@ -15,9 +15,6 @@ public:
 
     TimelineChartView& getChartView();
 
-signals:
-    void showChartsDockWidget();
-
 public slots:
     void themeChanged();
 

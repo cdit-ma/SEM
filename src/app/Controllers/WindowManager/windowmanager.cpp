@@ -188,8 +188,14 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     dockWidget->setWidget(dialog);
     addDockWidget(dockWidget);
 
-    // add actions to the dock widget's title bar for changing the playback speed and displaying live mode status
+    // Add actions to the dock widget's title bar for changing the playback speed and displaying live mode status
+    Theme* theme = Theme::theme();
+    QIcon live_icon = theme->getImage("Icons", "circleRadio", QSize(), Qt::red);
+    live_icon.addPixmap(theme->getImage("Icons", "circleRadio", QSize(), Qt::red), QIcon::Disabled);
+
     QAction* live_status_action = dockWidget->addAction("Live Experiment", "Icons", "circleRadio", Qt::AlignCenter);
+    live_status_action->setIcon(live_icon);
+    live_status_action->setEnabled(false);
     live_status_action->setVisible(false);
     connect(dialog, &DataflowDialog::updateLiveStatus, live_status_action, &QAction::setVisible);
 
@@ -201,7 +207,11 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     playback_speed_spinbox->setSingleStep(min_playback_speed);
     playback_speed_spinbox->setValue(1.0);
     playback_speed_spinbox->setSuffix("x");
+    playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
     connect(playback_speed_spinbox, SIGNAL(valueChanged(double)), dialog, SLOT(playbackSpeedChanged(double)));
+    connect(theme, &Theme::theme_Changed, [playback_speed_spinbox, theme]() {
+        playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
+    });
 
     QWidgetAction* widget_action = new QWidgetAction(dialog);
     widget_action->setDefaultWidget(playback_speed_spinbox);
@@ -209,12 +219,6 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     QAction* speed_settings_action = dockWidget->addAction("Change Playback Speed", "Icons", "speed", Qt::AlignCenter);
     speed_settings_action->setMenu(new QMenu(dialog));
     speed_settings_action->menu()->addAction(widget_action);
-
-    Theme* theme = Theme::theme();
-    playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
-    connect(theme, &Theme::theme_Changed, [theme, playback_speed_spinbox]() {
-        playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
-    });
 
     const auto& titlebar = dockWidget->getTitleBar();
     auto tool_button = qobject_cast<QToolButton*>(titlebar->widgetForAction(speed_settings_action));

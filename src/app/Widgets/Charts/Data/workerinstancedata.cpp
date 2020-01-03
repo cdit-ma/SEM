@@ -90,7 +90,6 @@ const WorkloadRequest& WorkerInstanceData::getWorkloadRequest() const
  */
 void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events)
 {
-    //qDebug() << name_ << " - Received Workload Events#: " << events.size();
     workload_event_series_->addEvents(events);
 }
 

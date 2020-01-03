@@ -4,16 +4,16 @@
 #include "protomessagestructs.h"
 #include <QObject>
 
-// TODO - This class is not finished; will figure out what else is needed whe Pulse moves to using these data classes
+// TODO - This class is not finished; will figure out what else is needed when Pulse moves to using these data classes
+// Jackson: static ID counter has been removed as it is not currently used; replace when class is fleshed out
+// static std::atomic<int> port_connection_id
 
 class PortConnectionData : public QObject
 {
     Q_OBJECT
 
 public:
-    PortConnectionData(quint32 exp_run_id, const AggServerResponse::PortConnection& port_connection, QObject* parent = nullptr);
-
-    int getID() const;
+    PortConnectionData(quint32 exp_run_id, /*const QString& node_hostname,*/ const AggServerResponse::PortConnection& port_connection, QObject* parent = nullptr);
 
     const QString& getFromPortID() const;
     const QString& getToPortID() const;
@@ -28,8 +28,6 @@ private:
 
     AggServerResponse::PortConnection::ConnectionType type_;
 
-    int port_connection_id_ = -1;
-    static std::atomic<int> port_connection_id;
 };
 
 #endif // PORTCONNECTIONDATA_H

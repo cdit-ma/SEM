@@ -74,11 +74,9 @@ void ComponentInstanceData::addPortInstanceData(const AggServerResponse::Port& p
 {
     auto port_data = port_inst_data_hash_.value(port.graphml_id, nullptr);
     if (port_data == nullptr) {
-        //qDebug() << "Create port data for: " << port.name;
         port_data = new PortInstanceData(experiment_run_id_, *this, port, this);
         port_inst_data_hash_.insert(port_data->getGraphmlID(), port_data);
     } else {
-        //qDebug() << "Update port data for: " << port.name;
         port_data->updateData(last_updated_time_);
     }
 }
@@ -102,11 +100,9 @@ void ComponentInstanceData::addWorkerInstanceData(const AggServerResponse::Worke
 {
     auto worker_inst_data = worker_inst_data_hash_.value(worker_instance.graphml_id, nullptr);
     if (worker_inst_data == nullptr) {
-        //qDebug() << "Create worker data for: " << worker_instance.name;
         worker_inst_data = new WorkerInstanceData(experiment_run_id_, *this, worker_instance, this);
         worker_inst_data_hash_.insert(worker_inst_data->getGraphmlID(), worker_inst_data);
     } else {
-        //qDebug() << "Update worker data for: " << worker_instance.name;
         worker_inst_data->updateData(last_updated_time_);
     }
 }

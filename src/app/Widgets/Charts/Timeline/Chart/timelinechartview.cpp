@@ -152,7 +152,7 @@ void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::Expe
  * @param events
  * @throws std::invalid_argument
  */
-void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<MarkerEvent *> &events)
+void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent*>& events)
 {
     for (const auto& event : events) {
         addEvent(MEDEA::ChartDataKind::MARKER, experimentRun, event);

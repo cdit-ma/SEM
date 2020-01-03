@@ -31,6 +31,7 @@ protected:
 private:
     void themeChanged();
     void updateEdgePath();
+    void updateVisibility();
 
     QPainterPath getCubicPath(QPointF p1, QPointF p2) const;
     QPainterPath getCubicPath(QPointF p1, QPointF ctrl_p1, QPointF ctrl_p2, QPointF p2) const;
@@ -50,6 +51,7 @@ private:
     QColor default_pen_color_;
     QColor highlight_pen_color_;
 
+    // This is used to prevent the flash from being stopped/reset prematurely due to previous flash timers ending
     qint64 flash_end_time_ = 0;
 };
 

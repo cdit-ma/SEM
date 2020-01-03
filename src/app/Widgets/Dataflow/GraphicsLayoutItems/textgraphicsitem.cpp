@@ -11,7 +11,7 @@ TextGraphicsItem::TextGraphicsItem(const QString& text, QGraphicsItem* parent)
       MEDEA::GraphicsLayoutItem()
 {
     setFont(QFont("Verdana", 12));
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }
 
 
@@ -33,7 +33,7 @@ void TextGraphicsItem::setTextAlignment(Qt::Alignment alignment)
  * This gets called whenever the geometry of this item is changed
  * @param geom
  */
-void TextGraphicsItem::setGeometry(const QRectF &geom)
+void TextGraphicsItem::setGeometry(const QRectF& geom)
 {
     prepareGeometryChange();
     QGraphicsLayoutItem::setGeometry(geom);
