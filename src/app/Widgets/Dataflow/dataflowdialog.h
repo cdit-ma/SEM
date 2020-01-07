@@ -26,7 +26,7 @@ signals:
 
 public slots:
     void playbackSpeedChanged(double multiplier);
-    void clearScene();
+    void clear();
 
 private slots:
     // Playback Control Slots

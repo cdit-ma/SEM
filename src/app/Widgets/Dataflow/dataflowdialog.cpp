@@ -80,8 +80,8 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
         throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - Experiment name cannot be empty.");
     }
 
-    // Clear previous items
-    clearScene();
+    // Clear previous states and items
+    clear();
 
     // This sets the experiment info displays on the title bar of the panel
     setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
@@ -132,10 +132,10 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
 
 
 /**
- * @brief DataflowDialog::clearScene
- * This clears all the graphics items in the scene
+ * @brief DataflowDialog::clear
+ * This resets all previous experiment and playback states and deletes all existing graphics items
  */
-void DataflowDialog::clearScene()
+void DataflowDialog::clear()
 {
     setExperimentInfo("");
 
@@ -144,7 +144,10 @@ void DataflowDialog::clearScene()
     setPlaybackTimeRange(0, 0);
     playback_controls.setControlsEnabled(false);
 
-    view_->scene()->clear();
+    // Replace the scene with a new one instead of just clearing it to centralise on the items by default
+    view_->scene()->deleteLater();
+    view_->setScene(new QGraphicsScene);
+
     port_items_.clear();
     comp_inst_items_.clear();
 }
@@ -158,6 +161,7 @@ void DataflowDialog::playback()
     // If there are no graphics items, stop the current timer and send a signal to the playback controls to update the play/pause button
     if (view_->scene()->items().isEmpty()) {
         resetPlayback();
+        emit playbackActivated(false);
         return;
     }
     // If the timer is already running, do nothing
@@ -327,7 +331,6 @@ void DataflowDialog::resetPlayback()
     stopPlaybackTimer();
     playback_controls.resetTimeProgress();
     playback_current_time_ = exp_run_start_time_;
-    emit playbackActivated(false);
 }
 
 
