@@ -34,7 +34,7 @@ public:
     bool isHovered();
 
     const QHash<ChartDataKind, EventSeries*>& getSeries() const;
-    const QList<ChartDataKind> getHovereSeriesKinds() const;
+    const QList<ChartDataKind> getHoveredSeriesKinds() const;
     const QPair<qint64, qint64> getHoveredTimeRange(ChartDataKind kind) const;
 
     void updateBinnedData(ChartDataKind kind);
@@ -73,6 +73,9 @@ private:
     void paintPortEventSeries(QPainter& painter);
     void paintNetworkUtilisationEventSeries(QPainter& painter);
 
+    void drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, QColor color, ChartDataKind series_kind);
+    void drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QColor color, double opacity, ChartDataKind series_kind);
+
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
 
@@ -99,7 +102,6 @@ private:
     double dataMaxX_;
     double dataMinY_;
     double dataMaxY_;
-    double dataHeight_ = 0;
 
     double minRatio_ = 0.0;
     double maxRatio_ = 1.0;
@@ -110,6 +112,7 @@ private:
 
     QRectF hoveredRect_;
 
+    QPen defaultTextPen_;
     QPen defaultRectPen_;
     QPen defaultEllipsePen_;
     QPen highlightPen_;
@@ -118,7 +121,6 @@ private:
     QColor gridColor_;
     QColor textColor_;
     QColor highlightColor_;
-    QColor highlightTextColor_;
     QColor hoveredRectColor_;
 
     QColor backgroundColor_;
@@ -131,7 +133,9 @@ private:
     QColor defaultMemoryColor_ = Qt::lightGray;
     QColor defaultMarkerColor_ = Qt::gray;
     QColor defaultPortEventColor_ = Qt::gray;
-    QColor defaultNetworkColor_ = Qt::lightGray;
+
+    QColor defaultNetworkColor_sent_ = Qt::lightGray;
+    QColor defaultNetworkColor_received_ = Qt::lightGray;
 
     QColor portLifecycleColor_ = defaultUtilisationColor_;
     QColor workloadColor_ = defaultWorkloadColor_;
@@ -139,7 +143,9 @@ private:
     QColor memoryColor_ = defaultMemoryColor_;
     QColor markerColor_ = defaultMarkerColor_;
     QColor portEventColor_ = defaultPortEventColor_;
-    QColor networkColor_ = defaultNetworkColor_;
+
+    QColor networkColor_sent_ = defaultNetworkColor_sent_;
+    QColor networkColor_received_ = defaultNetworkColor_received_;
 
     double portLifecycleSeriesOpacity_ = 1.0;
     double workloadSeriesOpacity_ = 1.0;

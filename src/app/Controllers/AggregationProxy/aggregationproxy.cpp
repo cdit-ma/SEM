@@ -528,7 +528,7 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &requ
 
 
 /**
- * @brief AggregationProxy::GetNetworkUtilisationEvents
+ * @brief AggregationProxy::GetNetworkUtilisation
  * @param request
  * @return
  */
@@ -538,9 +538,7 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
 
     try {
         QVector<NetworkUtilisationEvent*> events;
-
-        // TODO: Change thist to NetworkUtilisationRequest once its available
-        AggServer::MemoryUtilisationRequest agg_request;
+        AggServer::NetworkUtilisationRequest agg_request;
         agg_request.set_experiment_run_id(request.experiment_run_id());
 
         for (const auto& id : request.node_ids()) {
@@ -550,13 +548,19 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
             agg_request.add_node_hostnames(name.toStdString());
         }
 
-        auto results = requester_->GetMemoryUtilisation(agg_request);
-        for (const auto& node : results->nodes()) {
-            const auto& host_name = ConstructQString(node.node_info().hostname());
-            for (const auto& e : node.events()) {
-                const auto& utilisation = e.memory_utilisation();
-                const auto& time = ConstructQDateTime(e.time());
-                events.append(new NetworkUtilisationEvent(host_name, utilisation, time.toMSecsSinceEpoch()));
+        auto results = requester_->GetNetworkUtilisation(agg_request);
+        for (const auto& node_network_event : results->node_network_events()) {
+            const auto& hostname = ConstructQString(node_network_event.node_info().hostname());
+            for (const auto& interface_network_event : node_network_event.events()) {
+                const auto& interface_mac_addr = ConstructQString(interface_network_event. interface_mac_addr());
+                for (const auto& event : interface_network_event.events()) {
+                    const auto& delta_packets_sent = event.delta_packets_sent();
+                    const auto& delta_packets_received = event.delta_packets_received();
+                    const auto& delta_bytes_sent = event.delta_bytes_sent();
+                    const auto& delta_bytes_received = event.delta_bytes_received();
+                    const auto& time = ConstructQDateTime(event.time());
+                    events.append(new NetworkUtilisationEvent(hostname, interface_mac_addr, delta_packets_sent, delta_packets_received, delta_bytes_sent, delta_bytes_received, time.toMSecsSinceEpoch()));
+                }
             }
         }
 

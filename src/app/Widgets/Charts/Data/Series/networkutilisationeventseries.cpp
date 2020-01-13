@@ -23,25 +23,18 @@ void NetworkUtilisationEventSeries::addEvent(MEDEA::Event* event)
         throw std::invalid_argument("NetworkUtilisationEventSeries::addEvent - Invalid event kind.");
     }
     if (!contains(event)) {
-        auto utilisation = qobject_cast<NetworkUtilisationEvent*>(event)->getUtilisation();
-        if (utilisation < minUtilisation_) {
-            minUtilisation_ = utilisation;
-            emit minYValueChanged(utilisation);
+        auto delta_bytes_sent = qobject_cast<NetworkUtilisationEvent*>(event)->getDeltaBytesSent();
+        auto delta_bytes_received = qobject_cast<NetworkUtilisationEvent*>(event)->getDeltaBytesReceived();
+        auto min_delta_bytes = qMin(delta_bytes_sent, delta_bytes_received);
+        auto max_delta_bytes = qMax(delta_bytes_sent, delta_bytes_received);
+        if (min_delta_bytes > 0 && min_delta_bytes < min_) {
+            min_ = min_delta_bytes;
+            emit minYValueChanged(min_delta_bytes);
         }
-        if (utilisation > maxUtilisation_) {
-            maxUtilisation_ = utilisation;
-            emit maxYValueChanged(utilisation);
+        if (max_delta_bytes > max_) {
+            max_ = max_delta_bytes;
+            emit maxYValueChanged(max_delta_bytes);
         }
         addEventToList(*event);
     }
-}
-
-
-/**
- * @brief NetworkUtilisationEventSeries::getMaxUtilisation
- * @return
- */
-double NetworkUtilisationEventSeries::getMaxUtilisation() const
-{
-    return maxUtilisation_;
 }

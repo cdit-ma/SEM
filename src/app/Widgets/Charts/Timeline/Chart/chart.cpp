@@ -98,10 +98,10 @@ const QHash<ChartDataKind, EventSeries*>& Chart::getSeries() const
 
 
 /**
- * @brief Chart::getHovereSeriesKinds
+ * @brief Chart::getHoveredSeriesKinds
  * @return
  */
-const QList<ChartDataKind> Chart::getHovereSeriesKinds() const
+const QList<ChartDataKind> Chart::getHoveredSeriesKinds() const
 {
     return hoveredSeriesTimeRange_.keys();
 }
@@ -303,7 +303,8 @@ void Chart::seriesKindHovered(ChartDataKind kind)
     memoryColor_ = backgroundColor_;
     markerColor_ = backgroundColor_;
     portEventColor_ = backgroundColor_;
-    networkColor_ = backgroundColor_;
+    networkColor_sent_ = backgroundColor_;
+    networkColor_received_ = backgroundColor_;
 
     double alpha = 0.25;
     portLifecycleSeriesOpacity_ = alpha;
@@ -346,7 +347,8 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         break;
     }
     case ChartDataKind::NETWORK_UTILISATION: {
-        networkColor_ = defaultNetworkColor_;
+        networkColor_sent_ = defaultNetworkColor_sent_;
+        networkColor_received_ = defaultNetworkColor_received_;
         networkSeriesOpacity_ = 1.0;
         break;
     }
@@ -358,8 +360,8 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         memoryColor_ = defaultMemoryColor_;
         markerColor_ = defaultMarkerColor_;
         portEventColor_ = defaultPortEventColor_;
-        networkColor_ = defaultNetworkColor_;
-        portLifecycleSeriesOpacity_ = 1.0;
+        networkColor_sent_ = defaultNetworkColor_sent_;
+        networkColor_received_ = defaultNetworkColor_received_;        portLifecycleSeriesOpacity_ = 1.0;
         workloadSeriesOpacity_ = 1.0;
         cpuSeriesOpacity_ = 1.0;
         memorySeriesOpacity_ = 1.0;
@@ -402,9 +404,10 @@ void Chart::themeChanged()
     defaultPortEventColor_ = theme->getSeverityColor(Notification::Severity::WARNING);
     portEventColor_ = defaultPortEventColor_;
 
-    //defaultNetworkColor_ = Qt::cyan;
-    defaultNetworkColor_ = Qt::magenta;
-    networkColor_ = defaultNetworkColor_;
+    defaultNetworkColor_sent_ = Qt::cyan;
+    networkColor_sent_ = defaultNetworkColor_sent_;
+    defaultNetworkColor_received_ = Qt::magenta;
+    networkColor_received_ = defaultNetworkColor_received_;
 
     backgroundDefaultColor_ = theme->getAltBackgroundColor();
     backgroundDefaultColor_.setAlphaF(BACKGROUND_OPACITY);
@@ -413,11 +416,11 @@ void Chart::themeChanged()
 
     textColor_ = theme->getTextColor();
     gridColor_ = theme->getAltTextColor();
-    highlightTextColor_ = theme->getTextColor(ColorRole::SELECTED);
     backgroundColor_ = backgroundDefaultColor_;
     highlightColor_ = theme->getHighlightColor();
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
+    defaultTextPen_ = QPen(textColor_, 2.0);
     defaultRectPen_ = QPen(gridColor_, 0.5);
     defaultEllipsePen_ = QPen(gridColor_, 2.0);
     highlightPen_ = QPen(highlightColor_, 2.0);
@@ -493,7 +496,7 @@ void Chart::paintEvent(QPaintEvent* event)
             QString minStr = QString::number(floor(dataMinY_ * 100)) + "%";
             QString maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
             int h = fontMetrics().height();
-            int w = qMax(fontMetrics().width(minStr), fontMetrics().width(maxStr)) + 5;
+            int w = qMax(fontMetrics().horizontalAdvance(minStr), fontMetrics().horizontalAdvance(maxStr)) + 5;
             QRectF maxRect(width() - w, 0, w, h);
             QRectF minRect(width() - w, height() - h, w, h);
             painter.setPen(textColor_);
@@ -632,10 +635,6 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
         }
     }
 
-    QColor seriesColor = portLifecycleColor_;
-    QColor brushColor = seriesColor;
-    QPen textPen(textColor_, 2.0);
-
     int y = rect().center().y() - barWidth / 2.0;
     painter.setOpacity(portLifecycleSeriesOpacity_);
 
@@ -653,19 +652,8 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
             painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
             painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
-            if (rectHovered(eventSeries->getKind(), rect)) {
-                textPen.setColor(textColor_);
-                painter.fillRect(rect, highlightBrush_);
-            } else {
-                brushColor = seriesColor.darker(100 + (50 * (count - 1)));
-                textPen.setColor(getContrastingColor(brushColor));
-                painter.setPen(defaultRectPen_);
-                painter.setBrush(brushColor);
-                painter.drawRect(rect);
-            }
             QString countStr = count > 99 ? "𝑛" : QString::number(count);
-            painter.setPen(textPen);
-            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
+            drawTextRect(painter, rect, countStr, portLifecycleColor_.darker(100 + (50 * (count - 1))), ChartDataKind::PORT_LIFECYCLE);
         }
     }
 
@@ -734,10 +722,6 @@ void Chart::paintWorkloadEventSeries(QPainter &painter)
         }
     }
 
-    QColor seriesColor = workloadColor_;
-    QColor brushColor = seriesColor;
-    QPen textPen(textColor_, 2.0);
-
     int y = rect().center().y() - barWidth / 2.0;
     painter.setOpacity(workloadSeriesOpacity_);
 
@@ -755,19 +739,8 @@ void Chart::paintWorkloadEventSeries(QPainter &painter)
             painter.drawPixmap(rect.toRect(), workloadEventTypePixmaps_.value(event->getType()));
             painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
-            if (rectHovered(eventSeries->getKind(), rect)) {
-                textPen.setColor(textColor_);
-                painter.fillRect(rect, highlightBrush_);
-            } else {
-                brushColor = seriesColor.darker(100 + (50 * (count - 1)));
-                textPen.setColor(getContrastingColor(brushColor));
-                painter.setPen(defaultRectPen_);
-                painter.setBrush(brushColor);
-                painter.drawRect(rect);
-            }
             QString countStr = count > 99 ? "𝑛" : QString::number(count);
-            painter.setPen(textPen);
-            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
+            drawTextRect(painter, rect, countStr, workloadColor_.darker(100 + (50 * (count - 1))), ChartDataKind::WORKLOAD);
         }
     }
 
@@ -924,34 +897,7 @@ void Chart::paintCPUUtilisationEventSeries(QPainter &painter)
         rects.append(rect);
     }
 
-    if (rects.isEmpty())
-        return;
-
-    QPen linePen(seriesColor, 3.0);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setOpacity(cpuSeriesOpacity_);
-    painter.setPen(defaultEllipsePen_);
-    painter.setBrush(seriesColor);
-
-    if (rects.size() == 1) {
-        auto rect = rects.first();
-        painter.drawEllipse(rect);
-        rectHovered(eventSeries->getKind(), rect);
-    } else {
-        for (int i = 1; i < rects.count(); i++) {
-            auto rect1 = rects.at(i - 1);
-            auto rect2 = rects.at(i);
-            painter.setPen(linePen);
-            painter.drawLine(rect1.center(), rect2.center());
-            painter.setPen(defaultEllipsePen_);
-            painter.drawEllipse(rect1);
-            painter.drawEllipse(rect2);
-            rectHovered(eventSeries->getKind(), rect1);
-            rectHovered(eventSeries->getKind(), rect2);
-        }
-    }
-
-    painter.setRenderHint(QPainter::Antialiasing, false);
+    drawLineFromRects(painter, rects, utilisationColor_, cpuSeriesOpacity_, ChartDataKind::CPU_UTILISATION);
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
@@ -1106,34 +1052,7 @@ void Chart::paintMemoryUtilisationEventSeries(QPainter &painter)
         rects.append(rect);
     }
 
-    if (rects.isEmpty())
-        return;
-
-    QPen linePen(seriesColor, 3.0);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setOpacity(memorySeriesOpacity_);
-    painter.setPen(defaultEllipsePen_);
-    painter.setBrush(seriesColor);
-
-    if (rects.size() == 1) {
-        auto rect = rects.first();
-        painter.drawEllipse(rect);
-        rectHovered(eventSeries->getKind(), rect);
-    } else {
-        for (int i = 1; i < rects.count(); i++) {
-            auto rect1 = rects.at(i - 1);
-            auto rect2 = rects.at(i);
-            painter.setPen(linePen);
-            painter.drawLine(rect1.center(), rect2.center());
-            painter.setPen(defaultEllipsePen_);
-            painter.drawEllipse(rect1);
-            painter.drawEllipse(rect2);
-            rectHovered(eventSeries->getKind(), rect1);
-            rectHovered(eventSeries->getKind(), rect2);
-        }
-    }
-
-    painter.setRenderHint(QPainter::Antialiasing, false);
+    drawLineFromRects(painter, rects, memoryColor_, memorySeriesOpacity_, ChartDataKind::MEMORY_UTILISATION);
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES)
@@ -1322,10 +1241,6 @@ void Chart::paintPortEventSeries(QPainter& painter)
         }
     }
 
-    QColor seriesColor = portEventColor_;
-    QColor brushColor = seriesColor;
-    QPen textPen(textColor_, 2.0);
-
     int y = rect().center().y() - barWidth / 2.0;
     painter.setOpacity(portEventSeriesOpacity_);
 
@@ -1343,19 +1258,8 @@ void Chart::paintPortEventSeries(QPainter& painter)
             painter.drawPixmap(rect.toRect(), portEventTypePixmaps_.value(event->getType()));
             painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
-            if (rectHovered(eventSeries->getKind(), rect)) {
-                textPen.setColor(textColor_);
-                painter.fillRect(rect, highlightBrush_);
-            } else {
-                brushColor = seriesColor.darker(100 + (50 * (count - 1)));
-                textPen.setColor(getContrastingColor(brushColor));
-                painter.setPen(defaultRectPen_);
-                painter.setBrush(brushColor);
-                painter.drawRect(rect);
-            }
             QString countStr = count > 99 ? "𝑛" : QString::number(count);
-            painter.setPen(textPen);
-            painter.drawText(rect, countStr, QTextOption(Qt::AlignCenter));
+            drawTextRect(painter, rect, countStr, portEventColor_.darker(100 + (50 * (count - 1))), ChartDataKind::PORT_EVENT);
         }
     }
 
@@ -1491,41 +1395,87 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
     }
 
     auto availableHeight = height() - barWidth;
-    auto seriesColor = networkColor_;
-    QList<QRectF> rects;
+    QList<QRectF> rects_sent, rects_received;
 
     for (int i = 0; i < totalBarCount; i++) {
         int count = buckets[i].count();
         if (count == 0)
             continue;
 
-        // calculate the bucket's average utilisation
-        auto utilisation = 0.0;
+        // calculate the bucket's average bytes sent/received
+        auto bytes_sent = 0.0;
+        auto bytes_received = 0.0;
         for (auto e : buckets[i]) {
-            utilisation += e->getUtilisation();
+            bytes_sent += e->getDeltaBytesSent();
+            bytes_received += e->getDeltaBytesReceived();
         }
-        utilisation /= count;
+        bytes_sent /= count;
+        bytes_received /= count;
 
-        double y = (1 - utilisation) * availableHeight;
         double x = (i - prevBarCount) * barWidth;
-        QRectF rect(x, y, barWidth, barWidth);
-        rects.append(rect);
+        double y_sent = (1 - bytes_sent) * availableHeight;
+        double y_received = (1 - bytes_received) * availableHeight;
+        rects_sent.append(QRectF(x, y_sent, barWidth, barWidth));
+        rects_received.append(QRectF(x, y_received, barWidth, barWidth));
     }
 
-    if (rects.isEmpty())
-        return;
+    drawLineFromRects(painter, rects_sent, networkColor_sent_, networkSeriesOpacity_, ChartDataKind::NETWORK_UTILISATION);
+    drawLineFromRects(painter, rects_received, networkColor_received_, networkSeriesOpacity_, ChartDataKind::NETWORK_UTILISATION);
 
-    QPen linePen(seriesColor, 3.0);
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "NETWORK Render Took: " << finish - start << "ms";
+}
+
+
+/**
+ * @brief Chart::drawTextRect
+ * @param painter
+ * @param rect
+ * @param text
+ * @param color
+ * @param series_kind
+ */
+void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, QColor color, ChartDataKind series_kind)
+{
+    if (rectHovered(series_kind, rect)) {
+        painter.fillRect(rect, highlightBrush_);
+        painter.setPen(defaultTextPen_);
+    } else {
+        painter.setPen(defaultRectPen_);
+        painter.setBrush(color);
+        painter.drawRect(rect);
+        painter.setPen(QPen(getContrastingColor(color), 2.0));
+    }
+
+    painter.drawText(rect, text, QTextOption(Qt::AlignCenter));
+}
+
+
+/**
+ * @brief Chart::drawLineFromRects
+ * @param rects
+ * @param color
+ * @param opacity
+ * @param series_kind
+ */
+void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QColor color, double opacity, ChartDataKind series_kind)
+{
+    if (rects.isEmpty()) {
+        return;
+    }
+
     painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setOpacity(networkSeriesOpacity_);
+    painter.setOpacity(opacity);
     painter.setPen(defaultEllipsePen_);
-    painter.setBrush(seriesColor);
+    painter.setBrush(color);
 
     if (rects.size() == 1) {
         auto rect = rects.first();
         painter.drawEllipse(rect);
-        rectHovered(eventSeries->getKind(), rect);
+        rectHovered(series_kind, rect);
     } else {
+        QPen linePen(color, 3.0);
         for (int i = 1; i < rects.count(); i++) {
             auto rect1 = rects.at(i - 1);
             auto rect2 = rects.at(i);
@@ -1534,16 +1484,12 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
             painter.setPen(defaultEllipsePen_);
             painter.drawEllipse(rect1);
             painter.drawEllipse(rect2);
-            rectHovered(eventSeries->getKind(), rect1);
-            rectHovered(eventSeries->getKind(), rect2);
+            rectHovered(series_kind, rect1);
+            rectHovered(series_kind, rect2);
         }
     }
 
     painter.setRenderHint(QPainter::Antialiasing, false);
-
-    auto finish = QDateTime::currentMSecsSinceEpoch();
-    if (PRINT_RENDER_TIMES)
-        qDebug() << "NETWORK Render Took: " << finish - start << "ms";
 }
 
 

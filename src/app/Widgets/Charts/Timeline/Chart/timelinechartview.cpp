@@ -429,7 +429,7 @@ void TimelineChartView::updateHoverDisplay()
         if (!entityChart || !entityChart->isHovered())
             continue;
         const auto& series = entityChart->getSeries();
-        auto hoveredKinds = entityChart->getHovereSeriesKinds();
+        auto hoveredKinds = entityChart->getHoveredSeriesKinds();
         for (const auto& s : series) {
             if (!s)
                 continue;

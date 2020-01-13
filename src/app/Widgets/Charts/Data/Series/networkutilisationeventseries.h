@@ -14,12 +14,9 @@ public:
 
     void addEvent(MEDEA::Event* event);
 
-    double getMaxUtilisation() const;
-
 private:
-    double minUtilisation_ = DBL_MAX;
-    double maxUtilisation_ = DBL_MIN;
-
+    qint64 min_ = INT_MAX;
+    qint64 max_ = 0;
 };
 
 #endif // NETWORKUTILISATIONEVENTSERIES_H
