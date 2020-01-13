@@ -26,6 +26,7 @@ public:
     std::unique_ptr<AggServer::MemoryUtilisationResponse> GetMemoryUtilisation(const AggServer::MemoryUtilisationRequest& request);
     std::unique_ptr<AggServer::MarkerResponse> GetMarkers(const AggServer::MarkerRequest& request);
     std::unique_ptr<AggServer::PortEventResponse> GetPortEvents(const AggServer::PortEventRequest& request);
+    std::unique_ptr<AggServer::NetworkUtilisationResponse> GetNetworkUtilisation(const AggServer::NetworkUtilisationRequest& request);
 
 private:
     zmq::ProtoRequester requester_;

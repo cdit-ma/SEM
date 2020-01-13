@@ -15,7 +15,7 @@ AggServer::Requester::Requester(const std::string& aggregation_broker_endpoint):
  * @param request
  * @return
  */
-std::unique_ptr<AggServer::ExperimentRunResponse> AggServer::Requester::GetExperimentRuns(const AggServer::ExperimentRunRequest &request)
+std::unique_ptr<AggServer::ExperimentRunResponse> AggServer::Requester::GetExperimentRuns(const AggServer::ExperimentRunRequest& request)
 {
     auto reply = requester_.SendRequest<ExperimentRunRequest, ExperimentRunResponse>("GetExperimentRuns", request, 5000);
     try{
@@ -33,7 +33,7 @@ std::unique_ptr<AggServer::ExperimentRunResponse> AggServer::Requester::GetExper
  * @param request
  * @return
  */
-std::unique_ptr<AggServer::ExperimentStateResponse> AggServer::Requester::GetExperimentState(const AggServer::ExperimentStateRequest &request)
+std::unique_ptr<AggServer::ExperimentStateResponse> AggServer::Requester::GetExperimentState(const AggServer::ExperimentStateRequest& request)
 {
     auto reply = requester_.SendRequest<ExperimentStateRequest, ExperimentStateResponse>("GetExperimentState", request, 5000);
     try{
@@ -69,7 +69,7 @@ std::unique_ptr<AggServer::PortLifecycleResponse> AggServer::Requester::GetPortL
  * @param request
  * @return
  */
-std::unique_ptr<AggServer::WorkloadResponse> AggServer::Requester::GetWorkload(const AggServer::WorkloadRequest &request)
+std::unique_ptr<AggServer::WorkloadResponse> AggServer::Requester::GetWorkload(const AggServer::WorkloadRequest& request)
 {
     auto reply = requester_.SendRequest<WorkloadRequest, WorkloadResponse>("GetWorkload", request, 5000);
     try{
@@ -87,7 +87,7 @@ std::unique_ptr<AggServer::WorkloadResponse> AggServer::Requester::GetWorkload(c
  * @param request
  * @return
  */
-std::unique_ptr<AggServer::CPUUtilisationResponse> AggServer::Requester::GetCPUUtilisation(const AggServer::CPUUtilisationRequest &request)
+std::unique_ptr<AggServer::CPUUtilisationResponse> AggServer::Requester::GetCPUUtilisation(const AggServer::CPUUtilisationRequest& request)
 {
     auto reply = requester_.SendRequest<CPUUtilisationRequest, CPUUtilisationResponse>("GetCPUUtilisation", request, 5000);
     try{
@@ -105,7 +105,7 @@ std::unique_ptr<AggServer::CPUUtilisationResponse> AggServer::Requester::GetCPUU
  * @param request
  * @return
  */
-std::unique_ptr<AggServer::MemoryUtilisationResponse> AggServer::Requester::GetMemoryUtilisation(const AggServer::MemoryUtilisationRequest &request)
+std::unique_ptr<AggServer::MemoryUtilisationResponse> AggServer::Requester::GetMemoryUtilisation(const AggServer::MemoryUtilisationRequest& request)
 {
     auto reply = requester_.SendRequest<MemoryUtilisationRequest, MemoryUtilisationResponse>("GetMemoryUtilisation", request, 5000);
     try{
@@ -123,7 +123,7 @@ std::unique_ptr<AggServer::MemoryUtilisationResponse> AggServer::Requester::GetM
  * @param request
  * @return
  */
-std::unique_ptr<AggServer::MarkerResponse> AggServer::Requester::GetMarkers(const AggServer::MarkerRequest &request)
+std::unique_ptr<AggServer::MarkerResponse> AggServer::Requester::GetMarkers(const AggServer::MarkerRequest& request)
 {
     auto reply = requester_.SendRequest<MarkerRequest, MarkerResponse>("GetMarkers", request, 5000);
     try{
@@ -141,7 +141,7 @@ std::unique_ptr<AggServer::MarkerResponse> AggServer::Requester::GetMarkers(cons
  * @param request
  * @return
  */
-std::unique_ptr<AggServer::PortEventResponse> AggServer::Requester::GetPortEvents(const AggServer::PortEventRequest &request)
+std::unique_ptr<AggServer::PortEventResponse> AggServer::Requester::GetPortEvents(const AggServer::PortEventRequest& request)
 {
     auto reply = requester_.SendRequest<PortEventRequest, PortEventResponse>("GetPortEvents", request, 5000);
     try{
@@ -152,3 +152,20 @@ std::unique_ptr<AggServer::PortEventResponse> AggServer::Requester::GetPortEvent
         throw std::runtime_error(ex.what());
     }
 }
+
+
+/**
+ * @brief AggServer::Requester::GetNetworkUtilisation
+ * @param request
+ * @return
+ */
+std::unique_ptr<AggServer::NetworkUtilisationResponse> AggServer::Requester::GetNetworkUtilisation(const AggServer::NetworkUtilisationRequest& request)
+{
+    auto reply = requester_.SendRequest<NetworkUtilisationRequest, NetworkUtilisationResponse>("GetNetworkUtilisation", request, 5000);
+    try{
+        return reply.get();
+    }catch(const zmq::RMIException& ex){
+        throw std::invalid_argument(ex.what());
+    }catch(const zmq::TimeoutException& ex){
+        throw std::runtime_error(ex.what());
+    }}
