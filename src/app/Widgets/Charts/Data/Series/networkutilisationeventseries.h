@@ -15,8 +15,9 @@ public:
     void addEvent(MEDEA::Event* event);
 
 private:
-    qint64 min_ = INT_MAX;
     qint64 max_ = 0;
+    qint64 total_sent_ = 0;
+    qint64 total_received_ = 0;
 };
 
 #endif // NETWORKUTILISATIONEVENTSERIES_H
