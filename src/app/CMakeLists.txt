@@ -184,6 +184,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/aggregationproxy.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/dummyresponsebuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h

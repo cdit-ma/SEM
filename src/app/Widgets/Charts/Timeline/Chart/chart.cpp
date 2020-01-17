@@ -372,6 +372,7 @@ void Chart::seriesKindHovered(ChartDataKind kind)
     }
     }
 
+    //qDebug() << "HOVERED KIND: " << (int)kind;
     hoveredSeriesKind_ = kind;
     updateSeriesPixmaps();
     update();
@@ -495,8 +496,16 @@ void Chart::paintEvent(QPaintEvent* event)
         if (containsYRange_) {
             QString minStr = QString::number(floor(dataMinY_ * 100)) + "%";
             QString maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
+
+            bool contains_network_utilisation = seriesList_.keys().contains(ChartDataKind::NETWORK_UTILISATION);
+            if (contains_network_utilisation) {
+                minStr = NetworkUtilisationEventSeries::getByteString(dataMinY_);
+                maxStr = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
+            }
+
             int h = fontMetrics().height();
             int w = qMax(fontMetrics().horizontalAdvance(minStr), fontMetrics().horizontalAdvance(maxStr)) + 5;
+
             QRectF maxRect(width() - w, 0, w, h);
             QRectF minRect(width() - w, height() - h, w, h);
             painter.setPen(textColor_);
@@ -1394,13 +1403,17 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
         first_contributing_event++;
     }
 
-    auto availableHeight = height() - barWidth;
     QList<QRectF> rects_sent, rects_received;
+    auto availableHeight = height() - barWidth;
+    double y_range = dataMaxY_ - dataMinY_;
+    double total_sent_ = 0.0;
+    double total_received = 0.0;
 
     for (int i = 0; i < totalBarCount; i++) {
         int count = buckets[i].count();
-        if (count == 0)
+        if (count == 0) {
             continue;
+        }
 
         // calculate the bucket's average bytes sent/received
         auto bytes_sent = 0.0;
@@ -1412,9 +1425,13 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
         bytes_sent /= count;
         bytes_received /= count;
 
+        // update the total bytes sent/received
+        total_sent_ += bytes_sent;
+        total_received += bytes_received;
+
         double x = (i - prevBarCount) * barWidth;
-        double y_sent = (1 - bytes_sent) * availableHeight;
-        double y_received = (1 - bytes_received) * availableHeight;
+        double y_sent = availableHeight - (total_sent_ - dataMinY_) / y_range * availableHeight;
+        double y_received = availableHeight - (total_received - dataMinY_) / y_range * availableHeight;
         rects_sent.append(QRectF(x, y_sent, barWidth, barWidth));
         rects_received.append(QRectF(x, y_received, barWidth, barWidth));
     }
@@ -1423,8 +1440,9 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
     drawLineFromRects(painter, rects_received, networkColor_received_, networkSeriesOpacity_, ChartDataKind::NETWORK_UTILISATION);
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
-    if (PRINT_RENDER_TIMES)
+    if (PRINT_RENDER_TIMES) {
         qDebug() << "NETWORK Render Took: " << finish - start << "ms";
+    }
 }
 
 

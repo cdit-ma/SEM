@@ -78,7 +78,6 @@ private:
 
     void requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* sender_obj = nullptr);
 
-
     void requestExperimentRuns(const QString& experimentName, MEDEA::ExperimentData* exp_data_requester = nullptr);
     void requestExperimentState(const quint32 experimentRunID, MEDEA::ExperimentData* exp_data_requester = nullptr);
 

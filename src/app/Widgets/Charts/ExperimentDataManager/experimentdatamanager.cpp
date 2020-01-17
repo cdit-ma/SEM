@@ -451,7 +451,6 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
  */
 void ExperimentDataManager::requestNetworkUtilisationEvents(const NetworkUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
 {
-    return;
     auto future = aggregationProxy().RequestNetworkUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);
 
@@ -667,7 +666,6 @@ void ExperimentDataManager::processNetworkUtilisationEvents(const AggServerRespo
         } else {
             emit showChartsPanel();
             timelineChartView().addNetworkUtilisationEvents(exp_run, events);
-            qDebug() << "Received Network Events for exp run [" << exp_run.experiment_run_id << "]: " << events.size();
         }
     }
 }

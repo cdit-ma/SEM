@@ -14,7 +14,12 @@ public:
 
     void addEvent(MEDEA::Event* event);
 
+    static QString getByteString(qint64 bytes);
+
 private:
+    static double trimDecimalPlaces(double number, int desired_decimal_places);
+    static void rightPad(QString& str, int intended_length, char pad_char);
+
     qint64 max_ = 0;
     qint64 total_sent_ = 0;
     qint64 total_received_ = 0;

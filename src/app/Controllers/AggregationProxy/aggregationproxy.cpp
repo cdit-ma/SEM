@@ -1,6 +1,8 @@
 #include "aggregationproxy.h"
 #include "../SettingsController/settingscontroller.h"
 
+#include "dummyresponsebuilder.h"
+
 #include <QDateTime>
 #include <iostream>
 
@@ -480,48 +482,47 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
  * @param request
  * @return
  */
-QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &request) const
-{
+QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &request) const {
     CheckRequester();
 
     try {
-        QVector<PortEvent*> events;
+        QVector<PortEvent *> events;
         AggServer::PortEventRequest agg_request;
         agg_request.set_experiment_run_id(request.experiment_run_id());
 
-        for (const auto& name : request.component_names()) {
+        for (const auto &name : request.component_names()) {
             agg_request.add_component_names(name.toStdString());
         }
-        for (const auto& id : request.component_instance_ids()) {
+        for (const auto &id : request.component_instance_ids()) {
             agg_request.add_component_instance_ids(id.toStdString());
         }
-        for (const auto& path : request.component_instance_paths()) {
+        for (const auto &path : request.component_instance_paths()) {
             agg_request.add_component_instance_paths(path.toStdString());
         }
-        for (const auto& id : request.port_ids()) {
+        for (const auto &id : request.port_ids()) {
             agg_request.add_port_ids(id.toStdString());
         }
-        for (const auto& path : request.port_paths()) {
+        for (const auto &path : request.port_paths()) {
             agg_request.add_port_paths(path.toStdString());
         }
 
-        const auto& results = requester_->GetPortEvents(agg_request);
-        for (const auto& item : results->events()) {
+        const auto &results = requester_->GetPortEvents(agg_request);
+        for (const auto &item : results->events()) {
             // TODO: Using this to filter unwanted port events for the moment
             if (item.type() == AggServer::PortEvent::FINISHED_FUNC) {
                 continue;
             }
-            const auto& port = ConvertPort(item.port());
-            const auto& seqNum = item.sequence_num();
-            const auto& type = ConvertPortEventType(item.type());
-            const auto& message = ConstructQString(item.message());
-            const auto& time = ConstructQDateTime(item.time());
+            const auto &port = ConvertPort(item.port());
+            const auto &seqNum = item.sequence_num();
+            const auto &type = ConvertPortEventType(item.type());
+            const auto &message = ConstructQString(item.message());
+            const auto &time = ConstructQDateTime(item.time());
             events.append(new PortEvent(port, seqNum, type, message, time.toMSecsSinceEpoch()));
         }
 
         return events;
 
-    } catch (const std::exception& ex) {
+    } catch (const std::exception &ex) {
         throw RequestException(ex.what());
     }
 }
@@ -548,8 +549,14 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
             agg_request.add_node_hostnames(name.toStdString());
         }
 
-        auto results = requester_->GetNetworkUtilisation(agg_request);
-        for (const auto& node_network_event : results->node_network_events()) {
+        /*
+         * For the dummy data, get the experiment run's start and end time and set that as the response's time range
+         */
+        //auto exp_run = GetExperimentState(request.experiment_run_id());
+        auto results = DummyResponseBuilder::getMultiEventsResponse();
+
+        //for (const auto& node_network_event : results->node_network_events()) {
+        for (const auto& node_network_event : results.node_network_events()) {
             const auto& hostname = ConstructQString(node_network_event.node_info().hostname());
             for (const auto& interface_network_event : node_network_event.events()) {
                 const auto& interface_mac_addr = ConstructQString(interface_network_event. interface_mac_addr());
