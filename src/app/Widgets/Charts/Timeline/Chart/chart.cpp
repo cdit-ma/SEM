@@ -361,7 +361,8 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         markerColor_ = defaultMarkerColor_;
         portEventColor_ = defaultPortEventColor_;
         networkColor_sent_ = defaultNetworkColor_sent_;
-        networkColor_received_ = defaultNetworkColor_received_;        portLifecycleSeriesOpacity_ = 1.0;
+        networkColor_received_ = defaultNetworkColor_received_;
+        portLifecycleSeriesOpacity_ = 1.0;
         workloadSeriesOpacity_ = 1.0;
         cpuSeriesOpacity_ = 1.0;
         memorySeriesOpacity_ = 1.0;
@@ -372,7 +373,6 @@ void Chart::seriesKindHovered(ChartDataKind kind)
     }
     }
 
-    //qDebug() << "HOVERED KIND: " << (int)kind;
     hoveredSeriesKind_ = kind;
     updateSeriesPixmaps();
     update();

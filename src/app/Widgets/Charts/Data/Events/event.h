@@ -20,10 +20,6 @@ public:
                    const QString& name = "no_name",
                    QObject* parent = nullptr);
 
-    /*~Event() {
-        qDebug() << "Event deleted - " << GetChartDataKindString(getKind());
-    }*/
-
     ChartDataKind getKind() const;
 
     qint64 getTimeMS() const;

@@ -8,7 +8,6 @@
 #include <proto/aggregationmessage/aggregationmessage.pb.h>
 #include <google/protobuf/util/time_util.h>
 #include <QDateTime>
-#include <QDebug>
 
 using google::protobuf::util::TimeUtil;
 
