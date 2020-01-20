@@ -909,7 +909,7 @@ void ExperimentDataManager::clear()
 {
     // Clear Charts and Pulse
     getChartDialog().clear();
-    getDataflowDialog().clearScene();
+    getDataflowDialog().clear();
 
     // Clear data structures and stored states
     selectedViewItems_.clear();

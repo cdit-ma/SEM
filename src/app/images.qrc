@@ -366,6 +366,7 @@
         <file alias="speechBubbleFilled">Resources/Icons/speechBubbleFilled.png</file>
         <file alias="speechBubbleList">Resources/Icons/speechBubbleList.png</file>
         <file alias="speechBubbleMessage">Resources/Icons/speechBubbleMessage.png</file>
+        <file alias="speed">Resources/Icons/speed.png</file>
         <file alias="speedGauge">Resources/Icons/speedGauge.png</file>
         <file alias="sphereBlue">Resources/Icons/sphereBlue.png</file>
         <file alias="sphereGray">Resources/Icons/sphereGray.png</file>
