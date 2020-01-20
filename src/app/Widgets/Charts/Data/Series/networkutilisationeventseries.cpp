@@ -42,9 +42,6 @@ void NetworkUtilisationEventSeries::addEvent(MEDEA::Event* event)
             emit maxYValueChanged(max_);
         }
         addEventToList(*event);
-
-    } else {
-        qDebug() << "Duplicate Event!";
     }
 }
 

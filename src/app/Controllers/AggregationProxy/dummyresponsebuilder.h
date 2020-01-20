@@ -52,7 +52,7 @@ public:
                   1000,
                   1000,
                   1500,
-                  getStartTimeMS());
+                  getStartTimeMS() + 10000);
 
         return response;
     }
@@ -63,7 +63,7 @@ public:
         auto node_events = constructNodeNetworkEvents(response);
         auto interface_events = constructInterfaceNetworkEvents(*node_events);
 
-        srand(15);
+        srand(10);
 
         // Add NetworkUtilisationEvents to the InterfaceNetworkEvents
         float random_proportion = rand() / (float)RAND_MAX;

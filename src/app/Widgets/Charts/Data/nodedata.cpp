@@ -169,7 +169,6 @@ MemoryUtilisationEventSeries* NodeData::getMemoryUtilisationSeries() const
  */
 void NodeData::addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events)
 {
-    qDebug() << hostname_ << " - Received Network Events#: " << events.size();
     network_utilisation_series_->addEvents(events);
 }
 

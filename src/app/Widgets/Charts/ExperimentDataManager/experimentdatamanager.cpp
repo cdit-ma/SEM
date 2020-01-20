@@ -454,15 +454,14 @@ void ExperimentDataManager::requestNetworkUtilisationEvents(const NetworkUtilisa
     auto future = aggregationProxy().RequestNetworkUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);
 
-    //qDebug() << "Requested Network Events for exp run [" << experimentRun.experiment_run_id << "] - " << request.node_hostnames();
-
     connect(futureWatcher, &QFutureWatcher<QVector<NetworkUtilisationEvent*>>::finished, [this, futureWatcher, experimentRun, node_data_requester]() {
         try {
             auto&& events = futureWatcher->result();
             if (node_data_requester != nullptr) {
                 node_data_requester->addNetworkUtilisationEvents(events);
+            } else {
+                processNetworkUtilisationEvents(experimentRun, events);
             }
-            processNetworkUtilisationEvents(experimentRun, events);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);
         }
