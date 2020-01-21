@@ -324,7 +324,17 @@ void TimelineChartView::themeChanged()
     handleColor.setAlphaF(1 - OPACITY);
     highlightColor.setAlphaF(handleColor.alphaF());
 
-    setStyleSheet(theme->getScrollBarStyleSheet());
+    auto sb_bgcolor = theme->getDisabledBackgroundColorHex();
+    if (theme->getTextColor() == theme->black()) {
+        sb_bgcolor = Theme::QColorToHex(theme->white());
+    } else {
+        sb_bgcolor = Theme::QColorToHex(theme->black());
+    }
+
+    // The scrollbar stylesheet needs to be applied directly to the scrollbar
+    // Otherwise, it will only apply the stylesheet on the first theme change
+    scrollArea_->setStyleSheet("QScrollArea{ background:" + theme->getBackgroundColorHex() + ";}");
+    scrollArea_->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 
     legendToolbar_->setFixedHeight(theme->getLargeIconSize().height());
     legendToolbar_->setStyleSheet(theme->getToolTipStyleSheet() +
@@ -358,7 +368,9 @@ void TimelineChartView::themeChanged()
             buttonIcon = theme->getIcon("ToggleIcons", "markerHover");
             break;
         default:
-            qWarning("TimelineChartView::themeChanged - May be missing an icon for a ChartDataKind.");
+            if (kind != ChartDataKind::DATA) {
+                qWarning("TimelineChartView::themeChanged - May be missing an icon for a ChartDataKind.");
+            }
             continue;
         }
         auto button = hoverDisplayButtons_.value(kind, nullptr);
@@ -1088,7 +1100,6 @@ void TimelineChartView::setupLayout()
         action->setToolTip("Show/Hide " + action->text() + " Series");
         action->setCheckable(true);
         action->setChecked(true);
-        //action->setVisible(false);
         action->setProperty(CHART_DATA_KIND, (uint)kind);
         connect(action, &QAction::toggled, this, &TimelineChartView::toggledSeriesLegend);
 

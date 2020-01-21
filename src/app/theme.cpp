@@ -546,16 +546,22 @@ QString Theme::getScrollBarStyleSheet()
     QString margin = QString::number(marginSize) % "px";
     QString size = QString::number(scrollSize) % "px";
     QString button = QString::number(buttonSize) % "px";
+    QColor handleColor = getAltTextColor();
+    handleColor.setAlphaF(0.4);
 
     return "QScrollBar {"
-           "background: " % getDisabledBackgroundColorHex() % ";"
+           "background:"  % getDisabledBackgroundColorHex() % ";"
            "border: 0px;"
            "margin: 0px;"
            "}"
-           "QScrollBar:vertical{width:" % size % "; padding-left: 1px;}"
-           "QScrollBar:horizontal{height:" % size % "; padding-top: 1px;}"
-           "QScrollBar::handle{background: " % getAltBackgroundColorHex() % " ; margin:" % margin % ";}"
-           "QScrollBar::handle:active{background: " % getHighlightColorHex() % ";}"
+           "QScrollBar:vertical{ width:" % size % ";}"
+           "QScrollBar:horizontal{ height:" % size % ";}"
+           "QScrollBar::handle{"
+           "background: " % QColorToHex(handleColor) % ";"
+           "margin:" % margin % ";"
+           "border-radius: 1px;"
+           "padding: 1px;}"
+           "QScrollBar::handle:active{ background: " % getHighlightColorHex() % ";}"
            "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
            "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
             ;
@@ -765,6 +771,7 @@ QString Theme::getMenuStyleSheet(int icon_size_int)
            "}"
            "QMenu::item:disabled {"
            "color:" % getAltTextColorHex() % ";"
+           "color:" % getTextColorHex(ColorRole::DISABLED) % ";"
            "}"
            "QMenu::item:selected:!disabled {"
            "color:" % getTextColorHex(ColorRole::SELECTED) % ";"
@@ -1420,7 +1427,7 @@ void Theme::resetTheme(ThemePreset themePreset){
             emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
             emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
             emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(108));
-            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(100,100,100));
             emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
             emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
             emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, white());

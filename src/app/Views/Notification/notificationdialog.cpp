@@ -195,22 +195,41 @@ void NotificationDialog::themeChanged()
     notifications_widget->setStyleSheet("background: rgba(0,0,0,0);");
     filters_widget->setStyleSheet("background: rgba(0,0,0,0);");
 
+    filters_scroll->setStyleSheet(theme->getScrollAreaStyleSheet());
+    filters_scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+    filters_scroll->horizontalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+
+    notifications_scroll->setStyleSheet(theme->getScrollAreaStyleSheet());
+    notifications_scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+    notifications_scroll->horizontalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+
     center_action->setIcon(theme->getIcon("Icons", "crosshair"));
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
     clear_filtered_action->setIcon(theme->getIcon("Icons", "bin"));
     
-    sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
     clock_action->setIcon(theme->getIcon("Icons", "clock"));
-    
+    sort_time_action->setIcon(theme->getIcon("ToggleIcons", "sort"));
+
+    auto tool_button = qobject_cast<QToolButton*>(top_toolbar->widgetForAction(sort_time_action));
+    if (tool_button) {
+        tool_button->setStyleSheet("QToolButton::checked::!hover{ background:" + theme->getAltBackgroundColorHex() + ";}");
+    }
+
     info_label->setFont(QFont(theme->getFont().family(), 12));
     info_label->setStyleSheet("background: rgba(0,0,0,0); color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
+    status_label->setStyleSheet("color:" + theme->getAltTextColorHex() + ";");
 
     load_more_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{border-radius:0px;}");
 
     top_toolbar->setIconSize(theme->getIconSize());
+    top_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+
     bottom_toolbar->setIconSize(theme->getIconSize());
+    bottom_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+
     left_toolbar->setIconSize(theme->getIconSize());
+    left_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
 }
 
 
