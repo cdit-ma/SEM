@@ -554,6 +554,7 @@ void ChartInputPopup::setupLayout()
 
     charts_checkbox_ = new QCheckBox("Charts", this);
     charts_checkbox_->setLayoutDirection(Qt::RightToLeft);
+    charts_checkbox_->setChecked(true);
     toolbar_->addWidget(charts_checkbox_);
     toolbar_->addSeparator();
 
@@ -564,8 +565,8 @@ void ChartInputPopup::setupLayout()
     toolbar_->addWidget(splitter);
 
     pulse_checkbox_ = new QCheckBox("Pulse", this);
-    pulse_checkbox_->setChecked(true);
     pulse_checkbox_->setLayoutDirection(Qt::RightToLeft);
+    pulse_checkbox_->setChecked(true);
     toolbar_->addWidget(pulse_checkbox_);
     toolbar_->addSeparator();
 

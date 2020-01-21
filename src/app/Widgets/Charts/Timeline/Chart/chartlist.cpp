@@ -329,8 +329,6 @@ void ChartList::paintEvent(QPaintEvent *event)
     QRect visibleRect = visibleRegion().boundingRect();
     painter.fillRect(visibleRect, backgroundColor_);
 
-    visibleRect = visibleRect.adjusted(axisWidth_ / 2.0, 0, 0, 0);
-
     painter.setPen(axisLinePen_);
     if (axisXVisible_) {
         QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
@@ -338,6 +336,7 @@ void ChartList::paintEvent(QPaintEvent *event)
     }
     if (axisYVisible_) {
         QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
+        axisY.translate(axisWidth_ / 2.0, 0);
         painter.drawLine(axisY);
     }
 

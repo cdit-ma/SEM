@@ -286,7 +286,6 @@ void TimelineChartView::clearChartList()
     longestExperimentRunDuration_ = {0, INT64_MIN};
     experimentRunTimeRange_.clear();
     experimentRunSeriesCount_.clear();
-    rangeSet = false;
 }
 
 
@@ -423,17 +422,16 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
  */
 void TimelineChartView::chartLabelListSizeChanged(QSizeF size)
 {
-    qreal chartHeight = height() - timelineAxis_->height() - legendToolbar_->height() - SPACING * 3;
+    qreal charts_height = height() - timelineAxis_->height() - legendToolbar_->height() - SPACING * 3;
+    auto filler_width = size.width();
 
-    if (size.height() > chartHeight) {
-        size.setWidth(size.width() + SCROLLBAR_WIDTH);
+    // If the scrollbar is visible, adjust the width to include the scrollbar width
+    if (size.height() > charts_height) {
+        filler_width = size.width() + SCROLLBAR_WIDTH - SPACING - AXIS_LINE_WIDTH / 2.0;
     }
 
-    topFillerWidget_->setFixedWidth(size.width());
-    bottomFillerWidget_->setFixedWidth(size.width());
-
-    //auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
-    //setMinimumWidth(size.width() + minTimeAxisWidth + SPACING * 2);
+    topFillerWidget_->setFixedWidth(filler_width);
+    bottomFillerWidget_->setFixedWidth(filler_width);
 }
 
 
@@ -1121,9 +1119,9 @@ void TimelineChartView::setupLayout()
     scrollArea_->setWidget(scrollWidget);
     scrollArea_->setWidgetResizable(true);
     scrollArea_->setLayoutDirection(Qt::RightToLeft);
-    //scrollArea_->setStyleSheet("background: rgba(0,0,0,0);");
     scrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea_->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
+    scrollArea_->verticalScrollBar()->setTracking(true);
 
     /*
      * BOTTOM (TIME AXIS) LAYOUT
@@ -1163,11 +1161,6 @@ void TimelineChartView::setupLayout()
     layout->setContentsMargins(0,0,0,0);
     layout->addWidget(mainWidget_);
     layout->addWidget(emptyLabel_);
-
-    scrollArea_->verticalScrollBar()->setTracking(true);
-    connect(scrollArea_->verticalScrollBar(), &QScrollBar::valueChanged, [=]() {
-        verticalScrollValue = scrollArea_->verticalScrollBar()->value();
-    });
 
     auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
     setMinimumWidth(chartLabelList_->minimumWidth() + minTimeAxisWidth + SPACING * 2);

@@ -1514,7 +1514,7 @@ void Chart::updateSeriesPixmaps()
 
     if (colorLifecyclePixmaps) {
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), QColor(179, 204, 230));
+        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getTextColor());
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::ACTIVATE] = theme->getImage("Icons", "power", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "bed", QSize(), QColor(255, 179, 102));
         lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "cancel", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
