@@ -2,10 +2,10 @@
 #include "../../../theme.h"
 
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QRadioButton>
 #include <QToolButton>
 #include <QFutureWatcher>
-#include <QStyledItemDelegate>
 #include <QKeyEvent>
 
 #define MIN_WIDTH 425
@@ -30,6 +30,10 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     for (const auto& filter : getFilterKeys()) {
         setGroupBoxVisible(filter, false);
     }
+
+    // This ensures that this widget and its children has a proper font and palette
+    // It fixes the size/theme bug that previously only got fixed by manually changing the theme
+    ensurePolished();
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartInputPopup::themeChanged);
     themeChanged();
@@ -72,7 +76,7 @@ void ChartInputPopup::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    auto tooltipStyle = "QToolTip{ background: white; color: black; }";
+    auto&& tooltipStyle = "QToolTip{ background: white; color: black; }";
     toolbar_->setIconSize(theme->getIconSize());
     toolbar_->setStyleSheet(theme->getToolBarStyleSheet() + tooltipStyle);
 
@@ -94,17 +98,19 @@ void ChartInputPopup::themeChanged()
     }
 
     auto groupBoxStyle = theme->getGroupBoxStyleSheet() +
-                         "QGroupBox{color:" + theme->getAltTextColorHex() + "; margin-top: 15px;" + "border: 1px solid " + theme->getAltTextColorHex() + "}" +
+                         "QGroupBox{color:" + theme->getTextColorHex() + "; margin-top: 15px; border: 1px solid " + theme->getAltTextColorHex() + "}" +
                          "QGroupBox::title{ subcontrol-origin: margin; }";
 
-    auto scrollbarStyle = "QScrollArea{ background: rgba(0,0,0,0); border: 0px; }"
-                          "QScrollBar::handle:active{ background: " + theme->getHighlightColorHex() + ";}";
+    experimentNameGroupBox_->setStyleSheet(groupBoxStyle);
+    experimentRunsGroupBox_->setStyleSheet(groupBoxStyle);
 
-    setStyleSheet(styleSheet() + groupBoxStyle + scrollbarStyle + tooltipStyle);
+    experimentRunsScrollArea_->setStyleSheet("QScrollArea{ background: rgba(0,0,0,0); border: 0px; }");
+    experimentRunsScrollArea_->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 
     experimentNameLineEdit_->setStyleSheet(theme->getLineEditStyleSheet());
+
+    experimentsCompleter_->popup()->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
     experimentsCompleter_->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() +
-                                                  theme->getScrollBarStyleSheet() +
                                                   "QAbstractItemView::item{ padding: 2px 0px; }"
                                                   "QAbstractItemView::item::selected{ background:red; }");
 
@@ -422,7 +428,8 @@ void ChartInputPopup::recenterPopup()
  */
 void ChartInputPopup::resizePopup()
 {
-    experimentRunsGroupBox_->setFixedHeight(qMin(GROUPBOX_MAX_HEIGHT, experimentRunsScrollWidget_->sizeHint().height()) + 45);
+    auto&& min_height = qMin(GROUPBOX_MAX_HEIGHT, experimentRunsScrollArea_->widget()->sizeHint().height());
+    experimentRunsGroupBox_->setFixedHeight( min_height + 45);
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
 }
@@ -501,20 +508,20 @@ void ChartInputPopup::setupLayout()
      * Experiment Runs Layouts/Widgets
      */
     {
-        experimentRunsScrollWidget_ = new QWidget(this);
-        experimentRunsScrollWidget_->setStyleSheet("background: rgba(0,0,0,0);");
-        experimentRunsScrollWidget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+        QWidget* experimentRunsScrollWidget = new QWidget(this);
+        experimentRunsScrollWidget->setStyleSheet("background: rgba(0,0,0,0);");
+        experimentRunsScrollWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
-        QScrollArea* scroll = new QScrollArea(this);
-        scroll->setWidget(experimentRunsScrollWidget_);
-        scroll->setWidgetResizable(true);
-        scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        experimentRunsScrollArea_ = new QScrollArea(this);
+        experimentRunsScrollArea_->setWidget(experimentRunsScrollWidget);
+        experimentRunsScrollArea_->setWidgetResizable(true);
+        experimentRunsScrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
         experimentRunsGroupBox_ = new QGroupBox("Select Experiment Run:", this);
         experimentRunsGroupBox_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         QVBoxLayout* layout = constructVBoxLayout(experimentRunsGroupBox_);
-        layout->addWidget(scroll);
+        layout->addWidget(experimentRunsScrollArea_);
 
         /*
          * Live Section Splitter
@@ -537,7 +544,7 @@ void ChartInputPopup::setupLayout()
         live_splitter_layout->addWidget(live_label, 0);
         live_splitter_layout->addWidget(right_splitter, 1);
 
-        auto runs_layout = constructVBoxLayout(experimentRunsScrollWidget_, GROUPBOX_ITEM_SPACING);
+        auto runs_layout = constructVBoxLayout(experimentRunsScrollWidget, GROUPBOX_ITEM_SPACING);
         runs_layout->addItem(new QSpacerItem(0, 5));
         runs_layout->addWidget(live_splitter_widget_);
         runs_layout->addItem(new QSpacerItem(0, 5));

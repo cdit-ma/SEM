@@ -52,6 +52,8 @@ private:
 
     void resetToolWidgets();
 
+    bool theme_initialised_ = false;
+
     ViewController* view_controller = 0;
     ActionController* action_controller = 0;
 

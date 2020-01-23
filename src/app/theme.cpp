@@ -1012,7 +1012,7 @@ QString Theme::getProgressBarStyleSheet()
 
 QString Theme::getLabelStyleSheet()
 {
-    return "QLabel{ background: rgba(0,250,0,0); color:" % getTextColorHex() % ";}";
+    return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}";
 }
 
 QString Theme::getTitleLabelStyleSheet()
@@ -1677,7 +1677,7 @@ QString Theme::QColorToHex(const QColor& color)
     return color.name(QColor::HexArgb);
 }
 
-Theme *Theme::theme()
+Theme* Theme::theme()
 {
     static Theme theme;
     return &theme;

@@ -45,6 +45,7 @@ void DockItem::themeChanged()
                       "DockItem QToolButton::hover{ background:" + theme->getHighlightColorHex() + "}"
                       "DockItem QToolButton::!hover{ background: rgba(0,0,0,0); }");
     }
+    label->setStyleSheet(theme->getLabelStyleSheet());
     setIconSize(theme->getIconSize());
 }
 
@@ -57,7 +58,6 @@ void DockItem::setupLayout()
 {
     DockTitleBar * titleBar = dockWidget->getTitleBar();
 
-
     label = new QLabel(this);
 
     QWidget* labelWidget = new QWidget(this);
@@ -67,18 +67,17 @@ void DockItem::setupLayout()
     labelWidgetLayout->addWidget(label);
     labelWidgetLayout->addStretch();
 
-
+    // TODO - Why is the iconAction checkable???
     iconAction = addAction("");
     iconAction->setCheckable(true);
     iconAction->setChecked(true);
+
     auto button = (QToolButton*) widgetForAction(iconAction);
     button->setObjectName("WINDOW_ICON");
     button->setAutoRaise(false);
-    connect(iconAction, &QAction::triggered, [=](){iconAction->setChecked(true);});
-
-
+    connect(iconAction, &QAction::triggered, [=](){ iconAction->setChecked(true); });
     
-    labelAction = addWidget(labelWidget);
+    addWidget(labelWidget);
 
     if(titleBar){
         addActions(titleBar->getToolActions());

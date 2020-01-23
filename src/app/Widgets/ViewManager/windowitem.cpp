@@ -23,28 +23,27 @@ WindowItem::WindowItem(ViewManagerWidget *manager, BaseWindow *window)
 WindowItem::~WindowItem()
 {
     //Unset all items.
-
 }
 
 void WindowItem::themeChanged()
 {
     auto theme = Theme::theme();
+
+    windowToolbar->setIconSize(theme->getIconSize());
     windowToolbar->setStyleSheet(theme->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR") +
-                                 //"#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background: rgba(0,0,0,0); }"
+    //"#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background: rgba(0,0,0,0); }"
                                  "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background:" + Theme::theme()->getDisabledBackgroundColorHex() + "; }"
                                  "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 
     closeAction->setIcon(theme->getIcon("Icons", "cross"));
 
-    windowToolbar->setIconSize(theme->getIconSize());
-
+    label->setStyleSheet(theme->getLabelStyleSheet());
 }
 
 void WindowItem::titleChanged(QString)
 {
     label->setText(window->windowTitle());
 }
-
 
 void WindowItem::dockWidgetAdded(BaseDockWidget *widget)
 {
@@ -84,11 +83,6 @@ void WindowItem::setupLayout()
     labelWidgetLayout->addWidget(label);
     labelWidgetLayout->addStretch();
 
-
-
-
-    windowToolbar->addWidget(labelWidget);
-
     dockContainer = new QWidget(this);
     QVBoxLayout* combineLayout = new QVBoxLayout();
     combineLayout->setContentsMargins(0,0,0,0);
@@ -97,17 +91,14 @@ void WindowItem::setupLayout()
     combineLayout->addLayout(toolContainerLayout);
     dockContainer->setLayout(combineLayout);
 
-
-
-    closeAction = 0;
     closeAction = new QAction(this);
+    closeAction->setEnabled(window != WindowManager::manager()->getCentralWindow());
     connect(closeAction, &QAction::triggered, window, &BaseWindow::tryClose);
 
-    closeAction->setEnabled(window != WindowManager::manager()->getCentralWindow());
+    windowToolbar->addWidget(labelWidget);
     windowToolbar->addAction(closeAction);
-
-    
     windowToolbar->setContentsMargins(0,0,0,0);
+
     layout->addWidget(windowToolbar);
     layout->addWidget(dockContainer);
     setLayout(layout);

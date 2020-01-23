@@ -311,3 +311,10 @@ CustomGroupBox *AppSettings::getSectionBox(QString category, QString section){
     return box;
 }
 
+void AppSettings::showEvent(QShowEvent *event)
+{
+    if (!theme_initialised_) {
+        //themeChanged();
+        theme_initialised_ = true;
+    }
+}

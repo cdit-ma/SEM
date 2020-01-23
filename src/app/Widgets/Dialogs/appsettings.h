@@ -54,7 +54,8 @@ private:
     QVBoxLayout *getCategoryLayout(QString category);
     CustomGroupBox* getSectionBox(QString category, QString section);
     
-    
+    void showEvent(QShowEvent* event);
+    bool theme_initialised_ = false;
 
     QTabWidget* tabWidget;
     QLabel* warningLabel;

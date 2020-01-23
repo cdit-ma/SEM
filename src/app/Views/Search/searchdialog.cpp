@@ -92,6 +92,7 @@ void SearchDialog::themeChanged()
     results_widget->setStyleSheet("background: rgba(0,0,0,0);");
     filters_widget->setStyleSheet("background: rgba(0,0,0,0);");
 
+    // TODO - Add a change in border colour when the widget layout has been re-aligned
     results_scroll->setStyleSheet(theme->getScrollAreaStyleSheet());
     results_scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 

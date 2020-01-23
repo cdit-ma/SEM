@@ -34,13 +34,16 @@ void FilterWidget::themeChanged()
     auto theme = Theme::theme();
     line_edit->setStyleSheet(theme->getLineEditStyleSheet()  + "QLineEdit{border-radius: " + theme->getSharpCornerRadius() + ";}");
 
-
     // TODO - Right now, the palette and stylesheet for the placeholder text only get set once; why???
+    // Maybe just set it to gray and then just leave it?
+    /*
     auto line_edit_palette = line_edit->palette();
-    line_edit_palette.setColor(QPalette::Inactive, QPalette::PlaceholderText, theme->getTextColor());
-    line_edit_palette.setColor(QPalette::Active, QPalette::PlaceholderText, theme->getTextColor());
+    line_edit_palette.setColor(QPalette::Window, Qt::transparent);
+    line_edit_palette.setColor(QPalette::Text, theme->getTextColor());
+    line_edit_palette.setColor(QPalette::Inactive, QPalette::PlaceholderText, theme->getAltTextColor());
+    line_edit_palette.setColor(QPalette::Active, QPalette::PlaceholderText, theme->getAltTextColor());
     line_edit->setPalette(line_edit_palette);
-    line_edit->update();
+     */
 }
 
 
@@ -59,7 +62,13 @@ void FilterWidget::setupLayout()
 
     line_edit->setFocusPolicy(Qt::StrongFocus);
     line_edit->setFocus();
-
+/*
+    auto line_edit_palette = line_edit->palette();
+    line_edit_palette.setColor(QPalette::Text, Qt::gray);
+    line_edit_palette.setColor(QPalette::Inactive, QPalette::PlaceholderText, Qt::gray);
+    line_edit_palette.setColor(QPalette::Active, QPalette::PlaceholderText, Qt::gray);
+    line_edit->setPalette(line_edit_palette);
+*/
     layout->addWidget(line_edit);
 }
 

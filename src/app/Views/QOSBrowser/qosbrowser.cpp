@@ -31,11 +31,12 @@ void QOSBrowser::themeChanged()
 
     mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
     toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
-
     horizontalSplitter->setStyleSheet(theme->getSplitterStyleSheet());
-    profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
-    elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
-    tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet() +
+
+    auto border_style = "QAbstractItemView { border: 1px solid " + theme->getAltBackgroundColorHex() + ";}";
+    profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet() + border_style);
+    elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet() + border_style);
+    tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet() + border_style +
                              "QAbstractItemView::item {"
                              "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                              "border-width: 0px 0px 1px 0px;"

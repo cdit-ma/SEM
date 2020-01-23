@@ -343,11 +343,6 @@ void TimelineChartView::themeChanged()
                                   "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
                                   "QToolButton:!hover{ background: rgba(0,0,0,0); }");
 
-    for (auto action : legendToolbar_->actions()) {
-        auto widget = legendToolbar_->widgetForAction(action);
-        widget->setMinimumSize(theme->getLargeIconSize());
-    }
-
     for (auto kind : MEDEA::Event::GetChartDataKinds()) {
         QIcon buttonIcon;
         switch (kind) {
@@ -376,9 +371,12 @@ void TimelineChartView::themeChanged()
         auto button = hoverDisplayButtons_.value(kind, nullptr);
         if (button) {
             button->setIcon(buttonIcon);
+            button->setStyleSheet("color:" + theme->getTextColorHex());
         }
         auto action = legendActions_.value(kind, nullptr);
         if (action) {
+            auto widget = legendToolbar_->widgetForAction(action);
+            widget->setMinimumSize(theme->getLargeIconSize());
             action->setIcon(theme->getIcon("ToggleIcons", MEDEA::Event::GetChartDataKindString(kind)));
         }
     }
@@ -1109,7 +1107,7 @@ void TimelineChartView::setupLayout()
 
         // construct hover display widgets
         QPushButton* button = new QPushButton(this);
-        button->setStyleSheet("QPushButton{ text-align: left; }");
+        button->setStyleSheet("QPushButton{ text-align: left; background: rgba(0,0,0,0); }");
         hoverLayout->addWidget(button);
         hoverDisplayButtons_[kind] = button;
     }

@@ -183,13 +183,14 @@ void NotificationDialog::themeChanged()
 {
     auto theme = Theme::theme();
     
-    setStyleSheet("NotificationDialog {background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
-                  "QScrollArea {border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
+    setStyleSheet("NotificationDialog{ background-color: " % theme->getBackgroundColorHex() + ";border:1px solid " % theme->getDisabledBackgroundColorHex() % ";}" +
+                  "QScrollArea{ border: 1px solid " % theme->getAltBackgroundColorHex() % "; background: rgba(0,0,0,0); } " +
                   theme->getScrollBarStyleSheet() +
                   "QLabel {color:" + theme->getTextColorHex() + ";} " +
                   theme->getToolBarStyleSheet() +
                   theme->getSplitterStyleSheet() +
-                  "QToolButton::checked:!hover{background: " % theme->getAltBackgroundColorHex() % ";}"
+                  "QToolButton::checked:!hover{ background: " % theme->getAltBackgroundColorHex() % ";}"
+                  "* QToolTip{ background: white; color:black; }"
                   );
 
     notifications_widget->setStyleSheet("background: rgba(0,0,0,0);");
@@ -199,7 +200,8 @@ void NotificationDialog::themeChanged()
     filters_scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
     filters_scroll->horizontalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 
-    notifications_scroll->setStyleSheet(theme->getScrollAreaStyleSheet());
+    // TODO - Add the change in border colour when the widget layout has been re-aligned
+    notifications_scroll->setStyleSheet(theme->getScrollAreaStyleSheet()); // + "QScrollArea{ border: 1px solid " + theme->getAltBackgroundColorHex() + ";}");
     notifications_scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
     notifications_scroll->horizontalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 
