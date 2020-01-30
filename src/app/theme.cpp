@@ -770,7 +770,7 @@ QString Theme::getMenuStyleSheet(int icon_size_int)
            "border: none;"
            "}"
            "QMenu::item:disabled {"
-           "color:" % getAltTextColorHex() % ";"
+           //"color:" % getAltTextColorHex() % ";"
            "color:" % getTextColorHex(ColorRole::DISABLED) % ";"
            "}"
            "QMenu::item:selected:!disabled {"
@@ -1404,7 +1404,7 @@ void Theme::resetTheme(ThemePreset themePreset){
             emit changeSetting(SETTINGS::THEME_TEXT_COLOR, white());
             emit changeSetting(SETTINGS::THEME_ICON_COLOR, white());
             emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
-            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(150,150,150));
             emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
             emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(255,165,70));
             emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, black());
@@ -1427,7 +1427,7 @@ void Theme::resetTheme(ThemePreset themePreset){
             emit changeSetting(SETTINGS::THEME_TEXT_COLOR, black());
             emit changeSetting(SETTINGS::THEME_ICON_COLOR, black());
             emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(108));
-            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(100,100,100));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
             emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
             emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(75,110,175));
             emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, white());
