@@ -1,33 +1,14 @@
 #include "appsettings.h"
-
-#include <QWidget>
-#include <QObject>
-#include <QSettings>
-#include <QString>
-#include <QDebug>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QGroupBox>
-#include <QScrollArea>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QDialog>
-#include <QMessageBox>
-#include <QStringBuilder>
-
-#include "../dataeditwidget.h"
-#include "../../theme.h"
-
-#include "../../Controllers/SettingsController/settingscontroller.h"
 #include "../../Controllers/SettingsController/setting.h"
 
-
-
+#include <QSettings>
+#include <QLineEdit>
+#include <QStringBuilder>
 #include <QApplication>
+#include <QScrollBar>
 
-#include <QTabWidget>
-
-AppSettings::AppSettings(QWidget *parent):QDialog(parent)
+AppSettings::AppSettings(QWidget* parent)
+        : QDialog(parent)
 {
     setMinimumSize(600, 400);
 
@@ -38,8 +19,9 @@ AppSettings::AppSettings(QWidget *parent):QDialog(parent)
 
     setupLayout();
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    ensurePolished();
     themeChanged();
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 
@@ -47,12 +29,7 @@ AppSettings::~AppSettings()
 {
 }
 
-QVariant AppSettings::getSetting(QString)
-{
-    return QVariant();
-}
-
-void AppSettings::settingChanged(SETTINGS key, QVariant data)
+void AppSettings::settingChanged(SETTINGS key, const QVariant& data)
 {
     DataEditWidget* widget = getDataWidget(key);
     if(widget){
@@ -68,9 +45,12 @@ void AppSettings::themeChanged()
     Theme* theme = Theme::theme();
 
     tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet() +
-                             theme->getScrollBarStyleSheet() +
                              "QTabBar::tab:selected{ background:" % theme->getPressedColorHex() % "; color:" % theme->getTextColorHex(ColorRole::SELECTED) % ";}"
                              "QTabBar::tab:hover{ background:" % theme->getHighlightColorHex() % ";}");
+
+    for (const auto& scroll : tabWidget->findChildren<QScrollArea*>()) {
+        scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+    }
 
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");
@@ -90,7 +70,7 @@ void AppSettings::themeChanged()
     updateLabels();
 }
 
-void AppSettings::dataValueChanged(QVariant data)
+void AppSettings::dataValueChanged(const QVariant& data)
 {
     //Get the sender
     auto widget = qobject_cast<DataEditWidget*>(sender());
@@ -167,16 +147,16 @@ void AppSettings::updateButtons()
     warningAction->setVisible(SettingsController::settings()->isWriteProtected());
 }
 
-DataEditWidget *AppSettings::getDataWidget(SETTINGS key)
+DataEditWidget* AppSettings::getDataWidget(SETTINGS key)
 {
-    return dataEditWidgets.value(key, 0);
+    return dataEditWidgets.value(key, nullptr);
 }
 
 QString AppSettings::settingKey(Setting* setting){
     return settingKey(setting->getCategory(), setting->getSection());
 }
 
-QString AppSettings::settingKey(QString category, QString section){
+QString AppSettings::settingKey(const QString& category, const QString& section){
     return  category + "_" + section;
 }   
 void AppSettings::updateLabels(){
@@ -187,7 +167,7 @@ void AppSettings::updateLabels(){
     for(auto setting : settings->getSettings()){
         auto setting_id = setting->getID();
 
-        auto edit_widget = dataEditWidgets.value(setting_id, 0);
+        auto edit_widget = dataEditWidgets.value(setting_id, nullptr);
         if(edit_widget){
             auto section_key = settingKey(setting);
             auto current_size = max_sizes[section_key];
@@ -209,7 +189,7 @@ void AppSettings::updateLabels(){
 
 void AppSettings::setupLayout()
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setSpacing(0);
     layout->setMargin(5);
 
@@ -219,7 +199,6 @@ void AppSettings::setupLayout()
 
     warningLabel = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
     layout->addWidget(tabWidget, 1);
-
 
     toolbar = new QToolBar(this);
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
@@ -231,8 +210,6 @@ void AppSettings::setupLayout()
 
     connect(applySettingsAction, &QAction::triggered, this, &AppSettings::applySettings);
     connect(clearSettingsAction, &QAction::triggered, this, &AppSettings::clearSettings);
-
-
 
     setupSettingsLayouts();
     updateButtons();
@@ -270,26 +247,26 @@ void AppSettings::setupSettingsLayouts()
     }
 }
 
-QVBoxLayout *AppSettings::getCategoryLayout(QString category)
+QVBoxLayout* AppSettings::getCategoryLayout(const QString& category)
 {
-    QVBoxLayout* layout = 0;
+    QVBoxLayout* layout = nullptr;
 
     if(categoryLayouts.contains(category)){
         layout = categoryLayouts[category];
     }else{
+        QWidget* widget = new QWidget();
+        widget->setStyleSheet("background: transparent;");
+
+        layout = new QVBoxLayout(widget);
+        layout->setSpacing(0);
+        layout->setContentsMargins(10,10,10,10);
+
         QScrollArea* area = new QScrollArea(tabWidget);
         area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-
-        QWidget* widget = new QWidget(area);
-        widget->setStyleSheet("background: transparent;");
         area->setWidgetResizable(true);
         area->setWidget(widget);
 
-        layout = new QVBoxLayout();
-        layout->setSpacing(0);
-        layout->setContentsMargins(10,10,10,10);
-        widget->setLayout(layout);
         tabWidget->addTab(area, category);
         categoryLayouts[category] = layout;
     }
@@ -297,10 +274,10 @@ QVBoxLayout *AppSettings::getCategoryLayout(QString category)
 }
 
 
-CustomGroupBox *AppSettings::getSectionBox(QString category, QString section){
+CustomGroupBox* AppSettings::getSectionBox(const QString& category, const QString& section){
 
     auto key = settingKey(category, section);
-    CustomGroupBox* box = sectionBoxes.value(key, 0);
+    CustomGroupBox* box = sectionBoxes.value(key, nullptr);
     if(!box){
         auto category_layout = getCategoryLayout(category);
         box = new CustomGroupBox(section, category_layout->parentWidget());
@@ -309,12 +286,4 @@ CustomGroupBox *AppSettings::getSectionBox(QString category, QString section){
         sectionBoxes[key] = box;
     }
     return box;
-}
-
-void AppSettings::showEvent(QShowEvent *event)
-{
-    if (!theme_initialised_) {
-        //themeChanged();
-        theme_initialised_ = true;
-    }
 }
