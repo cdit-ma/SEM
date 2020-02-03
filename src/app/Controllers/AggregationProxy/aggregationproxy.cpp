@@ -546,11 +546,8 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
             agg_request.add_node_hostnames(name.toStdString());
         }
 
-        //auto exp_run = GetExperimentState(request.experiment_run_id());
-        auto results = DummyResponseBuilder::getMultiEventsResponse();
-
-        //for (const auto& node_network_event : results->node_network_events()) {
-        for (const auto& node_network_event : results.node_network_events()) {
+        const auto& results = requester_->GetNetworkUtilisation(agg_request);
+        for (const auto& node_network_event : results->node_network_events()) {
             const auto& hostname = ConstructQString(node_network_event.node_info().hostname());
             for (const auto& interface_network_event : node_network_event.events()) {
                 const auto& interface_mac_addr = ConstructQString(interface_network_event. interface_mac_addr());

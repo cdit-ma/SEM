@@ -76,6 +76,9 @@ void RequestBuilder::setExperimentRunID(const quint32 experiment_run_id)
     if (portEventRequest_) {
         portEventRequest_->setExperimentRunID(experiment_run_id);
     }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setExperimentRunID(experiment_run_id);
+    }
 }
 
 
@@ -102,6 +105,9 @@ void RequestBuilder::setTimeInterval(const QVector<qint64> &time_interval)
     }
     if (portEventRequest_) {
         portEventRequest_->setTimeInterval(time_interval);
+    }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setTimeInterval(time_interval);
     }
 }
 
@@ -241,6 +247,9 @@ void RequestBuilder::setNodeIDs(const QVector<QString> &node_ids)
     if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setNodeIDs(node_ids);
     }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setNodeIDs(node_ids);
+    }
 }
 
 
@@ -255,6 +264,9 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
     }
     if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setNodeHostnames(node_hostnames);
+    }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setNodeHostnames(node_hostnames);
     }
 }
 
