@@ -63,7 +63,8 @@ private:
     BaseDockWidget* dockwidget_Qos = 0;
     BaseDockWidget* dockwidget_Notification = 0;
 
-    BaseDockWidget* dockwidget_Charts = 0;
+    BaseDockWidget* dockWidget_Trigger = nullptr;
+    BaseDockWidget* dockwidget_Charts = nullptr;
     BaseDockWidget* dockwidget_Dataflow = nullptr;
 
     //Right hand tools
