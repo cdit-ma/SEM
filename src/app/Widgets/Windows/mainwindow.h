@@ -14,7 +14,7 @@ class MainWindow : public BaseWindow
 {
     friend class WindowManager;
     Q_OBJECT
-    
+
 protected:
     explicit MainWindow(ViewController* vc, QWidget *parent = nullptr);
 
@@ -22,14 +22,14 @@ protected:
 
 public:
     QMenu* createPopupMenu() override;
-    
+
 signals:
     void welcomeScreenToggled(bool);
-    
+
 private slots:
     void themeChanged();
     void resetToolDockWidgets();
-    
+
 private:
     void settingChanged(SETTINGS key, const QVariant& value);
     void ShowWorkerAspect(bool show);
@@ -38,7 +38,7 @@ private:
 
     void setDockWidgetIcon(BaseDockWidget* dockwidget, const QString& icon_path, const QString& icon_alias, Theme* theme = nullptr);
     void setupDockIcons();
-    
+
     void swapCentralWidget(QWidget* widget);
     void setViewController(ViewController* view_controller);
     void initializeApplication();
@@ -68,6 +68,7 @@ private:
     BaseDockWidget* dockwidget_Qos = nullptr;
     BaseDockWidget* dockwidget_Notification = nullptr;
 
+    BaseDockWidget* dockWidget_Trigger = nullptr;
     BaseDockWidget* dockwidget_Charts = nullptr;
     BaseDockWidget* dockwidget_Dataflow = nullptr;
 

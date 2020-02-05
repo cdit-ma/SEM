@@ -88,6 +88,10 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemmodel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggertablemodel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggerbrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.cpp
@@ -244,6 +248,10 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemdelegate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemmodel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggertablemodel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggerbrowser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.h
@@ -362,7 +370,7 @@ if(APPLE)
     # Bundle the MEDEA icon (icns) for mac
     set(MAC_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Resources/medea.icns)
     set_source_files_properties(${MAC_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-    
+
     # Copy Resources into .app file
     set(COPY_DEST "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app/Contents/MacOS/")
 
