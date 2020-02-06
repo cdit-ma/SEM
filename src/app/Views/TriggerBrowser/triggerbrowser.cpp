@@ -42,6 +42,7 @@ void TriggerBrowser::currentTriggerChanged(const QModelIndex& current, const QMo
         const auto& table_model = trigger_item_model_->getTableModel(current);
         if (table_model != nullptr) {
             trigger_fields_view_->setModel(table_model);
+            setWaitPeriodRowVisible(table_model);
         }
     }
 }
@@ -56,6 +57,20 @@ void TriggerBrowser::triggerListDataChanged(const QModelIndex& topLeft, const QM
         auto item = trigger_item_model_->itemFromIndex(topLeft);
         if (item->text().isEmpty()) {
             item->setText(trigger_item_text_);
+        }
+    }
+}
+
+
+void TriggerBrowser::triggerTableDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles)
+{
+    if (!topLeft.isValid()) {
+        return;
+    }
+    if (topLeft == bottomRight) {
+        const auto& table_model = qobject_cast<TriggerTableModel*>(trigger_fields_view_->model());
+        if (table_model != nullptr) {
+            setWaitPeriodRowVisible(table_model);
         }
     }
 }
@@ -79,6 +94,8 @@ void TriggerBrowser::addTrigger()
     auto table_model = trigger_item_model_->getTableModel(item_index);
     if (table_model) {
         trigger_fields_view_->setModel(table_model);
+        trigger_fields_view_->setRowHidden(table_model->rowCount(QModelIndex()) - 1, true);
+        connect(table_model, &QAbstractTableModel::dataChanged, this, &TriggerBrowser::triggerTableDataChanged);
     }
 
     if (!remove_trigger_action_->isEnabled()) {
@@ -100,6 +117,14 @@ void TriggerBrowser::removeTrigger()
 }
 
 
+void TriggerBrowser::setWaitPeriodRowVisible(TriggerTableModel* table_model)
+{
+    if (trigger_fields_view_->model() == table_model) {
+        trigger_fields_view_->setRowHidden(table_model->rowCount(QModelIndex()) - 1, !table_model->reTriggerActive());
+    }
+}
+
+
 void TriggerBrowser::setupLayout()
 {
     trigger_item_model_ = new TriggerItemModel(this);
@@ -111,10 +136,8 @@ void TriggerBrowser::setupLayout()
 
     trigger_fields_view_ = new QTableView(this);
     trigger_fields_view_->horizontalHeader()->setVisible(false);
-    //trigger_fields_view_->setItemDelegate(new TriggerItemDelegate(this));
-
-    auto item = new QStandardItem("First");
-    //trigger_fields_view_.set
+    trigger_fields_view_->setItemDelegate(new TriggerItemDelegate(this));
+    trigger_fields_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     toolbar_ = new QToolBar(this);
     toolbar_->setContentsMargins(0,0,0,4);
