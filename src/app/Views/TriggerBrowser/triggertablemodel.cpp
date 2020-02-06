@@ -13,9 +13,15 @@ TriggerTableModel::TriggerTableModel(QObject* parent)
     : QAbstractTableModel(parent)
 {
     for (const auto& key : getTableKeys()) {
-        auto row = static_cast<int>(key);
-        setData(index(row, 0), QVariant::fromValue(key), TableRole::KeyRole);
+        setData(index(getTableKeyRow(key), 0), QVariant::fromValue(key), TableRole::KeyRole);
     }
+
+    // Set the initial display data per key
+    setData(index(getTableKeyRow(TableKey::Type), 0), getTriggerTypes().first(), Qt::DisplayRole);
+    setData(index(getTableKeyRow(TableKey::Condition), 0), getTriggerConditions().first(), Qt::DisplayRole);
+    setData(index(getTableKeyRow(TableKey::Value), 0), 0.0, Qt::DisplayRole);
+    setData(index(getTableKeyRow(TableKey::ReTrigger), 0), "false", Qt::DisplayRole);
+    setData(index(getTableKeyRow(TableKey::WaitPeriod), 0), 0, Qt::DisplayRole);
 }
 
 
@@ -23,9 +29,12 @@ bool TriggerTableModel::reTriggerActive() const
 {
     auto row = static_cast<int>(TableKey::ReTrigger);
     auto re_trigger_data = data(index(row, 0), Qt::DisplayRole);
-    if (re_trigger_data.canConvert<bool>()) {
-        return re_trigger_data.toBool();
+    if (re_trigger_data.toString() == "true") {
+        return true;
     }
+    /*if (re_trigger_data.canConvert<bool>()) {
+        return re_trigger_data.toBool();
+    }*/
     return false;
 }
 
@@ -90,9 +99,12 @@ QVariant TriggerTableModel::headerData(int section, Qt::Orientation orientation,
 QVariant TriggerTableModel::data(const QModelIndex& index, int role) const
 {
     if (index.isValid()) {
-        //return QAbstractTableModel::data(index, role);
-        if (role == Qt::DisplayRole) {
-            return data_map_.value(index, QVariant());
+        if (role == Qt::DisplayRole || role == TableRole::KeyRole) {
+            for (const auto& val_pair : data_map_.values(index)) {
+                if (val_pair.first == role) {
+                    return val_pair.second;
+                }
+            }
         }
     }
     return QVariant();
@@ -109,9 +121,8 @@ QVariant TriggerTableModel::data(const QModelIndex& index, int role) const
 bool TriggerTableModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
     if (index.isValid()) {
-        if (role == Qt::DisplayRole || role == Qt::EditRole) {
-            data_map_.insert(index, value);
-            //QAbstractTableModel::setData(index, value, role);
+        if (role == Qt::DisplayRole || role == TableRole::KeyRole) {
+            data_map_.insertMulti(index, {role, value});
             emit dataChanged(index, index, QVector<int>{role});
             return true;
         }
@@ -143,16 +154,13 @@ Qt::ItemFlags TriggerTableModel::flags(const QModelIndex& index) const
  */
 bool TriggerTableModel::insertRows(int row, int count, const QModelIndex& parent)
 {
-    if (row < 0 || row > (row_count_ - 1)) {
+    if (row < 0 || row > (rowCount(parent) - 1)) {
         return false;
     }
-
     // begin/endInsertRows functions are required before and after removing the rows from the model
     beginInsertRows(parent, row, row + count - 1);
     QAbstractTableModel::insertRows(row, count, parent);
     endInsertRows();
-
-    row_count_ += count;
     return true;
 }
 
@@ -166,15 +174,18 @@ bool TriggerTableModel::insertRows(int row, int count, const QModelIndex& parent
  */
 bool TriggerTableModel::removeRows(int row, int count, const QModelIndex& parent)
 {
-    if (row < 0 || row > (row_count_ - 1)) {
+    if (row < 0 || row > (rowCount(parent) - 1)) {
         return false;
     }
-
     // begin/endRemoveRows functions are required before and after removing the rows from the model
     beginRemoveRows(parent, row, row + count - 1);
     QAbstractTableModel::removeRows(row, count, parent);
     endRemoveRows();
-
-    row_count_ -= count;
     return true;
+}
+
+
+int TriggerTableModel::getTableKeyRow(TableKey key) const
+{
+    return static_cast<int>(key);
 }

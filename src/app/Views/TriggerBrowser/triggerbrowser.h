@@ -25,11 +25,14 @@ private slots:
 
     void currentTriggerChanged(const QModelIndex& current, const QModelIndex& previous);
     void triggerListDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
+    void triggerTableDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
 
     void addTrigger();
     void removeTrigger();
 
 private:
+    void setWaitPeriodRowVisible(TriggerTableModel* table_model);
+
     void setupLayout();
 
     TriggerItemModel* trigger_item_model_ = nullptr;

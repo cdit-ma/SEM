@@ -13,6 +13,8 @@ class TriggerTableModel : public QAbstractTableModel
 Q_OBJECT
 
 public:
+    explicit TriggerTableModel(QObject* parent = nullptr);
+
     enum TableRole {
         KeyRole = Qt::UserRole + 1
     };
@@ -25,14 +27,22 @@ public:
         WaitPeriod
     };
 
-    explicit TriggerTableModel(QObject* parent = nullptr);
+    static const QStringList& getTriggerTypes() {
+        static QStringList trigger_types({"CPU_util", "Mem_util", "temperature"});
+        return trigger_types;
+    }
+
+    static const QStringList& getTriggerConditions() {
+        static QStringList trigger_conditions({"<", "==", ">", "<=", ">=", "!="});
+        return trigger_conditions;
+    }
 
     bool reTriggerActive() const;
 
-protected:
     int rowCount(const QModelIndex& parent) const override;
     int columnCount(const QModelIndex& parent) const override;
 
+protected:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
     QVariant data(const QModelIndex& index, int role) const override;
@@ -44,8 +54,8 @@ protected:
     bool removeRows(int row, int count, const QModelIndex& parent) override;
 
 private:
-    const QSet<TableKey>& getTableKeys() const {
-        static QSet<TableKey> trigger_table_keys ({
+    static const QSet<TableKey>& getTableKeys() {
+        static QSet<TableKey> trigger_table_keys({
             TableKey::Type,
             TableKey::Condition,
             TableKey::Value,
@@ -55,7 +65,7 @@ private:
         return trigger_table_keys;
     };
 
-    const QString& getTableKeyString(TableKey key) const {
+    static const QString& getTableKeyString(TableKey key) {
         switch (key) {
             case TableKey::Type: {
                 static QString tablekey_type_str = "type";
@@ -77,16 +87,12 @@ private:
                 static QString tablekey_wait_period_str = "wait period (ms)";
                 return tablekey_wait_period_str;
             }
-            /*default: {
-                static QString why = "Why?";
-                return why;
-            }*/
         }
     };
 
-    int row_count_ = 4;
-    QMap<QModelIndex, QVariant> data_map_;
+    int getTableKeyRow(TableKey key) const;
 
+    QMap<QModelIndex, QPair<int, QVariant>> data_map_;
 };
 
 inline uint qHash(TriggerTableModel::TableKey key, uint seed)
