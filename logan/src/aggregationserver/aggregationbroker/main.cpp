@@ -11,6 +11,8 @@
 
 Execution execution;
 
+using namespace re::logging::aggregation::broker;
+
 void signal_handler(int signal_value)
 {
     execution.Interrupt();
@@ -59,7 +61,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    AggServer::AggregationBroker aggbroker(replier_endpoint, database_ip, password);
+    AggregationBroker aggbroker(replier_endpoint, database_ip, password);
     execution.Start();
 
     return 0;

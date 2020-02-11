@@ -2,10 +2,13 @@
 
 #include <google/protobuf/util/time_util.h>
 
+#include "../prototimerange.hpp"
 #include <memory>
 #include <utility>
 
 using google::protobuf::util::TimeUtil;
+
+namespace re::logging::aggregation::broker {
 
 namespace detail {
 std::string StringToPSQLTimestamp(const std::string& str)
@@ -54,8 +57,9 @@ public:
 };
 } // namespace detail
 using namespace detail;
+using namespace AggServer;
 
-AggServer::AggregationReplier::AggregationReplier(std::shared_ptr<DatabaseClient> database) :
+AggregationReplier::AggregationReplier(std::shared_ptr<DatabaseClient> database) :
     database_(std::move(database))
 {
     RegisterCallbacks();
@@ -75,7 +79,7 @@ AggServer::AggregationReplier::AggregationReplier(std::shared_ptr<DatabaseClient
     */
 
     /*
-    AggServer::MarkerRequest request;
+    MarkerRequest request;
     request.set_experiment_run_id(25);
     std::cout << "About to process request..." << std::endl;
     const auto& response = ProcessMarkerRequest(request);
@@ -84,7 +88,7 @@ AggServer::AggregationReplier::AggregationReplier(std::shared_ptr<DatabaseClient
     */
 }
 
-void AggServer::AggregationReplier::RegisterCallbacks()
+void AggregationReplier::RegisterCallbacks()
 {
     RegisterProtoCallback<ExperimentRunRequest, ExperimentRunResponse>(
         "GetExperimentRuns",
@@ -110,11 +114,13 @@ void AggServer::AggregationReplier::RegisterCallbacks()
     RegisterProtoCallback<MemoryUtilisationRequest, MemoryUtilisationResponse>(
         "GetMemoryUtilisation", std::bind(&AggregationReplier::ProcessMemoryUtilisationRequest,
                                           this, std::placeholders::_1));
+    RegisterProtoCallback<NetworkUtilisationRequest, NetworkUtilisationResponse>(
+        "GetNetworkUtilisation", std::bind(&AggregationReplier::ProcessNetworkUtilisationRequest,
+                                           this, std::placeholders::_1));
 }
 
-std::unique_ptr<AggServer::ExperimentRunResponse>
-AggServer::AggregationReplier::ProcessExperimentRunRequest(
-    const AggServer::ExperimentRunRequest& message)
+std::unique_ptr<ExperimentRunResponse>
+AggregationReplier::ProcessExperimentRunRequest(const ExperimentRunRequest& message)
 {
     // REVIEW(Mitch): Investigate new cpp feature "auto".
     std::unique_ptr<ExperimentRunResponse> response(new ExperimentRunResponse());
@@ -188,9 +194,8 @@ AggServer::AggregationReplier::ProcessExperimentRunRequest(
     return response;
 }
 
-std::unique_ptr<AggServer::ExperimentStateResponse>
-AggServer::AggregationReplier::ProcessExperimentStateRequest(
-    const AggServer::ExperimentStateRequest& message)
+std::unique_ptr<ExperimentStateResponse>
+AggregationReplier::ProcessExperimentStateRequest(const ExperimentStateRequest& message)
 {
     std::unique_ptr<ExperimentStateResponse> response(new ExperimentStateResponse());
 
@@ -268,11 +273,10 @@ AggServer::AggregationReplier::ProcessExperimentStateRequest(
     return response;
 }
 
-std::unique_ptr<AggServer::PortLifecycleResponse>
-AggServer::AggregationReplier::ProcessPortLifecycleRequest(
-    const AggServer::PortLifecycleRequest& message)
+std::unique_ptr<PortLifecycleResponse>
+AggregationReplier::ProcessPortLifecycleRequest(const PortLifecycleRequest& message)
 {
-    auto response = std::make_unique<AggServer::PortLifecycleResponse>();
+    auto response = std::make_unique<PortLifecycleResponse>();
 
     std::string start, end;
 
@@ -301,9 +305,10 @@ AggServer::AggregationReplier::ProcessPortLifecycleRequest(
                                 .finish();
 
     try {
-        const pqxx::result res = database_->GetPortLifecycleEventInfo(
-            message.experiment_run_id(), start, end, conditions.getColumns(), conditions.getValues()
-        );
+        const pqxx::result res = database_->GetPortLifecycleEventInfo(message.experiment_run_id(),
+                                                                      start, end,
+                                                                      conditions.getColumns(),
+                                                                      conditions.getValues());
 
         for(const auto& row : res) {
             auto event = response->add_events();
@@ -311,9 +316,8 @@ AggServer::AggregationReplier::ProcessPortLifecycleRequest(
             // Build Event
             // REVIEW(Mitchell): Break both this and Build Port block into funcs
             auto&& type_str = row["Type"].as<std::string>();
-            AggServer::LifecycleType lifecycle_type;
-            bool did_parse_lifecycle_type = AggServer::LifecycleType_Parse(type_str,
-                                                                           &lifecycle_type);
+            LifecycleType lifecycle_type;
+            bool did_parse_lifecycle_type = LifecycleType_Parse(type_str, &lifecycle_type);
             if(!did_parse_lifecycle_type) {
                 throw std::runtime_error("Failed to parse LifecycleType field from string: "
                                          + type_str);
@@ -331,8 +335,7 @@ AggServer::AggregationReplier::ProcessPortLifecycleRequest(
             port->set_name(row["PortName"].as<std::string>());
             port->set_path(row["PortPath"].as<std::string>());
             Port::Kind kind;
-            bool did_parse_lifecycle =
-                AggServer::Port::Kind_Parse(row["PortKind"].as<std::string>(), &kind);
+            bool did_parse_lifecycle = Port::Kind_Parse(row["PortKind"].as<std::string>(), &kind);
             if(!did_parse_lifecycle) {
                 throw std::runtime_error("Failed to parse Port's Kind field from string: "
                                          + row["PortKind"].as<std::string>());
@@ -351,10 +354,10 @@ AggServer::AggregationReplier::ProcessPortLifecycleRequest(
     return response;
 }
 
-std::unique_ptr<AggServer::PortEventResponse>
-AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEventRequest& message)
+std::unique_ptr<PortEventResponse>
+AggregationReplier::ProcessPortEventRequest(const PortEventRequest& message)
 {
-    auto response = std::make_unique<AggServer::PortEventResponse>();
+    auto response = std::make_unique<PortEventResponse>();
 
     std::string start, end;
 
@@ -395,9 +398,8 @@ AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEven
 
             // Build Event
             auto&& db_type_str = row["Type"].as<std::string>();
-            AggServer::PortEvent::PortEventType event_type;
-            bool did_parse_type = AggServer::PortEvent_PortEventType_Parse(db_type_str,
-                                                                           &event_type);
+            PortEvent::PortEventType event_type;
+            bool did_parse_type = PortEvent_PortEventType_Parse(db_type_str, &event_type);
             if(!did_parse_type) {
                 throw std::runtime_error("Failed to parse PortEventType from string: "
                                          + db_type_str);
@@ -417,8 +419,7 @@ AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEven
             port->set_name(row["PortName"].as<std::string>());
             port->set_path(row["PortPath"].as<std::string>());
             Port::Kind kind;
-            bool did_parse_port_kind =
-                AggServer::Port::Kind_Parse(row["PortKind"].as<std::string>(), &kind);
+            bool did_parse_port_kind = Port::Kind_Parse(row["PortKind"].as<std::string>(), &kind);
             if(!did_parse_port_kind) {
                 throw std::runtime_error("Failed to parse Port's Kind field from string: "
                                          + row["PortKind"].as<std::string>());
@@ -436,10 +437,10 @@ AggServer::AggregationReplier::ProcessPortEventRequest(const AggServer::PortEven
     return response;
 }
 
-std::unique_ptr<AggServer::WorkloadResponse>
-AggServer::AggregationReplier::ProcessWorkloadEventRequest(const AggServer::WorkloadRequest& message)
+std::unique_ptr<WorkloadResponse>
+AggregationReplier::ProcessWorkloadEventRequest(const WorkloadRequest& message)
 {
-    auto response = std::make_unique<AggServer::WorkloadResponse>();
+    auto response = std::make_unique<WorkloadResponse>();
 
     std::string start, end;
 
@@ -491,7 +492,7 @@ AggServer::AggregationReplier::ProcessWorkloadEventRequest(const AggServer::Work
                 }
             }
             event->set_type(type);
-            // event->set_type((AggServer::WorkloadEvent::WorkloadEventType)type_int);
+            // event->set_type((WorkloadEvent::WorkloadEventType)type_int);
             auto&& timestamp_str = row["SampleTime"].as<std::string>();
             bool did_parse = TimeUtil::FromString(timestamp_str, event->mutable_time());
             if(!did_parse) {
@@ -517,10 +518,10 @@ AggServer::AggregationReplier::ProcessWorkloadEventRequest(const AggServer::Work
     return response;
 }
 
-std::unique_ptr<AggServer::MarkerResponse>
-AggServer::AggregationReplier::ProcessMarkerRequest(const AggServer::MarkerRequest& message)
+std::unique_ptr<MarkerResponse>
+AggregationReplier::ProcessMarkerRequest(const MarkerRequest& message)
 {
-    auto response = std::make_unique<AggServer::MarkerResponse>();
+    auto response = std::make_unique<MarkerResponse>();
 
     std::string start, end;
 
@@ -557,13 +558,13 @@ AggServer::AggregationReplier::ProcessMarkerRequest(const AggServer::MarkerReque
                                                           conditions.getColumns(),
                                                           conditions.getValues());
 
-        std::unordered_map<std::string, AggServer::MarkerNameSet*> name_set_map;
-        std::unordered_map<std::string, AggServer::MarkerIDSet*> id_set_map;
+        std::unordered_map<std::string, MarkerNameSet*> name_set_map;
+        std::unordered_map<std::string, MarkerIDSet*> id_set_map;
 
         for(const auto& row : res) {
             // Get label and create new name_set if one doesn't already exist
             const std::string& label = row["Label"].as<std::string>();
-            AggServer::MarkerNameSet* name_set = nullptr;
+            MarkerNameSet* name_set = nullptr;
             try {
                 name_set = name_set_map.at(label);
             } catch(const std::out_of_range& oor_exception) {
@@ -575,7 +576,7 @@ AggServer::AggregationReplier::ProcessMarkerRequest(const AggServer::MarkerReque
             // Get id and create new id_set if one doesn't already exist for the given name+id combo
             int id = row["WorkloadID"].as<int>();
             std::string id_str = label + '_' + std::to_string(id);
-            AggServer::MarkerIDSet* id_set = nullptr;
+            MarkerIDSet* id_set = nullptr;
             try {
                 id_set = id_set_map.at(id_str);
             } catch(const std::out_of_range& oor_exception) {
@@ -585,7 +586,7 @@ AggServer::AggregationReplier::ProcessMarkerRequest(const AggServer::MarkerReque
             }
 
             // Build MarkerEvent
-            AggServer::MarkerEvent* event = id_set->add_events();
+            MarkerEvent* event = id_set->add_events();
             auto&& timestamp_str = row["SampleTime"].as<std::string>();
             bool did_parse = TimeUtil::FromString(timestamp_str, event->mutable_timestamp());
             if(!did_parse) {
@@ -616,9 +617,8 @@ AggServer::AggregationReplier::ProcessMarkerRequest(const AggServer::MarkerReque
     return response;
 }
 
-std::unique_ptr<AggServer::CPUUtilisationResponse>
-AggServer::AggregationReplier::ProcessCPUUtilisationRequest(
-    const AggServer::CPUUtilisationRequest& message)
+std::unique_ptr<CPUUtilisationResponse>
+AggregationReplier::ProcessCPUUtilisationRequest(const CPUUtilisationRequest& message)
 {
     std::unique_ptr<CPUUtilisationResponse> response(new CPUUtilisationResponse());
 
@@ -653,7 +653,7 @@ AggServer::AggregationReplier::ProcessCPUUtilisationRequest(
     try {
         // NOTE: assumes that the database provides results sorted by hostname!!
         std::string current_hostname;
-        AggServer::CPUUtilisationNode* current_node = nullptr;
+        CPUUtilisationNode* current_node = nullptr;
         const pqxx::result res = database_->GetCPUUtilInfo(message.experiment_run_id(), start, end,
                                                            condition_cols, condition_vals);
 
@@ -686,9 +686,8 @@ AggServer::AggregationReplier::ProcessCPUUtilisationRequest(
     return response;
 }
 
-std::unique_ptr<AggServer::MemoryUtilisationResponse>
-AggServer::AggregationReplier::ProcessMemoryUtilisationRequest(
-    const AggServer::MemoryUtilisationRequest& message)
+std::unique_ptr<MemoryUtilisationResponse>
+AggregationReplier::ProcessMemoryUtilisationRequest(const MemoryUtilisationRequest& message)
 {
     std::unique_ptr<MemoryUtilisationResponse> response(new MemoryUtilisationResponse());
 
@@ -723,7 +722,7 @@ AggServer::AggregationReplier::ProcessMemoryUtilisationRequest(
     try {
         // NOTE: assumes that the database provides results sorted by hostname!!
         std::string current_hostname;
-        AggServer::MemoryUtilisationNode* current_node = nullptr;
+        MemoryUtilisationNode* current_node = nullptr;
         const pqxx::result res = database_->GetMemUtilInfo(message.experiment_run_id(), start, end,
                                                            condition_cols, condition_vals);
 
@@ -748,7 +747,7 @@ AggServer::AggregationReplier::ProcessMemoryUtilisationRequest(
             event->set_memory_utilisation(row["PhysMemUtilisation"].as<double>());
         }
     } catch(const std::exception& ex) {
-        std::cerr << "An exception occurred while querying CPUUtilisationEvents:" << ex.what()
+        std::cerr << "An exception occurred while querying MemoryUtilisationEvents:" << ex.what()
                   << std::endl;
         throw;
     }
@@ -756,20 +755,124 @@ AggServer::AggregationReplier::ProcessMemoryUtilisationRequest(
     return response;
 }
 
-void AggServer::AggregationReplier::FillNodeState(AggServer::Node& node,
-                                                  const pqxx::row& node_values,
-                                                  int experiment_run_id)
+std::unique_ptr<NetworkUtilisationResponse>
+AggregationReplier::ProcessNetworkUtilisationRequest(const NetworkUtilisationRequest& message)
+{
+    std::unique_ptr<NetworkUtilisationResponse> response(new NetworkUtilisationResponse());
+
+    auto time_interval = re::types::proto::FromProto(message.time_interval());
+
+    std::cout << "Network request for experiment ID : " << message.experiment_run_id() << std::endl;
+
+    /*auto time_interval = re::types::UnboundedTimeRange<google::protobuf::Timestamp>(
+        message.time_interval()[0], message.time_interval()[1]);*/
+
+    // std::string start = re::types::TimepointToString(time_interval.Start().value_or(0));
+    /*std::string start, end;
+
+    // Start time defaults to 0 if not specified
+    if(message.time_interval_size() >= 1) {
+        start = TimeUtil::ToString(message.time_interval()[0]);
+    } else {
+        start = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
+    }
+
+    // End time defaults to 0 if not specified
+    if(message.time_interval_size() >= 2) {
+        end = TimeUtil::ToString(message.time_interval()[1]);
+    } else {
+        end = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
+    }*/
+
+    // Get filter conditions
+    std::vector<std::string> condition_cols;
+    std::vector<std::string> condition_vals;
+    for(const auto& id : message.node_ids()) {
+        condition_cols.emplace_back("Node.GraphmlID");
+        condition_vals.emplace_back(id);
+    }
+    for(const auto& hostname : message.node_hostnames()) {
+        condition_cols.emplace_back("Node.HostName");
+        condition_vals.emplace_back(hostname);
+    }
+
+    try {
+        // NOTE: assumes that the database provides results sorted by hostname!!
+        std::string current_hostname, current_interface_mac;
+        NodeNetworkEvents* current_node_event_group = nullptr;
+        InterfaceNetworkEvents* current_interface_event_group = nullptr;
+
+        const pqxx::result res = database_->GetNetworkUtilInfo(message.experiment_run_id(),
+                                                               time_interval, condition_cols,
+                                                               condition_vals);
+
+        for(const auto& row : res) {
+            // Check if we need to create a new Node grouping due to encountering a new hostname
+            auto&& hostname = row["NodeHostname"].as<std::string>();
+            if(current_hostname != hostname) {
+                current_hostname = hostname;
+                current_node_event_group = response->add_node_network_events();
+                current_node_event_group->mutable_node_info()->set_hostname(hostname);
+                current_node_event_group->mutable_node_info()->set_ip(
+                    row["NodeIP"].as<std::string>());
+                /*FillNodeState(*current_node_event_group->mutable_node_info(), row,
+                              message.experiment_run_id());*/
+            }
+
+            // Check if we need to create a new Interface grouping due to encountering a new MAC
+            auto&& interface_mac = row["MAC"].as<std::string>();
+            if(current_interface_mac != interface_mac) {
+                current_interface_mac = interface_mac;
+                current_interface_event_group = current_node_event_group->add_events();
+                /*FillNodeState(*current_node_event_group->mutable_node_info(), row,
+                              message.experiment_run_id());*/
+                current_interface_event_group->set_interface_mac_addr(interface_mac);
+            }
+            auto interface_event = current_interface_event_group->add_events();
+
+            // Build Event
+            auto&& timestamp_str = row["SampleTime"].as<std::string>();
+            bool did_parse = TimeUtil::FromString(timestamp_str, interface_event->mutable_time());
+            if(!did_parse) {
+                throw std::runtime_error("Failed to parse SampleTime field from string: "
+                                         + timestamp_str);
+            }
+            interface_event->set_bytes_sent(row["BytesSent"].as<uint64_t>());
+            interface_event->set_bytes_received(row["BytesReceived"].as<uint64_t>());
+        }
+    } catch(const std::exception& ex) {
+        std::cerr << "An exception occurred while querying NetworkUtilisationEvents:" << ex.what()
+                  << std::endl;
+        throw;
+    }
+
+    return response;
+}
+
+void AggregationReplier::FillNodeState(Node& node,
+                                       const pqxx::row& node_values,
+                                       int experiment_run_id)
 {
     auto node_id = node_values.at("NodeID").as<std::string>();
     node.set_hostname(node_values.at("Hostname").as<std::string>());
     node.set_ip(node_values.at("IP").as<std::string>());
 
     try {
-        const auto& results = database_->GetValues("Container", {"ContainerID", "Name", "Type"},
+        const auto& container_results = database_->GetValues("Container", {"ContainerID", "Name", "Type"},
                                                    "NodeID = " + node_id);
-        for(const auto& row : results) {
+        for(const auto& row : container_results) {
             FillContainerState(*node.add_containers(), row, experiment_run_id);
         }
+
+        const auto& interface_results = database_->GetValues(
+            "Hardware.Interface",
+            {"InterfaceID", "Name", "Type", "Description", "IPv4", "IPv6", "MAC", "Speed"},
+            "NodeID = " + node_id);
+
+        for(const auto& row : interface_results) {
+            FillInterfaceState(*node.add_interfaces(), row, experiment_run_id);
+        }
+
     } catch(const std::exception& e) {
         std::cerr << "An exception occured while populating ExperimentStateResponse Node with "
                      "NodeID="
@@ -778,9 +881,9 @@ void AggServer::AggregationReplier::FillNodeState(AggServer::Node& node,
     }
 }
 
-void AggServer::AggregationReplier::FillContainerState(AggServer::Container& container,
-                                                       const pqxx::row& container_values,
-                                                       int experiment_run_id)
+void AggregationReplier::FillContainerState(Container& container,
+                                            const pqxx::row& container_values,
+                                            int experiment_run_id)
 {
     auto container_id = container_values.at("ContainerID").as<std::string>();
     container.set_name(container_values.at("Name").as<std::string>());
@@ -804,10 +907,31 @@ void AggServer::AggregationReplier::FillContainerState(AggServer::Container& con
     }
 }
 
-void AggServer::AggregationReplier::FillComponentInstanceState(
-    AggServer::ComponentInstance& component_instance,
-    const pqxx::row& component_instance_values,
-    int experiment_run_id)
+void AggregationReplier::FillInterfaceState(NetworkInterface& interface,
+                                            const pqxx::row& interface_values,
+                                            int experiment_run_id)
+{
+    int network_interface_id = -1;
+    try {
+        network_interface_id = interface_values.at("InterfaceID").as<int>();
+        interface.set_name(interface_values.at("Name").as<std::string>());
+        interface.set_type(interface_values.at("Type").as<std::string>());
+        interface.set_description(interface_values.at("Description").as<std::string>());
+        interface.set_ipv4(interface_values.at("IPv4").as<std::string>());
+        interface.set_ipv6(interface_values.at("IPv6").as<std::string>());
+        interface.set_mac_address(interface_values.at("MAC").as<std::string>());
+        interface.set_speed(interface_values.at("Speed").as<int64_t>());
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while populating ExperimentStateResponse "
+                     "NetworkInterface with ID="
+                  << network_interface_id << std::endl;
+        throw;
+    }
+}
+
+void AggregationReplier::FillComponentInstanceState(ComponentInstance& component_instance,
+                                                    const pqxx::row& component_instance_values,
+                                                    int experiment_run_id)
 {
     auto component_instance_id =
         component_instance_values.at("ComponentInstanceID").as<std::string>();
@@ -841,17 +965,16 @@ void AggServer::AggregationReplier::FillComponentInstanceState(
                                     experiment_run_id);
         }
     } catch(const std::exception& e) {
-        std::cerr << "An exception occured while populating ExperimentStateResponse "
+        std::cerr << "An exception occurred while populating ExperimentStateResponse "
                      "ComponentInstance with ID="
                   << component_instance_id << std::endl;
         throw;
     }
 }
 
-void AggServer::AggregationReplier::FillWorkerInstanceState(
-    AggServer::WorkerInstance& worker_instance,
-    const pqxx::row& worker_instance_values,
-    int experiment_run_id)
+void AggregationReplier::FillWorkerInstanceState(WorkerInstance& worker_instance,
+                                                 const pqxx::row& worker_instance_values,
+                                                 int experiment_run_id)
 {
     worker_instance.set_name(worker_instance_values.at("Name").as<std::string>());
     worker_instance.set_path(worker_instance_values.at("Path").as<std::string>());
@@ -867,8 +990,7 @@ void AggServer::AggregationReplier::FillWorkerInstanceState(
     }
 }
 
-void AggServer::AggregationReplier::FillPortState(AggServer::Port& port,
-                                                  const pqxx::row& port_values)
+void AggregationReplier::FillPortState(Port& port, const pqxx::row& port_values)
 {
     port.set_name(port_values.at("Name").as<std::string>());
     Port::Kind kind;
@@ -879,12 +1001,13 @@ void AggServer::AggregationReplier::FillPortState(AggServer::Port& port,
     port.set_graphml_id(port_values.at("GraphmlID").as<std::string>());
 }
 
-void AggServer::AggregationReplier::FillPortConnectionState(
-    AggServer::PortConnection& port_connection,
-    const DatabaseClient::port_graphml_pair& port_pair,
-    AggServer::PortConnection::ConnectionType type)
+void AggregationReplier::FillPortConnectionState(PortConnection& port_connection,
+                                                 const DatabaseClient::port_graphml_pair& port_pair,
+                                                 PortConnection::ConnectionType type)
 {
     port_connection.set_from_port_graphml(port_pair.first);
     port_connection.set_to_port_graphml(port_pair.second);
     port_connection.set_type(type);
+}
+
 }

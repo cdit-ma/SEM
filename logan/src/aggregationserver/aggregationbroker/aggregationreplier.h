@@ -6,7 +6,7 @@
 
 #include <proto/aggregationmessage/aggregationmessage.pb.h>
 
-namespace AggServer {
+namespace re::logging::aggregation::broker {
 
 class AggregationReplier : public zmq::ProtoReplier {
 public:
@@ -36,12 +36,18 @@ public:
     std::unique_ptr<AggServer::MemoryUtilisationResponse>
     ProcessMemoryUtilisationRequest(const AggServer::MemoryUtilisationRequest& message);
 
+    std::unique_ptr<AggServer::NetworkUtilisationResponse>
+    ProcessNetworkUtilisationRequest(const AggServer::NetworkUtilisationRequest& message);
+
 private:
     std::shared_ptr<DatabaseClient> database_;
 
     void FillNodeState(AggServer::Node& node, const pqxx::row& node_values, int experiment_run_id);
     void FillContainerState(AggServer::Container& container,
                             const pqxx::row& container_values,
+                            int experiment_run_id);
+    void FillInterfaceState(AggServer::NetworkInterface& interface,
+                            const pqxx::row& interface_values,
                             int experiment_run_id);
     void FillComponentInstanceState(AggServer::ComponentInstance& component_instance,
                                     const pqxx::row& component_instance_values,
@@ -57,6 +63,6 @@ private:
     void RegisterCallbacks();
 };
 
-} // namespace AggServer
+} // namespace re::logging::aggregation::broker
 
 #endif // AGGREGATIONREPLIER_H
