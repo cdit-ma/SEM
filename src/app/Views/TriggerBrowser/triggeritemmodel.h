@@ -19,18 +19,13 @@ public:
     
     enum TriggerItemRole {
         IDRole = Qt::UserRole + 1,
-        DataTableRole = Qt::UserRole + 2
+        DataTableRole = Qt::UserRole + 2,
+        SingleActivationRole = Qt::UserRole + 3,
+        WaitPeriodRowRole = Qt::UserRole + 4
     };
     
     QModelIndex addTriggerItemFor(NodeViewItem& node_item);
     DataTableModel* getTableModel(const QModelIndex& index) const;
-
-private slots:
-    void insertedRows(const QModelIndex& parent, int first, int last);
-    void removedRows(const QModelIndex& parent, int first, int last);
-
-private:
-    QVector<TriggerTableModel*> table_models_;
 };
 
 #endif //MEDEA_TRIGGERITEMMODEL_H

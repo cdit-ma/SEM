@@ -84,7 +84,7 @@ private:
                 return tablekey_retrigger_str;
             }
             case TableKey::WaitPeriod: {
-                static QString tablekey_wait_period_str = "wait period (ms)";
+                static QString tablekey_wait_period_str = "wait-period (ms)";
                 return tablekey_wait_period_str;
             }
         }
