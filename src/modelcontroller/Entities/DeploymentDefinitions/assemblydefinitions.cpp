@@ -21,7 +21,6 @@ AssemblyDefinitions::AssemblyDefinitions(EntityFactoryBroker& broker, bool is_te
     setAcceptsNodeKind(NODE_KIND::QOS_DDS_PROFILE);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_PUBSUB_DELEGATE);
     setAcceptsNodeKind(NODE_KIND::EXTERNAL_SERVER_DELEGATE);
-    
 
     if(is_temp){
         //Break out early for temporary entities

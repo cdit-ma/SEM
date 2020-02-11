@@ -23,7 +23,7 @@ public:
         Type,
         Condition,
         Value,
-        ReTrigger,
+        SingleActivation,
         WaitPeriod
     };
 
@@ -37,7 +37,7 @@ public:
         return trigger_conditions;
     }
 
-    bool reTriggerActive() const;
+    bool singleActivation() const;
 
     int rowCount(const QModelIndex& parent) const override;
     int columnCount(const QModelIndex& parent) const override;
@@ -59,7 +59,7 @@ private:
             TableKey::Type,
             TableKey::Condition,
             TableKey::Value,
-            TableKey::ReTrigger,
+            TableKey::SingleActivation,
             TableKey::WaitPeriod
         });
         return trigger_table_keys;
@@ -68,7 +68,7 @@ private:
     static const QString& getTableKeyString(TableKey key) {
         switch (key) {
             case TableKey::Type: {
-                static QString tablekey_type_str = "type";
+                static QString tablekey_type_str = "trigger-type";
                 return tablekey_type_str;
             }
             case TableKey::Condition: {
@@ -79,8 +79,8 @@ private:
                 static QString tablekey_value_str = "value";
                 return tablekey_value_str;
             }
-            case TableKey::ReTrigger: {
-                static QString tablekey_retrigger_str = "re-trigger?";
+            case TableKey::SingleActivation: {
+                static QString tablekey_retrigger_str = "single-activation";
                 return tablekey_retrigger_str;
             }
             case TableKey::WaitPeriod: {

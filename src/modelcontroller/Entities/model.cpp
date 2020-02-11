@@ -20,6 +20,7 @@ Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::BEHAVIOUR_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::WORKER_DEFINITIONS);
+    setAcceptsNodeKind(NODE_KIND::TRIGGER_DEFINITIONS);
 
     if(is_temp){
         return;
@@ -34,6 +35,7 @@ Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind
     broker.ConstructChildNode(*this, NODE_KIND::BEHAVIOUR_DEFINITIONS);
     broker.ConstructChildNode(*this, NODE_KIND::DEPLOYMENT_DEFINITIONS);
     broker.ConstructChildNode(*this, NODE_KIND::WORKER_DEFINITIONS);
+    broker.ConstructChildNode(*this, NODE_KIND::TRIGGER_DEFINITIONS);
 }
 
 bool Model::canAdoptChild(Node *child)

@@ -123,6 +123,8 @@ private slots:
     void constructConnectedNodeAtPos(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos);
     void constructConnectedNodeAtIndex(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, int index);
     void constructDDSQOSProfile();
+    void constructTriggerDefinition();
+    
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
     void destructEdges(QList<int> srcIDs, QList<int> dstID, EDGE_KIND edgeClass);
@@ -308,6 +310,7 @@ private:
     Node* assemblyDefinitions = 0;
     Node* hardwareDefinitions = 0;
     Node* workerDefinitions = 0;
+    Node* triggerDefinitions = 0;
 
     int actionCount = 0;
     int currentActionID = 0;

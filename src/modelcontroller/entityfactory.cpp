@@ -171,6 +171,11 @@
 #include "Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h"
 #include "Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h"
 
+// Triggers
+#include "Entities/TriggerDefinitions/triggerdefinitions.h"
+#include "Entities/TriggerDefinitions/trigger.h"
+#include "Entities/DeploymentDefinitions/triggerinst.h"
+
 //Edges
 #include "Entities/Edges/aggregateedge.h"
 #include "Entities/Edges/assemblyedge.h"
@@ -240,7 +245,8 @@ QList<VIEW_ASPECT> EntityFactory::getViewAspects(){
         VIEW_ASPECT::BEHAVIOUR,
         VIEW_ASPECT::ASSEMBLIES,
         VIEW_ASPECT::HARDWARE,
-        VIEW_ASPECT::WORKERS
+        VIEW_ASPECT::WORKERS,
+        VIEW_ASPECT::TRIGGERS
     };
 }
 
@@ -256,6 +262,8 @@ NODE_KIND EntityFactory::getViewAspectKind(VIEW_ASPECT aspect){
             return NODE_KIND::HARDWARE_DEFINITIONS;
         case VIEW_ASPECT::WORKERS:
             return NODE_KIND::WORKER_DEFINITIONS;
+        case VIEW_ASPECT::TRIGGERS:
+            return NODE_KIND::TRIGGER_DEFINITIONS;
         default:
             return NODE_KIND::NONE;
     }
@@ -506,6 +514,11 @@ entity_lock_(QReadWriteLock::Recursive)
 
 
     VoidType::RegisterWithEntityFactory(registry_broker);
+    
+    // Triggers
+    TriggerDefinitions::RegisterWithEntityFactory(registry_broker);
+    Trigger::RegisterWithEntityFactory(registry_broker);
+    TriggerInst::RegisterWithEntityFactory(registry_broker);
 
     //Edges
     DefinitionEdge::RegisterWithEntityFactory(registry_broker);

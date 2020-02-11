@@ -20,20 +20,20 @@ TriggerTableModel::TriggerTableModel(QObject* parent)
     setData(index(getTableKeyRow(TableKey::Type), 0), getTriggerTypes().first(), Qt::DisplayRole);
     setData(index(getTableKeyRow(TableKey::Condition), 0), getTriggerConditions().first(), Qt::DisplayRole);
     setData(index(getTableKeyRow(TableKey::Value), 0), 0.0, Qt::DisplayRole);
-    setData(index(getTableKeyRow(TableKey::ReTrigger), 0), "false", Qt::DisplayRole);
+    setData(index(getTableKeyRow(TableKey::SingleActivation), 0), "true", Qt::DisplayRole);
     setData(index(getTableKeyRow(TableKey::WaitPeriod), 0), 0, Qt::DisplayRole);
 }
 
 
-bool TriggerTableModel::reTriggerActive() const
+bool TriggerTableModel::singleActivation() const
 {
-    auto row = static_cast<int>(TableKey::ReTrigger);
-    auto re_trigger_data = data(index(row, 0), Qt::DisplayRole);
-    if (re_trigger_data.toString() == "true") {
+    auto row = static_cast<int>(TableKey::SingleActivation);
+    auto single_activation_data = data(index(row, 0), Qt::DisplayRole);
+    if (single_activation_data.toString() == "true") {
         return true;
     }
-    /*if (re_trigger_data.canConvert<bool>()) {
-        return re_trigger_data.toBool();
+    /*if (single_activation_data.canConvert<bool>()) {
+        return single_activation_data.toBool();
     }*/
     return false;
 }

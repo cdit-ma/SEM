@@ -55,6 +55,8 @@ signals:
     void Replicate(QList<int> entity_ids);
 
     void constructDDSQOSProfile();
+    void constructTriggerDefinition();
+    
     void ConstructNodeAtIndex(int parent_id, NODE_KIND node_kind, int index);
     void ConstructNodeAtPos(int parent_id, NODE_KIND node_kind, QPointF position);
     
