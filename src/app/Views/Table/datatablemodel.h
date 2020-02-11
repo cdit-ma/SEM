@@ -39,8 +39,10 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void sort(int column, Qt::SortOrder order);
-private:
+    
     int getIndex(const QString& keyName) const;
+
+private:
     QString getKey(const QModelIndex &index) const;
     QString getKey(int row) const;
     bool isIndexProtected(const QModelIndex &index) const;

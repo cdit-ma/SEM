@@ -50,7 +50,7 @@ Trigger::Trigger(EntityFactoryBroker& factory_broker, bool is_temp_node)
     factory_broker.AttachData(this, "trigger-type", QVariant::String, ProtectedState::UNPROTECTED, "CPU_util");
     factory_broker.AttachData(this, "condition", QVariant::String, ProtectedState::UNPROTECTED, "<");
     factory_broker.AttachData(this, "value", QVariant::Double, ProtectedState::UNPROTECTED, 0.0);
-    factory_broker.AttachData(this, "single-activation", QVariant::Bool, ProtectedState::UNPROTECTED), false;
-    factory_broker.AttachData(this, "wait period (ms)", QVariant::UInt, ProtectedState::UNPROTECTED, 0);
+    factory_broker.AttachData(this, "single-activation", QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    factory_broker.AttachData(this, "wait-period (ms)", QVariant::UInt, ProtectedState::UNPROTECTED, 0);
 }
 

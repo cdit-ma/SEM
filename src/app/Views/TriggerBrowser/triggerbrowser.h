@@ -24,19 +24,18 @@ public:
 private slots:
     void themeChanged();
 
-    void currentTriggerChanged(const QModelIndex& current, const QModelIndex& previous);
-    void triggerListDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
-    void triggerTableDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
+    void selectedTriggerChanged(const QModelIndex& current, const QModelIndex& previous);
+    //void triggerListDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
+    void triggerDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
 
     void viewItem_constructed(ViewItem* item);
     void viewItem_destructed(int id, ViewItem* item);
 
 private:
-    void addTrigger(ViewItem& view_item);
+    void addTrigger(NodeViewItem& node_item);
     void removeTrigger(int trigger_definition_id);
     
-    void setWaitPeriodRowVisible(TriggerTableModel* table_model);
-
+    void updateTableView(const QModelIndex& index);
     void setupLayout();
 
     ViewController* view_controller_ = nullptr;
