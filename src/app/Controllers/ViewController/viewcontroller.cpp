@@ -763,6 +763,12 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             }
             break;
         }
+        case NODE_KIND::TRIGGER_DEFN:
+        case NODE_KIND::TRIGGER_INST: {
+            default_icon_prefix = "Icons";
+            default_icon_name = "circleBoltDark";
+            break;
+        }
         default:
             break;
         }
@@ -924,6 +930,7 @@ void ViewController::setupEntityKindItems()
     constructableNodes.removeAll(NODE_KIND::VECTOR_INST);
     constructableNodes.removeAll(NODE_KIND::VARIABLE_PARAMETER);
     constructableNodes.removeAll(NODE_KIND::QOS_DDS_PROFILE);
+    constructableNodes.removeAll(NODE_KIND::TRIGGER_DEFN);
 
     for(auto kind : constructableNodes){
         QString label = EntityFactory::getPrettyNodeKindString(kind);

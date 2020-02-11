@@ -16,19 +16,49 @@ TriggerItemModel::TriggerItemModel(QObject* parent)
 }
 
 
+QModelIndex TriggerItemModel::addTriggerItemFor(NodeViewItem& node_item)
+{
+    if (node_item.getNodeKind() == NODE_KIND::TRIGGER_DEFN) {
+    
+        // Construct a new model_item and add it to the model
+        auto model_item = new QStandardItem(node_item.getData("label").toString());
+        model_item->setData(node_item.getID(), IDRole);
+        model_item->setData(QVariant::fromValue(node_item.getTableModel()), DataTableRole);
+        appendRow(model_item);
+    
+        // Connect the node_item's dataChanged signal to catch a change in label
+        connect(&node_item, &ViewItem::dataChanged, [model_item](QString key_name, QVariant data) {
+            // Only update the corresponding values if data has actually been changed
+            if (key_name == "label") {
+                auto&& view_item_txt = data.toString();
+                auto&& model_item_txt = model_item->text();
+                if (model_item_txt != view_item_txt) {
+                    model_item->setText(view_item_txt);
+                }
+            }
+        });
+        return model_item->index();
+    }
+    return QModelIndex();
+}
+
+
 /**
  * @brief TriggerItemModel::getTableModel
  * This returns the provided model index's corresponding TriggerTableModel object.
  * @param index
  * @return
  */
-TriggerTableModel* TriggerItemModel::getTableModel(const QModelIndex& index) const
+DataTableModel* TriggerItemModel::getTableModel(const QModelIndex& index) const
 {
     if (index.isValid()) {
+        return index.data(DataTableRole).value<DataTableModel*>();
+        /*
         auto&& row = index.row();
         if (row >= 0 && row < table_models_.size()) {
             return table_models_.at(row);
         }
+        */
     }
     return nullptr;
 }

@@ -1341,9 +1341,22 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                     node_item->setPrimaryTextKey(KeyName::Label);
                 }
                 break;
+            case NODE_KIND::TRIGGER_INST:
+                node_item = new DefaultNodeItem(item, parent_node_item);
+                node_item->setExpandEnabled(false);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
             default:
                 node_item = new StackNodeItem(item, parent_node_item);
                 break;
+            }
+            
+            // Remove unnecessary data table fields for Trigger definitions
+            if (node_kind == NODE_KIND::TRIGGER_DEFN) {
+                node_item->removeRequiredData("ID");
+                node_item->removeRequiredData("index");
+                node_item->removeRequiredData("kind");
+                node_item->reloadRequiredData();
             }
 
             // Ignore the position for the contained node view item

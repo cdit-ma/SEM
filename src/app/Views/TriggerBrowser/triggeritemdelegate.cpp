@@ -37,7 +37,7 @@ QWidget* TriggerItemDelegate::createEditor(QWidget *parent, const QStyleOptionVi
                 double_lineedit->setValidator(new QDoubleValidator(0, 100, 2, parent));
                 return double_lineedit;
             }
-            case TriggerTableModel::TableKey::ReTrigger: {
+            case TriggerTableModel::TableKey::SingleActivation: {
                 auto combo_box = new QComboBox(parent);
                 combo_box->addItems(QStringList({"true", "false"}));
                 return combo_box;

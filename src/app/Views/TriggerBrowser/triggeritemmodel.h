@@ -6,6 +6,8 @@
 #define MEDEA_TRIGGERITEMMODEL_H
 
 #include "triggertablemodel.h"
+#include "../../Controllers/ViewController/nodeviewitem.h"
+
 #include <QStandardItemModel>
 
 class TriggerItemModel : public QStandardItemModel
@@ -14,8 +16,14 @@ class TriggerItemModel : public QStandardItemModel
 
 public:
     explicit TriggerItemModel(QObject* parent = nullptr);
-
-    TriggerTableModel* getTableModel(const QModelIndex& index) const;
+    
+    enum TriggerItemRole {
+        IDRole = Qt::UserRole + 1,
+        DataTableRole = Qt::UserRole + 2
+    };
+    
+    QModelIndex addTriggerItemFor(NodeViewItem& node_item);
+    DataTableModel* getTableModel(const QModelIndex& index) const;
 
 private slots:
     void insertedRows(const QModelIndex& parent, int first, int last);

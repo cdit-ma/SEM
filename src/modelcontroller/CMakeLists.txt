@@ -149,6 +149,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/viewcontrollerint.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/triggerdefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/trigger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/triggerinst.cpp
 )
 
 set(HEADERS
@@ -192,6 +195,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.h
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/triggerdefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/trigger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/triggerinst.h
 )
 
 

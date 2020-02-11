@@ -1322,8 +1322,24 @@ bool Node::canAcceptNodeKind(const Node* node) const{
 }
 
 QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
+    
+    if (isReadOnly()) {
+        return QSet<NODE_KIND>();
+    }
+    bool is_valid_instance = isInstance() && getDefinition();
+    bool allow_adoption_for_instance = IsEdgeRuleActive(EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE);
+    if (is_valid_instance && !allow_adoption_for_instance) {
+        if (getNodeKind() == NODE_KIND::COMPONENT_INST) {
+            return {NODE_KIND::TRIGGER_INST};
+        } else {
+            return QSet<NODE_KIND>();
+        }
+    }
+    return getAcceptedNodeKinds();
+    
+    /*
     QSet<NODE_KIND> node_kinds = getAcceptedNodeKinds();
-
+    
     //If i am an instance nothing should be cosntructable
     const auto is_valid_instance = isInstance() && getDefinition();
     if(is_valid_instance && !IsEdgeRuleActive(EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE)){
@@ -1335,6 +1351,7 @@ QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
     }
 
     return node_kinds;
+    */
 }
 
 QSet<Node*> Node::getParentNodesForValidDefinition(){

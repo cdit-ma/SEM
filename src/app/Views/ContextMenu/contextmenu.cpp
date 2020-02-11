@@ -41,6 +41,9 @@ ContextMenu::ContextMenu(ViewController *vc)
     connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::PORT_REPLIER_IMPL] = EDGE_KIND::DEFINITION;
 
+    connect_node_edge_kinds[NODE_KIND::TRIGGER_INST] = EDGE_KIND::DEFINITION;
+
+
     action_controller = view_controller->getActionController();
 
     setupMenus();
