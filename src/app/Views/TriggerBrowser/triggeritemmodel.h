@@ -5,7 +5,6 @@
 #ifndef MEDEA_TRIGGERITEMMODEL_H
 #define MEDEA_TRIGGERITEMMODEL_H
 
-#include "triggertablemodel.h"
 #include "../../Controllers/ViewController/nodeviewitem.h"
 
 #include <QStandardItemModel>
@@ -21,10 +20,12 @@ public:
         IDRole = Qt::UserRole + 1,
         DataTableRole = Qt::UserRole + 2,
         SingleActivationRole = Qt::UserRole + 3,
-        WaitPeriodRowRole = Qt::UserRole + 4
+        WaitPeriodRowRole = Qt::UserRole + 4,
     };
     
-    QModelIndex addTriggerItemFor(NodeViewItem& node_item);
+    QModelIndex addItemForTriggerDefinition(NodeViewItem& trigger_node_item);
+    bool removeItemForTriggerDefinition(int trigger_definition_id);
+    
     DataTableModel* getTableModel(const QModelIndex& index) const;
 };
 

@@ -1350,14 +1350,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 node_item = new StackNodeItem(item, parent_node_item);
                 break;
             }
-            
-            // Remove unnecessary data table fields for Trigger definitions
-            if (node_kind == NODE_KIND::TRIGGER_DEFN) {
-                node_item->removeRequiredData("ID");
-                node_item->removeRequiredData("index");
-                node_item->removeRequiredData("kind");
-                node_item->reloadRequiredData();
-            }
 
             // Ignore the position for the contained node view item
             if (contained_node_view_item_ == item) {

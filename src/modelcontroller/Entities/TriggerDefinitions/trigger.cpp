@@ -47,10 +47,18 @@ Trigger::Trigger(EntityFactoryBroker& factory_broker, bool is_temp_node)
     }
 
     // Setup data
-    factory_broker.AttachData(this, "trigger-type", QVariant::String, ProtectedState::UNPROTECTED, "CPU_util");
-    factory_broker.AttachData(this, "condition", QVariant::String, ProtectedState::UNPROTECTED, "<");
-    factory_broker.AttachData(this, "value", QVariant::Double, ProtectedState::UNPROTECTED, 0.0);
-    factory_broker.AttachData(this, "single-activation", QVariant::Bool, ProtectedState::UNPROTECTED, false);
-    factory_broker.AttachData(this, "wait-period (ms)", QVariant::UInt, ProtectedState::UNPROTECTED, 0);
+    auto trigger_type_data = factory_broker.AttachData(this, getTableKeyString(TableKey::Type), QVariant::String, ProtectedState::UNPROTECTED);
+    for (const auto& t : getTriggerTypes()) {
+        trigger_type_data->addValidValue(t);
+    }
+    
+    auto condition_data = factory_broker.AttachData(this, getTableKeyString(TableKey::Condition), QVariant::String, ProtectedState::UNPROTECTED);
+    for (const auto& c : getTriggerConditions()) {
+        condition_data->addValidValue(c);
+    }
+    
+    factory_broker.AttachData(this, getTableKeyString(TableKey::Value), QVariant::Double, ProtectedState::UNPROTECTED, 0.0);
+    factory_broker.AttachData(this, getTableKeyString(TableKey::SingleActivation), QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    factory_broker.AttachData(this, getTableKeyString(TableKey::WaitPeriod), QVariant::UInt, ProtectedState::UNPROTECTED, 1000);
 }
 

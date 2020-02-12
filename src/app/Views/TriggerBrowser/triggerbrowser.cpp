@@ -26,7 +26,7 @@ TriggerBrowser::TriggerBrowser(ViewController* vc, QWidget* parent)
     
     if (vc != nullptr) {
         connect(vc, &ViewController::vc_viewItemConstructed, this, &TriggerBrowser::viewItem_constructed);
-        //connect(vc, &ViewController::vc_viewItemDestructing, this, &TriggerBrowser::viewItem_destructed);
+        connect(vc, &ViewController::vc_viewItemDestructing, this, &TriggerBrowser::viewItem_destructed);
     }
 }
 
@@ -56,11 +56,11 @@ void TriggerBrowser::themeChanged()
 
 
 /**
- * @brief TriggerBrowser::selectedTriggerChanged
+ * @brief TriggerBrowser::triggerSelectionChanged
  * @param current
  * @param previous
  */
-void TriggerBrowser::selectedTriggerChanged(const QModelIndex& current, const QModelIndex& previous)
+void TriggerBrowser::triggerSelectionChanged(const QModelIndex& current, const QModelIndex& previous)
 {
     if (current.isValid()) {
         const auto& table_model = trigger_item_model_->getTableModel(current);
@@ -83,8 +83,7 @@ void TriggerBrowser::triggerDataChanged(const QModelIndex& topLeft, const QModel
     if (!topLeft.isValid()) {
         return;
     }
-    qDebug() << "HERE";
-    if (roles.contains(Qt::DisplayRole || Qt::EditRole)) {
+    if (roles.contains(Qt::DisplayRole) || roles.contains(Qt::EditRole)) {
         for (int i = topLeft.row(); i <= bottomRight.row(); i++) {
             auto&& model_item = trigger_item_model_->item(i, 0);
             auto&& model_item_txt = model_item->text();
@@ -99,7 +98,6 @@ void TriggerBrowser::triggerDataChanged(const QModelIndex& topLeft, const QModel
         }
     }
     if (roles.contains(TriggerItemModel::SingleActivationRole)) {
-        qDebug() << "HELLO?";
         updateTableView(topLeft);
     }
 }
@@ -146,7 +144,7 @@ void TriggerBrowser::addTrigger(NodeViewItem& node_item)
     trigger_table_view_->setModel(nullptr);
     
     // Construct a new model_item and add it to the model
-    auto&& item_model_index = trigger_item_model_->addTriggerItemFor(node_item);
+    auto&& item_model_index = trigger_item_model_->addItemForTriggerDefinition(node_item);
     
     // Select the new model_item and put it on edit mode
     trigger_list_view_->setCurrentIndex(item_model_index);
@@ -171,15 +169,15 @@ void TriggerBrowser::addTrigger(NodeViewItem& node_item)
  */
 void TriggerBrowser::removeTrigger(int trigger_definition_id)
 {
-    // TODO!!!
-    if (trigger_model_items_.contains(trigger_definition_id)) {
-        auto trigger_item = trigger_model_items_.take(trigger_definition_id);
-        trigger_item_model_->removeRow(trigger_item->row());
-        if (trigger_model_items_.isEmpty()) {
+    bool success = trigger_item_model_->removeItemForTriggerDefinition(trigger_definition_id);
+    if (success) {
+        if (trigger_item_model_->rowCount() == 0) {
             remove_trigger_action_->setEnabled(false);
             trigger_table_view_->setModel(nullptr);
+        } else {
+            auto &&last_item_index = trigger_item_model_->index(trigger_item_model_->rowCount() - 1, 0);
+            trigger_list_view_->setCurrentIndex(last_item_index);
         }
-        delete trigger_item;
     }
 }
 
@@ -207,7 +205,7 @@ void TriggerBrowser::setupLayout()
     connect(trigger_item_model_, &TriggerItemModel::dataChanged, this, &TriggerBrowser::triggerDataChanged);
     
     auto selection_model = new QItemSelectionModel(trigger_item_model_);
-    connect(selection_model, &QItemSelectionModel::currentChanged, this, &TriggerBrowser::selectedTriggerChanged);
+    connect(selection_model, &QItemSelectionModel::currentChanged, this, &TriggerBrowser::triggerSelectionChanged);
     
     trigger_list_view_ = new QListView(this);
     trigger_list_view_->setSpacing(5);
