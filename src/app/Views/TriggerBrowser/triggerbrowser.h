@@ -24,8 +24,7 @@ public:
 private slots:
     void themeChanged();
 
-    void selectedTriggerChanged(const QModelIndex& current, const QModelIndex& previous);
-    //void triggerListDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
+    void triggerSelectionChanged(const QModelIndex& current, const QModelIndex& previous);
     void triggerDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
 
     void viewItem_constructed(ViewItem* item);
@@ -48,8 +47,6 @@ private:
     QToolBar* toolbar_ = nullptr;
     QAction* add_trigger_action_ = nullptr;
     QAction* remove_trigger_action_ = nullptr;
-
-    QHash<int, QStandardItem*> trigger_model_items_;
 };
 
 #endif //MEDEA_TRIGGERBROWSER_H

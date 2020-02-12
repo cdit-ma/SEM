@@ -17,8 +17,6 @@ public:
 
 protected:
     TriggerInst(EntityFactoryBroker& factory_broker, bool is_temp_node);
-
-    //QSet<Node*> getListOfValidAncestorsForChildrenDefinitions() final;
 };
 
 

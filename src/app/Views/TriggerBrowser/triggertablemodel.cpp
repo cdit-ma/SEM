@@ -3,7 +3,6 @@
 //
 
 #include "triggertablemodel.h"
-#include <QDebug>
 
 /**
  * @brief TriggerTableModel::TriggerTableModel
@@ -12,30 +11,9 @@
 TriggerTableModel::TriggerTableModel(QObject* parent)
     : QAbstractTableModel(parent)
 {
-    for (const auto& key : getTableKeys()) {
+    for (const auto& key : Trigger::getTableKeys()) {
         setData(index(getTableKeyRow(key), 0), QVariant::fromValue(key), TableRole::KeyRole);
     }
-
-    // Set the initial display data per key
-    setData(index(getTableKeyRow(TableKey::Type), 0), getTriggerTypes().first(), Qt::DisplayRole);
-    setData(index(getTableKeyRow(TableKey::Condition), 0), getTriggerConditions().first(), Qt::DisplayRole);
-    setData(index(getTableKeyRow(TableKey::Value), 0), 0.0, Qt::DisplayRole);
-    setData(index(getTableKeyRow(TableKey::SingleActivation), 0), "true", Qt::DisplayRole);
-    setData(index(getTableKeyRow(TableKey::WaitPeriod), 0), 0, Qt::DisplayRole);
-}
-
-
-bool TriggerTableModel::singleActivation() const
-{
-    auto row = static_cast<int>(TableKey::SingleActivation);
-    auto single_activation_data = data(index(row, 0), Qt::DisplayRole);
-    if (single_activation_data.toString() == "true") {
-        return true;
-    }
-    /*if (single_activation_data.canConvert<bool>()) {
-        return single_activation_data.toBool();
-    }*/
-    return false;
 }
 
 
@@ -50,7 +28,7 @@ int TriggerTableModel::rowCount(const QModelIndex& parent) const
     if (parent.isValid()) {
         return 0;
     }
-    return getTableKeys().size();
+    return Trigger::getTableKeys().size();
 }
 
 
@@ -82,8 +60,8 @@ QVariant TriggerTableModel::headerData(int section, Qt::Orientation orientation,
         if (orientation == Qt::Horizontal) {
             return section + 1;
         } else {
-            auto key = static_cast<TableKey>(section);
-            return getTableKeyString(key);
+            auto key = static_cast<Trigger::TableKey>(section);
+            return Trigger::getTableKeyString(key);
         }
     }
     return QVariant();
@@ -185,7 +163,7 @@ bool TriggerTableModel::removeRows(int row, int count, const QModelIndex& parent
 }
 
 
-int TriggerTableModel::getTableKeyRow(TableKey key) const
+int TriggerTableModel::getTableKeyRow(Trigger::TableKey key) const
 {
     return static_cast<int>(key);
 }

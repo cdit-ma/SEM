@@ -1033,6 +1033,8 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 required_instance_keys.insert(KeyName::Description);
                 break;
             }
+            case NODE_KIND ::TRIGGER_INST:
+                bind_labels = false;
             default:
                 break;
         }
@@ -1108,6 +1110,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
 QList<Node*> Node::getRequiredInstanceDefinitions(){
     //Get the list of definitions, contained within valid ancestors, we should try and make instances of
+
     QList<Node*> adoptable_nodes;
     if(!IsEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS)){
         for(auto valid_ancestor : getListOfValidAncestorsForChildrenDefinitions()){

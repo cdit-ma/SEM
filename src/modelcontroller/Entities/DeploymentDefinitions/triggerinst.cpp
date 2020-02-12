@@ -29,7 +29,7 @@ TriggerInst::TriggerInst(EntityFactoryBroker& factory_broker, bool is_temp_node)
         : Node(factory_broker, node_kind, is_temp_node)
 {
     addInstancesDefinitionKind(NODE_KIND::TRIGGER_DEFN);
-    //setAcceptsEdgeKind(EDGE_KIND::TRIGGER_DEFN, EDGE_DIRECTION::SOURCE);
+    SetEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS);
 
     // Break out early for temporary entities
     if (is_temp_node) {
@@ -37,7 +37,5 @@ TriggerInst::TriggerInst(EntityFactoryBroker& factory_broker, bool is_temp_node)
     }
 
     // Setup data
-    factory_broker.AttachData(this, "definition", QVariant::String, ProtectedState::PROTECTED);
-    factory_broker.AttachData(this, "ComponentInst-reference", QVariant::String, ProtectedState::UNPROTECTED);
-    setLabelFunctional(false);
+    factory_broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
 }
