@@ -23,12 +23,12 @@ PeriodicPortInst::PeriodicPortInst(EntityFactoryBroker& broker, bool is_temp) : 
     }
     
     broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::UNPROTECTED, 1);
-    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::UNPROTECTED, 0);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 2);
 
     auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE_INST);
-    broker.AttachData(frequency, KeyName::Type, QVariant::String, ProtectedState::PROTECTED, "Double");
-    broker.AttachData(frequency, KeyName::Value, QVariant::String, ProtectedState::UNPROTECTED, 1);
+    broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
+    broker.AttachData(frequency, "value", QVariant::String, ProtectedState::UNPROTECTED, 1);
 }
 
 bool PeriodicPortInst::canAdoptChild(Node* child)

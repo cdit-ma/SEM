@@ -255,6 +255,7 @@ QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
     indices << EDGE_KIND::QOS;
     indices << EDGE_KIND::ASSEMBLY;
     indices << EDGE_KIND::DEPLOYMENT;
+    indices << EDGE_KIND::TRIGGER;
 
     for(auto kind : entity_factory->getEdgeKinds()){
         if(!indices.contains(kind)){
@@ -1508,6 +1509,8 @@ bool ModelController::canDeleteNode(Node *node)
                 }
                 break;
             }
+            case NODE_KIND::TRIGGER_INST:
+                break;
             default:
                 //Can't remove instances
                 return false;

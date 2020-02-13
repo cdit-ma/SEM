@@ -72,7 +72,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
     addHoverFunction(EntityRect::LOCKED_STATE_ICON, std::bind(&NodeItem::lockHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-const QList<EDGE_KIND> sorted_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
+const QList<EDGE_KIND> sorted_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA, EDGE_KIND::TRIGGER};
 
 void NodeItem::updateVisualEdgeKinds()
 {
@@ -584,6 +584,7 @@ void NodeItem::edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID)
     switch(edge_kind){
         case EDGE_KIND::DEPLOYMENT:
         case EDGE_KIND::QOS:
+        case EDGE_KIND::TRIGGER:
             update();
             break;
         default:
@@ -597,6 +598,7 @@ void NodeItem::edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID
     switch(edge_kind){
         case EDGE_KIND::DEPLOYMENT:
         case EDGE_KIND::QOS:
+        case EDGE_KIND::TRIGGER:
             update();
             break;
         default:

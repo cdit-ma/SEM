@@ -60,7 +60,7 @@ public:
     };
     
     static const QStringList& getTriggerTypes() {
-        static QStringList trigger_types({"CPU_util", "Mem_util", "temperature"});
+        static QStringList trigger_types({"CPU_util", "Mem_util"});
         return trigger_types;
     }
     

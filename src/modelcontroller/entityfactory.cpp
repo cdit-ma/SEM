@@ -175,6 +175,7 @@
 #include "Entities/TriggerDefinitions/triggerdefinitions.h"
 #include "Entities/TriggerDefinitions/trigger.h"
 #include "Entities/DeploymentDefinitions/triggerinst.h"
+#include "Entities/DeploymentDefinitions/strategyinst.h"
 
 //Edges
 #include "Entities/Edges/aggregateedge.h"
@@ -182,7 +183,9 @@
 #include "Entities/Edges/dataedge.h"
 #include "Entities/Edges/definitionedge.h"
 #include "Entities/Edges/deploymentedge.h"
+#include "Entities/Edges/triggeredge.h"
 #include "Entities/Edges/qosedge.h"
+
 #include "Entities/DeploymentDefinitions/deploymentcontainer.h"
 
 EntityFactory* EntityFactory::global_factory = 0;
@@ -519,6 +522,7 @@ entity_lock_(QReadWriteLock::Recursive)
     TriggerDefinitions::RegisterWithEntityFactory(registry_broker);
     Trigger::RegisterWithEntityFactory(registry_broker);
     TriggerInst::RegisterWithEntityFactory(registry_broker);
+    StrategyInst::RegisterWithEntityFactory(registry_broker);
 
     //Edges
     DefinitionEdge::RegisterWithEntityFactory(registry_broker);
@@ -527,6 +531,7 @@ entity_lock_(QReadWriteLock::Recursive)
     DataEdge::RegisterWithEntityFactory(registry_broker);
     DeploymentEdge::RegisterWithEntityFactory(registry_broker);
     QosEdge::RegisterWithEntityFactory(registry_broker);
+    TriggerEdge::RegisterWithEntityFactory(registry_broker);
 }
 
 EntityFactory::~EntityFactory()

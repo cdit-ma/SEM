@@ -31,14 +31,14 @@ class ContextMenu : public QObject
 
 public:
     explicit ContextMenu(ViewController *vc);
-    
+
     void popup_edge_menu(QPoint global_pos, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
     void popup_add_menu(QPoint global_pos, int index);
     void popup(QPoint global_pos, QPointF item_pos);
 
     QMenu* getAddMenu();
     QMenu* getDeployMenu();
-    
+
 private:
     void load_more_actions(QMenu* menu);
     void invalidate_menus();
@@ -58,6 +58,8 @@ private:
     void update_add_node_menu();
     void update_deploy_menu();
 
+    void update_trigger_edge_menu();
+
     void update_chart_menu();
 
     void populate_dynamic_add_node_menu(QMenu* menu);
@@ -67,7 +69,7 @@ private:
 
     void popup_menu(QMenu* menu, QPoint pos);
     void construct_view_item_menus(QMenu* menu, const QList<ViewItem*>& view_items, bool flatten_menu = false, bool add_empty = true);
-	
+
     void update_edge_menu(QMenu* parent_menu, QMenu* menu, const QList<ViewItem*>& connect_source_items, const QList<ViewItem*>& connect_target_items, const QList<ViewItem*>& disconnect_items);
 
     QWidgetAction* construct_menu_search(QMenu* parent);
@@ -94,20 +96,21 @@ private:
     QMenu* dock_add_node_menu = nullptr;
     QMenu* dock_deploy_menu = nullptr;
     QMenu* chart_data_kind_menu = nullptr;
-    
+    QMenu* trigger_edge_menu = nullptr;
+
     QHash <NODE_KIND, QAction*> add_node_action_hash;
     QHash <EDGE_KIND, QMenu*> add_edge_menu_hash;
     QHash <QPair<EDGE_DIRECTION, EDGE_KIND> , QMenu*> add_edge_menu_direct_hash;
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
-    
+
     QSet<QMenu*> valid_menus;
-    
+
     struct DeployTitles {
         QAction* disconnect_title = nullptr;
         QAction* connect_to_title = nullptr;
         QAction* connect_from_title = nullptr;
     };
-    
+
     QHash <QMenu*, QWidgetAction*> add_labels;
     QHash<QMenu*, QWidgetAction*> load_more_actions_;
     QHash<QMenu*, QWidgetAction*> search_actions_;
@@ -115,7 +118,7 @@ private:
 
     NodePosition node_position = NodePosition::INDEX;
     QPointF model_point;
-    
+
     int node_index = -1;
     int current_hovered_id = 0;
 };

@@ -24,6 +24,7 @@ SubscriberPortInst::SubscriberPortInst(EntityFactoryBroker& broker, bool is_temp
 
     broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
     broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::UNPROTECTED, 0);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::UNPROTECTED, 0);
 
     auto data_middleware = broker.AttachData(this, KeyName::Middleware, QVariant::String, ProtectedState::UNPROTECTED);
     data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "QPID"});
