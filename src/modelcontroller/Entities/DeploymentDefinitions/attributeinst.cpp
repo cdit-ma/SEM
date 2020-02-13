@@ -27,7 +27,7 @@ AttributeInst::AttributeInst(EntityFactoryBroker& broker, bool is_temp) : DataNo
     broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
     broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
     broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
 
     broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
 }

@@ -152,7 +152,9 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/triggerdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/trigger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/triggerinst.cpp
-)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/strategyinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/triggeredge.cpp
+    )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
@@ -198,6 +200,8 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/triggerdefinitions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/trigger.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/triggerinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/strategyinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/triggeredge.h
 )
 
 

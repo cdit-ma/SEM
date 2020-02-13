@@ -170,6 +170,12 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         }
         break;
     }
+    case EDGE_KIND::TRIGGER: {
+        if (dst->getNodeKind() != NODE_KIND::DEPLOYMENT_CONTAINER) {
+            return false;
+        }
+        break;
+    }
     default:
         break;
     }
@@ -1218,6 +1224,8 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
             }
             break;
         }
+        case EDGE_KIND::TRIGGER:
+            return canAcceptEdgeKind(edge_kind, direction);
         default:
             qCritical() << "NOT IMPLEMENTED";
             return false;
@@ -1275,6 +1283,8 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
         case EDGE_KIND::QOS:{
             return true;
         }
+        case EDGE_KIND::TRIGGER:
+            return canAcceptEdgeKind(edge_kind, direction);
         default:
             qCritical() << "NOT IMPLEMENTED";
             return false;

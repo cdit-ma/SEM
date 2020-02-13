@@ -27,7 +27,7 @@ void Trigger::RegisterWithEntityFactory(EntityFactoryRegistryBroker& registry_br
  */
 VIEW_ASPECT Trigger::getViewAspect() const
 {
-    return VIEW_ASPECT ::TRIGGERS;
+    return VIEW_ASPECT::TRIGGERS;
 }
 
 
