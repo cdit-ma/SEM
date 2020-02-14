@@ -36,6 +36,10 @@ QWidget* TriggerItemDelegate::createEditor(QWidget *parent, const QStyleOptionVi
             auto combo_box = new QComboBox(parent);
             combo_box->addItems(QStringList({"false", "true"}));
             return combo_box;
+        }  else if (key == Trigger::getTableKeyString(Trigger::TableKey::WaitPeriod)) {
+            auto uint_lineedit = new QLineEdit(parent);
+            uint_lineedit->setValidator(new QIntValidator(0, INT_MAX, parent));
+            return uint_lineedit;
         }
     }
     return QStyledItemDelegate::createEditor(parent, option, index);
