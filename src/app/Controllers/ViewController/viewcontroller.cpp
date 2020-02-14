@@ -785,7 +785,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
         }
         case NODE_KIND::STRATEGY_INST: {
             default_icon_prefix = "Icons";
-            default_icon_name = "servers";
+            default_icon_name = "squares";
         }
         default:
             break;
