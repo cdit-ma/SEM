@@ -30,7 +30,7 @@ QWidget* TriggerItemDelegate::createEditor(QWidget *parent, const QStyleOptionVi
             return combo_box;
         } else if (key == Trigger::getTableKeyString(Trigger::TableKey::Value)) {
             auto double_lineedit = new QLineEdit(parent);
-            double_lineedit->setValidator(new QDoubleValidator(0, 100, 2, parent));
+            double_lineedit->setValidator(new QDoubleValidator(DBL_MIN, DBL_MAX, 10, parent));
             return double_lineedit;
         } else if (key == Trigger::getTableKeyString(Trigger::TableKey::SingleActivation)) {
             auto combo_box = new QComboBox(parent);

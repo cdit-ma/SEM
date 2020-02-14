@@ -196,10 +196,8 @@ void NodeGraphicsItem::validateChildMove(ComponentInstanceGraphicsItem* child, Q
         //  This prevents a left/upward drag from expanding the NodeGraphicsItem, intentional?
         auto&& min_x = getTopLeftChildPos().x();
         auto&& min_y = getTopLeftChildPos().y();
-        // REVIEW (Jackson): These values don't make sense to be rvalue references; they reference a
-        //  const value and are modified later
-        auto&& x = pos.x();
-        auto&& y = pos.y();
+        auto x = pos.x();
+        auto y = pos.y();
         if (x < min_x) {
             x = min_x;
         }
