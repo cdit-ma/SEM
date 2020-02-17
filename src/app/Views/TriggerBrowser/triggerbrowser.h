@@ -47,6 +47,8 @@ private:
     QToolBar* toolbar_ = nullptr;
     QAction* add_trigger_action_ = nullptr;
     QAction* remove_trigger_action_ = nullptr;
+    
+    bool user_added_ = false;
 };
 
 #endif //MEDEA_TRIGGERBROWSER_H

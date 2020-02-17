@@ -2,6 +2,8 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../theme.h"
 
+#include <QBitmap>
+#include <QDebug>
 #include <keynames.h>
 
 const static QSet<QString> multiline_keys({KeyName::ProcessesToLog, KeyName::Code});
@@ -184,7 +186,10 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
 			if (hasCodeEditor(index) || hasIconEditor(index)) {
 				return Theme::theme()->getIcon("Icons", "popOut");
 			}
-			break;
+			// Return a hidden icon for everything else to keep the values aligned
+            auto hidden_icon = theme->getImage("Icons", "blank", icon_size);
+            hidden_icon.fill(Qt::transparent);
+            return hidden_icon;
 		case MULTILINE_ROLE:
 			return hasCodeEditor(index);
 		case ICON_ROLE:

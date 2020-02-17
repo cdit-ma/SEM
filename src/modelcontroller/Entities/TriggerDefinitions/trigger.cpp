@@ -46,7 +46,7 @@ Trigger::Trigger(EntityFactoryBroker& factory_broker, bool is_temp_node)
         return;
     }
 
-    // Setup data
+    // Attach the required data and set their valid values
     auto trigger_type_data = factory_broker.AttachData(this, getTableKeyString(TableKey::Type), QVariant::String, ProtectedState::UNPROTECTED);
     for (const auto& t : getTriggerTypes()) {
         trigger_type_data->addValidValue(t);

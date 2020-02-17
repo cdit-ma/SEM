@@ -19,5 +19,4 @@ protected:
     TriggerInst(EntityFactoryBroker& factory_broker, bool is_temp_node);
 };
 
-
 #endif //MEDEA_TRIGGERINST_H

@@ -28,6 +28,7 @@ void StrategyInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& regist
 StrategyInst::StrategyInst(EntityFactoryBroker& factory_broker, bool is_temp_node)
         : Node(factory_broker, node_kind, is_temp_node)
 {
+    // Set NODE_KIND-specific ruling for adoption and connections
     SetEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS);
     SetEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
     setAcceptsEdgeKind(EDGE_KIND::TRIGGER, EDGE_DIRECTION::SOURCE);
@@ -39,6 +40,5 @@ StrategyInst::StrategyInst(EntityFactoryBroker& factory_broker, bool is_temp_nod
     
     // Setup data
     factory_broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    factory_broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
     factory_broker.AttachData(this, "Container_reference", QVariant::String, ProtectedState::PROTECTED);
 }

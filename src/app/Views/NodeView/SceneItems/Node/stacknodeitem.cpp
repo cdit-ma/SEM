@@ -17,6 +17,7 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     connect(this, &NodeItem::childSizeChanged, this, &StackNodeItem::ChildSizeChanged);
     connect(this, &NodeItem::childIndexChanged, this, &StackNodeItem::ChildIndexChanged);
     connect(this, &NodeItem::childCountChanged, this, &StackNodeItem::ChildCountChanged);
+    
 
     addHoverFunction(EntityRect::BODY, std::bind(&StackNodeItem::bodyHover, this, std::placeholders::_1, std::placeholders::_2));
 

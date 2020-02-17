@@ -8,44 +8,61 @@
 #include <QComboBox>
 #include <QLineEdit>
 
+/**
+ * TriggerItemDelegate::TriggerItemDelegate
+ * @param parent
+ */
 TriggerItemDelegate::TriggerItemDelegate(QObject* parent)
     : QStyledItemDelegate(parent) {}
 
 
+/**
+ * TriggerItemDelegate::createEditor
+ * This is called when the table view that this is attached to goes into edit mode.
+ * It returns a widget that will be used to edit the model at the given index.
+ * @param parent
+ * @param option
+ * @param index
+ * @return
+ */
 QWidget* TriggerItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if (index.isValid()) {
         const auto& data = index.model()->headerData(index.row(), Qt::Vertical, Qt::DisplayRole);
-        if (data.isNull() || !data.isValid()) {
-            return QStyledItemDelegate::createEditor(parent, option, index);
-        }
-        const auto& key = data.toString();
-        if (key == Trigger::getTableKeyString(Trigger::TableKey::Type)) {
-            auto combo_box = new QComboBox(parent);
-            combo_box->addItems(Trigger::getTriggerTypes());
-            return combo_box;
-        } else if (key == Trigger::getTableKeyString(Trigger::TableKey::Condition)) {
-            auto combo_box = new QComboBox(parent);
-            combo_box->addItems(Trigger::getTriggerConditions());
-            return combo_box;
-        } else if (key == Trigger::getTableKeyString(Trigger::TableKey::Value)) {
-            auto double_lineedit = new QLineEdit(parent);
-            double_lineedit->setValidator(new QDoubleValidator(DBL_MIN, DBL_MAX, 10, parent));
-            return double_lineedit;
-        } else if (key == Trigger::getTableKeyString(Trigger::TableKey::SingleActivation)) {
-            auto combo_box = new QComboBox(parent);
-            combo_box->addItems(QStringList({"false", "true"}));
-            return combo_box;
-        }  else if (key == Trigger::getTableKeyString(Trigger::TableKey::WaitPeriod)) {
-            auto uint_lineedit = new QLineEdit(parent);
-            uint_lineedit->setValidator(new QIntValidator(0, INT_MAX, parent));
-            return uint_lineedit;
+        if (!data.isNull() && data.isValid()) {
+            const auto &key = data.toString();
+            if (key == Trigger::getTableKeyString(Trigger::TableKey::Type)) {
+                auto combo_box = new QComboBox(parent);
+                combo_box->addItems(Trigger::getTriggerTypes());
+                return combo_box;
+            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::Condition)) {
+                auto combo_box = new QComboBox(parent);
+                combo_box->addItems(Trigger::getTriggerConditions());
+                return combo_box;
+            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::Value)) {
+                auto double_lineedit = new QLineEdit(parent);
+                double_lineedit->setValidator(new QDoubleValidator(DBL_MIN, DBL_MAX, 10, parent));
+                return double_lineedit;
+            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::SingleActivation)) {
+                auto combo_box = new QComboBox(parent);
+                combo_box->addItems(QStringList({"false", "true"}));
+                return combo_box;
+            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::WaitPeriod)) {
+                auto uint_lineedit = new QLineEdit(parent);
+                uint_lineedit->setValidator(new QIntValidator(0, INT_MAX, parent));
+                return uint_lineedit;
+            }
         }
     }
     return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
 
+/**
+ * This sets the data of the editor widget for the model item at the given index.
+ * @param editor
+ * @param index
+ */
 void TriggerItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
     if (editor == nullptr || !index.isValid()) {
@@ -63,6 +80,12 @@ void TriggerItemDelegate::setEditorData(QWidget *editor, const QModelIndex &inde
 }
 
 
+/**
+ * This sets the data for the model item at the given index to the data of the editor widget.
+ * @param editor
+ * @param model
+ * @param index
+ */
 void TriggerItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
     if (editor == nullptr || model == nullptr || !index.isValid()) {

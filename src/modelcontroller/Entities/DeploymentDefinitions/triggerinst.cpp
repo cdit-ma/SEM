@@ -3,7 +3,6 @@
 //
 
 #include "triggerinst.h"
-#include "strategyinst.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
 
@@ -29,9 +28,11 @@ void TriggerInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& registr
 TriggerInst::TriggerInst(EntityFactoryBroker& factory_broker, bool is_temp_node)
         : Node(factory_broker, node_kind, is_temp_node)
 {
+    addInstancesDefinitionKind(NODE_KIND::TRIGGER_DEFN);
+ 
+    // Set NODE_KIND-specific ruling for adoption and connections
     SetEdgeRuleActive(EdgeRule::ALLOW_EXTERNAL_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::STRATEGY_INST);
-    addInstancesDefinitionKind(NODE_KIND::TRIGGER_DEFN);
 
     // Break out early for temporary entities
     if (is_temp_node) {

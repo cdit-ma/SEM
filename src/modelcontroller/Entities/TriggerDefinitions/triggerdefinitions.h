@@ -21,8 +21,6 @@ protected:
     TriggerDefinitions(EntityFactoryBroker& factory_broker, bool is_temp_node);
     
     void updateViewAspect(VIEW_ASPECT) final {} ;
-    
 };
-
 
 #endif //MEDEA_TRIGGERDEFINITIONS_H
