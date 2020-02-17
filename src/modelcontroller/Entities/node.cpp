@@ -171,6 +171,7 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
         break;
     }
     case EDGE_KIND::TRIGGER: {
+        // Only allow Trigger edges to DeploymentContainers
         if (dst->getNodeKind() != NODE_KIND::DEPLOYMENT_CONTAINER) {
             return false;
         }
@@ -1040,7 +1041,9 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 break;
             }
             case NODE_KIND ::TRIGGER_INST:
+                // Setting this to false allows the TriggerInstance to have an editable label
                 bind_labels = false;
+                break;
             default:
                 break;
         }
@@ -1342,8 +1345,10 @@ QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
     bool is_valid_instance = isInstance() && getDefinition();
     bool allow_adoption_for_instance = IsEdgeRuleActive(EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE);
     if (is_valid_instance && !allow_adoption_for_instance) {
+        // All instance entities don't allow adoption of any children entities added by the user
+        // Added this special case to allow ComponentInstances to adopt TriggerInstances
         if (getNodeKind() == NODE_KIND::COMPONENT_INST) {
-            return {NODE_KIND::TRIGGER_INST};
+            return { NODE_KIND::TRIGGER_INST };
         } else {
             return QSet<NODE_KIND>();
         }

@@ -19,5 +19,4 @@ protected:
     TriggerEdge(EntityFactoryBroker& factory_broker, Node *src, Node *dst);
 };
 
-
 #endif //MEDEA_TRIGGEREDGE_H

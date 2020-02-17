@@ -39,6 +39,7 @@ VIEW_ASPECT TriggerDefinitions::getViewAspect() const
 TriggerDefinitions::TriggerDefinitions(EntityFactoryBroker& factory_broker, bool is_temp)
     : Node(factory_broker, node_kind, is_temp)
 {
+    // Set ASPECT-specific states and ruling for adoption
     setNodeType(NODE_TYPE::ASPECT);
     setAcceptsNodeKind(NODE_KIND::TRIGGER_DEFN);
     

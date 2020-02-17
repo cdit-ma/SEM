@@ -1402,7 +1402,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 break;
             case NODE_KIND::FUNCTION:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                
                 if (!item->isDataProtected("operation")) {
                     node_item->setPrimaryTextKey("operation");
                 } else {
@@ -1410,7 +1409,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 }
                 break;
             case NODE_KIND::TRIGGER_INST:
-                node_item = new DefaultNodeItem(item, parent_node_item);
+                node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setSecondaryTextKey("type");
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
@@ -1422,6 +1421,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             // Ignore the position for the contained node view item
             if (contained_node_view_item_ == item) {
                 node_item->setIgnorePosition(true);
+            }
+    
+            // Remove data-fields that don't need to be shown in the data table for a Trigger/StrategyInst
+            if (node_kind == NODE_KIND::TRIGGER_INST || node_kind == NODE_KIND::STRATEGY_INST) {
+                auto data_table = node_item->getViewItem()->getTableModel();
+                data_table->removedData("column");
+                data_table->removedData("row");
+                data_table->removedData("index");
             }
 
             auto stack_item = qobject_cast<StackNodeItem*>(node_item);

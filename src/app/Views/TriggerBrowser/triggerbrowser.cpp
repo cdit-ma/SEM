@@ -8,9 +8,6 @@
 #include <QVBoxLayout>
 #include <QHeaderView>
 
-static int untitled_incr = 1;
-
-
 /**
  * @brief TriggerBrowser::TriggerBrowser
  * @param vc
@@ -57,6 +54,8 @@ void TriggerBrowser::themeChanged()
 
 /**
  * @brief TriggerBrowser::triggerSelectionChanged
+ * This is called when the selected trigger in the list view is changed.
+ * It updates the table view to display the trigger's corresponding data table.
  * @param current
  * @param previous
  */
@@ -74,6 +73,8 @@ void TriggerBrowser::triggerSelectionChanged(const QModelIndex& current, const Q
 
 /**
  * @brief TriggerBrowser::triggerDataChanged
+ * This is called when the data of a trigger model item in the list view has changed.
+ * It is used to catch a change in the "label" and "single-activation" data fields.
  * @param topLeft
  * @param bottomRight
  * @param roles
@@ -84,6 +85,7 @@ void TriggerBrowser::triggerDataChanged(const QModelIndex& topLeft, const QModel
         return;
     }
     if (roles.contains(Qt::DisplayRole) || roles.contains(Qt::EditRole)) {
+        // This is when the displayed value in the view has changed - in this case, a label change
         for (int i = topLeft.row(); i <= bottomRight.row(); i++) {
             auto&& model_item = trigger_item_model_->item(i, 0);
             auto&& model_item_txt = model_item->text();
@@ -98,6 +100,7 @@ void TriggerBrowser::triggerDataChanged(const QModelIndex& topLeft, const QModel
         }
     }
     if (roles.contains(TriggerItemModel::SingleActivationRole)) {
+        // Changing this value shows or hides the "wait-period (ms)" row;
         updateTableView(topLeft);
     }
 }
@@ -105,6 +108,8 @@ void TriggerBrowser::triggerDataChanged(const QModelIndex& topLeft, const QModel
 
 /**
  * @brief TriggerBrowser::viewItem_constructed
+ * This is called when a new ViewItem has been constructed.
+ * If the constructed item is a Trigger definition, this adds a corresponding model item in the list view.
  * @param item
  */
 void TriggerBrowser::viewItem_constructed(ViewItem* item)
@@ -124,6 +129,8 @@ void TriggerBrowser::viewItem_constructed(ViewItem* item)
 
 /**
  * @brief TriggerBrowser::viewItem_destructed
+ * This is called when a ViewItem has been destructed.
+ * If there is a model item tied to the destructed item, remove it.
  * @param id
  * @param item
  */
@@ -135,6 +142,8 @@ void TriggerBrowser::viewItem_destructed(int id, ViewItem* item)
 
 /**
  * @brief TriggerBrowser::addTrigger
+ * This constructs, sets up and adds a model item for the provided NodeViewItem.
+ * It also selects the new model item and displays its corresponding data table.
  * @param node_item
  */
 void TriggerBrowser::addTrigger(NodeViewItem& node_item)
@@ -146,17 +155,21 @@ void TriggerBrowser::addTrigger(NodeViewItem& node_item)
     // Construct a new model_item and add it to the model
     auto&& item_model_index = trigger_item_model_->addItemForTriggerDefinition(node_item);
     
-    // Select the new model_item and put it on edit mode
+    // Select the new model item and put it on edit mode if it was added by the user
     trigger_list_view_->setCurrentIndex(item_model_index);
-    trigger_list_view_->edit(item_model_index);
+    if (user_added_) {
+        trigger_list_view_->edit(item_model_index);
+        user_added_ = false;
+    }
     
-    // Display the new model_item's corresponding data table model
+    // Display the new model item's corresponding data table model
     const auto& table_model = trigger_item_model_->getTableModel(item_model_index);
     if (table_model) {
         trigger_table_view_->setModel(table_model);
         updateTableView(item_model_index);
     }
     
+    // Enable the remove trigger button
     if (!remove_trigger_action_->isEnabled()) {
         remove_trigger_action_->setEnabled(true);
     }
@@ -165,6 +178,7 @@ void TriggerBrowser::addTrigger(NodeViewItem& node_item)
 
 /**
  * @brief TriggerBrowser::removeTrigger
+ * This removes the model item linked to the ViewItem with the provided id (if there is one).
  * @param trigger_definition_id
  */
 void TriggerBrowser::removeTrigger(int trigger_definition_id)
@@ -172,9 +186,11 @@ void TriggerBrowser::removeTrigger(int trigger_definition_id)
     bool success = trigger_item_model_->removeItemForTriggerDefinition(trigger_definition_id);
     if (success) {
         if (trigger_item_model_->rowCount() == 0) {
+            // If the list is empty, disable the remove trigger button and clear the table view
             remove_trigger_action_->setEnabled(false);
             trigger_table_view_->setModel(nullptr);
         } else {
+            // Otherwise, select the last item in the list - this also updates the table view
             auto &&last_item_index = trigger_item_model_->index(trigger_item_model_->rowCount() - 1, 0);
             trigger_list_view_->setCurrentIndex(last_item_index);
         }
@@ -184,6 +200,8 @@ void TriggerBrowser::removeTrigger(int trigger_definition_id)
 
 /**
  * @brief TriggerBrowser::updateTableView
+ * This is called when the selected trigger in the list has changed, or when a trigger model item's data has changed.
+ * It checks the value of the "single-activation" row and shows/hides the "wait-period (ms)" row accordingly.
  * @param index
  */
 void TriggerBrowser::updateTableView(const QModelIndex& index)
@@ -204,6 +222,7 @@ void TriggerBrowser::setupLayout()
     trigger_item_model_ = new TriggerItemModel(this);
     connect(trigger_item_model_, &TriggerItemModel::dataChanged, this, &TriggerBrowser::triggerDataChanged);
     
+    // This sends a signal whenever the selected trigger model item has changed
     auto selection_model = new QItemSelectionModel(trigger_item_model_);
     connect(selection_model, &QItemSelectionModel::currentChanged, this, &TriggerBrowser::triggerSelectionChanged);
     
@@ -229,8 +248,12 @@ void TriggerBrowser::setupLayout()
     remove_trigger_action_ = toolbar_->addAction("Remove Trigger");
     remove_trigger_action_->setEnabled(false);
     
+    // Connect the add/remove trigger signals to the ViewController
     if (view_controller_ != nullptr) {
-        connect(add_trigger_action_, &QAction::triggered, view_controller_, &ViewController::constructTriggerDefinition);
+        connect(add_trigger_action_, &QAction::triggered, [this]() {
+            user_added_ = true;
+            emit view_controller_->constructTriggerDefinition();
+        });
         connect(remove_trigger_action_, &QAction::triggered, [this]() {
             const auto& index = trigger_list_view_->currentIndex();
             const auto& selected_trigger = trigger_item_model_->itemFromIndex(index);

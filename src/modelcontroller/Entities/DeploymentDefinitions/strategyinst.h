@@ -19,5 +19,4 @@ protected:
     StrategyInst(EntityFactoryBroker& factory_broker, bool is_temp_node);
 };
 
-
 #endif //MEDEA_STRATEGYINST_H
