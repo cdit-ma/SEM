@@ -7,6 +7,7 @@
 
 #include <QVBoxLayout>
 #include <QHeaderView>
+#include <keynames.h>
 
 /**
  * @brief TriggerBrowser::TriggerBrowser
@@ -74,7 +75,7 @@ void TriggerBrowser::triggerSelectionChanged(const QModelIndex& current, const Q
 /**
  * @brief TriggerBrowser::triggerDataChanged
  * This is called when the data of a trigger model item in the list view has changed.
- * It is used to catch a change in the "label" and "single-activation" data fields.
+ * It is used to catch a change in the Label and SingleActivation key values.
  * @param topLeft
  * @param bottomRight
  * @param roles
@@ -90,17 +91,17 @@ void TriggerBrowser::triggerDataChanged(const QModelIndex& topLeft, const QModel
             auto&& model_item = trigger_item_model_->item(i, 0);
             auto&& model_item_txt = model_item->text();
             auto&& view_item_id = model_item->data(TriggerItemModel::IDRole).toInt();
-            auto&& view_item_txt = view_controller_->getEntityDataValue(view_item_id, "label").toString();
+            auto&& view_item_txt = view_controller_->getEntityDataValue(view_item_id, KeyName::Label).toString();
             // If the new model label is empty, reset it to the current view item's label
             if (model_item_txt.isEmpty()) {
                 model_item->setText(view_item_txt);
             } else if (view_item_txt != model_item_txt) {
-                view_controller_->SetData(view_item_id, "label", model_item_txt);
+                view_controller_->SetData(view_item_id, KeyName::Label, model_item_txt);
             }
         }
     }
     if (roles.contains(TriggerItemModel::SingleActivationRole)) {
-        // Changing this value shows or hides the "wait-period (ms)" row;
+        // Changing this value shows or hides the WaitPeriod row;
         updateTableView(topLeft);
     }
 }
@@ -201,7 +202,7 @@ void TriggerBrowser::removeTrigger(int trigger_definition_id)
 /**
  * @brief TriggerBrowser::updateTableView
  * This is called when the selected trigger in the list has changed, or when a trigger model item's data has changed.
- * It checks the value of the "single-activation" row and shows/hides the "wait-period (ms)" row accordingly.
+ * It checks the value of the SingleActivation row and shows/hides the WaitPeriod row accordingly.
  * @param index
  */
 void TriggerBrowser::updateTableView(const QModelIndex& index)
@@ -239,7 +240,7 @@ void TriggerBrowser::setupLayout()
     trigger_table_view_->setShowGrid(false);
     
     // Set a reasonable minimum for the table
-    trigger_table_view_->setMinimumWidth(fontMetrics().horizontalAdvance("wait-period (ms)") * 2);
+    trigger_table_view_->setMinimumWidth(fontMetrics().horizontalAdvance(KeyName::SingleActivation) * 2);
 
     toolbar_ = new QToolBar(this);
     toolbar_->setContentsMargins(0,0,0,4);

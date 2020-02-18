@@ -40,9 +40,9 @@ TriggerInst::TriggerInst(EntityFactoryBroker& factory_broker, bool is_temp_node)
     }
 
     // Setup data
-    factory_broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    factory_broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
-    factory_broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 3);
+    factory_broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    factory_broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 1);
+    factory_broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 3);
     
     // Construct child StrategyInst
     factory_broker.ConstructChildNode(*this, NODE_KIND::STRATEGY_INST);

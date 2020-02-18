@@ -7,6 +7,7 @@
 
 #include <QComboBox>
 #include <QLineEdit>
+#include <keynames.h>
 
 /**
  * TriggerItemDelegate::TriggerItemDelegate
@@ -31,23 +32,23 @@ QWidget* TriggerItemDelegate::createEditor(QWidget *parent, const QStyleOptionVi
         const auto& data = index.model()->headerData(index.row(), Qt::Vertical, Qt::DisplayRole);
         if (!data.isNull() && data.isValid()) {
             const auto &key = data.toString();
-            if (key == Trigger::getTableKeyString(Trigger::TableKey::Type)) {
+            if (key == KeyName::TriggerType) {
                 auto combo_box = new QComboBox(parent);
                 combo_box->addItems(Trigger::getTriggerTypes());
                 return combo_box;
-            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::Condition)) {
+            } else if (key == KeyName::Condition) {
                 auto combo_box = new QComboBox(parent);
                 combo_box->addItems(Trigger::getTriggerConditions());
                 return combo_box;
-            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::Value)) {
+            } else if (key == KeyName::Value) {
                 auto double_lineedit = new QLineEdit(parent);
                 double_lineedit->setValidator(new QDoubleValidator(DBL_MIN, DBL_MAX, 10, parent));
                 return double_lineedit;
-            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::SingleActivation)) {
+            } else if (key == KeyName::SingleActivation) {
                 auto combo_box = new QComboBox(parent);
                 combo_box->addItems(QStringList({"false", "true"}));
                 return combo_box;
-            } else if (key == Trigger::getTableKeyString(Trigger::TableKey::WaitPeriod)) {
+            } else if (key == KeyName::WaitPeriod) {
                 auto uint_lineedit = new QLineEdit(parent);
                 uint_lineedit->setValidator(new QIntValidator(0, INT_MAX, parent));
                 return uint_lineedit;

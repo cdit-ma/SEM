@@ -38,5 +38,11 @@ namespace KeyName{
     extern const QString WorkerID;
     extern const QString X;
     extern const QString Y;
+    
+    extern const QString TriggerType;
+    extern const QString Condition;
+    extern const QString SingleActivation;
+    extern const QString WaitPeriod;
+    extern const QString ContainerReference;
 };
 #endif //KEYNAME_LITERALS_H

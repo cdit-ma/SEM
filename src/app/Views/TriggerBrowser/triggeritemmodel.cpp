@@ -2,6 +2,7 @@
 // Created by Cathlyn on 4/02/2020.
 //
 
+#include <keynames.h>
 #include "triggeritemmodel.h"
 #include "../../../modelcontroller/Entities/TriggerDefinitions/trigger.h"
 
@@ -25,29 +26,29 @@ QModelIndex TriggerItemModel::addItemForTriggerDefinition(NodeViewItem& trigger_
     
         // Remove data-fields that don't need to be shown in the data table for a Trigger definition
         auto item_data_model = trigger_node_item.getTableModel();
-        item_data_model->removedData("kind");
-        item_data_model->removedData("label");
-        item_data_model->removedData("index");
+        item_data_model->removedData(KeyName::Kind);
+        item_data_model->removedData(KeyName::Label);
+        item_data_model->removedData(KeyName::Index);
         
         // Set custom data to link the trigger_node_item and to allow easy retrieval of the single-activation field
-        auto model_item = new QStandardItem(trigger_node_item.getData("label").toString());
+        auto model_item = new QStandardItem(trigger_node_item.getData(KeyName::Label).toString());
         model_item->setData(trigger_node_item.getID(), IDRole);
         model_item->setData(QVariant::fromValue(item_data_model), DataTableRole);
-        
-        auto&& wait_period_keyname = Trigger::getTableKeyString(Trigger::TableKey::WaitPeriod);
-        model_item->setData(item_data_model->getIndex(wait_period_keyname), WaitPeriodRowRole);
+    
+        int wait_period_row = item_data_model->getIndex(KeyName::WaitPeriod);
+        model_item->setData(wait_period_row, WaitPeriodRowRole);
         appendRow(model_item);
     
         // Connect the view item's dataChanged signal to the model item so that it can update its corresponding data accordingly
         connect(&trigger_node_item, &ViewItem::dataChanged, [model_item](const QString& key_name, const QVariant& data) {
-            if (key_name == "label") {
+            if (key_name == KeyName::Label) {
                 auto&& view_item_txt = data.toString();
                 auto&& model_item_txt = model_item->text();
                 // Only update the label if it has actually been changed
                 if (model_item_txt != view_item_txt) {
                     model_item->setText(view_item_txt);
                 }
-            } else if (key_name == "single-activation") {
+            } else if (key_name == KeyName::SingleActivation) {
                 // SingleActivationRole is used to tell the trigger browser whether to show/hide the wait period row
                 model_item->setData(data.toBool(), SingleActivationRole);
             }

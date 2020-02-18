@@ -36,7 +36,7 @@ protected:
     bool removeRows(int row, int count, const QModelIndex& parent) override;
 
 private:
-    int getTableKeyRow(Trigger::TableKey key) const;
+    //int getTableKeyRow(Trigger::TableKey key) const;
 
     QMap<QModelIndex, QPair<int, QVariant>> data_map_;
 };
