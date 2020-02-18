@@ -36,7 +36,7 @@ TriggerEdge::TriggerEdge(EntityFactoryBroker& factory_broker, Node* src, Node* d
         auto&& dst_kind = dst->getNodeKind();
         if (src_kind == NODE_KIND::STRATEGY_INST && dst_kind == NODE_KIND::DEPLOYMENT_CONTAINER) {
             // Set the src node's Container_reference data
-            src->setDataValue("Container_reference", dst->getID());
+            src->setDataValue(KeyName::ContainerReference, dst->getID());
         } else {
             throw std::invalid_argument("TriggerEdge::TriggerEdge - Cannot construct edge; invalid src and/or dst kind");
         }

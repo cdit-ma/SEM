@@ -11,9 +11,9 @@
 TriggerTableModel::TriggerTableModel(QObject* parent)
     : QAbstractTableModel(parent)
 {
-    for (const auto& key : Trigger::getTableKeys()) {
+    /*for (const auto& key : Trigger::getTableKeys()) {
         setData(index(getTableKeyRow(key), 0), QVariant::fromValue(key), TableRole::KeyRole);
-    }
+    }*/
 }
 
 
@@ -28,7 +28,8 @@ int TriggerTableModel::rowCount(const QModelIndex& parent) const
     if (parent.isValid()) {
         return 0;
     }
-    return Trigger::getTableKeys().size();
+    return 5;
+    //return Trigger::getTableKeys().size();
 }
 
 
@@ -57,12 +58,15 @@ int TriggerTableModel::columnCount(const QModelIndex& parent) const
 QVariant TriggerTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role == Qt::DisplayRole) {
+        return section + 1;
+        /*
         if (orientation == Qt::Horizontal) {
             return section + 1;
         } else {
             auto key = static_cast<Trigger::TableKey>(section);
             return Trigger::getTableKeyString(key);
         }
+         */
     }
     return QVariant();
 }
@@ -162,8 +166,9 @@ bool TriggerTableModel::removeRows(int row, int count, const QModelIndex& parent
     return true;
 }
 
-
+/*
 int TriggerTableModel::getTableKeyRow(Trigger::TableKey key) const
 {
     return static_cast<int>(key);
 }
+*/

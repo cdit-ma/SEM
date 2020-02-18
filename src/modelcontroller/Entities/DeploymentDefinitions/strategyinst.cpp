@@ -39,6 +39,6 @@ StrategyInst::StrategyInst(EntityFactoryBroker& factory_broker, bool is_temp_nod
     }
     
     // Setup data
-    factory_broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    factory_broker.AttachData(this, "Container_reference", QVariant::String, ProtectedState::PROTECTED);
+    factory_broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    factory_broker.AttachData(this, KeyName::ContainerReference, QVariant::String, ProtectedState::PROTECTED);
 }

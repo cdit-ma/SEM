@@ -47,18 +47,18 @@ Trigger::Trigger(EntityFactoryBroker& factory_broker, bool is_temp_node)
     }
 
     // Attach the required data and set their valid values
-    auto trigger_type_data = factory_broker.AttachData(this, getTableKeyString(TableKey::Type), QVariant::String, ProtectedState::UNPROTECTED);
+    auto trigger_type_data = factory_broker.AttachData(this, KeyName::TriggerType, QVariant::String, ProtectedState::UNPROTECTED);
     for (const auto& t : getTriggerTypes()) {
         trigger_type_data->addValidValue(t);
     }
     
-    auto condition_data = factory_broker.AttachData(this, getTableKeyString(TableKey::Condition), QVariant::String, ProtectedState::UNPROTECTED);
+    auto condition_data = factory_broker.AttachData(this, KeyName::Condition, QVariant::String, ProtectedState::UNPROTECTED);
     for (const auto& c : getTriggerConditions()) {
         condition_data->addValidValue(c);
     }
     
-    factory_broker.AttachData(this, getTableKeyString(TableKey::Value), QVariant::Double, ProtectedState::UNPROTECTED, 0.0);
-    factory_broker.AttachData(this, getTableKeyString(TableKey::SingleActivation), QVariant::Bool, ProtectedState::UNPROTECTED, false);
-    factory_broker.AttachData(this, getTableKeyString(TableKey::WaitPeriod), QVariant::UInt, ProtectedState::UNPROTECTED, 1000);
+    factory_broker.AttachData(this, KeyName::Value, QVariant::Double, ProtectedState::UNPROTECTED, 0.0);
+    factory_broker.AttachData(this, KeyName::SingleActivation, QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    factory_broker.AttachData(this, KeyName::WaitPeriod, QVariant::UInt, ProtectedState::UNPROTECTED, 1000);
 }
 

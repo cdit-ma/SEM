@@ -105,4 +105,8 @@ const char* KeyName::Y{"y"};
 const char* KeyName::ZmqPublisherAddress{"zmq_publisher_address"};
 const char* KeyName::ZmqServerAddress{"zmq_server_address"};
 
-// NOTE - Additional key names for the Trigger and StrategyInst are defined in their respective entity classes
+const QString KeyName::TriggerType{"trigger_type"};
+const QString KeyName::Condition{"condition"};
+const QString KeyName::SingleActivation{"single_activation"};
+const QString KeyName::WaitPeriod{"wait_period (ms)"};
+const QString KeyName::ContainerReference{"Container_reference"};
