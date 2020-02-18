@@ -104,3 +104,5 @@ const char* KeyName::X{"x"};
 const char* KeyName::Y{"y"};
 const char* KeyName::ZmqPublisherAddress{"zmq_publisher_address"};
 const char* KeyName::ZmqServerAddress{"zmq_server_address"};
+
+// NOTE - Additional key names for the Trigger and StrategyInst are defined in their respective entity classes
