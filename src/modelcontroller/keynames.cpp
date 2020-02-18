@@ -32,3 +32,5 @@ const QString KeyName::Worker{"worker"};
 const QString KeyName::WorkerID{"workerID"};
 const QString KeyName::X{"x"};
 const QString KeyName::Y{"y"};
+
+// NOTE - Additional key names for the Trigger and StrategyInst are defined in their respective entity classes
