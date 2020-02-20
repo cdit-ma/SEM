@@ -9,6 +9,7 @@ sudo apt-get update && sudo apt-get install -y \
   openjdk-11-jre-headless \
   ccache \
   libpq-dev postgresql-server-dev-all \
+  libcurl4-openssl-dev \
   chrony
 
 # Install Docker
