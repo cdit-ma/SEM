@@ -1,16 +1,11 @@
 #include "selectionhandler.h"
-
-
-#include "../../Controllers/ViewController/nodeviewitem.h"
 #include "../../Controllers/SelectionController/selectioncontroller.h"
 
-#include <QDebug>
 int SelectionHandler::_SelectionHandlerID  = 0;
+
 SelectionHandler::SelectionHandler(SelectionController *controller)
 {
     ID = ++_SelectionHandlerID;
-    currentActiveSelectedItem = 0;
-    newActiveSelectedItem = 0;
     selectionController = controller;
     orderedSelectionValid = true;
 
@@ -108,7 +103,7 @@ int SelectionHandler::getSelectionCount()
 
 ViewItem *SelectionHandler::getFirstSelectedItem()
 {
-    ViewItem* item = 0;
+    ViewItem* item = nullptr;
     if(!currentSelection.isEmpty()){
         item = currentSelection.first();
     }
@@ -190,7 +185,7 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
 
         //If there is no items left, there is no active item
         if(currentSelection.isEmpty()){
-            newActiveSelectedItem = 0;
+            newActiveSelectedItem = nullptr;
         }else{
             if(currentActiveSelectedItem == item || newActiveSelectedItem == item){
                 newActiveSelectedItem = currentSelection.first();

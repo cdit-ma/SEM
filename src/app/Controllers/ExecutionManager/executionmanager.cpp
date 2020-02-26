@@ -11,8 +11,10 @@
 #include "../NotificationManager/notificationobject.h"
 #include "../ViewController/viewcontroller.h"
 
-
+// (SEM-96) NOTE - Not entirely sure if ViewController should be passed into the QObject's constructor as a parent
+// This may cause issues; check/revert if that happens
 ExecutionManager::ExecutionManager(ViewController *view_controller)
+        : QObject(view_controller)
 {
     view_controller_ = view_controller;
     transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
@@ -20,7 +22,6 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::GotJava);
     connect(this, &ExecutionManager::GotRe, view_controller, &ViewController::GotRe);
     connect(this, &ExecutionManager::GotRegen, view_controller, &ViewController::GotRegen);
-
 
     auto settings = SettingsController::settings();
     connect(settings, &SettingsController::settingChanged, this, &ExecutionManager::settingChanged);
@@ -54,7 +55,7 @@ bool ExecutionManager::HasRe(){
     return got_re_;
 }
 
-QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
+QString get_xml_attribute(QXmlStreamReader &xml, const QString& attribute_name)
 {
     QString val;
     //Get the Attributes of the current XML entity.
@@ -67,7 +68,7 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
 }
 
 
-void ExecutionManager::ValidateModel(QString model_path)
+void ExecutionManager::ValidateModel(const QString& model_path)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -76,12 +77,12 @@ void ExecutionManager::ValidateModel(QString model_path)
     }
 }
 
-void ExecutionManager::ValidateModel_(QString model_path)
+void ExecutionManager::ValidateModel_(const QString& model_path)
 {
     auto manager =  NotificationManager::manager();
 
     // Clear previous validation notification items
-    for (auto notification : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
+    for (const auto& notification : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
         if(notification->getDescription().startsWith("model validation", Qt::CaseInsensitive)){
             continue;
         }
@@ -148,7 +149,7 @@ void ExecutionManager::ValidateModel_(QString model_path)
     }
 }
 
-void ExecutionManager::GenerateCodeForWorkload(QString document_path, ViewItem* item)
+void ExecutionManager::GenerateCodeForWorkload(const QString& document_path, ViewItem* item)
 {
     auto id = item->getID();
 
@@ -162,7 +163,8 @@ void ExecutionManager::GenerateCodeForWorkload(QString document_path, ViewItem* 
     }
 }
 
-void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory, int duration){
+void ExecutionManager::ExecuteModel_(const QString& document_path, const QString& output_directory, int duration)
+{
     if(HasRe() && HasJava() && HasRegen()){
         ProcessRunner runner;
         auto runner_ = &runner;
@@ -233,7 +235,7 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
     }
 }
 
-bool ExecutionManager::GenerateProject_(QString document_path, QString output_directory)
+bool ExecutionManager::GenerateProject_(const QString& document_path, const QString& output_directory)
 {
     auto notification = NotificationManager::manager()->AddNotification("Generating Project C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
     auto results = RunSaxonTransform(transforms_path_ + "generate_project.xsl", document_path, output_directory, {});
@@ -251,7 +253,7 @@ bool ExecutionManager::GenerateProject_(QString document_path, QString output_di
     return results.success;
 }
 
-QString ExecutionManager::GenerateWorkload(QString document_path, QString output_directory, int id)
+QString ExecutionManager::GenerateWorkload(const QString& document_path, const QString& output_directory, int id)
 {
     QString arg = "id=" + QString::number(id);
 
@@ -269,7 +271,7 @@ QString ExecutionManager::GenerateWorkload(QString document_path, QString output
     return results.standard_output.join("\n");
 }
 
-void ExecutionManager::settingChanged(SETTINGS setting, QVariant value){
+void ExecutionManager::settingChanged(SETTINGS setting, const QVariant& value){
     switch(setting){
         case SETTINGS::GENERAL_RE_CONFIGURE_PATH:{
             CheckForRe(value.toString());
@@ -292,7 +294,7 @@ void ExecutionManager::settingChanged(SETTINGS setting, QVariant value){
 }
 
 
-void ExecutionManager::CheckForRe(QString re_configure_path)
+void ExecutionManager::CheckForRe(const QString& re_configure_path)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -301,7 +303,7 @@ void ExecutionManager::CheckForRe(QString re_configure_path)
     }
 }
 
-void ExecutionManager::CheckForRegen(QString regen_path)
+void ExecutionManager::CheckForRegen(const QString& regen_path)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -311,7 +313,7 @@ void ExecutionManager::CheckForRegen(QString regen_path)
 }
 
 
-bool ExecutionManager::ExecuteModel(QString document_path, QString output_directory, int runtime_duration)
+bool ExecutionManager::ExecuteModel(const QString& document_path, const QString& output_directory, int runtime_duration)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -322,7 +324,7 @@ bool ExecutionManager::ExecuteModel(QString document_path, QString output_direct
     return false;
 }
 
-void ExecutionManager::GenerateProject(QString document_path, QString output_directory){
+void ExecutionManager::GenerateProject(const QString& document_path, const QString& output_directory){
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!generate_project_thread.isRunning()){
@@ -355,7 +357,7 @@ void ExecutionManager::CheckForJava_(){
 }
 
 
-void ExecutionManager::CheckForRegen_(QString regen_path){
+void ExecutionManager::CheckForRegen_(const QString& regen_path){
     auto notification = NotificationManager::manager()->AddNotification("Checking for Regen", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     
     QFileInfo file(regen_path + "/saxon.jar");
@@ -374,7 +376,7 @@ void ExecutionManager::CheckForRegen_(QString regen_path){
 }
 
 //Designed to be run on a background thread
-void ExecutionManager::CheckForRe_(QString re_configure_path){
+void ExecutionManager::CheckForRe_(const QString& re_configure_path){
     auto notification = NotificationManager::manager()->AddNotification("Checking for Re", "Icons", "servers", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     
     bool success = false;
@@ -411,7 +413,7 @@ void ExecutionManager::CheckForRe_(QString re_configure_path){
     emit GotRe(got_re_);
 }
 
-ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments)
+ProcessResult ExecutionManager::RunSaxonTransform(const QString& transform_path, const QString& document, const QString& output_directory, const QStringList& arguments)
 {
     ProcessRunner runner;
     auto runner_ = &runner;

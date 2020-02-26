@@ -8,7 +8,7 @@
 #include <QApplication>
 #include <QDebug>
 
-SearchManager* SearchManager::manager_singleton = 0;
+SearchManager* SearchManager::manager_singleton = nullptr;
 
 
 /**

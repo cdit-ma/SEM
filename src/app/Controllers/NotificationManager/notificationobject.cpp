@@ -3,10 +3,12 @@
 
 int NotificationObject::id_counter_  = 0;
 
-NotificationObject::NotificationObject() : QObject(0)
+NotificationObject::NotificationObject()
+    : QObject(nullptr)
 {
     id_ = id_counter_ ++;
     updateModifiedTime();
+    
     //Update the modified time any time any part of this notification gets updated
     connect(this, &NotificationObject::titleChanged, &NotificationObject::updateModifiedTime);
     connect(this, &NotificationObject::descriptionChanged, &NotificationObject::updateModifiedTime);
@@ -17,15 +19,15 @@ NotificationObject::NotificationObject() : QObject(0)
     connect(this, &NotificationObject::categoryChanged, &NotificationObject::updateModifiedTime);
 }
 
-void NotificationObject::setTitle(QString title){
+void NotificationObject::setTitle(const QString& title){
     if(title_ != title){
         title_ = title;
         emit titleChanged();
     }    
 }
 
-void NotificationObject::setToastable(bool toast){
-    toastable_ = toast;
+void NotificationObject::setToastEnabled(bool enable){
+    toast_enabled_ = enable;
 }
 
 void NotificationObject::setEntityID(int entity_id){
@@ -33,14 +35,14 @@ void NotificationObject::setEntityID(int entity_id){
         entity_id_ = entity_id;
     }
 }
-void NotificationObject::setDescription(QString description){
+void NotificationObject::setDescription(const QString& description){
     if(description_ != description){
         description_ = description;
         emit descriptionChanged();
     }
 };
 
-void NotificationObject::setIcon(QString path, QString name){
+void NotificationObject::setIcon(const QString& path, const QString& name){
     auto icon = qMakePair(path, name);
     if(icon_ != icon){
         icon_ = icon;
@@ -71,8 +73,8 @@ void NotificationObject::setCategory(Notification::Category category){
 };
 
 
-bool NotificationObject::getToastable() const{
-    return toastable_;
+bool NotificationObject::isToastEnabled() const{
+    return toast_enabled_;
 };
 
 int NotificationObject::getID() const{

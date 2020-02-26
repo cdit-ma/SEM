@@ -26,9 +26,6 @@ namespace Notification{
     extern QString getCategoryString(Notification::Category category);
     extern QString getSeverityString(Notification::Severity severity);
 
-
-
-
     inline uint qHash(Notification::Context key, uint seed){
         return ::qHash(static_cast<uint>(key), seed);
     };
@@ -45,6 +42,7 @@ namespace Notification{
         return ::qHash(static_cast<uint>(key), seed);
     };
 };
+
 Q_DECLARE_METATYPE(Notification::Context);
 Q_DECLARE_METATYPE(Notification::Type);
 Q_DECLARE_METATYPE(Notification::Category);

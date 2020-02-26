@@ -3,23 +3,15 @@
 #include "../../theme.h"
 #include "../../Utils/filehandler.h"
 #include "../../Utils/rootaction.h"
-#include <QDebug>
-#include "../../../modelcontroller/nodekinds.h"
 #include "../../../modelcontroller/modelcontroller.h"
 #include <QShortcut>
 #include <QApplication>
-ActionController::ActionController(ViewController* vc) : QObject(vc)
+
+ActionController::ActionController(ViewController* vc)
+        : QObject(vc)
 {
-    
-
     viewController = vc;
-    shortcutDialog = 0;
-    recentProjectMapper = 0;
-
     selectionController = viewController->getSelectionController();
-
-    got_valid_jenkins = false;
-    got_java = false;
     setupActions();
 
     setupMainMenu();
@@ -28,10 +20,8 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
     setupRecentProjects();
 
-
     connect(SettingsController::settings(), &SettingsController::settingChanged, this, &ActionController::settingChanged);
     connect(Theme::theme(), &Theme::theme_Changed, this, &ActionController::themeChanged);
-
 
     themeChanged();
     connectViewController(vc);
@@ -141,14 +131,14 @@ void ActionController::connectSelectionController()
     }
 }
 
-RootAction *ActionController::createRootAction(QString category, QString name, QString hashKey, QString iconPath, QString aliasPath)
+RootAction* ActionController::createRootAction(const QString& category, const QString& name, const QString& hashKey, const QString& iconPath, const QString& aliasPath)
 {
-    RootAction* action = new RootAction(category, name, this);
+    auto action = new RootAction(category, name, this);
     action->setIconPath(iconPath, aliasPath);
-    if(hashKey != ""){
+    if (hashKey != "") {
         actionHash[hashKey] = action;
     }
-    if(!actionCategoryMap.contains(category, action)){
+    if (!actionCategoryMap.contains(category, action)) {
         actionCategoryMap.insertMulti(category, action);
     }
     allActions.append(action);
@@ -158,12 +148,12 @@ RootAction *ActionController::createRootAction(QString category, QString name, Q
 void ActionController::showShortcutDialog()
 {
     if(!shortcutDialog){
-        shortcutDialog = new ShortcutDialog(0);
+        shortcutDialog = new ShortcutDialog(nullptr);
 
         auto list = actionCategoryMap.uniqueKeys();
         std::sort(list.begin(), list.end());
         
-        for(auto key : list){
+        for(const auto& key : list){
             QList<RootAction*> actions; 
             
             for(auto action : actionCategoryMap.values(key)){
@@ -222,7 +212,7 @@ void ActionController::removeRecentProject(QString file_path)
     }
 }
 
-void ActionController::settingChanged(SETTINGS key, QVariant value)
+void ActionController::settingChanged(SETTINGS key, const QVariant& value)
 {
     bool boolVal = value.toBool();
 
@@ -306,8 +296,6 @@ void ActionController::selectionChanged(int selection_size)
         edit_decrementRow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_CHANGE_ROW));
 
 
-        
-
         //Active selection based.
         view_centerOnDefn->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
         view_viewDefnInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
@@ -327,7 +315,7 @@ void ActionController::selectionChanged(int selection_size)
         edit_clearSelection->setEnabled(got_selection);
         view_centerOn->setEnabled(got_selection);
 
-        
+    
         //Single Selection
         edit_selectAll->setEnabled(got_single_selection);
         view_viewInNewWindow->setEnabled(got_single_selection);
@@ -460,7 +448,7 @@ QAction *ActionController::getSettingAction(SETTINGS key)
     case SETTINGS::TOOLBAR_VALIDATE:
         return toolbar_validate;
     default:
-        return 0;
+        return nullptr;
     }
 }
 
@@ -535,7 +523,7 @@ void ActionController::recentProjectsChanged()
         if(orderedKeys.contains(oldKey)){
             continue;
         }else{
-            RootAction* action = recentProjectActions.value(oldKey, 0);
+            RootAction* action = recentProjectActions.value(oldKey, nullptr);
             if(action){
                 recentProjectActions.remove(oldKey);
                 action->deleteLater();
@@ -548,7 +536,7 @@ void ActionController::recentProjectsChanged()
         menu_file_recentProjects->clear();
 
         foreach(QString key, orderedKeys){
-            RootAction* action = recentProjectActions.value(key, 0);
+            RootAction* action = recentProjectActions.value(key, nullptr);
             if(action){
                 menu_file_recentProjects->addAction(action);
             }
@@ -584,7 +572,7 @@ QList<RootAction *> ActionController::getRecentProjectActions()
         if(action == file_recentProjects_clearHistory){
             continue;
         }
-        RootAction* a = qobject_cast<RootAction*>(action);
+        auto a = qobject_cast<RootAction*>(action);
         if(a){
             actions.append(a);
         }

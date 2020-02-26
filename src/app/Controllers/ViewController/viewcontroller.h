@@ -37,102 +37,93 @@ class JobMonitor;
 
 class ViewController : public ViewControllerInterface
 {
-    Q_OBJECT
+Q_OBJECT
 
 public:
     ViewController();
-    ~ViewController();
-
-    DefaultDockWidget* constructDockWidget(QString label, QString icon_path, QString icon_name, QWidget* widget, BaseWindow* window = 0);
-
-    static QList<ViewItem*> ToViewItemList(QList<NodeViewItem*> &items);
-    static QList<ViewItem*> ToViewItemList(QList<EdgeViewItem*> &items);
-
+    ~ViewController() final;
+    
+    DefaultDockWidget* constructDockWidget(const QString& label, const QString& icon_path, const QString& icon_name, QWidget* widget, BaseWindow* window = nullptr);
+    
+    static QList<ViewItem*> ToViewItemList(const QList<NodeViewItem*>& node_items);
+    static QList<ViewItem*> ToViewItemList(const QList<EdgeViewItem*>& edge_items);
+    
     bool isWelcomeScreenShowing();
     ContextMenu* getContextMenu();
-
+    
     SelectionController* getSelectionController();
     ActionController* getActionController();
-
+    
     QList<ViewItem*> getConstructableNodeDefinitions(NODE_KIND node_kind, EDGE_KIND edge_kind);
-
+    
     QList<ViewItem*> getNodesInstances(int ID) const;
-    QList<ViewItem*> getViewItems(QList<int> IDs);
-
+    QList<ViewItem*> getViewItems(const QList<int>& IDs);
+    
     QStringList _getSearchSuggestions();
-    QStringList GetIDs();    
-
-    QHash<QString, ViewItem*> getSearchResults(QString query, QList<ViewItem*> view_items = {});
-    QList<ViewItem*> filterList(QString query, QList<ViewItem*> view_items);
-    QList<ViewItem*> filterList(QString query, QList<NodeViewItem*> view_items){
-        return filterList(query, ViewController::ToViewItemList(view_items));
+    QStringList GetIDs();
+    
+    QHash<QString, ViewItem*> getSearchResults(const QString& query, QList<ViewItem*> view_items = {});
+    QList<ViewItem*> filterList(const QString& query, const QList<ViewItem*>& view_items);
+    QList<ViewItem*> filterList(const QString& query, const QList<NodeViewItem*>& node_items){
+        return filterList(query, ViewController::ToViewItemList(node_items));
     }
-    QList<ViewItem*> filterList(QString query, QList<EdgeViewItem*> view_items){
-        return filterList(query, ViewController::ToViewItemList(view_items));
+    QList<ViewItem*> filterList(const QString& query, const QList<EdgeViewItem*>& edge_items){
+        return filterList(query, ViewController::ToViewItemList(edge_items));
     }
-
+    
     QHash<EDGE_DIRECTION, ViewItem*> getValidEdges(EDGE_KIND kind);
     QMultiMap<EDGE_DIRECTION, ViewItem*> getExistingEndPointsOfSelection(EDGE_KIND kind);
-
-    ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent);
-
+    
+    ViewDockWidget* constructViewDockWidget(const QString& title, QWidget* parent);
+    
     QList<NodeViewItem*> getNodeKindItems();
     QList<EdgeViewItem*> getEdgeKindItems();
-
-    QList<ViewItem*> getViewItemParents(QList<ViewItem*> items);
-
+    
+    QList<ViewItem*> getViewItemParents(const QList<ViewItem*>& items);
+    
     int getNodeDefinitionID(int ID) const;
     QList<int> getNodeInstanceIDs(int ID) const;
-
+    
     void QueryRunningExperiments();
     
     ModelController* getModelController();
-
-    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(QList<int> ids);
+    
+    QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > getValidEdgeKinds(const QList<int>& ids);
     
     QSet<NODE_KIND> getValidNodeKinds();
     QSet<EDGE_KIND> getCurrentEdgeKinds();
-
+    
     QSet<NODE_KIND> getValidChartNodeKinds();
     QSet<MEDEA::ChartDataKind> getValidChartDataKindsForSelection();
-
-    QList<QVariant> getValidValuesForKey(int ID, QString keyName);
+    
+    QList<QVariant> getValidValuesForKey(int ID, const QString& keyName);
     static void SetDefaultIcon(ViewItem& viewItem);
     
     ViewItem* getModel();
     bool isControllerReady();
-
+    
     bool canUndo();
     bool canRedo();
-
+    
     void RequestJenkinsNodes();
     void RequestJenkinsBuildJob();
-    void RequestJenkinsBuildJobName(QString job_name);
-    void ShowJenkinsBuildDialog(QString job_name, QList<Jenkins_Job_Parameter> paramaters);
-    void ShowJenkinsBuildDialog(QStringList jobs);
-
-    void EditDataValue(int ID, QString key_name);
-
-    QVector<ViewItem*> getOrderedSelection(QList<int> selection);
-
+    void RequestJenkinsBuildJobName(const QString& job_name);
+    void ShowJenkinsBuildDialog(const QString& job_name, QList<Jenkins_Job_Parameter> paramaters);
+    void ShowJenkinsBuildDialog(const QStringList& jobs);
+    
     bool isNodeAncestor(int ID, int ID2);
     VIEW_ASPECT getNodeViewAspect(int ID);
-    QVariant getEntityDataValue(int ID, QString key_name);
+    QVariant getEntityDataValue(int ID, const QString& key_name);
     void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
-
+    
     void HighlightItems(const QList<int> &ids);
-
-private:
-    void SetParentNode(ViewItem* parent, ViewItem* child);
-    void notification_Added(QSharedPointer<NotificationObject> obj);
-    void notification_Destructed(QSharedPointer<NotificationObject> obj);
 
 signals:
     void GotJava(bool);
     void GotRe(bool);
     void GotRegen(bool);
     void GotJenkins(bool);
-
+    
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem* item);
@@ -140,95 +131,93 @@ signals:
     void vc_editTableCell(int ID, QString keyName);
     void vc_addProjectToRecentProjects(QString filePath);
     void vc_removeProjectFromRecentProjects(QString filePath);
-
+    
     void vc_showWelcomeScreen(bool);
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
-
+    
     void vc_centerOnItems(QList<int> ids);
     void vc_selectItems(QList<int> ids);
     void vc_centerItem(int ID);
     void vc_fitToScreen(bool if_active_view = false);
     void vc_highlightItem(int ID, bool highlight);
     void vc_selectAndCenterConnectedEntities(const QVector<ViewItem*>& item);
-
-    void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<MEDEA::ChartDataKind>& dataKinds);
+    
+    void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<MEDEA::ChartDataKind> dataKinds);
     void vc_displayChartPopup();
     void vc_displayExperimentDataflow();
-
+    
     void modelClosed();
+    
+    //Interface
+protected:
+    void ModelReady(bool ready) final;
+    void NodeConstructed(int parent_id, int id, NODE_KIND node_kind) final;
+    void EdgeConstructed(int id, EDGE_KIND edge_kind, int src_id, int dst_id) final;
+    void EntityDestructed(int id, GRAPHML_KIND kind) final;
+    void DataChanged(int id, DataUpdate data) final;
+    void DataRemoved(int id, const QString& key_name) final;
+    void NodeEdgeKindsChanged(int id) final;
+    void NodeTypesChanged(int id) final;
+    void AddNotification(MODEL_SEVERITY severity, const QString& title, const QString& description, int ID) final;
 
 public slots:
-    void incrementSelectedKey(QString key_name);
-    void decrementSelectedKey(QString key_name);
+    void incrementSelectedKey(const QString& key_name);
+    void decrementSelectedKey(const QString& key_name);
     
     void welcomeScreenToggled(bool visible);
-
-    void showCodeViewer(QString tabName, QString content);
-
+    
+    void showCodeViewer(const QString& tabName, const QString& content);
+    
     JobMonitor* getExecutionMonitor();
     void showExecutionMonitor();
-    void RefreshExecutionMonitor(QString job_name);
+    void RefreshExecutionMonitor(const QString& job_name);
     void ListJenkinsJobs();
-
-    void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
-
+    
+    void jenkinsManager_GotJenkinsNodesList(const QString& graphmlData);
+    
     void getCodeForComponent();
     void validateModel();
     void selectModel();
-
-    //Interface
-protected:
-    void ModelReady(bool ready);
-    void NodeConstructed(int parent_id, int id, NODE_KIND node_kind);
-    void EdgeConstructed(int id, EDGE_KIND edge_kind, int src_id, int dst_id);
-    void EntityDestructed(int id, GRAPHML_KIND kind);
-    void DataChanged(int id, DataUpdate data);
-    void DataRemoved(int id, QString key_name);
-    void NodeEdgeKindsChanged(int id);
-    void NodeTypesChanged(int id);
-    void AddNotification(MODEL_SEVERITY severity, QString title, QString description, int ID);
-
-public slots:
-
-    void setClipboardData(QString data);
-
+    
+    void setClipboardData(const QString& data);
+    
     void newProject();
     bool OpenProject();
     bool OpenExistingProject(QString file_path);
-
+    
     void importProjects();
-   
+    
     void autoSaveProject();
     void saveProject();
     void saveAsProject();
     void closeProject();
     void closeMEDEA();
-
+    
     void generateProjectWorkspace();
     void executeModelLocal();
-
+    
     void centerSelection();
     void alignSelectionVertical();
     void alignSelectionHorizontal();
     void selectAndCenterConnectedEntities();
     void selectAndCenterInstances();
     void centerOnID(int ID);
-
+    
     void showWiki();
     void reportBug();
     void showWikiForSelectedItem();
-
+    
     void centerImpl();
     void centerDefinition();
-
+    
     void popupDefinition();
     void popupImpl();
     void popupSelection();
     void popupItem(int ID);
-
+    
     void aboutQt();
     void aboutMEDEA();
-
+    
     void cut();
     void copy();
     void paste();
@@ -236,84 +225,85 @@ public slots:
     void deleteSelection();
     void expandSelection();
     void contractSelection();
-
+    
     void editLabel();
     void editReplicationCount();
-
-    void viewSelectionChart(QList<MEDEA::ChartDataKind> dataKinds);
-
+    
+    void viewSelectionChart(const QList<MEDEA::ChartDataKind>& dataKinds);
+    
     void setControllerReady(bool ready);
-    void openURL(QString url);
+    void openURL(const QString& url);
 
 private slots:
     void initializeController();
-    void table_dataChanged(int ID, QString key, QVariant data);
+    void table_dataChanged(int ID, const QString& key, const QVariant& data);
 
 private:
-    void SettingChanged(SETTINGS key, QVariant value);
+    void SetParentNode(ViewItem* parent, ViewItem* child);
+    void notification_Added(QSharedPointer<NotificationObject> notification);
+    void notification_Destructed(QSharedPointer<NotificationObject> notification);
+    
+    void SettingChanged(SETTINGS key, const QVariant& value);
     void AutosaveDurationChanged(int duration_minutes);
     void StartAutosaveCountdown();
     
     void StoreViewItem(ViewItem* view_item);
     QList<ViewItem*> getSearchableEntities();
-
+    
     void setupEntityKindItems();
-    void _showGitHubPage(QString relURL="");
-    void _showWebpage(QString URL);
-    void _showWiki(ViewItem* item=0);
+    
+    void _showGitHubPage(const QString& relURL = "");
+    void _showWebpage(const QString& URL);
+    void _showWiki(ViewItem* item = nullptr);
+    
     QString getTempFileForModel();
+    
     void spawnSubView(ViewItem *item);
     
     void DestructViewItem(ViewItem* item);
     void ResetViewItems();
-
+    
+    ViewItem* getViewItem(int ID) const;
     ViewItem* getActiveSelectedItem() const;
-
-    NodeViewItem* getNodeViewItem(int ID) const;
-
+    
     NodeViewItem* getNodesImpl(int ID) const;
     NodeViewItem* getNodesDefinition(int ID) const;
-    //QList<NodeViewItem*> getNodesInstances(int ID);
-
+    
+    NodeViewItem* getNodeViewItem(int ID) const;
     NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
-
+    
     NodeView* getActiveNodeView();
     void TeardownController();
-
-    bool newProjectUsed;
-
-    bool _newProject(QString file_path="");
+    
+    bool _newProject(const QString& file_path = "");
     bool _saveProject();
-    bool _saveAsProject(QString file_path = "");
-    bool _closeProject(bool show_welcome=false);
+    bool _saveAsProject(const QString& file_path = "");
+    bool _closeProject(bool show_welcome = false);
     void _importProjects();
-    void _importProjectFiles(QStringList fileName);
-    bool _openProject(QString filePath = "");
-
+    void _importProjectFiles(const QStringList& fileName);
+    
     QHash<NODE_KIND, NodeViewItem*> nodeKindItems;
     QHash<EDGE_KIND, EdgeViewItem*> edgeKindItems;
-
-    //bool _controllerReady = true; // TODO - Ask Dan if this will break anything!
+    
     bool _controllerReady = false;
-
-    ViewItem* getViewItem(int ID) const;
-
-    ViewItem* root_item = 0;
+    
+    ViewItem* root_item = nullptr;
     QHash<int, ViewItem*> view_items_;
     int model_id_ = -1;
-
-    BaseDockWidget* codeViewer = 0;
-    CodeBrowser* codeBrowser = 0;
-    BaseDockWidget* execution_monitor = 0;
-    JobMonitor* job_monitor = 0;
-
-    SelectionController* selectionController;
-    ActionController* actionController;
-    ExecutionManager* execution_manager;
-    JenkinsManager* jenkins_manager;
-
-    ContextMenu* menu = 0;
-    ModelController* controller = 0;
+    
+    BaseDockWidget* codeViewer = nullptr;
+    CodeBrowser* codeBrowser = nullptr;
+    BaseDockWidget* execution_monitor = nullptr;
+    JobMonitor* job_monitor = nullptr;
+    
+    SelectionController* selectionController = nullptr;
+    ActionController* actionController = nullptr;
+    ExecutionManager* execution_manager = nullptr;
+    JenkinsManager* jenkins_manager = nullptr;
+    
+    ContextMenu* menu = nullptr;
+    ModelController* controller = nullptr;
+    
     QTimer autosave_timer_;
     bool is_autosave_enabled_ = false;
     int autosave_id_ = 0;
@@ -326,7 +316,5 @@ inline uint qHash(MEDEA::ChartDataKind key, uint seed)
     return ::qHash(static_cast<uint>(key), seed);
 }
 Q_DECLARE_METATYPE(MEDEA::ChartDataKind)
-
-
 
 #endif // VIEWCONTROLLER_H

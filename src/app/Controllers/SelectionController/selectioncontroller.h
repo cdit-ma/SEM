@@ -4,13 +4,13 @@
 #include "selectionhandler.h"
 
 class ViewDockWidget;
-class NodeViewDockWidget;
 class SelectionController : public QObject
 {
     friend class SelectionHandler;
     Q_OBJECT
+    
 public:
-    SelectionController(ViewController* controller);
+    explicit SelectionController(ViewController* controller);
 
     SelectionHandler* constructSelectionHandler(QObject* object);
     void registerSelectionHandler(QObject* object, SelectionHandler* handler);
@@ -33,23 +33,25 @@ signals:
     void clearSelection();
     void selectAll();
     void setIndex(int ID, int index);
+    
 private slots:
     void activeViewDockWidgetChanged(ViewDockWidget* widget);
     void cycleActiveSelectionBackward();
     void cycleActiveSelectionForward();
 
     void removeSelectionHandler();
+    
 private:
     void cycleActiveSelectedItem(bool forward);
     void setCurrentViewDockWidget(ViewDockWidget* dock);
     void setCurrentSelectionHandler(SelectionHandler* handler);
 
-    ViewDockWidget* currentViewDockWidget;
-    SelectionHandler* currentHandler;
-
+    ViewDockWidget* currentViewDockWidget = nullptr;
+    SelectionHandler* currentHandler = nullptr;
+    ViewController* viewController = nullptr;
+    
     QHash<QObject*, int> selectionHandlerIDLookup;
     QHash<int, SelectionHandler*> selectionHandlers;
-    ViewController* viewController;
 };
 
 #endif // SELECTIONCONTROLLER_H

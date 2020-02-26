@@ -169,7 +169,6 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
         
         auto results = requester_->GetExperimentRuns(request);
         for (const auto& ex : results->experiments()) {
-            const auto& experiment_name = ConstructQString(ex.name());
             for (auto& ex_run : ex.runs()) {
                 AggServerResponse::ExperimentRun run;
                 run.experiment_name = experiment_name;
@@ -776,7 +775,7 @@ PortEvent::PortEventType AggregationProxy::ConvertPortEventType(const AggServer:
 std::unique_ptr<google::protobuf::Timestamp> AggregationProxy::ConstructTimestampFromMS(qint64 milliseconds)
 {
     google::protobuf::Timestamp timestamp = google::protobuf::util::TimeUtil::MillisecondsToTimestamp(milliseconds);
-    return std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp(timestamp));
+    return std::make_unique<google::protobuf::Timestamp>(timestamp);
 }
 
 

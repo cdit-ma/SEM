@@ -12,13 +12,15 @@ const QSet<QString> ViewItem::permanent_protected_keys({"ID"});
 const QSet<QString> ViewItem::permanent_editable_keys({"column_count"});
 
 
-bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
+bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b)
+{
     auto a_kind = a->getData(KeyName::Label).toString();
     auto b_kind = b->getData(KeyName::Label).toString();
     return a_kind < b_kind;
 }
 
-bool ViewItem::SortByKind(const ViewItem *a, const ViewItem *b){
+bool ViewItem::SortByKind(const ViewItem *a, const ViewItem *b)
+{
     auto a_kind = a->getData(KeyName::Kind).toString();
     auto b_kind = b->getData(KeyName::Kind).toString();
     if(a_kind == b_kind){
@@ -40,7 +42,7 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
     this->controller = controller;
     this->ID = ID;
     this->entityKind = entity_kind;
-    //Add X/Y
+    
     changeData("ID", ID);
     
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
@@ -48,16 +50,12 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
-    Disconnect();
-
-    while(child_nodes_.size()){
+    while(!child_nodes_.isEmpty()){
         removeChild(*child_nodes_.begin());
     }
-
-    while(child_edges_.size()){
+    while(!child_edges_.isEmpty()){
         removeChild(*child_edges_.begin());
     }
-
 }
 
 VIEW_ASPECT ViewItem::getViewAspect()
@@ -96,7 +94,6 @@ bool ViewItem::isEdge() const
     return getEntityKind() == GRAPHML_KIND::EDGE;
 }
 
-
 QVariant ViewItem::getData(const QString& key_name) const
 {
     return _data.value(key_name);
@@ -122,7 +119,6 @@ bool ViewItem::isDataProtected(const QString& key_name) const
     }
 }
 
-
 bool ViewItem::isReadOnly() const
 {
     if(hasData(KeyName::ReadOnly)){
@@ -140,7 +136,6 @@ bool ViewItem::setDefaultIcon(const QString& prefix, const QString& name)
         default_icon.second = name;
     }
 
-    
     default_valid = Theme::theme()->gotImage(default_icon);
     emit iconChanged();
     return default_valid;
@@ -161,7 +156,6 @@ bool ViewItem::setIcon(const QString& prefix, const QString& name)
     return current_valid;
 }
 
-
 const IconPair& ViewItem::getIcon() const
 {
     if(current_valid){
@@ -174,10 +168,11 @@ const IconPair& ViewItem::getIcon() const
     }
 }
 
-void ViewItem::Disconnect(){
+void ViewItem::Disconnect()
+{
     if(_parent){
         _parent->removeChild(this);
-        _parent = 0;
+        _parent = nullptr;
     }
 }
 
@@ -192,16 +187,14 @@ void ViewItem::destruct()
     }
 }
 
-void ViewItem::childAdded(ViewItem* child){
-}
-void ViewItem::childRemoved(ViewItem* child){
-}
+void ViewItem::childAdded(ViewItem* child) {}
+
+void ViewItem::childRemoved(ViewItem* child) {}
 
 void ViewItem::addChild(ViewItem *child)
 {
     if(child){
         auto& set = child->isNode() ? child_nodes_ : child_edges_;
-        
         auto pre_size = set.size();
         set.insert(child);
 
@@ -218,7 +211,6 @@ void ViewItem::removeChild(ViewItem *child)
 {
     if(child){
         auto& set = child->isNode() ? child_nodes_ : child_edges_;
-        
         auto pre_size = set.size();
         set.remove(child);
 
@@ -233,7 +225,8 @@ QSet<ViewItem *> ViewItem::getDirectChildren() const
     return child_nodes_ + child_edges_;
 }
 
-QList<ViewItem* > ViewItem::getNestedChildren(){
+QList<ViewItem* > ViewItem::getNestedChildren()
+{
     QList<ViewItem*> nodes;
     QList<ViewItem*> edges;
 
@@ -268,10 +261,10 @@ void ViewItem::setParentViewItem(ViewItem *item)
     _parent = item;
 }
 
-ViewController* ViewItem::getController(){
+ViewController* ViewItem::getController()
+{
     return controller;
 }
-
 
 QList<QVariant> ViewItem::getValidValuesForKey(const QString& keyName) const
 {
@@ -282,7 +275,7 @@ QList<QVariant> ViewItem::getValidValuesForKey(const QString& keyName) const
     return valid_values;
 }
 
-void ViewItem::changeData(const QString& keyName, QVariant data, bool is_protected)
+void ViewItem::changeData(const QString& keyName, const QVariant& data, bool is_protected)
 {
     bool addedData = !_data.contains(keyName);
     _data[keyName] = data;
@@ -292,7 +285,6 @@ void ViewItem::changeData(const QString& keyName, QVariant data, bool is_protect
     }else{
         protected_keys.remove(keyName);
     }
-
 
     if(addedData){
         emit dataAdded(keyName, data);
@@ -307,7 +299,8 @@ void ViewItem::changeData(const QString& keyName, QVariant data, bool is_protect
     }
 }
 
-void ViewItem::updateIcon(){
+void ViewItem::updateIcon()
+{
     auto icon = _data.value(KeyName::Icon, "").toString();
     auto icon_prefix = _data.value(KeyName::IconPrefix, "").toString();
     setIcon(icon_prefix, icon);
@@ -321,28 +314,38 @@ void ViewItem::removeData(const QString& keyName)
     }
 }
 
-
-
-void ViewItem::addNotification(QSharedPointer<NotificationObject> notification){
+void ViewItem::addNotification(QSharedPointer<NotificationObject> notification)
+{
     notifications_.insert(notification);
-    connect(notification.data(), &NotificationObject::notificationChanged, [=](QSharedPointer<NotificationObject>){emit notificationsChanged();});
+    connect(notification.data(), &NotificationObject::notificationChanged, this, &ViewItem::notificationsChanged);
+    
+    // (SEM-96) NOTE - Changed connect notation to the one above
+    // Revert/investigate if there are any issues regarding notification objects/changes
+    /*
+    connect(notification.data(), &NotificationObject::notificationChanged, [=](const QSharedPointer<NotificationObject>&)
+    {
+        emit notificationsChanged();
+    });
+    */
+    
     emit notificationsChanged();
 }
 
-void ViewItem::removeNotification(QSharedPointer<NotificationObject> notification){
+void ViewItem::removeNotification(QSharedPointer<NotificationObject> notification)
+{
     notifications_.remove(notification);
     emit notificationsChanged();
 }
 
-QSet<QSharedPointer<NotificationObject> > ViewItem::getNotifications(){
+QSet<QSharedPointer<NotificationObject> > ViewItem::getNotifications()
+{
     return notifications_;
 }
 
-QSet<QSharedPointer<NotificationObject> > ViewItem::getNestedNotifications(){
+QSet<QSharedPointer<NotificationObject> > ViewItem::getNestedNotifications()
+{
     QSet<QSharedPointer<NotificationObject> > notifications;
-    
     notifications += getNotifications();
-
     for(auto child : getDirectChildren()){
         notifications += child->getNestedNotifications();
     }

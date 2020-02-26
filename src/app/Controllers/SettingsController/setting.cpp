@@ -1,16 +1,16 @@
 #include "setting.h"
 #include <QStringBuilder>
-Setting::Setting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name)
+
+Setting::Setting(SETTINGS ID, SETTING_TYPE type, const QString& category, const QString& section, const QString& name)
 {
     this->ID = ID;
     this->type = type;
     this->category = category;
     this->section = section;
     this->name = name;
-    this->defaultValue = "";
-    this->value = "";
+    defaultValue = "";
+    value = "";
 }
-
 
 SETTINGS Setting::getID() const
 {
@@ -42,21 +42,24 @@ QVariant Setting::getDefaultValue() const
     return defaultValue;
 }
 
-
 QPair<QString, QString> Setting::getIcon() const
 {
     return icon;
 }
 
-bool Setting::gotIcon() const{
+bool Setting::gotIcon() const
+{
     return icon.first != "" && icon.second != "";
 }
 
-void Setting::setIcon(QString path, QString name){
+void Setting::setIcon(const QString& path, const QString& name)
+{
     icon.first = path;
     icon.second = name;
 }
-void Setting::setIcon(QPair<QString, QString> icon){
+
+void Setting::setIcon(const QPair<QString, QString>& icon)
+{
     setIcon(icon.first, icon.second);
 }
 
@@ -65,7 +68,7 @@ bool Setting::isThemeSetting() const
     return category.toLower() == "theme";
 }
 
-void Setting::setDefaultValue(QVariant value)
+void Setting::setDefaultValue(const QVariant& value)
 {
     if(defaultValue != value){
         defaultValue = value;
@@ -73,8 +76,7 @@ void Setting::setDefaultValue(QVariant value)
     }
 }
 
-
-bool Setting::setValue(QVariant value)
+bool Setting::setValue(const QVariant& value)
 {
    //Update if setting has changed
    if(value != this->value){

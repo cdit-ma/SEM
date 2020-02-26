@@ -4,8 +4,9 @@
 #include <QSettings>
 #include <QObject>
 
-enum class SETTINGS{
+enum class SETTINGS {
     NONE,
+    
     // GENERAL
     GENERAL_MODEL_PATH,
     GENERAL_RE_CONFIGURE_PATH,
@@ -18,7 +19,6 @@ enum class SETTINGS{
     GENERAL_RECENT_PROJECTS,
     GENERAL_RESET_SETTINGS,
     GENERAL_SHOW_WORKER_ASPECT,
-
     GENERAL_ZOOM_UNDER_MOUSE,
     GENERAL_ON_CONSTRUCTION_CENTER,
     GENERAL_ON_CONSTRUCTION_SELECT,
@@ -97,8 +97,7 @@ enum class SETTINGS{
     THEME_APPLY
 };
 
-
-enum class SETTING_TYPE{
+enum class SETTING_TYPE {
     NONE,
     COLOR,
     STRING,
@@ -113,48 +112,49 @@ enum class SETTING_TYPE{
     PERCENTAGE
 };
 
-
 class Setting;
 class AppSettings;
 class SettingsController : public QObject
 {
     Q_OBJECT
+    
 protected:
-    SettingsController(QObject *parent = 0);
-    ~SettingsController();
+    explicit SettingsController(QObject* parent = nullptr);
+    ~SettingsController() final;
+    
 public:
     QVariant getSetting(SETTINGS ID);
     bool isWriteProtected();
     bool isThemeSetting(SETTINGS key);
     QList<Setting*> getSettings();
-    QList<SETTINGS> getSettingsKeys(QString category="", QString section="", QString name="");
+    QList<SETTINGS> getSettingsKeys(const QString& category = "", const QString& section = "", const QString& name = "");
+    
+    static SettingsController* settings();
 
 signals:
     void settingsApplied();
     void settingChanged(SETTINGS ID, QVariant value);
+    
 public slots:
-    void setSetting(SETTINGS ID, QVariant value);
+    void setSetting(SETTINGS ID, const QVariant& value);
     void showSettingsWidget();
     void resetSettings();
-
-
     void saveSettings();
+    
 private:
     void initializeSettings();
     void loadSettingsFromFile();
-    void writeSetting(Setting* setting, QVariant value);
+    void writeSetting(Setting* setting, const QVariant& value);
 
-    void _setSetting(Setting* setting, QVariant value);
-    Setting* createSetting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name, QString icon_path = "", QString icon_name = "");
+    void _setSetting(Setting* setting, const QVariant& value);
+    Setting* createSetting(SETTINGS ID, SETTING_TYPE type, const QString& category, const QString& section, const QString& name, const QString& icon_path = "", const QString& icon_name = "");
     Setting* _getSetting(SETTINGS ID);
 
     QHash<SETTINGS, Setting*> settingsHash;
     QList<SETTINGS> settingsKeys;
-    QSettings* settingsFile = 0;
-    AppSettings* settingsGUI = 0;
-
-public:
-    static SettingsController* settings();
+    
+    QSettings* settingsFile = nullptr;
+    AppSettings* settingsGUI = nullptr;
 };
 
 inline uint qHash(SETTINGS key, uint seed)

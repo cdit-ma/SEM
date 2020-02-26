@@ -1,26 +1,24 @@
 #include "settingscontroller.h"
 #include "setting.h"
-#include <QDebug>
+#include "../../theme.h"
+#include "../../Widgets/Dialogs/appsettings.h"
+
 #include <QApplication>
 #include <QSettings>
 #include <QStringBuilder>
 #include <QVariant>
 
-#include "../../theme.h"
-#include "../../Widgets/Dialogs/appsettings.h"
-
-SettingsController::SettingsController(QObject *parent) : QObject(parent)
+SettingsController::SettingsController(QObject *parent)
+        : QObject(parent)
 {
     initializeSettings();
 
     settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
-
     
     //Connect to the
     connect(Theme::theme(), &Theme::changeSetting, this, &SettingsController::setSetting);
     connect(this, &SettingsController::settingChanged, Theme::theme(), &Theme::settingChanged);
     
-
     //Place defaults in case nothing is set.
     emit settingChanged(SETTINGS::THEME_SETTHEME_DARKTHEME, true);
     emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
@@ -43,7 +41,7 @@ QVariant SettingsController::getSetting(SETTINGS ID)
     return QVariant();
 }
 
-void SettingsController::setSetting(SETTINGS ID, QVariant value)
+void SettingsController::setSetting(SETTINGS ID, const QVariant& value)
 {
     _setSetting(_getSetting(ID), value);
 }
@@ -70,7 +68,7 @@ QList<Setting *> SettingsController::getSettings()
     return s;
 }
 
-QList<SETTINGS> SettingsController::getSettingsKeys(QString category, QString section, QString name)
+QList<SETTINGS> SettingsController::getSettingsKeys(const QString& category, const QString& section, const QString& name)
 {
     QList<SETTINGS> keys;
 
@@ -267,7 +265,7 @@ QString getSettingGroupKey(Setting* setting){
     return str;
 }
 
-void SettingsController::writeSetting(Setting* setting, QVariant value){
+void SettingsController::writeSetting(Setting* setting, const QVariant& value){
     if(setting && settingsFile){
         settingsFile->beginGroup(getSettingGroupKey(setting));
         settingsFile->setValue(getSettingKey(setting), value);
@@ -299,7 +297,7 @@ void SettingsController::loadSettingsFromFile()
     }
 }
 
-void SettingsController::_setSetting(Setting *setting, QVariant value)
+void SettingsController::_setSetting(Setting *setting, const QVariant& value)
 {
     if(setting && setting->setValue(value)){
         emit settingChanged(setting->getID(), setting->getValue());
@@ -311,10 +309,10 @@ void SettingsController::_setSetting(Setting *setting, QVariant value)
 
 }
 
-Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name, QString iconPath, QString iconName)
+Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, const QString& category, const QString& section, const QString& name, const QString& iconPath, const QString& iconName)
 {
     if(!settingsHash.contains(ID)){
-        Setting* setting = new Setting(ID, type, category, section, name);
+        auto setting = new Setting(ID, type, category, section, name);
         if(iconPath != "" && iconName != ""){
             setting->setIcon(iconPath, iconName);
         }
@@ -324,7 +322,7 @@ Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, QStri
     }else{
         qCritical() << "Duplicate setting created.";
     }
-    return 0;
+    return nullptr;
 }
 
 Setting *SettingsController::_getSetting(SETTINGS ID)
@@ -332,13 +330,13 @@ Setting *SettingsController::_getSetting(SETTINGS ID)
     if(settingsHash.contains(ID)){
         return settingsHash[ID];
     }
-    return 0;
+    return nullptr;
 }
 
 void SettingsController::showSettingsWidget()
 {
     if(!settingsGUI){
-        settingsGUI = new AppSettings(0);
+        settingsGUI = new AppSettings(nullptr);
         connect(settingsGUI, &AppSettings::setSetting, this, &SettingsController::setSetting);
         connect(this, &SettingsController::settingChanged, settingsGUI, &AppSettings::settingChanged);
         connect(settingsGUI, &AppSettings::settingsApplied, this, &SettingsController::saveSettings);
