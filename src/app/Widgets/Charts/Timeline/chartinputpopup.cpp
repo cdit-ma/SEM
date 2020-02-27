@@ -119,7 +119,6 @@ void ChartInputPopup::themeChanged()
 void ChartInputPopup::setPopupVisible(bool visible)
 {
     setVisible(visible);
-
     if (visible) {
         if (originalCenterPos_.isNull()) {
             originalCenterPos_ = pos() + QPointF(sizeHint().width()/2.0, sizeHint().height()/2.0);
@@ -142,7 +141,7 @@ void ChartInputPopup::setExperimentRuns(const QString& experimentName, const QLi
     QStringList experimentNames;
     if (experimentName.isEmpty()) {
         for (const auto& run : experimentRuns) {
-            auto&& exp_name = run.experiment_name;
+            const auto& exp_name = run.experiment_name;
             experimentNames.append(exp_name);
             experimentRuns_.insert(exp_name, run);
         }

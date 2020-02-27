@@ -432,7 +432,7 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
 /**
  * @brief ExperimentDataManager::processExperimentRuns
  * This is called when the experiment runs for a given experiment name has successfully been received
- * It stores the experiment runs' data with its associated experimnent, and sets the ChartInputPopup's stringlist model for the menu
+ * It stores the experiment runs' data with its associated experiment, and sets the ChartInputPopup's stringlist model for the menu
  * @param experiment_name
  * @param experiment_runs
  * @throws std::runtime_error
@@ -447,6 +447,9 @@ void ExperimentDataManager::processExperimentRuns(const QString& experiment_name
     if (experiment_name.isEmpty()) {
         for (const auto& exp_run : experiment_runs) {
             const auto& exp_run_name = exp_run.experiment_name;
+            if (exp_run_name.isEmpty()) {
+                throw std::runtime_error("ExperimentDataManager::processExperimentRuns - Experiment run name cannot be empty");
+            }
             MEDEA::ExperimentData* exp_data = experiment_data_hash_.value(exp_run_name, nullptr);
             if (exp_data == nullptr) {
                 exp_data = constructExperimentData(exp_run_name);

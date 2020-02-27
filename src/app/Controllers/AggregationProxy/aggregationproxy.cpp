@@ -168,14 +168,15 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
         request.set_experiment_name(experiment_name.toStdString());
         
         auto results = requester_->GetExperimentRuns(request);
-        for (const auto& ex : results->experiments()) {
-            for (auto& ex_run : ex.runs()) {
+        for (const auto& exp : results->experiments()) {
+            const auto& exp_name = ConstructQString(exp.name());
+            for (auto& exp_run : exp.runs()) {
                 AggServerResponse::ExperimentRun run;
-                run.experiment_name = experiment_name;
-                run.experiment_run_id = static_cast<qint32>(ex_run.experiment_run_id());
-                run.job_num = ex_run.job_num();
-                run.start_time = ConstructQDateTime(ex_run.start_time()).toMSecsSinceEpoch();
-                run.end_time = ConstructQDateTime(ex_run.end_time()).toMSecsSinceEpoch();
+                run.experiment_name = exp_name;
+                run.experiment_run_id = static_cast<qint32>(exp_run.experiment_run_id());
+                run.job_num = exp_run.job_num();
+                run.start_time = ConstructQDateTime(exp_run.start_time()).toMSecsSinceEpoch();
+                run.end_time = ConstructQDateTime(exp_run.end_time()).toMSecsSinceEpoch();
                 runs.append(run);
             }
         }
