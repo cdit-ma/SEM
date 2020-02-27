@@ -10,10 +10,10 @@ class NetworkUtilisationEvent : public MEDEA::Event
 public:
     explicit NetworkUtilisationEvent(const QString& hostname,
                                     const QString& interface_mac_addr,
-                                    qint64 delta_packets_sent,
-                                    qint64 delta_packets_received,
-                                    qint64 delta_bytes_sent,
-                                    qint64 delta_bytes_received,
+                                    qint64 packets_sent,
+                                    qint64 packets_received,
+                                    qint64 bytes_sent,
+                                    qint64 bytes_received,
                                     qint64 time,
                                     QObject* parent = nullptr);
 
@@ -24,10 +24,10 @@ public:
     const QString& getHostname() const;
     const QString& getInterfaceMacAddress() const;
 
-    qint64 getDeltaPacketsSent() const;
-    qint64 getDeltaPacketsReceived() const;
-    qint64 getDeltaBytesSent() const;
-    qint64 getDeltaBytesReceived() const;
+    qint64 getPacketsSent() const;
+    qint64 getPacketsReceived() const;
+    qint64 getBytesSent() const;
+    qint64 getBytesReceived() const;
 
 private:
     QString series_id_;
@@ -35,10 +35,10 @@ private:
     QString hostname_;
     QString interface_mac_address_;
 
-    qint64 delta_packets_sent_;
-    qint64 delta_packets_received_;
-    qint64 delta_bytes_sent_;
-    qint64 delta_bytes_received_;
+    qint64 packets_sent_;
+    qint64 packets_received_;
+    qint64 bytes_sent_;
+    qint64 bytes_received_;
 };
 
 #endif // NETWORKUTILISATIONEVENT_H

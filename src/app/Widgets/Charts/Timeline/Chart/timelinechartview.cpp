@@ -302,7 +302,9 @@ void TimelineChartView::themeChanged()
             buttonIcon = theme->getIcon("ToggleIcons", "networkHover");
             break;
         default:
-            qWarning("TimelineChartView::themeChanged - May be missing an icon for a ChartDataKind.");
+            if (kind != MEDEA::ChartDataKind::DATA) {
+                qWarning("TimelineChartView::themeChanged - May be missing an icon for a ChartDataKind.");
+            }
             continue;
         }
         auto button = hoverDisplayButtons_.value(kind, nullptr);

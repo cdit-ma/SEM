@@ -101,16 +101,16 @@ private:
     }
 
     static void fillEvent(AggServer::NetworkUtilisationEvent& event,
-                          int64_t delta_packets_sent,
-                          int64_t delta_packets_received,
-                          int64_t delta_bytes_sent,
-                          int64_t delta_bytes_received,
+                          int64_t packets_sent,
+                          int64_t packets_received,
+                          int64_t bytes_sent,
+                          int64_t bytes_received,
                           int64_t time_ms)
     {
-        event.set_delta_packets_sent(delta_packets_sent);
-        event.set_delta_packets_received(delta_packets_received);
-        event.set_delta_bytes_sent(delta_bytes_sent);
-        event.set_delta_bytes_received(delta_bytes_received);
+        event.set_packets_sent(packets_sent);
+        event.set_packets_received(packets_received);
+        event.set_bytes_sent(bytes_sent);
+        event.set_bytes_received(bytes_received);
         *event.mutable_time() = TimeUtil::MillisecondsToTimestamp(time_ms);
     }
 

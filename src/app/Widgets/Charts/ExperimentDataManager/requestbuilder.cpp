@@ -24,25 +24,25 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
     for (auto kind : requestKinds) {
         switch (kind) {
         case MEDEA::ChartDataKind::PORT_LIFECYCLE:
-            portLifecycleRequest_ = std::unique_ptr<PortLifecycleRequest>(new PortLifecycleRequest());
+            portLifecycleRequest_ = std::make_unique<PortLifecycleRequest>(PortLifecycleRequest());
             break;
         case MEDEA::ChartDataKind::WORKLOAD:
-            workloadRequest_ = std::unique_ptr<WorkloadRequest>(new WorkloadRequest());
+            workloadRequest_ = std::make_unique<WorkloadRequest>(WorkloadRequest());
             break;
         case MEDEA::ChartDataKind::CPU_UTILISATION:
-            cpuUtilisationRequest_ = std::unique_ptr<CPUUtilisationRequest>(new CPUUtilisationRequest());
+            cpuUtilisationRequest_ = std::make_unique<CPUUtilisationRequest>(CPUUtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = std::unique_ptr<MemoryUtilisationRequest>(new MemoryUtilisationRequest());
+            memoryUtilisationRequest_ = std::make_unique<MemoryUtilisationRequest>(MemoryUtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MARKER:
-            markerRequest_ = std::unique_ptr<MarkerRequest>(new MarkerRequest());
+            markerRequest_ = std::make_unique<MarkerRequest>(MarkerRequest());
             break;
         case MEDEA::ChartDataKind::PORT_EVENT:
-            portEventRequest_ = std::unique_ptr<PortEventRequest>(new PortEventRequest());
+            portEventRequest_ = std::make_unique<PortEventRequest>(PortEventRequest());
             break;
         case MEDEA::ChartDataKind::NETWORK_UTILISATION:
-            networkUtilisationRequest_ = std::unique_ptr<NetworkUtilisationRequest>(new NetworkUtilisationRequest());
+            networkUtilisationRequest_ = std::make_unique<NetworkUtilisationRequest>(NetworkUtilisationRequest());
             break;
         default:
             qWarning("RequestBuilder::buildRequests - Unknown chart data kind");

@@ -546,22 +546,24 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
             agg_request.add_node_hostnames(name.toStdString());
         }
 
+        //auto results = DummyResponseBuilder::getMultiEventsResponse();
         const auto& results = requester_->GetNetworkUtilisation(agg_request);
+        
         for (const auto& node_network_event : results->node_network_events()) {
             const auto& hostname = ConstructQString(node_network_event.node_info().hostname());
             for (const auto& interface_network_event : node_network_event.events()) {
                 const auto& interface_mac_addr = ConstructQString(interface_network_event. interface_mac_addr());
                 for (const auto& event : interface_network_event.events()) {
-                    const auto& delta_packets_sent = event.delta_packets_sent();
-                    const auto& delta_packets_received = event.delta_packets_received();
-                    const auto& delta_bytes_sent = event.delta_bytes_sent();
-                    const auto& delta_bytes_received = event.delta_bytes_received();
+                    const auto& packets_sent = event.packets_sent();
+                    const auto& packets_received = event.packets_received();
+                    const auto& bytes_sent = event.bytes_sent();
+                    const auto& bytes_received = event.bytes_received();
                     const auto& time = ConstructQDateTime(event.time());
-                    events.append(new NetworkUtilisationEvent(hostname, interface_mac_addr, delta_packets_sent, delta_packets_received, delta_bytes_sent, delta_bytes_received, time.toMSecsSinceEpoch()));
+                    events.append(new NetworkUtilisationEvent(hostname, interface_mac_addr, packets_sent, packets_received, bytes_sent, bytes_received, time.toMSecsSinceEpoch()));
                 }
             }
         }
-
+        
         return events;
 
     } catch (const std::exception& ex) {

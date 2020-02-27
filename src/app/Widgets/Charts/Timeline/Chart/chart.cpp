@@ -405,9 +405,14 @@ void Chart::themeChanged()
     defaultPortEventColor_ = theme->getSeverityColor(Notification::Severity::WARNING);
     portEventColor_ = defaultPortEventColor_;
 
-    defaultNetworkColor_sent_ = Qt::cyan;
+    if (theme->getTextColor() == theme->black()) {
+        defaultNetworkColor_sent_ = Qt::darkCyan;
+        defaultNetworkColor_received_ = Qt::darkMagenta;
+    } else {
+        defaultNetworkColor_sent_ = Qt::cyan;
+        defaultNetworkColor_received_ = Qt::magenta;
+    }
     networkColor_sent_ = defaultNetworkColor_sent_;
-    defaultNetworkColor_received_ = Qt::magenta;
     networkColor_received_ = defaultNetworkColor_received_;
 
     backgroundDefaultColor_ = theme->getAltBackgroundColor();
@@ -885,7 +890,6 @@ void Chart::paintCPUUtilisationEventSeries(QPainter &painter)
     }
 
     auto availableHeight = height() - barWidth - BORDER_WIDTH / 2.0;
-    auto seriesColor = utilisationColor_;
     QList<QRectF> rects;
 
     for (int i = 0; i < totalBarCount; i++) {
@@ -1040,7 +1044,6 @@ void Chart::paintMemoryUtilisationEventSeries(QPainter &painter)
     }
 
     auto availableHeight = height() - barWidth;
-    auto seriesColor = memoryColor_;
     QList<QRectF> rects;
 
     for (int i = 0; i < totalBarCount; i++) {
@@ -1293,7 +1296,7 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
     const auto& events = eventSeries->getEvents();
     if  (events.isEmpty())
         return;
-
+        
     double barWidth = POINT_WIDTH;
     double barCount = ceil((double)width() / barWidth);
     double barTimeWidth = (displayMax_ - displayMin_) / barCount;
@@ -1402,7 +1405,7 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
         }
         first_contributing_event++;
     }
-
+    
     QList<QRectF> rects_sent, rects_received;
     auto availableHeight = height() - barWidth;
     double y_range = dataMaxY_ - dataMinY_;
@@ -1419,25 +1422,28 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
         auto bytes_sent = 0.0;
         auto bytes_received = 0.0;
         for (auto e : buckets[i]) {
-            bytes_sent += e->getDeltaBytesSent();
-            bytes_received += e->getDeltaBytesReceived();
+            bytes_sent += e->getBytesSent();
+            bytes_received += e->getBytesReceived();
         }
         bytes_sent /= count;
         bytes_received /= count;
 
-        // update the total bytes sent/received
-        total_sent_ += bytes_sent;
-        total_received += bytes_received;
-
         double x = (i - prevBarCount) * barWidth;
-        double y_sent = availableHeight - (total_sent_ - dataMinY_) / y_range * availableHeight;
-        double y_received = availableHeight - (total_received - dataMinY_) / y_range * availableHeight;
+        double y_sent = availableHeight - (bytes_sent - dataMinY_) / y_range * availableHeight;
+        double y_received = availableHeight - (bytes_received - dataMinY_) / y_range * availableHeight;
         rects_sent.append(QRectF(x, y_sent, barWidth, barWidth));
         rects_received.append(QRectF(x, y_received, barWidth, barWidth));
     }
-
-    drawLineFromRects(painter, rects_sent, networkColor_sent_, networkSeriesOpacity_, ChartDataKind::NETWORK_UTILISATION);
-    drawLineFromRects(painter, rects_received, networkColor_received_, networkSeriesOpacity_, ChartDataKind::NETWORK_UTILISATION);
+    
+    if (rects_sent == rects_received) {
+        drawLineFromRects(painter, rects_sent, Qt::blue, networkSeriesOpacity_,
+                          ChartDataKind::NETWORK_UTILISATION);
+    } else {
+        drawLineFromRects(painter, rects_sent, networkColor_sent_, networkSeriesOpacity_,
+                          ChartDataKind::NETWORK_UTILISATION);
+        drawLineFromRects(painter, rects_received, networkColor_received_, networkSeriesOpacity_,
+                          ChartDataKind::NETWORK_UTILISATION);
+    }
 
     auto finish = QDateTime::currentMSecsSinceEpoch();
     if (PRINT_RENDER_TIMES) {
