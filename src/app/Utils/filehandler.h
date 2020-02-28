@@ -1,52 +1,50 @@
 #ifndef FILEHANDLER_H
 #define FILEHANDLER_H
+
 #include <QObject>
 #include <QFileDialog>
+
 #include "../Controllers/NotificationManager/notificationmanager.h"
 
 class FileHandler : public QObject
 {
     Q_OBJECT
+    
 public:
     FileHandler();
 
-    static QString selectFile(QWidget* parent, QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter = "", QString defaultSuffix = "", QString initialFile = "");
-    static QStringList selectFiles(QWidget* parent, QString windowTitle, QFileDialog::FileMode fileMode, bool write, QString nameFilter = "", QString defaultSuffix = "",  QString initialFile = "");
-
-    static QString readTextFile(QString filePath);
-
-    static bool isFileReadable(QString filePath);
-    static bool writeTextFile(QString filePath, QString fileData, bool notify = true);
-    static QString writeTempTextFile(QString fileData, QString extension="");
-
-    static QString getTempFileName(QString suffix, bool timestamp = true);
+    static QString selectFile(QWidget* parent, const QString& windowTitle, QFileDialog::FileMode fileMode, bool write, const QString& nameFilter = "", const QString& defaultSuffix = "", const QString& initialFile = "");
+    static QStringList selectFiles(QWidget* parent, const QString& windowTitle, QFileDialog::FileMode fileMode, bool write, const QString& nameFilter = "", const QString& defaultSuffix = "",  const QString& initialFile = "");
+    
+    static bool isFileReadable(const QString& filePath);
+    static QString readTextFile(const QString& filePath);
+    
+    static bool writeTextFile(const QString& filePath, const QString& fileData, bool notify = true);
+    static QString writeTempTextFile(const QString& fileData, const QString& extension="");
+    static QString getTempFileName(const QString& suffix, bool timestamp = true);
+    
     static void sanitizeFilePath(QString &filePath);
 
-    static bool ensureDirectory(QString path);
-    static bool removeDirectory(QString path);
-    static bool removeFile(QString path);
-
-
-    static QString getAutosaveFilePath(QString path);
-    static bool isAutosaveFilePath(QString path);
+    static bool ensureDirectory(const QString& path);
+    static bool removeDirectory(const QString& path);
+    static bool removeFile(const QString& path);
+    
+    static bool isAutosaveFilePath(const QString& path);
+    static QString getAutosaveFilePath(const QString& path);
     static QString getFileFromAutosavePath(QString autosave_path);
 
-public:
     static FileHandler* getFileHandler();
+    
 private:
-    static bool _writeTextFile(QString filePath, QString fileData, bool notify);
-
-    static void _notification(Notification::Severity severity, QString notificationText, QString iconPath, QString iconName, bool toast=false);
-
+    static bool _writeTextFile(const QString& filePath, const QString& fileData, bool notify);
+    static void _notification(Notification::Severity severity, const QString& notificationText, const QString& iconPath, const QString& iconName, bool toast = false);
 
     static QString getTimestamp();
-
+    
     static QFileDialog* getFileDialog();
     QFileDialog* _getFileDialog();
 
     QFileDialog* fileDialog;
-private:
-    static FileHandler* handlerSingleton;
 };
 
 #endif // FILEHANDLER_H

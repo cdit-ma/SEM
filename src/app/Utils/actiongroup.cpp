@@ -1,26 +1,24 @@
 #include "actiongroup.h"
 #include "rootaction.h"
+
 #include <QDebug>
 
-ActionGroup::ActionGroup(QObject* parent) : QActionGroup(parent)
+ActionGroup::ActionGroup(QObject* parent)
+        : QActionGroup(parent)
 {
     setExclusive(false);
-    masterAction = 0;
-    checkedActionCount = 0;
 }
 
-void ActionGroup::addSeperator()
+void ActionGroup::addSeparator()
 {
-    QAction* seperator = new QAction(this);
-    seperator->setSeparator(true);
-    addAction(seperator);
+    QAction* separator = new QAction(this);
+    separator->setSeparator(true);
+    addAction(separator);
 }
 
 void ActionGroup::updateSpacers()
 {
-
     QList<QAction*> actions = this->actions();
-
     QList<int> visibleActionsCount;
     QList<int> spacerActionsIndexes;
 
@@ -28,7 +26,6 @@ void ActionGroup::updateSpacers()
 
     for(int i=0; i < actions.size(); i++){
         QAction* action = actions.at(i);
-
         if(action->isSeparator()){
             spacerActionsIndexes.append(i);
             visibleActionsCount.append(currentVisibleCount);
@@ -41,11 +38,11 @@ void ActionGroup::updateSpacers()
     visibleActionsCount.append(currentVisibleCount);
 
     for(int i=0; i < spacerActionsIndexes.size(); i++){
-        int seperatorIndex = spacerActionsIndexes.at(i);
-        int leftOfSeperator = visibleActionsCount.at(i);
+        int separatorIndex = spacerActionsIndexes.at(i);
+        int leftOfSeparator = visibleActionsCount.at(i);
 
-        QAction* seperatorAction = actions.at(seperatorIndex);
-        seperatorAction->setVisible(leftOfSeperator > 0 && ((i + 1) != visibleActionsCount.size()));
+        QAction* separatorAction = actions.at(separatorIndex);
+        separatorAction->setVisible(leftOfSeparator > 0 && ((i + 1) != visibleActionsCount.size()));
     }
 }
 
@@ -79,7 +76,7 @@ void ActionGroup::updateMasterAction()
 {
     if(masterAction){
         bool anyEnabled = false;
-        foreach(QAction* action, actions()){
+        for(QAction* action : actions()){
             if(action->isEnabled()){
                 anyEnabled = true;
                 break;

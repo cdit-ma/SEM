@@ -10,7 +10,7 @@
 #include <QProcess>
 
 class ProcessRunner;
-struct ProcessResult{
+struct ProcessResult {
     friend class ProcessRunner;
 public:
     bool cancelled = false;
@@ -19,10 +19,10 @@ public:
     QStringList standard_output;
     QStringList standard_error;
 private:
-    QProcess* process = 0;
+    QProcess* process = nullptr;
 };
 
-struct HTTPResult{
+struct HTTPResult {
     bool success = false;
     int error_code = 0;
     QString standard_output;
@@ -32,27 +32,29 @@ struct HTTPResult{
 class ProcessRunner : public QObject
 {
     Q_OBJECT
-public:
-    ProcessRunner(QObject* parent = 0);
-
-    QProcessEnvironment RunEnvVarScript(QString program);
-
-    ProcessResult RunProcess(QString program, QStringList args, QString directory="", QProcessEnvironment env = QProcessEnvironment());
     
-    HTTPResult HTTPGet(QNetworkRequest request);
-    HTTPResult HTTPPost(QNetworkRequest request, QByteArray post_data = QByteArray());
-    HTTPResult HTTPPostMulti(QNetworkRequest request, QHttpMultiPart* post_data);
+public:
+    explicit ProcessRunner(QObject* parent = nullptr);
+
+    QProcessEnvironment RunEnvVarScript(const QString& program);
+
+    ProcessResult RunProcess(const QString& program, const QStringList& args, const QString& directory = "", QProcessEnvironment env = QProcessEnvironment());
+    
+    HTTPResult HTTPGet(const QNetworkRequest& request);
+    HTTPResult HTTPPost(const QNetworkRequest& request, const QByteArray& post_data = QByteArray());
+    HTTPResult HTTPPostMulti(const QNetworkRequest& request, QHttpMultiPart* post_data);
 
 signals:
     void Cancel();
     void GotProcessStdOutLine(QString line);
     void GotProcessStdErrLine(QString line);
+    
 private:
-    ProcessResult RunProcess_(QString program, QStringList args, QString directory, QProcessEnvironment env , bool emit_stdout);
+    ProcessResult RunProcess_(const QString& program, const QStringList& args, const QString& directory, const QProcessEnvironment& env , bool emit_stdout);
     QNetworkAccessManager* GetNetworkAccessManager();
     HTTPResult WaitForNetworkReply(QNetworkReply* reply);
-private:
-    QNetworkAccessManager* network_access_manager_;
+
+    QNetworkAccessManager* network_access_manager_ = nullptr;
     QProcessEnvironment global_vars;
 };
 

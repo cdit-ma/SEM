@@ -38,7 +38,7 @@ signals:
     
 public slots:
     void clearSelection();
-    void itemDeleted(int ID, ViewItem *item);
+    void itemDeleted(int id, ViewItem *item);
     
 private:
     void _selectionChanged(int changes = 0);

@@ -1103,10 +1103,9 @@ void ViewController::DestructViewItem(ViewItem *item)
 QList<ViewItem *> ViewController::getViewItems(const QList<int>& IDs)
 {
     QList<ViewItem*> items;
-
-    foreach(int ID, IDs){
+    for(int ID : IDs) {
         ViewItem* item = getViewItem(ID);
-        if(item){
+        if (item) {
             items.append(item);
         }
     }
@@ -1706,20 +1705,18 @@ void ViewController::_importProjects()
 
 void ViewController::_importProjectFiles(const QStringList& files)
 {
-
     QStringList fileData;
-    foreach (QString file, files) {
+    for (const QString& file : files) {
         QString data = FileHandler::readTextFile(file);
-        if(data != ""){
+        if (data != "") {
             fileData.append(data);
         }
     }
-    if(!fileData.isEmpty()){
+    if (!fileData.isEmpty()) {
         // fit the contents in all the view aspects after import when no model has been imported yet?
         emit ImportProjects(fileData);
     }
 }
-
 
 void ViewController::centerSelection()
 {

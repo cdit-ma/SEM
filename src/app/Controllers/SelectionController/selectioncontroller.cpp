@@ -49,8 +49,7 @@ QVector<ViewItem *> SelectionController::getSelection()
 QList<int> SelectionController::getSelectionIDs()
 {
     QList<int> selection;
-
-    foreach(ViewItem* item, getSelection()){
+    for (ViewItem* item : getSelection()) {
         selection.append(item->getID());
     }
     return selection;
@@ -151,7 +150,7 @@ void SelectionController::removeSelectionHandler()
 
             // NOTE: This is added to avoid a null SelectionHandler from being passed around - remove handler from lookup
             // TODO: Investigate further when this is being called (related to registering/unregistering of QObjectRegistrar)
-            // Currently, unselecting an item unregisters its selection handler from it
+            // Currently, deselecting an item unregisters its selection handler from it
             auto handler_id = handler->getID();
             auto lookup_key = selectionHandlerIDLookup.key(handler_id);
             selectionHandlerIDLookup.remove(lookup_key);

@@ -363,16 +363,12 @@ void ActionController::ModelControllerReady(bool)
 void ActionController::themeChanged()
 {
     Theme* theme = Theme::theme();
-
-    foreach(RootAction* action, allActions){
+    for (RootAction* action : allActions) {
         updateIcon(action, theme);
     }
-
-    foreach(RootAction* action, recentProjectActions.values()){
+    for (RootAction* action : recentProjectActions.values()){
         updateIcon(action, theme);
     }
-
-
     menu_file_recentProjects->setIcon(theme->getIcon("Icons", "clock"));
 }
 
@@ -504,50 +500,45 @@ void ActionController::createRecentProjectAction(QString fileName)
 
 void ActionController::recentProjectsChanged()
 {
-    if(!recentProjectMapper){
+    if (!recentProjectMapper) {
         recentProjectMapper = new QSignalMapper(this);
         connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped), viewController, &ViewController::OpenExistingProject);
     }
 
     //Load in the defaults.
     QStringList list = SettingsController::settings()->getSetting(SETTINGS::GENERAL_RECENT_PROJECTS).toStringList();
-
     QStringList orderedKeys;
 
-    foreach(QString filepath, list){
+    for (QString filepath : list) {
         FileHandler::sanitizeFilePath(filepath);
         createRecentProjectAction(filepath);
         orderedKeys.append(filepath);
     }
-    foreach(QString oldKey, recentProjectKeys){
-        if(orderedKeys.contains(oldKey)){
+    for (const QString& oldKey : recentProjectKeys) {
+        if (orderedKeys.contains(oldKey)) {
             continue;
-        }else{
+        } else {
             RootAction* action = recentProjectActions.value(oldKey, nullptr);
-            if(action){
+            if (action) {
                 recentProjectActions.remove(oldKey);
                 action->deleteLater();
             }
         }
     }
-    if(orderedKeys != recentProjectKeys){
-
+    if (orderedKeys != recentProjectKeys) {
         //Update Menus
         menu_file_recentProjects->clear();
-
-        foreach(QString key, orderedKeys){
+        for (const QString& key : orderedKeys) {
             RootAction* action = recentProjectActions.value(key, nullptr);
-            if(action){
+            if (action) {
                 menu_file_recentProjects->addAction(action);
             }
         }
-
         menu_file_recentProjects->addSeparator();
         menu_file_recentProjects->addAction(file_recentProjects_clearHistory);
         recentProjectKeys = orderedKeys;
         emit recentProjectsUpdated();
     }
-
 }
 
 void ActionController::updateIcon(RootAction *action, Theme *theme)
@@ -561,40 +552,37 @@ void ActionController::updateIcon(RootAction *action, Theme *theme)
     }
 }
 
-QList<RootAction *> ActionController::getRecentProjectActions()
+QList<RootAction*> ActionController::getRecentProjectActions()
 {
     QList<RootAction*> actions;
-
-    for(auto action : menu_file_recentProjects->actions()){
-        if(action->isSeparator()){
+    for (const auto& action : menu_file_recentProjects->actions()) {
+        if (action->isSeparator()) {
             continue;
         }
-        if(action == file_recentProjects_clearHistory){
+        if (action == file_recentProjects_clearHistory) {
             continue;
         }
-        auto a = qobject_cast<RootAction*>(action);
-        if(a){
-            actions.append(a);
+        auto root_action = qobject_cast<RootAction*>(action);
+        if (root_action) {
+            actions.append(root_action);
         }
     }
-
     return actions;
 }
 
-
-QList<QAction*> ActionController::getAllActions(){
+QList<QAction*> ActionController::getAllActions()
+{
     QList<QAction*> actions;
-    for(auto action : allActions){
+    for (const auto& action : allActions) {
         actions.append(action);
     }
     return actions;
 }
 
-QList<QAction *> ActionController::getNodeViewActions()
+QList<QAction*> ActionController::getNodeViewActions()
 {
     return view_actions;
 }
-
 
 void ActionController::setupActions()
 {
@@ -964,7 +952,6 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_selectModel);
     menu_model->addAction(model_reloadWorkerDefinitions);
     
-    
     menu_model->addSeparator();
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
@@ -997,29 +984,29 @@ void ActionController::setupApplicationToolbar()
 
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));
-    applicationToolbar->addSeperator();
+    applicationToolbar->addSeparator();
     toolbar_cut = applicationToolbar->addAction(edit_cut->constructSubAction(false));
     toolbar_copy = applicationToolbar->addAction(edit_copy->constructSubAction(false));
     toolbar_paste = applicationToolbar->addAction(edit_paste->constructSubAction(false));
     toolbar_replicate = applicationToolbar->addAction(edit_replicate->constructSubAction(false));
-    applicationToolbar->addSeperator();
+    applicationToolbar->addSeparator();
     toolbar_fitToScreen = applicationToolbar->addAction(view_fitView->constructSubAction(false));
     toolbar_centerOn = applicationToolbar->addAction(view_centerOn->constructSubAction(false));
     toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
-    applicationToolbar->addSeperator();
+    applicationToolbar->addSeparator();
     //toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
     toolbar_contract = applicationToolbar->addAction(edit_contract->constructSubAction(false));
     toolbar_expand = applicationToolbar->addAction(edit_expand->constructSubAction(false));
-    applicationToolbar->addSeperator();
+    applicationToolbar->addSeparator();
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
     toolbar_validate = applicationToolbar->addAction(model_validateModel->constructSubAction(false));
     toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
 
     SettingsController* s = SettingsController::settings();
-    foreach(SETTINGS key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
+    for (SETTINGS key : s->getSettingsKeys("Toolbar", "Visible Buttons")) {
         settingChanged(key, s->getSetting(key));
     }
     applicationToolbar->updateSpacers();
@@ -1033,22 +1020,22 @@ void ActionController::setupContextToolbar()
     contextToolbar->addAction(edit_delete->constructSubAction());
     //contextToolbar->addAction(toolbar_hardware);
     //contextToolbar->addAction(toolbar_disconnectHardware);
-    contextToolbar->addSeperator();
-    //contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
+    //contextToolbar->addSeparator();
     contextToolbar->addAction(view_centerOnDefn->constructSubAction());
     contextToolbar->addAction(view_centerOnImpl->constructSubAction());
-    contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
     contextToolbar->addAction(toolbar_displayedChildrenOption);
     contextToolbar->addAction(toolbar_replicateCount);
     
-    contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
     contextToolbar->addAction(view_viewInstances->constructSubAction());
     contextToolbar->addAction(model_getCodeForComponent->constructSubAction());
 
     // add chart action here
     contextToolbar->addAction(chart_viewInChart);
-    contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
 
     contextToolbar->addAction(view_viewInNewWindow->constructSubAction());
     contextToolbar->addAction(toolbar_wiki);

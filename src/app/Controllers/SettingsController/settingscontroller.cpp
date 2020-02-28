@@ -57,34 +57,33 @@ bool SettingsController::isThemeSetting(SETTINGS key)
     return setting && setting->isThemeSetting();
 }
 
-QList<Setting *> SettingsController::getSettings()
+QList<Setting*> SettingsController::getSettings()
 {
-    QList<Setting*> s;
-    foreach(SETTINGS key, settingsKeys){
-       if(settingsHash.contains(key)){
-           s.append(settingsHash[key]);
-       }
+    QList<Setting*> settings;
+    for (SETTINGS key : settingsKeys) {
+        const auto& settingsVal = _getSetting(key);
+        if (settingsVal != nullptr) {
+            settings.append(settingsVal);
+        }
     }
-    return s;
+    return settings;
 }
 
 QList<SETTINGS> SettingsController::getSettingsKeys(const QString& category, const QString& section, const QString& name)
 {
     QList<SETTINGS> keys;
-
     bool useCat = !category.isEmpty();
     bool useSect = !section.isEmpty();
     bool useName = !name.isEmpty();
 
-    foreach(SETTINGS key, settingsKeys){
+    for (SETTINGS key: settingsKeys) {
         Setting* s = _getSetting(key);
-
-        if(s){
-            if(useCat && s->getCategory() != category){
+        if (s) {
+            if (useCat && s->getCategory() != category) {
                 continue;
-            }else if(useSect && s->getSection() != section){
+            } else if (useSect && s->getSection() != section) {
                 continue;
-            }else if(useName && s->getName() != name){
+            } else if (useName && s->getName() != name) {
                 continue;
             }
             keys.append(key);
@@ -274,8 +273,8 @@ void SettingsController::writeSetting(Setting* setting, const QVariant& value){
 }
 void SettingsController::loadSettingsFromFile()
 {
-    foreach(Setting* setting, settingsHash.values()){
-        if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
+    for (Setting* setting : settingsHash.values()) {
+        if (setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE) {
             continue;
         }
 
@@ -283,14 +282,14 @@ void SettingsController::loadSettingsFromFile()
         auto file_value = settingsFile->value(getSettingKey(setting));
         settingsFile->endGroup();
 
-        if(!file_value.isNull()){
-            if(setting->getType() == SETTING_TYPE::COLOR){
+        if (!file_value.isNull()) {
+            if (setting->getType() == SETTING_TYPE::COLOR) {
                 file_value = QColor(file_value.toString());
             }
-            if(!file_value.isNull()){
+            if (!file_value.isNull()) {
                 _setSetting(setting, file_value);
             }
-        }else{
+        } else {
             writeSetting(setting, setting->getDefaultValue());
         }
         emit settingChanged(setting->getID(), setting->getValue());
@@ -327,10 +326,7 @@ Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, const
 
 Setting *SettingsController::_getSetting(SETTINGS ID)
 {
-    if(settingsHash.contains(ID)){
-        return settingsHash[ID];
-    }
-    return nullptr;
+    return settingsHash.value(ID, nullptr);
 }
 
 void SettingsController::showSettingsWidget()
@@ -347,10 +343,10 @@ void SettingsController::showSettingsWidget()
 
 void SettingsController::resetSettings()
 {
-    foreach(SETTINGS sk, settingsKeys){
+    for (SETTINGS sk : settingsKeys) {
         Setting* setting = _getSetting(sk);
-        if(setting){
-            if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
+        if (setting) {
+            if (setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE) {
                 continue;
             }
             //Reset to default
@@ -368,16 +364,14 @@ void SettingsController::resetSettings()
 
 void SettingsController::saveSettings()
 {
-    foreach(Setting* setting, settingsHash.values()){
+    for(Setting* setting : settingsHash.values()) {
         //Ignore writing Button and None Type settings
-        if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
+        if (setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE) {
             continue;
         }
-
         QVariant value = setting->getValue();
-
-        //Convert QColor to a String'd hex
         if(setting->getType() == SETTING_TYPE::COLOR){
+            //Convert QColor to a String'd hex
             QColor color = value.value<QColor>();
             value = Theme::QColorToHex(color);
         }
@@ -386,7 +380,7 @@ void SettingsController::saveSettings()
     settingsFile->sync();
 }
 
-SettingsController *SettingsController::settings()
+SettingsController* SettingsController::settings()
 {
     static SettingsController controller;
     return &controller;

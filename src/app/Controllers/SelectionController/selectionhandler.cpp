@@ -25,23 +25,22 @@ void SelectionHandler::toggleItemsSelection(ViewItem *item, bool append)
     toggleItemsSelection(items, append);
 }
 
-void SelectionHandler::toggleItemsSelection(QList<ViewItem *> items, bool append)
+void SelectionHandler::toggleItemsSelection(QList<ViewItem*> items, bool append)
 {
     int changes = 0;
-    if(!append){
-        //Unselect for non-append
+    if (!append) {
+        //Deselect for non-append
         changes += _clearSelection();
     }
-    foreach(ViewItem* item, items){
+    for (ViewItem* item : items) {
         changes += _toggleItemsSelection(item);
     }
-
     _selectionChanged(changes);
 }
 
-void SelectionHandler::itemDeleted(int ID, ViewItem *item)
+void SelectionHandler::itemDeleted(int id, ViewItem *item)
 {
-    Q_UNUSED(ID)
+    Q_UNUSED(id)
     int changes = _toggleItemsSelection(item, true);
     _selectionChanged(changes);
 }
@@ -90,7 +89,7 @@ QVector<ViewItem *> SelectionHandler::getSelection() const
 QVector<int> SelectionHandler::getSelectionIDs()
 {
     QVector<int> IDs;
-    foreach(ViewItem* item, currentSelection){
+    for (ViewItem* item : currentSelection) {
         IDs.append(item->getID());
     }
     return IDs;
@@ -135,9 +134,8 @@ void SelectionHandler::_selectionChanged(int changes)
 int SelectionHandler::_clearSelection()
 {
     int itemsChanged = 0;
-    foreach(ViewItem* item, currentSelection){
+    for (ViewItem* item : currentSelection) {
         itemsChanged += _toggleItemsSelection(item);
-        //itemsChanged += _setItemSelected(item, false);
     }
     return itemsChanged;
 }
