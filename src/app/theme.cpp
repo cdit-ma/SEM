@@ -1309,7 +1309,6 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "visible", "Icons", "eye", "Icons", "transparent");
     setIconToggledImage("ToggleIcons", "newNotification", "Icons", "bell", "Icons", "clock", false);
 
-    // TODO - setup toggle icons for the visualisastion panel here
     setIconToggledImage("ToggleIcons", "playPause", "Icons", "pause", "Icons", "play");
     setIconToggledImage("ToggleIcons", "gridToggle", "Icons", "gridOutlineStriked", "Icons", "gridOutline");
     setIconToggledImage("ToggleIcons", "labelToggle", "Icons", "number0", "Icons", "number1");

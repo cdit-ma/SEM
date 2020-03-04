@@ -17,8 +17,8 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    NodeView(ViewController& view_controller, QWidget* parent = nullptr);
-    ~NodeView();
+    explicit NodeView(ViewController& view_controller, QWidget* parent = nullptr);
+    ~NodeView() final;
 
     void setContainedViewAspect(VIEW_ASPECT aspect);
     void setContainedNodeViewItem(NodeViewItem* item);
@@ -42,13 +42,10 @@ signals:
     void itemMoveTriggered();
     void connectModeTriggered();
 
-    void edgeToolbarRequested(QPoint screenPos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
 
     void viewport_changed(QRectF viewport_scene_rect, double zoom_factor);
     void scenerect_changed(QRectF scene_rect);
-
-    void viewFocussed(NodeView* view, bool focussed);
 
     void triggerAction(QString);
     void setData(int, QString, QVariant);
@@ -105,22 +102,22 @@ private slots:
     void actionFinished();
 
 protected:
-    void keyPressEvent(QKeyEvent* event);
-    void keyReleaseEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 
-    void wheelEvent(QWheelEvent* event);
+    void wheelEvent(QWheelEvent* event) override;
 
-    void mousePressEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
 
-    void drawForeground(QPainter *painter, const QRectF &rect);
-    void drawBackground(QPainter *painter, const QRectF &rect);
+    void drawForeground(QPainter* painter, const QRectF &rect) override;
+    void drawBackground(QPainter* painter, const QRectF &rect) override;
 
-    void paintEvent(QPaintEvent *event);
-    bool event(QEvent *event);
+    void paintEvent(QPaintEvent* event) override;
+    bool event(QEvent* event) override;
 
-    void resizeEvent(QResizeEvent *);
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void connectViewController();

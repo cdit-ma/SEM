@@ -1,8 +1,5 @@
 #include "portconnectiondata.h"
 
-// Jackson: Replace when class is fleshed out - see header comment
-// std::atomic<int> PortConnectionData::port_connection_id(0);
-
 /**
  * @brief PortConnectionData::PortConnectionData
  * @param exp_run_id

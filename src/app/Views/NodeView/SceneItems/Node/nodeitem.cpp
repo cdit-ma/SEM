@@ -320,7 +320,7 @@ void NodeItem::removeChildEdge(EdgeItem *edgeItem)
 
 bool NodeItem::setMoveFinished()
 {
-    setPos(getNearestGridPoint());
+    setPos(getNearestGridPoint(QPointF()));
     return EntityItem::setMoveFinished();
 }
 

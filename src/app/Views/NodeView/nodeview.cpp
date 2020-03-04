@@ -6,12 +6,10 @@
 #include "SceneItems/Node/hardwarenodeitem.h"
 #include "SceneItems/Node/membernodeitem.h"
 #include "SceneItems/Node/deploymentcontainernodeitem.h"
-#include "SceneItems/Edge/edgeitem.h"
 
 #include "../ContextMenu/contextmenu.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
-#include "../../theme.h"
 
 #include <QDebug>
 #include <QtMath>
@@ -35,7 +33,7 @@ const int invalid_node_id = -1;
  * @param parent
  * @throws std::runtime_error
  */
-NodeView::NodeView(ViewController &view_controller, QWidget* parent)
+NodeView::NodeView(ViewController& view_controller, QWidget* parent)
     : QGraphicsView(parent),
       view_controller_(view_controller)
 {
@@ -68,7 +66,8 @@ NodeView::NodeView(ViewController &view_controller, QWidget* parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // Set the background font
-    background_font_.setPixelSize(70);
+    //background_font_.setPixelSize(70);
+    background_font_.setPixelSize(50);
     setFont(background_font_);
 
     rubberband_ = new QRubberBand(QRubberBand::Rectangle, this);
@@ -79,7 +78,7 @@ NodeView::NodeView(ViewController &view_controller, QWidget* parent)
     themeChanged();
 
     // Connect view zoom anchor setting
-    connect(SettingsController::settings(), &SettingsController::settingChanged, [this](SETTINGS key, QVariant value) {
+    connect(SettingsController::settings(), &SettingsController::settingChanged, [this](SETTINGS key, const QVariant& value) {
         if (key == SETTINGS::GENERAL_ZOOM_UNDER_MOUSE) {
             bool zoom_under_mouse = value.toBool();
             zoom_anchor_ = zoom_under_mouse ? ViewportAnchor::AnchorUnderMouse : ViewportAnchor::AnchorViewCenter;
@@ -195,7 +194,7 @@ void NodeView::setContainedViewAspect(VIEW_ASPECT aspect)
     select_on_construct_ = settings->getSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT).toBool();
 
     // Connect the select and center on construction settings - we only want these for aspect views
-    connect(settings, &SettingsController::settingChanged, [this](SETTINGS key, QVariant value) {
+    connect(settings, &SettingsController::settingChanged, [this](SETTINGS key, const QVariant& value) {
         if (key == SETTINGS::GENERAL_ON_CONSTRUCTION_CENTER) {
             center_on_construct_ = value.toBool();
         } else if (key == SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT) {
@@ -238,7 +237,7 @@ void NodeView::setContainedNodeViewItem(NodeViewItem *item)
         // This sets the view's background text
         viewItem_LabelChanged(contained_node_view_item_->getData("label").toString());
 
-        // This NEEDS to be called before the code below or the NodeViewItem won't be setup correctly!
+        // NOTE: This NEEDS to be called before the code below or the NodeViewItem won't be setup correctly!
         contained_aspect_ = contained_node_view_item_->getViewAspect();
 
         // Only add the item to the scene if it's not an aspect item
@@ -397,7 +396,7 @@ void NodeView::alignHorizontal()
         item->setPos(pos);
 
         if (item->setMoveFinished()) {
-            pos = item->getNearestGridPoint();
+            pos = item->getNearestGridPoint(QPointF());
             emit setData(item->getID(), "x", pos.x());
             emit setData(item->getID(), "y", pos.y());
         }
@@ -430,7 +429,7 @@ void NodeView::alignVertical()
         item->setPos(pos);
 
         if (item->setMoveFinished()) {
-            pos = item->getNearestGridPoint();
+            pos = item->getNearestGridPoint(QPointF());
             emit setData(item->getID(), "x", pos.x());
             emit setData(item->getID(), "y", pos.y());
         }
@@ -1719,7 +1718,7 @@ void NodeView::selectItemsInRubberband()
     QList<ViewItem*> items_to_select;
 
     // I think this was needed to deselect the aspect/contained item if it was selected
-    // TODO - Find out if this is still needed since I changed the toggleItemsSelection's append parameter to false
+    // TODO: Find out if this is still needed since I changed the toggleItemsSelection's append parameter to false
     /*
     // Check for aspect selection.
     if (selection_handler_->getSelection().contains(contained_node_view_item_)) {
@@ -1852,7 +1851,7 @@ void NodeView::setMovingModeOff()
         }
         if (any_moved) {
             // Send a signal to update the model (graphml) data
-            QPointF pos = item->getNearestGridPoint();
+            QPointF pos = item->getNearestGridPoint(QPointF());
             emit setData(item->getID(), "x", pos.x());
             emit setData(item->getID(), "y", pos.y());
         }
@@ -2306,4 +2305,3 @@ void NodeView::resizeEvent(QResizeEvent* event)
     QGraphicsView::resizeEvent(event);
     update_minimap();
 }
-

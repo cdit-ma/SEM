@@ -59,7 +59,7 @@ private slots:
     QAction* getSettingAction(SETTINGS key);
 
 public:
-    // TODO - Remove enum???
+    // TODO: Remove enum???
     enum ACTION{};
     explicit ActionController(ViewController* vc);
     
