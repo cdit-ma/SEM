@@ -1,5 +1,4 @@
 #include "docktabwidget.h"
-#include "../../theme.h"
 #include "../../Views/ContextMenu/contextmenu.h"
 
 #include <QToolBar>
@@ -12,7 +11,8 @@
  * @param vc
  * @param parent
  */
-DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(parent)
+DockTabWidget::DockTabWidget(ViewController* vc, QWidget* parent)
+        : QWidget(parent)
 {
     view_controller = vc;
 
@@ -59,7 +59,6 @@ void DockTabWidget::themeChanged()
     partIcon.addPixmap(theme->getImage("Icons", "circlePlusDark", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
     partIcon.addPixmap(theme->getImage("Icons", "circlePlusTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active, QIcon::On);
 
-
     QIcon hardwareIcon;
     hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()));
     hardwareIcon.addPixmap(theme->getImage("Icons", "screenTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
@@ -84,8 +83,6 @@ void DockTabWidget::themeChanged()
                 "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
                 "}"
     );
-
-    toolbar->setIconSize(icon_size);
 }
 
 
@@ -104,7 +101,7 @@ void DockTabWidget::setupLayout()
         button->setToolButtonStyle(Qt::ToolButtonIconOnly);
         button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         parts_action = toolbar->addWidget(button);
-        //Connect the button to it's action so we don't need to worry about QToolButton stuff
+        //Connect the button to its action so we don't need to worry about QToolButton stuff
         button->setDefaultAction(parts_action);
         parts_action->setCheckable(true);
         parts_action->setChecked(false);
@@ -115,7 +112,7 @@ void DockTabWidget::setupLayout()
         button->setToolButtonStyle(Qt::ToolButtonIconOnly);
         button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         deploy_action = toolbar->addWidget(button);
-        //Connect the button to it's action so we don't need to worry about QToolButton stuff
+        //Connect the button to its action so we don't need to worry about QToolButton stuff
         button->setDefaultAction(deploy_action);
         deploy_action->setCheckable(true);
         deploy_action->setChecked(false);
@@ -126,7 +123,6 @@ void DockTabWidget::setupLayout()
     Theme::theme()->setIconToggledImage("ToggleIcons", "HardwareDock", "Icons", "screen", "Icons", "screen");
 
     auto layout = new QVBoxLayout(this);
-    
     layout->setMargin(0);
     layout->setSpacing(2);
     layout->addWidget(toolbar);
@@ -142,10 +138,10 @@ void DockTabWidget::dockActionTriggered(QAction* action)
 {
     auto current_menu = action == parts_action ? add_part_menu : deploy_menu;
     auto current_dock = action == parts_action ? parts_dock : deploy_dock;
-    auto other = action == parts_action ? deploy_action : parts_action;
-    if (action && other) {
+    auto other_action = action == parts_action ? deploy_action : parts_action;
+    if (action && other_action) {
         action->setChecked(true);
-        other->setChecked(false);
+        other_action->setChecked(false);
         stack_widget->setCurrentWidget(current_dock);
         current_menu->show();
         refreshSize();
@@ -171,8 +167,8 @@ void DockTabWidget::setupDocks()
     deploy_menu->setObjectName("TOP_LEVEL");
     
     //Deselect the currently highlight item
-    connect(deploy_menu, &QMenu::aboutToHide, [=](){deploy_menu->setActiveAction(0);});
-    connect(add_part_menu, &QMenu::aboutToHide, [=](){add_part_menu->setActiveAction(0);});
+    connect(deploy_menu, &QMenu::aboutToHide, [=](){deploy_menu->setActiveAction(nullptr);});
+    connect(add_part_menu, &QMenu::aboutToHide, [=](){add_part_menu->setActiveAction(nullptr);});
     
     //Always make these menus visible
     connect(deploy_menu, &QMenu::aboutToHide, deploy_menu, &QMenu::show);

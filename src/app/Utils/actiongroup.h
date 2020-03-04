@@ -13,9 +13,9 @@ public:
 
     void addSeparator();
     void updateSpacers();
-
-    // These aren't virtual functions - they QActionGroup's functions
-    // The base implementations are called within the function
+    
+    // NOTE: These are non-virtual functions
+    // QActionGroup's implementations are called within the function
     QAction* addAction(QAction *a);
     void removeAction(QAction* a);
 

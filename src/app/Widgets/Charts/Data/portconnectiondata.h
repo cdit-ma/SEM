@@ -5,8 +5,6 @@
 #include <QObject>
 
 // TODO - This class is not finished; will figure out what else is needed when Pulse moves to using these data classes
-// Jackson: static ID counter has been removed as it is not currently used; replace when class is fleshed out
-// static std::atomic<int> port_connection_id
 
 class PortConnectionData : public QObject
 {
@@ -27,7 +25,6 @@ private:
     QString to_port_graphml_id_;
 
     AggServerResponse::PortConnection::ConnectionType type_;
-
 };
 
 #endif // PORTCONNECTIONDATA_H

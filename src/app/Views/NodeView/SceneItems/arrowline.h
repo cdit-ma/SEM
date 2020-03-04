@@ -18,12 +18,16 @@ public:
     
     QPointF get_begin_point() const;
     QPointF get_end_point() const;
+    
 protected:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = 0) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    
 private:
     void update_head();
+    
     QPolygonF arrow_head;
     QLineF line;
+    
     int arrow_head_size = 3;
 };
 

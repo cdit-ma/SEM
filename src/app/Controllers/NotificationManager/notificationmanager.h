@@ -59,7 +59,7 @@ private slots:
 private:
     explicit NotificationManager(ViewController* controller);
     
-    // TODO - Memory management???
+    // TODO: Memory management???
     ~NotificationManager() final = default;
     
     void NotificationUpdated(QSharedPointer<NotificationObject> notification);
