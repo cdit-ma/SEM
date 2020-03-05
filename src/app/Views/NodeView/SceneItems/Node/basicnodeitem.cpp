@@ -1,8 +1,10 @@
 #include "basicnodeitem.h"
-#include <QDebug>
 #include "stacknodeitem.h"
 
-BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) : NodeItem(viewItem, parentItem)
+const qreal ratio = 4.0 / 7.0;
+
+BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
+        : NodeItem(viewItem, parentItem)
 {
     setMoveEnabled(true);
     setExpandEnabled(true);
@@ -12,22 +14,19 @@ BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) : Nod
 
     header_margins = QMarginsF(4,2,4,2);
    
-    
-
     setPrimaryTextKey(KeyName::Label);
 
     bool require_x_y = true;
-    if(parentContainer && parentContainer->isSortOrdered()){
+    if (parentContainer && parentContainer->isSortOrdered()) {
         setMoveEnabled(false);
-        connect(this, &NodeItem::indexChanged, [=](){parentContainer->childPosChanged(this);});
-
+        connect(this, &NodeItem::indexChanged, [=](){ parentContainer->childPosChanged(this); });
         require_x_y = false;
     }
 
-    if(require_x_y){
+    if (require_x_y) {
         addRequiredData(KeyName::X);
         addRequiredData(KeyName::Y);
-    }else{
+    } else {
         addRequiredData(KeyName::Index);
         addRequiredData(KeyName::Row);
         addRequiredData(KeyName::Column);
@@ -50,26 +49,24 @@ QPointF BasicNodeItem::getElementPosition(BasicNodeItem *child)
     return child->getPos();
 }
 
-
 BasicNodeItem *BasicNodeItem::getParentContainer() const
 {
     return parentContainer;
 }
 
-
-StackNodeItem* BasicNodeItem::getParentStackContainer() const{
+StackNodeItem* BasicNodeItem::getParentStackContainer() const
+{
     return parentStackContainer;
 }
 
-QPointF BasicNodeItem::validateMove(QPointF delta){
+QPointF BasicNodeItem::validateMove(QPointF delta)
+{
     if(getParentStackContainer()){
         return delta;
     }else{
         return NodeItem::validateMove(delta);
     }
 }
-
-
 
 void BasicNodeItem::setPos(const QPointF &p)
 {
@@ -89,8 +86,6 @@ QPointF BasicNodeItem::getNearestGridPoint(QPointF newPos)
     }
     return NodeItem::getNearestGridPoint(newPos);
 }
-
-
 
 QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
 {
@@ -123,17 +118,14 @@ QRectF BasicNodeItem::getElementRect(EntityItem::EntityRect rect) const
     return NodeItem::getElementRect(rect);
 }
 
-
-
-void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
+void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
     paintBackground(painter, option, widget);
     NodeItem::paint(painter, option, widget);
 }
 
-
 QRectF BasicNodeItem::connectSourceRect() const
 {
-
     QRectF r = getElementRect(EntityRect::HEADER);
     auto left = r.right();
     r.setWidth(smallIconSize().width());
@@ -163,68 +155,59 @@ QRectF BasicNodeItem::connectTargetRect() const
     return r;
 }
 
-
-
 QRectF BasicNodeItem::headerContent() const
 {
     return headerRect().marginsRemoved(header_margins);
 }
 
-
 QRectF BasicNodeItem::headerContent_Data() const
 {
     QRectF rect(headerContent());
     auto icon_rect = headerContent_Icon();
-
     auto x_padding = 2;
-
-    if(isRightJustified()){
+    if (isRightJustified()) {
         rect.setRight(icon_rect.left() - x_padding);
-    }else{
+    } else {
         rect.setLeft(icon_rect.right() + x_padding);
     }
     return rect;
 }
 
-QRectF BasicNodeItem::headerContent_Data_Primary() const{
+QRectF BasicNodeItem::headerContent_Data_Primary() const
+{
     QRectF rect;
-
-    if(gotPrimaryTextKey()){
+    if (gotPrimaryTextKey()) {
         rect = headerContent_Data();
-
-        if(gotSecondaryTextKey()){
+        if (gotSecondaryTextKey()) {
             rect.setHeight(rect.height() * ratio);
         }
     }
-
     return rect;
 }
 
-QRectF BasicNodeItem::headerContent_Data_Secondary() const{
-    auto header_content = headerContent_Data();
-
+QRectF BasicNodeItem::headerContent_Data_Secondary() const
+{
     QRectF rect;
-    if(gotSecondaryTextKey()){
-        rect = header_content;
-        if(gotPrimaryTextKey()){
+    if (gotSecondaryTextKey()) {
+        rect = headerContent_Data();
+        if (gotPrimaryTextKey()) {
             rect.setTop(headerContent_Data_Primary().bottom());
         }
     }
     return rect;
 }
 
-
 QRectF BasicNodeItem::headerContent_Icon() const
 {
-    const auto header_rect = headerContent();
+    const auto& header_rect = headerContent();
     QRectF rect(header_rect);
     
     //Make it a square
     rect.setWidth(rect.height());
 
-    if(isRightJustified()){
+    if (isRightJustified()) {
         rect.moveTopRight(header_rect.topRight());
-    }else{
+    } else {
         rect.moveTopLeft(header_rect.topLeft());
     }
    return rect;
@@ -232,48 +215,49 @@ QRectF BasicNodeItem::headerContent_Icon() const
 
 QRectF BasicNodeItem::headerContent_Icon_Overlay() const
 {
-    QRectF rect;
     const auto& icon = headerContent_Icon();
-    rect.setSize(icon.size() / 4.0);
+    QRectF rect(QPointF(), icon.size() / 4.0);
     rect.moveTopRight(icon.topRight());
     return rect;
 }
 
-QRectF BasicNodeItem::headerContent_Data_Primary_Text() const{
+QRectF BasicNodeItem::headerContent_Data_Primary_Text() const
+{
     QRectF rect = headerContent_Data_Primary();
-    if(isReadOnly()){
+    if (isReadOnly()) {
         rect.setRight(headerContent_Data_Primary_Icon().left());
     }
     return rect;
 }
 
-QRectF BasicNodeItem::headerContent_Data_Primary_Icon() const{
-    const auto& header_content = headerContent_Data_Primary();
+QRectF BasicNodeItem::headerContent_Data_Primary_Icon() const
+{
     QRectF rect;
-    if(isIconVisible(EntityRect::LOCKED_STATE_ICON)){
+    if (isIconVisible(EntityRect::LOCKED_STATE_ICON)) {
+        const auto& header_content = headerContent_Data_Primary();
         rect.setSize(smallIconSize() / 2);
         rect.moveTopRight(header_content.topRight() + QPointF(0, (header_content.height() - rect.height()) / 2));
     }
     return rect;
 }
 
-QRectF BasicNodeItem::headerContent_Data_Secondary_Text() const{
-
+QRectF BasicNodeItem::headerContent_Data_Secondary_Text() const
+{
     QRectF rect;
-    if(gotSecondaryTextKey()){
+    if (gotSecondaryTextKey()) {
         rect = headerContent_Data_Secondary();
-
-        if(isIconVisible(EntityRect::SECONDARY_ICON)){
+        if (isIconVisible(EntityRect::SECONDARY_ICON)) {
             rect.setLeft(headerContent_Data_Secondary_Icon().right() + 1);
         }
     }
     return rect;
 }
 
-QRectF BasicNodeItem::headerContent_Data_Secondary_Icon() const{
-    auto header_content = headerContent_Data_Secondary();
+QRectF BasicNodeItem::headerContent_Data_Secondary_Icon() const
+{
+    const auto& header_content = headerContent_Data_Secondary();
     QRectF rect;
-    if(isIconVisible(EntityRect::SECONDARY_ICON) && header_content.isValid()){
+    if (isIconVisible(EntityRect::SECONDARY_ICON) && header_content.isValid()) {
         rect.setSize(smallIconSize() * 0.75);
         rect.moveTopLeft(header_content.topLeft() + QPointF(0, (header_content.height() - rect.height()) / 2));
     }

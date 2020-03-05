@@ -732,7 +732,7 @@ bool EdgeItem::setMoveFinished()
 void EdgeItem::sourceIconHover(bool hovered, const QPointF& pos)
 {
     if(hovered){
-        AddTooltip("Double-Click to center on edge's source");
+        AddTooltip("Double-click to center on edge's source");
     }
     vSrc->setHighlighted(hovered);
 }
@@ -740,7 +740,7 @@ void EdgeItem::sourceIconHover(bool hovered, const QPointF& pos)
 void EdgeItem::targetIconHover(bool hovered, const QPointF& pos)
 {
     if(hovered){
-        AddTooltip("Double-Click to center on edge's target");
+        AddTooltip("Double-click to center on edge's target");
     }
     vDst->setHighlighted(hovered);
 }
@@ -750,7 +750,7 @@ void EdgeItem::moveHover(bool hovered, const QPointF& pos)
     if(hovered){
         QString tooltip = "Click and drag to move edge";
         if(!isCentered()){
-            tooltip+= "\nDouble-Click to reset edge";
+            tooltip += "\nDouble-click to reset edge";
         }
         AddTooltip(tooltip);
         AddCursor(Qt::OpenHandCursor);

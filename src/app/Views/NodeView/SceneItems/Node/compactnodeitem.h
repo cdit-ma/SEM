@@ -8,17 +8,17 @@ class CompactNodeItem : public BasicNodeItem
     Q_OBJECT
 public:
     CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
-public:
-    QRectF getElementRect(EntityRect rect) const;
-protected:
-    QRectF childrenRect() const;
-private:
-
-    bool isExpandEnabled();
-
     
-    QRectF headerRect() const;
+    QRectF getElementRect(EntityRect rect) const override;
 
+protected:
+    QRectF childrenRect() const override;
+    
+private:
+    bool isExpandEnabled() override;
+
+    // NOTE: This is a non-virtual function - NodeItem's function is used within
+    QRectF headerRect() const;
     
     QRectF primaryRow() const;
     QRectF secondaryRow() const;
@@ -31,7 +31,6 @@ private:
     QRectF iconRect_Primary() const;
     QRectF iconRect_Secondary() const;
     QRectF iconRect_Tertiary() const;
-    
 };
 
 #endif // COMPACTNODEITEM_H
