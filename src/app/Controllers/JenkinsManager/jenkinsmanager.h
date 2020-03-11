@@ -110,7 +110,6 @@ private:
     QString job_name_;
 
     //Settings Validation Flags
-    bool settings_dirty_ = false;
     bool settings_validated_ = false;
 
     //Hash to store futures

@@ -3,14 +3,10 @@
 #include "../../../modelcontroller/modelcontroller.h"
 #include "../../../modelcontroller/keynames.h"
 
-
-#include <QDebug>
-#include <QStack>
 #include <QQueue>
 
 const QSet<QString> ViewItem::permanent_protected_keys({"ID"});
 const QSet<QString> ViewItem::permanent_editable_keys({"column_count"});
-
 
 bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b)
 {
@@ -186,10 +182,6 @@ void ViewItem::destruct()
         deleteLater();
     }
 }
-
-void ViewItem::childAdded(ViewItem* child) {}
-
-void ViewItem::childRemoved(ViewItem* child) {}
 
 void ViewItem::addChild(ViewItem *child)
 {

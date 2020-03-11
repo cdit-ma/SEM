@@ -6,10 +6,8 @@
 #include "../WindowManager/windowmanager.h"
 
 #include <QApplication>
-#include <QDebug>
 
 SearchManager* SearchManager::manager_singleton = nullptr;
-
 
 /**
  * @brief SearchManager::SearchManager
@@ -19,7 +17,6 @@ SearchManager::SearchManager(ViewController* controller)
 {
     viewController = controller;
 }
-
 
 /**
  * @brief SearchManager::construct_singleton
@@ -35,7 +32,6 @@ bool SearchManager::construct_singleton(ViewController* controller)
     return false;
 }
 
-
 /**
  * @brief SearchManager::manager
  * @return
@@ -44,7 +40,6 @@ SearchManager* SearchManager::manager()
 {
     return manager_singleton;
 }
-
 
 /**
  * @brief SearchManager::Search
@@ -56,7 +51,6 @@ void SearchManager::Search(const QString &query)
     getSearchDialog()->DisplaySearchResults(query, search_results);
     emit SearchComplete();
 }
-
 
 /**
  * @brief SearchManager::PopupSearch
@@ -87,7 +81,6 @@ void SearchManager::PopupGoto()
     }
 }
 
-
 /**
  * @brief SearchManager::getSearchPopup
  * @return
@@ -100,7 +93,6 @@ SearchPopup* SearchManager::getSearchPopup()
     return search_popup;
 }
 
-
 /**
  * @brief SearchManager::getGotoPopup
  * @return
@@ -112,7 +104,6 @@ GotoPopup* SearchManager::getGotoPopup()
     }
     return goto_popup;
 }
-
 
 /**
  * @brief SearchManager::getSearchDialog

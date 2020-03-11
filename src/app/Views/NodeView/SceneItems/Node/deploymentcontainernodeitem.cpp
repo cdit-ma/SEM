@@ -1,7 +1,7 @@
 #include "deploymentcontainernodeitem.h"
 
 DeploymentContainerNodeItem::DeploymentContainerNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
-        : BasicNodeItem(viewItem, parentItem)
+	: BasicNodeItem(viewItem, parentItem)
 {
     addRequiredData("is_late_joiner");
     reloadRequiredData();

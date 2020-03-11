@@ -94,6 +94,4 @@ private:
     QMarginsF margins;
 };
 
-
-
 #endif // EDGEITEM_H

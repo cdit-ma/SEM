@@ -1,7 +1,9 @@
 #ifndef SELECTIONCONTROLLER_H
 #define SELECTIONCONTROLLER_H
-#include <QObject>
+
 #include "selectionhandler.h"
+
+#include <QObject>
 
 class ViewDockWidget;
 class SelectionController : public QObject
@@ -29,10 +31,8 @@ signals:
     void zoomOut();
     void itemActiveSelectionChanged(ViewItem* item, bool isActive);
     void selectionChanged(int selected);
-    void viewItemDeleted(ViewItem* item);
     void clearSelection();
     void selectAll();
-    void setIndex(int ID, int index);
     
 private slots:
     void activeViewDockWidgetChanged(ViewDockWidget* widget);

@@ -20,7 +20,7 @@
 #include "../../Widgets/Charts/Data/Events/portevent.h"
 #include "../../Widgets/Charts/ExperimentDataManager/requestbuilder.h"
 
-class NoRequesterException : public QException{
+class NoRequesterException : public QException {
 public:
     NoRequesterException() = default;
     explicit NoRequesterException(QString error)
@@ -35,7 +35,7 @@ private:
     QString error_;
 };
 
-class RequestException : public QException{
+class RequestException : public QException {
 public:
     explicit RequestException(QString error)
             : error_(std::move(error)) {}

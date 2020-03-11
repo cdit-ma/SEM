@@ -1,11 +1,10 @@
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
-#include <QDebug>
 #include "viewcontroller.h"
 #include "../../../modelcontroller/entityfactory.h"
 
 NodeViewItem::NodeViewItem(ViewController* controller, NODE_KIND kind, const QString& label)
-        : ViewItem(controller, GRAPHML_KIND::NODE)
+	: ViewItem(controller, GRAPHML_KIND::NODE)
 {
     node_kind = kind;
     changeData(KeyName::Kind, EntityFactory::getNodeKindString(kind));
@@ -13,7 +12,7 @@ NodeViewItem::NodeViewItem(ViewController* controller, NODE_KIND kind, const QSt
 }
 
 NodeViewItem::NodeViewItem(ViewController* controller, int ID, NODE_KIND kind)
-        : ViewItem(controller, ID, GRAPHML_KIND::NODE)
+	: ViewItem(controller, ID, GRAPHML_KIND::NODE)
 {
     node_kind = kind;
 }
@@ -93,7 +92,6 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
 {
     if(edge){
         const auto& kind = edge->getEdgeKind();
-
         if(!edges[kind].contains(edge)){
             edges[kind].insert(edge);
 
@@ -101,10 +99,8 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
             auto is_source = edge->getSource() == this;
             auto direction = is_source ? EDGE_DIRECTION::SOURCE : EDGE_DIRECTION::TARGET;
 
-
             emit edgeAdded(direction, kind, edge->getID());
             
-
             auto& set = visual_edge_kinds[kind];
             auto& nested_set = nested_edge_kinds[kind];
             auto size = set.size();
@@ -173,7 +169,6 @@ QSet<EdgeViewItem *> NodeViewItem::getEdges(EDGE_KIND edge_kind) const
 bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {
     bool is_ancestor = false;
-
     if(item){
         is_ancestor = getController()->isNodeAncestor(getID(), item->getID());
     }

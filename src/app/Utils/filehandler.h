@@ -44,7 +44,7 @@ private:
     static QFileDialog* getFileDialog();
     QFileDialog* _getFileDialog();
 
-    QFileDialog* fileDialog;
+    QFileDialog* fileDialog = nullptr;
 };
 
 #endif // FILEHANDLER_H

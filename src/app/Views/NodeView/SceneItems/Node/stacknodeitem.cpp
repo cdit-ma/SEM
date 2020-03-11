@@ -1,12 +1,8 @@
 #include "stacknodeitem.h"
-
-#include <QDebug>
-#include <QDateTime>
 #include <cmath>
-//#include <iterator>
 
 StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::Orientation orientation)
-        : BasicNodeItem(viewItem, parentItem)
+	: BasicNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
     addRequiredData("column_count");
@@ -344,8 +340,8 @@ void StackNodeItem::updateCells()
                 }
 
                 const auto child_count = cell.children.count();
-                const auto cell_margin = getCellMargin(index);
-                const auto cell_spacing = getCellSpacing(index);
+                const auto current_cell_margin = getCellMargin(index);
+                const auto current_cell_spacing = getCellSpacing(index);
                 const auto column_count = getCellColumnCount(index);
                 bool render_suffix = getCellRenderSuffixIcon(index);
                 bool render_prefix = getCellRenderPrefixIcon(index);
@@ -361,14 +357,14 @@ void StackNodeItem::updateCells()
 
                 if(cell.allocated){
                     //If the cell is being used, add a gap from the last rect
-                    cell_cr_top_left.rx() += cell_margin.left();
-                    cell_cr_top_left.ry() += cell_margin.top();
+                    cell_cr_top_left.rx() += current_cell_margin.left();
+                    cell_cr_top_left.ry() += current_cell_margin.top();
                     if(render_prefix){
                          //Add an allowance to at the start if we need to render a prefix icon
                         if (cell.orientation == Qt::Vertical || column_count > 0) {
-                            cell_cr_top_left.ry() += cell_spacing;
+                            cell_cr_top_left.ry() += current_cell_spacing;
                         } else {
-                            cell_cr_top_left.rx() += cell_spacing;
+                            cell_cr_top_left.rx() += current_cell_spacing;
                         }
                     }
                 }
@@ -390,21 +386,21 @@ void StackNodeItem::updateCells()
                         child_pos = cell_row_cr.bottomLeft();
                         if(current_cell_row_count != 0){
                             //Add a vertical gap between each child
-                            child_pos.ry() += cell_spacing;
+                            child_pos.ry() += current_cell_spacing;
                         }
                         if(current_cell_row_count == 0 && i > 0){
                             //Add a horizontal gap between each row
-                            child_pos.rx() += cell_spacing;
+                            child_pos.rx() += current_cell_spacing;
                         }
                     } else {
                         child_pos = cell_row_cr.topRight();
                         if(current_cell_row_count != 0){
                             //Add a horizontal gap between each child
-                            child_pos.rx() += cell_spacing;
+                            child_pos.rx() += current_cell_spacing;
                         }
                         if(current_cell_row_count == 0 && i > 0){
                             //Add a vertical gap between each row
-                            child_pos.ry() += cell_spacing;
+                            child_pos.ry() += current_cell_spacing;
                         }
                     }
 
@@ -436,19 +432,19 @@ void StackNodeItem::updateCells()
                 if(cell.allocated && render_prefix){
                     //Take into account the extra space used by the prefix icon, if we have one
                     if (cell.orientation == Qt::Vertical || column_count > 0) {
-                        cell_cr += QMarginsF(0, cell_spacing, 0, 0);
+                        cell_cr += QMarginsF(0, current_cell_spacing, 0, 0);
                     } else {
-                        cell_cr += QMarginsF(cell_spacing, 0, 0, 0);
+                        cell_cr += QMarginsF(current_cell_spacing, 0, 0, 0);
                     }
                 }
                 
                 if(cell.allocated && render_suffix){
                     //Allocate the cell spacing even if we don't have any children (Allows the rectangle to be drawn)
-                    auto alt_offset = child_count == 0 ? cell_spacing : 0;
+                    auto alt_offset = child_count == 0 ? current_cell_spacing : 0;
                     if (cell.orientation == Qt::Vertical || column_count > 0) {
-                        cell_cr += QMarginsF(0, 0, alt_offset, cell_spacing);
+                        cell_cr += QMarginsF(0, 0, alt_offset, current_cell_spacing);
                     } else {
-                        cell_cr += QMarginsF(0, 0, cell_spacing, alt_offset);
+                        cell_cr += QMarginsF(0, 0, current_cell_spacing, alt_offset);
                     }
                 }
             
@@ -463,7 +459,7 @@ void StackNodeItem::updateCells()
                 
                 //Should we use this space?
                 if(cell.allocated){
-                    cell_br += cell_margin;
+                    cell_br += current_cell_margin;
                     last_cell_in_row.insert(row, index);
                 }
 

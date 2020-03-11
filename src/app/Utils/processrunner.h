@@ -37,7 +37,6 @@ public:
     explicit ProcessRunner(QObject* parent = nullptr);
 
     QProcessEnvironment RunEnvVarScript(const QString& program);
-
     ProcessResult RunProcess(const QString& program, const QStringList& args, const QString& directory = "", QProcessEnvironment env = QProcessEnvironment());
     
     HTTPResult HTTPGet(const QNetworkRequest& request);

@@ -1,5 +1,6 @@
 #include "statictextitem.h"
 #include "entityitem.h"
+
 #include <cmath>
 
 StaticTextItem::StaticTextItem(Qt::Alignment text_align)

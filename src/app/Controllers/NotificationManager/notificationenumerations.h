@@ -5,7 +5,7 @@
 #include <QColor>
 #include <QMetaType>
 
-namespace Notification{
+namespace Notification {
     enum class Context{NOT_SELECTED, SELECTED};
     enum class Type{MODEL, APPLICATION};
     enum class Category{NONE, FILE, JENKINS, VALIDATION};
@@ -26,19 +26,19 @@ namespace Notification{
     extern QString getCategoryString(Notification::Category category);
     extern QString getSeverityString(Notification::Severity severity);
 
-    inline uint qHash(Notification::Context key, uint seed){
+    inline uint qHash(Notification::Context key, uint seed) {
         return ::qHash(static_cast<uint>(key), seed);
     };
     
-    inline uint qHash(Notification::Type key, uint seed){
+    inline uint qHash(Notification::Type key, uint seed) {
         return ::qHash(static_cast<uint>(key), seed);
     };
     
-    inline uint qHash(Notification::Category key, uint seed){
+    inline uint qHash(Notification::Category key, uint seed) {
         return ::qHash(static_cast<uint>(key), seed);
     };
     
-    inline uint qHash(Notification::Severity key, uint seed){
+    inline uint qHash(Notification::Severity key, uint seed) {
         return ::qHash(static_cast<uint>(key), seed);
     };
 };
@@ -47,4 +47,5 @@ Q_DECLARE_METATYPE(Notification::Context);
 Q_DECLARE_METATYPE(Notification::Type);
 Q_DECLARE_METATYPE(Notification::Category);
 Q_DECLARE_METATYPE(Notification::Severity);
+
 #endif // NOTIFICATIONENUMERATIONS_H

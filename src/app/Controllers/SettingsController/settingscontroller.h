@@ -123,11 +123,12 @@ protected:
     ~SettingsController() final;
     
 public:
-    QVariant getSetting(SETTINGS ID);
-    bool isWriteProtected();
-    bool isThemeSetting(SETTINGS key);
-    QList<Setting*> getSettings();
-    QList<SETTINGS> getSettingsKeys(const QString& category = "", const QString& section = "", const QString& name = "");
+	QVariant getSetting(SETTINGS ID);
+	QList<Setting*> getSettings();
+	QList<SETTINGS> getSettingsKeys(const QString& category = "", const QString& section = "", const QString& name = "");
+	
+	bool isWriteProtected();
+	bool isThemeSetting(SETTINGS key);
     
     static SettingsController* settings();
 

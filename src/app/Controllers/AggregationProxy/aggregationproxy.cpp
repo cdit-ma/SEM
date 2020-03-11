@@ -208,10 +208,6 @@ AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const qu
         state.last_updated_time = ConstructQDateTime(result->last_updated()).toMSecsSinceEpoch();
         state.end_time = ConstructQDateTime(result->end_time()).toMSecsSinceEpoch();
 
-        //qDebug() << "Proxy END time: " << QDateTime::fromMSecsSinceEpoch(state.end_time).toString("hh:mm:ss.zzz");
-        //qDebug() << "Proxy LAST time: " << QDateTime::fromMSecsSinceEpoch(state.last_updated_time).toString("hh:mm:ss.zzz");
-        //qDebug() << "result raw: " << result->last_updated().seconds();
-
         for (const auto& n : result->nodes()) {
             auto node = ConvertNode(n);
             state.nodes.push_back(node);

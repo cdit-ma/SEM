@@ -64,8 +64,6 @@ private:
     void settingChanged(SETTINGS setting, const QVariant& value);
 
     ProcessResult RunSaxonTransform(const QString& transform_path, const QString& document, const QString& output_directory, const QStringList& arguments = QStringList());
-
-    ViewController* view_controller_ = nullptr;
     
     QProcessEnvironment re_configured_env_;
     QString transforms_path_;
@@ -75,7 +73,6 @@ private:
     QFuture<void> validate_thread;
     QFuture<void> execute_model_thread;
     QFuture<bool> generate_project_thread;
-    QFuture<void> generate_code_thread;
     QFuture<void> regen_thread;
 
     QReadWriteLock lock_;

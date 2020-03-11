@@ -1,7 +1,7 @@
 #include "rootaction.h"
 
 RootAction::RootAction(const QString& category, const QString& text, QObject *parent)
-        : QAction(text, parent)
+	: QAction(text, parent)
 {
     this->category = category;
     connect(this, SIGNAL(changed()), this, SLOT(actionChanged()));
@@ -26,11 +26,6 @@ QString RootAction::getIconPath() const
 QString RootAction::getIconAlias() const
 {
     return iconAlias;
-}
-
-QString RootAction::getCategory() const
-{
-    return category;
 }
 
 QAction* RootAction::constructSubAction(bool stealth)

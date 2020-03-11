@@ -1,7 +1,6 @@
 #ifndef NOTIFICATIONOBJECT_H
 #define NOTIFICATIONOBJECT_H
 
-#include <QDebug>
 #include <QObject>
 #include <QDateTime>
 #include <QEnableSharedFromThis>

@@ -12,7 +12,7 @@
  * @param parent
  */
 DockTabWidget::DockTabWidget(ViewController* vc, QWidget* parent)
-        : QWidget(parent)
+	: QWidget(parent)
 {
     view_controller = vc;
 
@@ -34,7 +34,6 @@ DockTabWidget::DockTabWidget(ViewController* vc, QWidget* parent)
     dockActionTriggered(parts_action);
     refreshSize();
 }
-
 
 /**
  * @brief DockTabWidget::themeChanged
@@ -85,7 +84,6 @@ void DockTabWidget::themeChanged()
     );
 }
 
-
 /**
  * @brief DockTabWidget::setupLayout
  */
@@ -129,7 +127,6 @@ void DockTabWidget::setupLayout()
     layout->addWidget(stack_widget, 1);
 }
 
-
 /**
  * @brief DockTabWidget::dockActionTriggered
  * @param action
@@ -148,7 +145,6 @@ void DockTabWidget::dockActionTriggered(QAction* action)
         emit current_menu->aboutToShow();
     }
 }
-
 
 /**
  * @brief DockTabWidget::setupDocks
@@ -197,7 +193,6 @@ void DockTabWidget::setupDocks()
     installEventFilter(this);
 }
 
-
 /**
  * @brief DockTabWidget::refreshSize
  */
@@ -218,7 +213,6 @@ void DockTabWidget::refreshSize()
 
     current_menu->setFixedWidth(dock_width);
 }
-
 
 /**
  * @brief DockTabWidget::eventFilter

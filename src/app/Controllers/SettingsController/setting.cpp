@@ -52,15 +52,15 @@ bool Setting::gotIcon() const
     return icon.first != "" && icon.second != "";
 }
 
-void Setting::setIcon(const QString& path, const QString& name)
+void Setting::setIcon(const QString& icon_path, const QString& icon_name)
 {
-    icon.first = path;
-    icon.second = name;
+    icon.first = icon_path;
+    icon.second = icon_name;
 }
 
-void Setting::setIcon(const QPair<QString, QString>& icon)
+void Setting::setIcon(const QPair<QString, QString>& _icon)
 {
-    setIcon(icon.first, icon.second);
+    setIcon(_icon.first, _icon.second);
 }
 
 bool Setting::isThemeSetting() const
@@ -68,19 +68,19 @@ bool Setting::isThemeSetting() const
     return category.toLower() == "theme";
 }
 
-void Setting::setDefaultValue(const QVariant& value)
+void Setting::setDefaultValue(const QVariant& _value)
 {
-    if(defaultValue != value){
-        defaultValue = value;
+    if(defaultValue != _value){
+        defaultValue = _value;
         setValue(defaultValue);
     }
 }
 
-bool Setting::setValue(const QVariant& value)
+bool Setting::setValue(const QVariant& _value)
 {
    //Update if setting has changed
-   if(value != this->value){
-       this->value = value;
+   if(_value != value){
+       value = _value;
        return true;
    }else if(type == SETTING_TYPE::BUTTON || type == SETTING_TYPE::NONE){
        return true;

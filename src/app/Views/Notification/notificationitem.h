@@ -12,8 +12,9 @@ class NotificationObject;
 class NotificationItem : public QFrame
 {
     Q_OBJECT
+    
 public:
-    explicit NotificationItem(QSharedPointer<NotificationObject> obj, QWidget* parent = 0);
+    explicit NotificationItem(QSharedPointer<NotificationObject> obj, QWidget* parent = nullptr);
 
     int getID();
     int getEntityID();
@@ -35,30 +36,29 @@ private slots:
     void updateIcon();
 
 protected:
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
     void toggleSelected();
     void setupDescriptionLayout();
     void setupLayout();
     void updateStyleSheet();
-    void updateVisibility(bool filterMatched);
 
     QSharedPointer<NotificationObject> notification;
 
-    QLabel* label_icon = 0;
-    QLabel* label_text = 0;
-    QLabel* label_time = 0;
-    QLabel* label_description = 0;
+    QLabel* label_icon = nullptr;
+    QLabel* label_text = nullptr;
+    QLabel* label_time = nullptr;
+    QLabel* label_description = nullptr;
 
-    QAction* action_delete = 0;
-    QToolBar* toolbar = 0;
+    QAction* action_delete = nullptr;
+    QToolBar* toolbar = nullptr;
     
     QString backgroundColor_;
+    
     bool selected_ = false;
     bool doubleClicked_ = false;
 };
-
 
 #endif // NOTIFICATIONITEM_H

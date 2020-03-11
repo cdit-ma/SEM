@@ -70,7 +70,7 @@ public slots:
     void receiveMouseMove(QMouseEvent* event);
 
 private slots:
-    void viewItem_LabelChanged(QString label);
+    void viewItem_LabelChanged(const QString& label);
 
     void viewItem_Constructed(ViewItem* view_item);
     void viewItem_Destructed(int ID, ViewItem* view_item);
@@ -81,9 +81,9 @@ private slots:
 
     void node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRECTION direction);
     void node_AddMenu(QPointF scene_pos, int index);
-    
-    void item_EditData(ViewItem* item, QString key_name);
-    void item_RemoveData(ViewItem* item, QString key_name);
+	
+	void item_EditData(ViewItem* item, const QString& key_name);
+	void item_RemoveData(ViewItem* item, const QString& key_name);
 
     void item_Selected(ViewItem* item, bool append);
     void item_ActiveSelected(ViewItem* item);
@@ -193,12 +193,10 @@ private:
     NodeViewItem* contained_node_view_item_ = nullptr;
 
     ViewportAnchor zoom_anchor_ = ViewportAnchor::NoAnchor;
-    QPointF viewport_center_scene_;
 
     QRectF current_scene_rect_;
 
-    qreal pan_distance_;
-
+    qreal pan_distance_ = 0;
     QPoint event_last_pos_;
     QPointF event_last_scene_pos_;
 

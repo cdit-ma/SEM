@@ -1,26 +1,23 @@
 #ifndef VIEWCONTROLLER_H
 #define VIEWCONTROLLER_H
 
+#include "viewitem.h"
+#include "nodeviewitem.h"
+#include "edgeviewitem.h"
 #include "../ActionController/actioncontroller.h"
 #include "../SelectionController/selectioncontroller.h"
 #include "../SelectionController/selectionhandler.h"
 #include "../NotificationManager/notificationmanager.h"
-#include "../../Widgets/DockWidgets/basedockwidget.h"
-
 #include "../ExecutionManager/executionmanager.h"
-#include "viewitem.h"
-#include "nodeviewitem.h"
-#include "edgeviewitem.h"
-
+#include "../JenkinsManager/jenkinsmanager.h"
+#include "../../Widgets/DockWidgets/basedockwidget.h"
+#include "../../Controllers/AggregationProxy/aggregationproxy.h"
+#include "../../Widgets/Charts/Data/Events/event.h"
 #include "../../../modelcontroller/kinds.h"
 #include "../../../modelcontroller/nodekinds.h"
 #include "../../../modelcontroller/edgekinds.h"
 #include "../../../modelcontroller/dataupdate.h"
 #include "../../../modelcontroller/viewcontrollerint.h"
-#include "../JenkinsManager/jenkinsmanager.h"
-#include "../../Controllers/AggregationProxy/aggregationproxy.h"
-
-#include "../../Widgets/Charts/Data/Events/event.h"
 
 #undef ERROR
 #include <QTimer>
@@ -37,7 +34,7 @@ class JobMonitor;
 
 class ViewController : public ViewControllerInterface
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
     ViewController();
@@ -93,7 +90,7 @@ public:
     QSet<NODE_KIND> getValidNodeKinds();
     QSet<EDGE_KIND> getCurrentEdgeKinds();
     
-    QSet<NODE_KIND> getValidChartNodeKinds();
+    static QSet<NODE_KIND> getValidChartNodeKinds();
     QSet<MEDEA::ChartDataKind> getValidChartDataKindsForSelection();
     
     QList<QVariant> getValidValuesForKey(int ID, const QString& keyName);
@@ -112,8 +109,9 @@ public:
     void ShowJenkinsBuildDialog(const QStringList& jobs);
     
     bool isNodeAncestor(int ID, int ID2);
+
     VIEW_ASPECT getNodeViewAspect(int ID);
-    QVariant getEntityDataValue(int ID, const QString& key_name);
+
     void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
     
     void HighlightItems(const QList<int> &ids);
@@ -127,7 +125,6 @@ signals:
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem* item);
-    void vc_gotSearchSuggestions(QStringList suggestions);
     void vc_editTableCell(int ID, QString keyName);
     void vc_addProjectToRecentProjects(QString filePath);
     void vc_removeProjectFromRecentProjects(QString filePath);
@@ -145,10 +142,9 @@ signals:
     void vc_viewItemsInChart(QVector<ViewItem*> selectedItems, QList<MEDEA::ChartDataKind> dataKinds);
     void vc_displayChartPopup();
     void vc_displayExperimentDataflow();
-    
-    void modelClosed();
-    
-    //Interface
+	
+	void modelClosed();
+
 protected:
     void ModelReady(bool ready) final;
     void NodeConstructed(int parent_id, int id, NODE_KIND node_kind) final;

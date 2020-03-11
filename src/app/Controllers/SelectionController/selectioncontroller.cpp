@@ -4,10 +4,8 @@
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../WindowManager/windowmanager.h"
 
-#include <QDebug>
-
 SelectionController::SelectionController(ViewController *vc)
-        : QObject(vc)
+	: QObject(vc)
 {
     viewController = vc;
     
@@ -21,7 +19,7 @@ SelectionHandler *SelectionController::constructSelectionHandler(QObject *object
         qCritical() << "SelectionController::constructSelectionHandler() - Already got Selection Handler for QObject: " << object;
         return selectionHandlers[sID];
     } else {
-        auto handler = new SelectionHandler(this);
+        auto handler = new SelectionHandler();
         connect(handler, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(removeSelectionHandler()));
         connect(viewController, &ViewController::vc_viewItemDestructing, handler, &SelectionHandler::itemDeleted);
         selectionHandlers[handler->getID()] = handler;
@@ -82,7 +80,8 @@ ViewItem *SelectionController::getActiveSelectedItem()
     return item;
 }
 
-int SelectionController::getActiveSelectedID(){
+int SelectionController::getActiveSelectedID()
+{
     int id = -1;
     auto active = getActiveSelectedItem();
     if(active){
@@ -140,7 +139,6 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
     }
 }
 
-
 void SelectionController::removeSelectionHandler()
 {
     auto handler = qobject_cast<SelectionHandler*>(sender());
@@ -166,7 +164,6 @@ void SelectionController::removeSelectionHandler()
     }
 }
 
-
 void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 {
     if(currentHandler != handler){
@@ -186,8 +183,5 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
             emit itemActiveSelectionChanged(nullptr, true);
         }
         emit selectionChanged(selectionCount);
-
     }
 }
-
-

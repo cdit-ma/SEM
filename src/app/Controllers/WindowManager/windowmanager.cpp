@@ -25,7 +25,6 @@
 #include "../../Widgets/Panel/overlaysplitter.h"
 #include "../../Widgets/Panel/panelwidget.h"
 
-#define WINDOW_ID_DATA "WINDOW_ID"
 WindowManager* WindowManager::managerSingleton = nullptr;
 
 WindowManager* WindowManager::manager()
@@ -58,8 +57,8 @@ bool WindowManager::Sort(const BaseDockWidget *a, const BaseDockWidget *b)
     }
 }
 
-
-bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget){
+bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget)
+{
     if(base_dock_widget && base_dock_widget->getBaseDockType() == BaseDockType::DOCK){
         auto dock_widget = (DefaultDockWidget*) base_dock_widget;
         if(dock_widget->getDefaultDockType() == DefaultDockType::VIEW){
@@ -69,8 +68,8 @@ bool WindowManager::isViewDockWidget(BaseDockWidget* base_dock_widget){
     return false;
 };
 
-
-void WindowManager::ShowDockWidget(BaseDockWidget* widget){
+void WindowManager::ShowDockWidget(BaseDockWidget* widget)
+{
     if(widget){
         auto window = widget->window();
         widget->show();
@@ -301,7 +300,7 @@ BaseWindow *WindowManager::getMainWindow()
 }
 
 WindowManager::WindowManager()
-        : QObject(nullptr)
+	: QObject(nullptr)
 {
     viewManagerWidget = new ViewManagerWidget(this);
     
@@ -311,6 +310,7 @@ WindowManager::WindowManager()
 
 void WindowManager::focusChanged(QWidget* prev, QWidget* now)
 {
+	Q_UNUSED(prev);
     if(now){
         //Check to see if the widget is a child of one of the view docks
         for(auto id : view_dock_ids){
@@ -368,7 +368,8 @@ ViewManagerWidget *WindowManager::getViewManagerGUI()
     return viewManagerWidget;
 }
 
-DockReparenterPopup* WindowManager::getDockPopup(){
+DockReparenterPopup* WindowManager::getDockPopup()
+{
     if(!dock_popup){
         dock_popup = new DockReparenterPopup();
     }
@@ -418,7 +419,8 @@ void WindowManager::setActiveViewDockWidget(ViewDockWidget *view)
     }
 }
 
-QList<BaseWindow*> WindowManager::getWindows(){
+QList<BaseWindow*> WindowManager::getWindows()
+{
     return windows.values();
 }
 
@@ -435,8 +437,8 @@ QList<ViewDockWidget *> WindowManager::getViewDockWidgets()
     return views;
 }
 
-
-ViewDockWidget* WindowManager::getViewDockWidget(ViewItem *item){
+ViewDockWidget* WindowManager::getViewDockWidget(ViewItem *item)
+{
     for(auto dock : getViewDockWidgets()){
         if(dock->getNodeView()->getContainedViewItem() == item){
             return dock;
@@ -580,11 +582,13 @@ void WindowManager::activeDockWidgetVisibilityChanged()
     }
 }
 
-BaseWindow* WindowManager::getWindow(int ID){
+BaseWindow* WindowManager::getWindow(int ID)
+{
     return windows.value(ID, nullptr);
 }
 
-bool WindowManager::reparentDockWidget(BaseDockWidget* dockWidget){
+bool WindowManager::reparentDockWidget(BaseDockWidget* dockWidget)
+{
     return getDockPopup()->ReparentDockWidget(dockWidget);
 }
 
@@ -604,14 +608,15 @@ bool WindowManager::reparentDockWidget(BaseDockWidget* dock_widget, BaseWindow *
     }
     return false;
 }
+
 void WindowManager::MoveWidget(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment)
 {
     //Add an event to the event loop to move the widget in the next server tick.
     QMetaObject::invokeMethod(manager(), "MoveWidgetEvent", Qt::QueuedConnection, Q_ARG(QWidget*, widget), Q_ARG(QWidget*, parent_widget), Q_ARG(Qt::Alignment, alignment));
 }
 
-void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment){
-    
+void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment)
+{
     if(!parent_widget){
         parent_widget = QApplication::activeWindow();
         //Check
@@ -621,7 +626,7 @@ void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt:
     }else{
         parent_widget = parent_widget->window();
     }
-    
+
     if(widget && parent_widget){
         auto pos = parent_widget->mapToGlobal(parent_widget->rect().center());
         //auto widget_size = widget->frameGeometry().size();
@@ -644,4 +649,3 @@ void WindowManager::MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt:
         widget->move(pos);
     }
 }
-

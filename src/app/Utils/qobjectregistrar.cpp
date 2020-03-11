@@ -1,7 +1,7 @@
 #include "qobjectregistrar.h"
 
 QObjectRegistrar::QObjectRegistrar(QObject *parent)
-        : QObject(parent) {}
+	: QObject(parent) {}
 
 void QObjectRegistrar::registerObject(QObject *object)
 {

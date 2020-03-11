@@ -6,6 +6,7 @@
 class CompactNodeItem : public BasicNodeItem
 {
     Q_OBJECT
+    
 public:
     CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
     

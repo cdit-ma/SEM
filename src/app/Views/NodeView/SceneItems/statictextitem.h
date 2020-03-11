@@ -43,4 +43,4 @@ private:
     int min_size = 3;
 };
 
-#endif //STATICTEXTITEM_HT
+#endif // STATICTEXTITEM_HT

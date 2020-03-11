@@ -1,15 +1,15 @@
 #include "filehandler.h"
+#include "../Controllers/WindowManager/windowmanager.h"
 
 #include <QDateTime>
 #include <QTextStream>
 #include <QStringBuilder>
-#include "../Controllers/WindowManager/windowmanager.h"
 #include <QApplication>
 
 FileHandler* handler = nullptr;
 
 FileHandler::FileHandler()
-        : QObject()
+	: QObject()
 {
     fileDialog = new QFileDialog(nullptr);
     fileDialog->setModal(true);

@@ -2,8 +2,8 @@
 #define NOTIFICATIONMANAGER_H
 
 #include "notificationenumerations.h"
-#include "../ActionController/actioncontroller.h"
 #include "notificationobject.h"
+#include "../ActionController/actioncontroller.h"
 
 #include <QObject>
 
@@ -20,6 +20,8 @@ Q_OBJECT
 
 protected:
     static bool construct_singleton(ViewController* controller);
+    
+    // TODO: This isn't being used; should it be called to delete the singleton at some point?
     static void destruct_singleton();
 
 public:

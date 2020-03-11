@@ -115,10 +115,10 @@ private:
     
     QSet<int> window_ids;
     QSet<int> view_dock_ids;
+	
+	static WindowManager* managerSingleton;
     
     Q_INVOKABLE void MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment);
-    
-    static WindowManager* managerSingleton;
 };
 
 #endif // WINDOWMANAGER_H

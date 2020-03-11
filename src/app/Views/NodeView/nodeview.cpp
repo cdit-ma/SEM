@@ -1,17 +1,14 @@
 #include "nodeview.h"
-
 #include "SceneItems/Node/defaultnodeitem.h"
 #include "SceneItems/Node/stacknodeitem.h"
 #include "SceneItems/Node/compactnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
 #include "SceneItems/Node/membernodeitem.h"
 #include "SceneItems/Node/deploymentcontainernodeitem.h"
-
 #include "../ContextMenu/contextmenu.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 
-#include <QDebug>
 #include <QtMath>
 #include <QTimer>
 #include <QGraphicsItem>
@@ -34,8 +31,8 @@ const int invalid_node_id = -1;
  * @throws std::runtime_error
  */
 NodeView::NodeView(ViewController& view_controller, QWidget* parent)
-    : QGraphicsView(parent),
-      view_controller_(view_controller)
+	: QGraphicsView(parent),
+	  view_controller_(view_controller)
 {
     connectViewController();
 
@@ -86,7 +83,6 @@ NodeView::NodeView(ViewController& view_controller, QWidget* parent)
     });
 }
 
-
 /**
  * @brief NodeView::~NodeView
  */
@@ -105,7 +101,6 @@ NodeView::~NodeView()
         }
     }
 }
-
 
 /**
  * @brief NodeView::connectViewController
@@ -142,7 +137,6 @@ void NodeView::connectViewController()
     connect(this, &NodeView::editData, &view_controller_, &ViewController::vc_editTableCell);
 }
 
-
 /**
  * @brief NodeView::fitViewToScreen
  * This slot is triggered by the fit to screen actions
@@ -165,7 +159,6 @@ void NodeView::fitToScreen()
     centerOnItems(getTopLevelEntityItems());
 }
 
-
 /**
  * @brief NodeView::translate
  * @param point
@@ -176,7 +169,6 @@ void NodeView::translate(QPointF point)
     // Hence, some stored scene positions may need to be remapped after any transform functions
     QGraphicsView::translate(point.x(), point.y());
 }
-
 
 /**
  * @brief NodeView::setContainedViewAspect
@@ -209,7 +201,6 @@ void NodeView::setContainedViewAspect(VIEW_ASPECT aspect)
     connect(&view_controller_, &ViewController::ConstructConnectedNodeAtIndex, this, &NodeView::addNodeTriggered);
     connect(&view_controller_, &ViewController::ActionFinished, this, &NodeView::actionFinished);
 }
-
 
 /**
  * @brief NodeView::setContainedNodeViewItem
@@ -252,7 +243,6 @@ void NodeView::setContainedNodeViewItem(NodeViewItem *item)
     clearSelection();
 }
 
-
 /**
  * @brief NodeView::getContainedViewItem
  * @return
@@ -262,7 +252,6 @@ ViewItem* NodeView::getContainedViewItem()
     return contained_node_view_item_;
 }
 
-
 /**
  * @brief NodeView::getBackgroundColor
  * @return
@@ -271,7 +260,6 @@ QColor NodeView::getBackgroundColor() const
 {
     return background_color_;
 }
-
 
 /**
  * @brief NodeView::viewItem_Constructed
@@ -287,7 +275,6 @@ void NodeView::viewItem_Constructed(ViewItem* view_item)
         }
     }
 }
-
 
 /**
  * @brief NodeView::viewItem_Destructed
@@ -311,7 +298,6 @@ void NodeView::viewItem_Destructed(int ID, ViewItem* view_item)
     }
 }
 
-
 /**
  * @brief NodeView::selectionHandler_ItemSelectionChanged
  * @param item
@@ -328,7 +314,6 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem* item, bool select
     }
 }
 
-
 /**
  * @brief NodeView::selectionHandler_ItemActiveSelectionChanged
  * @param item
@@ -343,7 +328,6 @@ void NodeView::selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool 
         }
     }
 }
-
 
 /**
  * @brief NodeView::selectAll
@@ -369,7 +353,6 @@ void NodeView::selectAll()
         getSelectionHandler().toggleItemsSelection(items_to_select, false);
     }
 }
-
 
 /**
  * @brief NodeView::alignHorizontal
@@ -403,7 +386,6 @@ void NodeView::alignHorizontal()
     }
 }
 
-
 /**
  * @brief NodeView::alignVertical
  */
@@ -436,7 +418,6 @@ void NodeView::alignVertical()
     }
 }
 
-
 /**
  * @brief NodeView::clearSelection
  */
@@ -455,7 +436,6 @@ void NodeView::clearSelection()
     }
 }
 
-
 /**
  * @brief NodeView::themeItem
  * @param entity
@@ -473,7 +453,6 @@ void NodeView::themeItem(EntityItem* entity)
         entity->setDefaultPen(default_pen_);
     }
 }
-
 
 /**
  * @brief NodeView::themeChanged
@@ -506,7 +485,6 @@ void NodeView::themeChanged()
     }
 }
 
-
 /**
  * @brief NodeView::node_ConnectEdgeMenu
  * This is called when a NodeItem's edge knob (button) has been clicked
@@ -522,7 +500,6 @@ void NodeView::node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRE
     view_controller_.getContextMenu()->popup_edge_menu(global_pos, kind, edge_direction);
 }
 
-
 /**
  * @brief NodeView::node_AddMenu
  * This is called when a NodeItem's plus/add button has been clicked
@@ -536,31 +513,28 @@ void NodeView::node_AddMenu(QPointF scene_pos, int index)
     view_controller_.getContextMenu()->popup_add_menu(global_pos, index);
 }
 
-
 /**
  * @brief NodeView::item_EditData
  * @param item
  * @param key_name
  */
-void NodeView::item_EditData(ViewItem* item, QString key_name)
+void NodeView::item_EditData(ViewItem* item, const QString& key_name)
 {
     getSelectionHandler().setActiveSelectedItem(item);
-    emit editData(item->getID(), key_name);
+	emit editData(item->getID(), key_name);
 }
-
 
 /**
  * @brief NodeView::item_RemoveData
  * @param item
  * @param key_name
  */
-void NodeView::item_RemoveData(ViewItem* item, QString key_name)
+void NodeView::item_RemoveData(ViewItem* item, const QString& key_name)
 {
     if (item) {
         emit removeData(item->getID(), key_name);
     }
 }
-
 
 /**
  * @brief NodeView::centerSelection
@@ -569,7 +543,6 @@ void NodeView::centerSelection()
 {
     centerOnItems(getSelectedItems());
 }
-
 
 /**
  * @brief NodeView::selectAndCenterConnections
@@ -624,7 +597,6 @@ void NodeView::selectAndCenterConnections(const QVector<ViewItem*>& items)
     }
 }
 
-
 /**
  * @brief NodeView::centerOnItemIDs
  * Center the view on the items with the provided ids
@@ -655,7 +627,6 @@ void NodeView::selectItemIDs(const QList<int>& ids)
     getSelectionHandler().toggleItemsSelection(view_items);
 }
 
-
 /**
  * @brief NodeView::item_Selected
  * @param item
@@ -666,7 +637,6 @@ void NodeView::item_Selected(ViewItem* item, bool append)
     getSelectionHandler().toggleItemsSelection(item, append);
 }
 
-
 /**
  * @brief NodeView::item_ActiveSelected
  * @param item
@@ -675,7 +645,6 @@ void NodeView::item_ActiveSelected(ViewItem* item)
 {
     getSelectionHandler().setActiveSelectedItem(item);
 }
-
 
 /**
  * @brief NodeView::item_SetExpanded
@@ -691,7 +660,6 @@ void NodeView::item_SetExpanded(EntityItem* item, bool expand)
     }
 }
 
-
 /**
  * @brief NodeView::minimap_Pan
  * @param delta
@@ -701,7 +669,6 @@ void NodeView::minimap_Pan(QPointF delta)
     translate(delta);
 }
 
-
 /**
  * @brief NodeView::minimap_Zoom
  * @param delta
@@ -710,7 +677,6 @@ void NodeView::minimap_Zoom(int delta)
 {
     zoom(delta);
 }
-
 
 /**
  * @brief NodeView::receiveMouseMove
@@ -732,7 +698,6 @@ void NodeView::receiveMouseMove(QMouseEvent *event)
     }
 }
 
-
 /**
  * @brief NodeView::centerOnItem
  * This centers the view on the item with the provided ID
@@ -750,7 +715,6 @@ void NodeView::centerOnItem(int ID)
     }
 }
 
-
 /**
  * @brief NodeView::highlightItem
  * @param ID
@@ -763,7 +727,6 @@ void NodeView::highlightItem(int ID, bool highlighted)
         item->setHighlighted(highlighted);
     }
 }
-
 
 /**
  * @brief NodeView::setupItemConnections
@@ -785,13 +748,12 @@ void NodeView::setupItemConnections(EntityItem* item)
     connect(item, &EntityItem::req_editData, this, &NodeView::item_EditData);
 
     if (item->isNodeItem()) {
-        NodeItem* node = qobject_cast<NodeItem*>(item);
+        auto node = qobject_cast<NodeItem*>(item);
         connect(node, &NodeItem::req_connectEdgeMode, this, &NodeView::setConnectingModeOn);
         connect(node, &NodeItem::req_connectEdgeMenu, this, &NodeView::node_ConnectEdgeMenu);
         connect(node, &NodeItem::req_addNodeMenu, this, &NodeView::node_AddMenu);
     }
 }
-
 
 /**
  * @brief NodeView::showItem
@@ -815,7 +777,6 @@ void NodeView::showItem(EntityItem* item)
     }
 }
 
-
 /**
  * @brief NodeView::centerOnItems
  * @param items
@@ -830,7 +791,6 @@ void NodeView::centerOnItems(const QList<EntityItem*>& items)
     centerRect(getSceneBoundingRectOfItems(items));
 }
 
-
 /**
  * @brief NodeView::centerOnItemInternal
  * This centers the view on the provided item
@@ -844,7 +804,6 @@ void NodeView::centerOnItemInternal(EntityItem* item)
     }
     centerRect(item->sceneBoundingRect());
 }
-
 
 /**
  * @brief NodeView::getSceneBoundingRectOfItems
@@ -861,7 +820,6 @@ QRectF NodeView::getSceneBoundingRectOfItems(const QList<EntityItem*>& items)
     }
     return itemsRect;
 }
-
 
 /**
  * @brief NodeView::centerRect
@@ -884,7 +842,6 @@ void NodeView::centerRect(QRectF rect_scene)
     }
 }
 
-
 /**
  * @brief NodeView::centerViewOn
  * Center the view on the given scene position
@@ -894,9 +851,7 @@ void NodeView::centerViewOn(QPointF scene_pos)
 {
     QPointF delta = viewportSceneRect().center() - scene_pos;
     translate(delta);
-    viewport_center_scene_ = viewportSceneRect().center();
 }
-
 
 /**
  * @brief NodeView::getSelectionHandler
@@ -912,7 +867,6 @@ SelectionHandler& NodeView::getSelectionHandler() const
     }
 }
 
-
 /**
  * @brief NodeView::topLevelItemMoved
  */
@@ -925,7 +879,6 @@ void NodeView::topLevelItemMoved()
     }
 }
 
-
 /**
  * @brief NodeView::update_minimap
  */
@@ -934,7 +887,6 @@ void NodeView::update_minimap()
     emit viewport_changed(viewportSceneRect(), transform().m11());
     emit scenerect_changed(current_scene_rect_);
 }
-
 
 /**
  * @brief NodeView::paintEvent
@@ -950,7 +902,6 @@ void NodeView::paintEvent(QPaintEvent* event)
         update_minimap();
     }
 }
-
 
 /**
  * @brief NodeView::event
@@ -972,12 +923,11 @@ bool NodeView::event(QEvent *event)
     return QGraphicsView::event(event);
 }
 
-
 /**
  * @brief NodeView::viewItem_LabelChanged
  * @param label
  */
-void NodeView::viewItem_LabelChanged(QString label)
+void NodeView::viewItem_LabelChanged(const QString& label)
 {
     auto text = label.toUpper();
     background_text_.setText(text);
@@ -987,12 +937,12 @@ void NodeView::viewItem_LabelChanged(QString label)
     background_text_rect_ = fm.boundingRect(text);
 }
 
-
 /**
  * @brief NodeView::activeViewDockChanged
  * @param dw
  */
-void NodeView::activeViewDockChanged(ViewDockWidget* dw){
+void NodeView::activeViewDockChanged(ViewDockWidget* dw)
+{
 
     bool active = dw && dw->widget() == this;
     if (active != is_active_) {
@@ -1000,7 +950,6 @@ void NodeView::activeViewDockChanged(ViewDockWidget* dw){
         update();
     }
 }
-
 
 /**
  * @brief NodeView::viewportSceneRect
@@ -1011,7 +960,6 @@ QRectF NodeView::viewportSceneRect()
 {
     return mapToScene(viewport()->rect()).boundingRect();
 }
-
 
 /**
  * @brief NodeView::nodeViewItem_Constructed
@@ -1047,366 +995,354 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             }
 
             NodeItem* node_item =  nullptr;
-
-            switch (node_kind) {
-            case NODE_KIND::HARDWARE_NODE:
-                node_item = new HardwareNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("ip_address");
-                node_item->setExpandEnabled(true);
-                break;
-            case NODE_KIND::LOGGINGSERVER:
-                node_item = new DefaultNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("database");
-                node_item->setIconVisible(NodeItem::EntityRect::SECONDARY_ICON, {"Icons", "servers"}, true);
-                break;
-            case NODE_KIND::DEPLOYMENT_CONTAINER:
-                node_item = new DeploymentContainerNodeItem(item, parent_node_item);
-                break;
-            case NODE_KIND::LOGGINGPROFILE:
-                node_item = new DefaultNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("mode");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "gear"}, true);
-                break;
-            case NODE_KIND::IDL:
-                node_item = new DefaultNodeItem(item, parent_node_item);
-                break;
-            case NODE_KIND::NAMESPACE:{
-                {
-                    auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                    stack_item->SetUseColumnCount(0, 0, true);
-                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
-                    node_item = stack_item;
-                }
-                node_item->setSecondaryTextKey("namespace");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
-                break;
-            }
-            case NODE_KIND::SHARED_DATATYPES:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                stack_item->SetUseColumnCount(0, 0, true);
-                stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
-                node_item = stack_item;
-            }
-                node_item->setSecondaryTextKey("version");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
-                break;
-            case NODE_KIND::COMPONENT:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Vertical);
-                stack_item->SetRenderCellSuffixIcon(3, 0, true, "Icons", "plus");
-                node_item = stack_item;
-            }
-                break;
-            case NODE_KIND::COMPONENT_IMPL:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item = stack_item;
-            }
-                break;
-            case NODE_KIND::CLASS:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item = stack_item;
-                node_item->setSecondaryTextKey("version");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
-            }
-                break;
-            case NODE_KIND::COMPONENT_INST:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Component"}, true);
-                break;
-            case NODE_KIND::COMPONENT_ASSEMBLY:
-                node_item = new DefaultNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("replicate_value");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "copyX"}, true);
-                break;
-            case NODE_KIND::HARDWARE_CLUSTER:
-                node_item = new StackNodeItem(item, parent_node_item);
-                break;
-            case NODE_KIND::PORT_REQUEST_DELEGATE:
-                node_item = new DefaultNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
-                break;
-            case NODE_KIND::PORT_SUBSCRIBER_DELEGATE:
-            case NODE_KIND::PORT_PUBLISHER_DELEGATE:
-            case NODE_KIND::PORT_PUBSUB_DELEGATE:
-                node_item = new DefaultNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
-                break;
-            case NODE_KIND::PORT_REPLIER_INST:
-            case NODE_KIND::PORT_REQUESTER_INST:
-            case NODE_KIND::PORT_SUBSCRIBER_INST:
-            case NODE_KIND::PORT_PUBLISHER_INST:
-                node_item = new CompactNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
-                node_item->setTertiaryTextKey("middleware");
-                node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "sliders"}, true);
-
-                if (node_kind == NODE_KIND::PORT_PUBLISHER_INST || node_kind == NODE_KIND::PORT_REQUESTER_INST) {
-                    node_item->setRightJustified(true);
-                }
-                break;
-            case NODE_KIND::EXTERNAL_SERVER_DELEGATE:{
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
-                break;
-            }
-            case NODE_KIND::EXTERNAL_PUBSUB_DELEGATE:{
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
-                break;
-            }
-            case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
-                node_item = new CompactNodeItem(item, parent_node_item);
-                node_item->setMoveEnabled(true);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                node_item->setTertiaryTextKey("value");
-                node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "pencil"}, true);
-                break;
-            case NODE_KIND::ATTRIBUTE_INST:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-
-                switch (item->getViewAspect()) {
-                case VIEW_ASPECT::BEHAVIOUR:{
-                    node_item->setSecondaryTextKey("type");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                    break;
-                }
-                default:{
-                    node_item->setSecondaryTextKey("value");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                    break;
-                }
-                }
-                break;
-            case NODE_KIND::SERVER_INTERFACE:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("namespace");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
-                break;
-            case NODE_KIND::AGGREGATE:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                stack_item->SetUseColumnCount(0, 0, true);
-                node_item = stack_item;
-            }
-                node_item->setSecondaryTextKey("namespace");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
-                break;
-            case NODE_KIND::AGGREGATE_INST:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                stack_item->SetUseColumnCount(0, 0, true);
-                node_item = stack_item;
-            }
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                break;
-            case NODE_KIND::FUNCTION_CALL:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("class");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
-                break;
-            case NODE_KIND::CALLBACK_FNC_INST:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("class");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
-                break;
-            case NODE_KIND::MEMBER:
-            case NODE_KIND::MEMBER_INST:
-                node_item = new MemberNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                
-                if (item->hasData("value")) {
-                    node_item->setSecondaryTextKey("value");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                } else {
-                    node_item->setSecondaryTextKey("type");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                }
-                break;
-            case NODE_KIND::VARIABLE:
-                node_item = new StackNodeItem(item, parent_node_item);
-
-                switch (item->getViewAspect()) {
-                case VIEW_ASPECT::ASSEMBLIES:{
-                    node_item->setSecondaryTextKey("value");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                    break;
-                }
-                default:{
-                    node_item->setSecondaryTextKey("type");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                    break;
-                }
-                }
-                break;
-            case NODE_KIND::ATTRIBUTE_IMPL:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Vertical);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                break;
-            case NODE_KIND::ENUM:{
-                {
-                    auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                    stack_item->SetUseColumnCount(0, 0, true);
-                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
-                    node_item = stack_item;
-                }
-                break;
-            }
-            case NODE_KIND::ENUM_INST:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                
-                if (item->hasData("value")) {
-                    node_item->setSecondaryTextKey("value");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                } else {
-                    node_item->setSecondaryTextKey("type");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                }
-                break;
-            case NODE_KIND::PORT_PUBLISHER_IMPL:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                break;
-            case NODE_KIND::ATTRIBUTE:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                break;
-            case NODE_KIND::VARIABLE_PARAMETER:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "value"}, true);
-                break;
-            case NODE_KIND::INPUT_PARAMETER:{
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-
-                if (item->hasData("editable_key")) {
-                    node_item->setPrimaryTextKey("");
-                    node_item->setSecondaryTextKey(item->getData("editable_key").toString());
-                } else {
-                    node_item->setPrimaryTextKey("label");
-                    node_item->setSecondaryTextKey("value");
-                }
-
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                break;
-            }
-            case NODE_KIND::VARIADIC_PARAMETER:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setPrimaryTextKey("");
-                node_item->setSecondaryTextKey("value");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                break;
-            case NODE_KIND::RETURN_PARAMETER:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                break;
-            case NODE_KIND::PORT_REPLIER:
-            case NODE_KIND::PORT_REQUESTER:{
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                break;
-            }
-            case NODE_KIND::PORT_REQUESTER_IMPL:{
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item = stack_item;
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                
-                stack_item->SetRenderCellArea(0, -1, true, true);
-                stack_item->SetCellOrientation(0, -1, Qt::Vertical);
-                stack_item->SetRenderCellArea(0, 1, true, true);
-                stack_item->SetCellOrientation(0, 1, Qt::Vertical);
-                break;
-            }
-            case NODE_KIND::VOID_TYPE:{
-                node_item = new BasicNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                node_item->setContractedHeight(node_item->getContractedHeight() / 2);
-                node_item->setContractedWidth(40);
-                break;
-            }
-            case NODE_KIND::CLASS_INST:{
-                node_item = new StackNodeItem(item, parent_node_item);
-                if (item->getData(KeyName::IsWorker).toBool()) {
-                    node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
-                }
-                node_item->setSecondaryTextKey("version");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
-                break;
-            }
-            case NODE_KIND::INPUT_PARAMETER_GROUP:
-            case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
-            case NODE_KIND::RETURN_PARAMETER_GROUP:
-            case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
-            case NODE_KIND::PORT_PERIODIC_INST:{
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setContractedHeight(node_item->getContractedHeight() / 2);
-                node_item->setContractedWidth(40);
-                break;
-            }
-            case NODE_KIND::PORT_PUBLISHER:
-            case NODE_KIND::PORT_SUBSCRIBER:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                break;
-            case NODE_KIND::PORT_SUBSCRIBER_IMPL:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                break;
-            case NODE_KIND::PORT_PERIODIC:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                break;
-            case NODE_KIND::CODE:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setExpandEnabled(false);
-                break;
-            case NODE_KIND::VECTOR:
-            case NODE_KIND::VECTOR_INST:
-                node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                break;
-            case NODE_KIND::FUNCTION:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                
-                if (!item->isDataProtected("operation")) {
-                    node_item->setPrimaryTextKey("operation");
-                } else {
-                    node_item->setPrimaryTextKey("label");
-                }
-                break;
-            default:
-                node_item = new StackNodeItem(item, parent_node_item);
-                break;
-            }
+	
+			switch (node_kind) {
+				case NODE_KIND::HARDWARE_NODE:
+					node_item = new HardwareNodeItem(item, parent_node_item);
+					node_item->setSecondaryTextKey("ip_address");
+					node_item->setExpandEnabled(true);
+					break;
+				case NODE_KIND::LOGGINGSERVER:
+					node_item = new DefaultNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setSecondaryTextKey("database");
+					node_item->setIconVisible(NodeItem::EntityRect::SECONDARY_ICON, {"Icons", "servers"}, true);
+					break;
+				case NODE_KIND::DEPLOYMENT_CONTAINER:
+					node_item = new DeploymentContainerNodeItem(item, parent_node_item);
+					break;
+				case NODE_KIND::LOGGINGPROFILE:
+					node_item = new DefaultNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setSecondaryTextKey("mode");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "gear"}, true);
+					break;
+				case NODE_KIND::IDL:
+					node_item = new DefaultNodeItem(item, parent_node_item);
+					break;
+				case NODE_KIND::NAMESPACE:{
+					{
+						auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+						stack_item->SetUseColumnCount(0, 0, true);
+						stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+						node_item = stack_item;
+					}
+					node_item->setSecondaryTextKey("namespace");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
+					break;
+				}
+				case NODE_KIND::SHARED_DATATYPES:
+				{
+					auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					stack_item->SetUseColumnCount(0, 0, true);
+					stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+					node_item = stack_item;
+				}
+					node_item->setSecondaryTextKey("version");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
+					break;
+				case NODE_KIND::COMPONENT:
+				{
+					auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Vertical);
+					stack_item->SetRenderCellSuffixIcon(3, 0, true, "Icons", "plus");
+					node_item = stack_item;
+				}
+					break;
+				case NODE_KIND::COMPONENT_IMPL:
+				{
+					auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item = stack_item;
+				}
+					break;
+				case NODE_KIND::CLASS:
+				{
+					auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item = stack_item;
+					node_item->setSecondaryTextKey("version");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
+				}
+					break;
+				case NODE_KIND::COMPONENT_INST:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Component"}, true);
+					break;
+				case NODE_KIND::COMPONENT_ASSEMBLY:
+					node_item = new DefaultNodeItem(item, parent_node_item);
+					node_item->setSecondaryTextKey("replicate_value");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "copyX"}, true);
+					break;
+				case NODE_KIND::HARDWARE_CLUSTER:
+					node_item = new StackNodeItem(item, parent_node_item);
+					break;
+				case NODE_KIND::PORT_REQUEST_DELEGATE:
+					node_item = new DefaultNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
+					break;
+				case NODE_KIND::PORT_SUBSCRIBER_DELEGATE:
+				case NODE_KIND::PORT_PUBLISHER_DELEGATE:
+				case NODE_KIND::PORT_PUBSUB_DELEGATE:
+					node_item = new DefaultNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
+					break;
+				case NODE_KIND::PORT_REPLIER_INST:
+				case NODE_KIND::PORT_REQUESTER_INST:
+				case NODE_KIND::PORT_SUBSCRIBER_INST:
+				case NODE_KIND::PORT_PUBLISHER_INST:
+					node_item = new CompactNodeItem(item, parent_node_item);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
+					node_item->setTertiaryTextKey("middleware");
+					node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "sliders"}, true);
+					if (node_kind == NODE_KIND::PORT_PUBLISHER_INST || node_kind == NODE_KIND::PORT_REQUESTER_INST) {
+						node_item->setRightJustified(true);
+					}
+					break;
+				case NODE_KIND::EXTERNAL_SERVER_DELEGATE:{
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
+					break;
+				}
+				case NODE_KIND::EXTERNAL_PUBSUB_DELEGATE:{
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
+					break;
+				}
+				case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
+					node_item = new CompactNodeItem(item, parent_node_item);
+					node_item->setMoveEnabled(true);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+					node_item->setTertiaryTextKey("value");
+					node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "pencil"}, true);
+					break;
+				case NODE_KIND::ATTRIBUTE_INST:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					switch (item->getViewAspect()) {
+						case VIEW_ASPECT::BEHAVIOUR:{
+							node_item->setSecondaryTextKey("type");
+							node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+							break;
+						}
+						default:{
+							node_item->setSecondaryTextKey("value");
+							node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+							break;
+						}
+					}
+					break;
+				case NODE_KIND::SERVER_INTERFACE:
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item->setSecondaryTextKey("namespace");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
+					break;
+				case NODE_KIND::AGGREGATE:
+				{
+					auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					stack_item->SetUseColumnCount(0, 0, true);
+					node_item = stack_item;
+				}
+					node_item->setSecondaryTextKey("namespace");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
+					break;
+				case NODE_KIND::AGGREGATE_INST:
+				{
+					auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					stack_item->SetUseColumnCount(0, 0, true);
+					node_item = stack_item;
+				}
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+					break;
+				case NODE_KIND::FUNCTION_CALL:
+				case NODE_KIND::CALLBACK_FNC_INST:
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item->setSecondaryTextKey("class");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
+					break;
+				case NODE_KIND::MEMBER:
+				case NODE_KIND::MEMBER_INST:
+					node_item = new MemberNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					if (item->hasData("value")) {
+						node_item->setSecondaryTextKey("value");
+						node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+					} else {
+						node_item->setSecondaryTextKey("type");
+						node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+					}
+					break;
+				case NODE_KIND::VARIABLE:
+					node_item = new StackNodeItem(item, parent_node_item);
+					switch (item->getViewAspect()) {
+						case VIEW_ASPECT::ASSEMBLIES:{
+							node_item->setSecondaryTextKey("value");
+							node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+							break;
+						}
+						default:{
+							node_item->setSecondaryTextKey("type");
+							node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+							break;
+						}
+					}
+					break;
+				case NODE_KIND::ATTRIBUTE_IMPL:
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Vertical);
+					node_item->setExpandEnabled(false);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+					break;
+				case NODE_KIND::ENUM:{
+					{
+						auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+						stack_item->SetUseColumnCount(0, 0, true);
+						stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+						node_item = stack_item;
+					}
+					break;
+				}
+				case NODE_KIND::ENUM_INST:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					if (item->hasData("value")) {
+						node_item->setSecondaryTextKey("value");
+						node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+					} else {
+						node_item->setSecondaryTextKey("type");
+						node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+					}
+					break;
+				case NODE_KIND::PORT_PUBLISHER_IMPL:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+					break;
+				case NODE_KIND::ATTRIBUTE:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+					break;
+				case NODE_KIND::VARIABLE_PARAMETER:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "value"}, true);
+					break;
+				case NODE_KIND::INPUT_PARAMETER:{
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					if (item->hasData("editable_key")) {
+						node_item->setPrimaryTextKey("");
+						node_item->setSecondaryTextKey(item->getData("editable_key").toString());
+					} else {
+						node_item->setPrimaryTextKey("label");
+						node_item->setSecondaryTextKey("value");
+					}
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+					break;
+				}
+				case NODE_KIND::VARIADIC_PARAMETER:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setPrimaryTextKey("");
+					node_item->setSecondaryTextKey("value");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+					break;
+				case NODE_KIND::RETURN_PARAMETER:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+					break;
+				case NODE_KIND::PORT_REPLIER:
+				case NODE_KIND::PORT_REQUESTER:{
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+					break;
+				}
+				case NODE_KIND::PORT_REQUESTER_IMPL:{
+					auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item = stack_item;
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+			
+					stack_item->SetRenderCellArea(0, -1, true, true);
+					stack_item->SetCellOrientation(0, -1, Qt::Vertical);
+					stack_item->SetRenderCellArea(0, 1, true, true);
+					stack_item->SetCellOrientation(0, 1, Qt::Vertical);
+					break;
+				}
+				case NODE_KIND::VOID_TYPE:{
+					node_item = new BasicNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					node_item->setContractedHeight(node_item->getContractedHeight() / 2);
+					node_item->setContractedWidth(40);
+					break;
+				}
+				case NODE_KIND::CLASS_INST:{
+					node_item = new StackNodeItem(item, parent_node_item);
+					if (item->getData(KeyName::IsWorker).toBool()) {
+						node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
+					}
+					node_item->setSecondaryTextKey("version");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
+					break;
+				}
+				case NODE_KIND::INPUT_PARAMETER_GROUP:
+				case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
+				case NODE_KIND::RETURN_PARAMETER_GROUP:
+				case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
+				case NODE_KIND::PORT_PERIODIC_INST:{
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setContractedHeight(node_item->getContractedHeight() / 2);
+					node_item->setContractedWidth(40);
+					break;
+				}
+				case NODE_KIND::PORT_PUBLISHER:
+				case NODE_KIND::PORT_SUBSCRIBER:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+					break;
+				case NODE_KIND::PORT_SUBSCRIBER_IMPL:
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+					break;
+				case NODE_KIND::PORT_PERIODIC:
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					break;
+				case NODE_KIND::CODE:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setExpandEnabled(false);
+					break;
+				case NODE_KIND::VECTOR:
+				case NODE_KIND::VECTOR_INST:
+					node_item = new StackNodeItem(item, parent_node_item);
+					node_item->setSecondaryTextKey("type");
+					node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+					break;
+				case NODE_KIND::FUNCTION:
+					node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+					if (!item->isDataProtected("operation")) {
+						node_item->setPrimaryTextKey("operation");
+					} else {
+						node_item->setPrimaryTextKey("label");
+					}
+					break;
+				default:
+					node_item = new StackNodeItem(item, parent_node_item);
+					break;
+			}
 
             // Ignore the position for the contained node view item
             if (contained_node_view_item_ == item) {
@@ -1451,7 +1387,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                     stack_item->SetRenderCellText(1, 1, true, "Variables");
                     stack_item->SetUseColumnCount(1, 1, true);
                     stack_item->SetCellSpacing(1, 1, 10);
-
 
                     stack_item->SetRenderCellArea(1, -1, true, true);
                     stack_item->SetRenderCellText(1, -1, true, "Headers");
@@ -1503,7 +1438,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
     }
 }
 
-
 /**
  * @brief NodeView::edgeViewItem_Constructed
  * @param item
@@ -1526,30 +1460,27 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem* item)
     NodeItem* parent = getParentNodeItem(item->getParentItem());
     NodeItem* source = getParentNodeItem(item->getSource());
     NodeItem* destination = getParentNodeItem(item->getDestination());
-
-    if (source && destination) {
-        EdgeItem* edgeItem = new EdgeItem(item, parent, source, destination);
-
-        if (edgeItem) {
-            auto theme = Theme::theme();
-            edgeItem->setBaseBodyColor(theme->getAltBackgroundColor());
-            edgeItem->setHeaderColor(theme->getBackgroundColor());
-            edgeItem->setTextColor(theme->getTextColor());
-
-            QPen defaultPen(theme->getTextColor(ColorRole::DISABLED));
-            defaultPen.setCosmetic(true);
-            edgeItem->setDefaultPen(defaultPen);
-
-            gui_items_[item->getID()] = edgeItem;
-            setupItemConnections(edgeItem);
-
-            if (!scene()->items().contains(edgeItem)) {
-                scene()->addItem(edgeItem);
-            }
-        }
-    }
+	
+	if (source && destination) {
+		auto edgeItem = new EdgeItem(item, parent, source, destination);
+		auto theme = Theme::theme();
+		
+		edgeItem->setBaseBodyColor(theme->getAltBackgroundColor());
+		edgeItem->setHeaderColor(theme->getBackgroundColor());
+		edgeItem->setTextColor(theme->getTextColor());
+		
+		QPen defaultPen(theme->getTextColor(ColorRole::DISABLED));
+		defaultPen.setCosmetic(true);
+		edgeItem->setDefaultPen(defaultPen);
+		
+		gui_items_[item->getID()] = edgeItem;
+		setupItemConnections(edgeItem);
+		
+		if (!scene()->items().contains(edgeItem)) {
+			scene()->addItem(edgeItem);
+		}
+	}
 }
-
 
 /**
  * @brief NodeView::getTopLevelViewItems
@@ -1563,7 +1494,6 @@ QList<ViewItem*> NodeView::getTopLevelViewItems() const
     }
     return items;
 }
-
 
 /**
  * @brief NodeView::getTopLevelEntityItems
@@ -1581,7 +1511,6 @@ QList<EntityItem*> NodeView::getTopLevelEntityItems() const
     return items;
 }
 
-
 /**
  * @brief NodeView::getSelectedItems
  * @return
@@ -1597,7 +1526,6 @@ QList<EntityItem*> NodeView::getSelectedItems() const
     }
     return items;
 }
-
 
 /**
  * @brief NodeView::getParentNodeItem
@@ -1617,7 +1545,6 @@ NodeItem* NodeView::getParentNodeItem(NodeViewItem* item)
      return nullptr;
 }
 
-
 /**
  * @brief NodeView::getEntityItem
  * @param ID
@@ -1631,7 +1558,6 @@ EntityItem* NodeView::getEntityItem(int ID) const
     return nullptr;
 }
 
-
 /**
  * @brief NodeView::getEntityItem
  * @param item
@@ -1644,7 +1570,6 @@ EntityItem* NodeView::getEntityItem(ViewItem *item) const
     }
     return nullptr;
 }
-
 
 /**
  * @brief NodeView::zoom
@@ -1684,7 +1609,6 @@ void NodeView::zoom(int delta, QPoint anchor_screen_pos)
     }
 }
 
-
 /**
  * @brief NodeView::cappedScale
  * This scales the view capped to the defined min/max zoom ratio
@@ -1705,7 +1629,6 @@ void NodeView::cappedScale(qreal scale)
 
     QGraphicsView::scale(scale, scale);
 }
-
 
 /**
  * @brief NodeView::selectItemsInRubberband
@@ -1735,7 +1658,6 @@ void NodeView::selectItemsInRubberband()
 
     getSelectionHandler().toggleItemsSelection(items_to_select, false);
 }
-
 
 /**
  * @brief NodeView::setConnectingModeOn
@@ -1773,7 +1695,6 @@ void NodeView::setConnectingModeOn(QPointF scene_pos, EDGE_KIND edge_kind, EDGE_
     emit connectModeTriggered();
 }
 
-
 /**
  * @brief NodeView::connectUsingConnectLine
  * This is triggered when the state_connecting_mode_ is exited, which is caused by a mouseReleased signal
@@ -1803,7 +1724,6 @@ void NodeView::connectUsingConnectLine()
     connect_line_->setVisible(false);
 }
 
-
 /**
  * @brief NodeView::distance
  * @param p1
@@ -1814,7 +1734,6 @@ qreal NodeView::distance(QPoint p1, QPoint p2)
 {
     return qSqrt(qPow(p2.x() - p1.x(), 2) + qPow(p2.y() - p1.y(), 2));
 }
-
 
 /**
  * @brief NodeView::setMovingModeOn
@@ -1830,7 +1749,6 @@ void NodeView::setMovingModeOn()
     }
 }
 
-
 /**
  * @brief NodeView::setMovingModeOff
  * This is called when the selection has finished moving
@@ -1839,7 +1757,6 @@ void NodeView::setMovingModeOn()
 void NodeView::setMovingModeOff()
 {
     bool any_moved = false;
-
     for (auto view_item : getSelectionHandler().getSelection()) {
         auto item = getEntityItem(view_item);
         if (!item || item->isIgnoringPosition()) {
@@ -1857,7 +1774,6 @@ void NodeView::setMovingModeOff()
         }
     }
 }
-
 
 /**
  * @brief NodeView::moveSelection
@@ -1891,7 +1807,6 @@ void NodeView::moveSelection(QPointF delta)
         }
     }
 }
-
 
 /**
  * @brief NodeView::setupStateMachine
@@ -1945,7 +1860,6 @@ void NodeView::setupStateMachine()
     state_machine_->start();
 }
 
-
 /**
  * @brief NodeView::getEntityAtPos
  * @param scenePos
@@ -1962,7 +1876,6 @@ EntityItem* NodeView::getEntityAtPos(QPointF scenePos) const
     return nullptr;
 }
 
-
 /**
  * @brief NodeView::setRubberbandModeOn
  * This is called when the state_rubberband_mode_ is entered
@@ -1974,7 +1887,6 @@ void NodeView::setRubberbandModeOn()
     rubberband_->setVisible(true);
     update();
 }
-
 
 /**
  * @brief NodeView::setRubberbandModeOff
@@ -1989,7 +1901,6 @@ void NodeView::setRubberbandModeOff()
     update();
 }
 
-
 /**
  * @brief NodeView::addNodeTriggered
  * This is called when the add/plus button/menu is triggered
@@ -2003,7 +1914,6 @@ void NodeView::addNodeTriggered(int parent_id, NODE_KIND kind)
     Q_UNUSED(parent_id);
     clicked_node_kind_ = kind;
 }
-
 
 /**
  * @brief NodeView::actionFinished
@@ -2023,7 +1933,6 @@ void NodeView::actionFinished()
     }
 }
 
-
 /**
  * @brief NodeView::keyPressEvent
  * @param event
@@ -2037,7 +1946,6 @@ void NodeView::keyPressEvent(QKeyEvent* event)
         emit ctrlShiftPressed();
     }
 }
-
 
 /**
  * @brief NodeView::keyReleaseEvent
@@ -2065,7 +1973,6 @@ void NodeView::keyReleaseEvent(QKeyEvent* event)
         }
     }
 }
-
 
 /**
  * @brief NodeView::shiftOrderInParent
@@ -2125,7 +2032,6 @@ void NodeView::shiftOrderInParent(NodeItem* item, int key)
     }
 }
 
-
 /**
  * @brief NodeView::wheelEvent
  * @param event
@@ -2136,7 +2042,6 @@ void NodeView::wheelEvent(QWheelEvent* event)
     //if (view_controller_.isControllerReady())
     zoom(event->delta(), event->pos());
 }
-
 
 /**
  * @brief NodeView::mousePressEvent
@@ -2172,7 +2077,6 @@ void NodeView::mousePressEvent(QMouseEvent* event)
         QGraphicsView::mousePressEvent(event);
     }
 }
-
 
 /**
  * @brief NodeView::mouseMoveEvent
@@ -2217,7 +2121,6 @@ void NodeView::mouseMoveEvent(QMouseEvent* event)
     QGraphicsView::mouseMoveEvent(event);
 }
 
-
 /**
  * @brief NodeView::mouseReleaseEvent
  * @param event
@@ -2251,7 +2154,6 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-
 /**
  * @brief NodeView::drawForeground
  * @param painter
@@ -2266,7 +2168,6 @@ void NodeView::drawForeground(QPainter *painter, const QRectF &r)
         painter->drawRect(r);
     }
 }
-
 
 /**
  * @brief NodeView::drawBackground
@@ -2294,7 +2195,6 @@ void NodeView::drawBackground(QPainter *painter, const QRectF & r)
         painter->restore();
     }
 }
-
 
 /**
  * @brief NodeView::resizeEvent

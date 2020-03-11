@@ -3,7 +3,7 @@
 #include "../../../modelcontroller/entityfactory.h"
 
 EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, EDGE_KIND kind)
-        : ViewItem(controller, ID, GRAPHML_KIND::EDGE)
+	: ViewItem(controller, ID, GRAPHML_KIND::EDGE)
 {
     source = src;
     if (src) {
@@ -17,7 +17,7 @@ EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src
 }
 
 EdgeViewItem::EdgeViewItem(ViewController* controller, EDGE_KIND kind, const QString& label)
-        : ViewItem(controller, GRAPHML_KIND::EDGE)
+	: ViewItem(controller, GRAPHML_KIND::EDGE)
 {
     edgeKind = kind;
     changeData(KeyName::Kind, EntityFactory::getEdgeKindString(kind));

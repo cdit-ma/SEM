@@ -185,11 +185,11 @@ StaticTextItem* EntityItem::getTextItem(EntityRect pos)
     return text_item;
 }
 
-void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, QString text, int)
+void EntityItem::renderText(QPainter *painter, qreal lod, EntityRect pos, const QString& text, int)
 {
     auto text_item = getTextItem(pos);
     if (text_item) {
-        text_item->RenderText(painter, getRenderState(lod), getElementRect(pos) + QMarginsF(-1,0,0,0), std::move(text));
+        text_item->RenderText(painter, getRenderState(lod), getElementRect(pos) + QMarginsF(-1,0,0,0), text);
     }
 }
 
@@ -270,11 +270,6 @@ void EntityItem::reloadRequiredData()
             }
         }
     }
-}
-
-QRectF EntityItem::viewRect() const
-{
-    return boundingRect();
 }
 
 QSize EntityItem::smallIconSize() const
@@ -377,7 +372,6 @@ qreal EntityItem::getDefaultZValue() const
 void EntityItem::handleSelection(bool append)
 {
     bool setActive = false;
-
     if(isSelected() && !append){
         setActive = true;
     }

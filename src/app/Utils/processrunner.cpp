@@ -1,13 +1,11 @@
 #include "processrunner.h"
-#include <QProcess>
-#include <QDebug>
+
 #include <QEventLoop>
 #include <QThread>
 #include <QHttpMultiPart>
 
-
 ProcessRunner::ProcessRunner(QObject *parent)
-        : QObject(parent)
+	: QObject(parent)
 {
     //Register Exit Status
     qRegisterMetaType<QProcess::ExitStatus>();
@@ -192,7 +190,6 @@ ProcessResult ProcessRunner::RunProcess_(const QString& program, const QStringLi
     return result;
 }
 
-
 HTTPResult ProcessRunner::HTTPGet(const QNetworkRequest& request)
 {
     HTTPResult result;
@@ -247,7 +244,6 @@ HTTPResult ProcessRunner::HTTPPostMulti(const QNetworkRequest& request, QHttpMul
     
     return result;
 }
-
 
 HTTPResult ProcessRunner::WaitForNetworkReply(QNetworkReply *reply)
 {

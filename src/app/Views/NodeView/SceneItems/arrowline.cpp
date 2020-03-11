@@ -5,8 +5,6 @@
 #include <math.h>
 #include <QPainter>
 
-ArrowLine::ArrowLine() {}
-
 QRectF ArrowLine::boundingRect() const
 {
     qreal pen_width = pen().width() / 2.0;
@@ -91,5 +89,3 @@ void ArrowLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         }
     }
 }
-
-

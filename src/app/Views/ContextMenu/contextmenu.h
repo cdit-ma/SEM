@@ -8,7 +8,7 @@
 
 #include "../../Controllers/ViewController/viewcontroller.h"
 
-enum class ACTION_KIND{
+enum class ACTION_KIND {
     ADD_NODE,
     ADD_NODE_WITH_EDGE,
     ADD_EDGE,
@@ -63,11 +63,11 @@ private:
     void populate_dynamic_add_node_menu(QMenu* menu);
     void populate_dynamic_add_edge_menu(QMenu* menu);
 
-    QMenu* construct_menu(const QString& label, QMenu* parent_menu, int icon_size=0);
+    QMenu* construct_menu(const QString& label, QMenu* parent_menu, int icon_size = 0);
 
     void popup_menu(QMenu* menu, QPoint pos);
     void construct_view_item_menus(QMenu* menu, const QList<ViewItem*>& view_items, bool flatten_menu = false, bool add_empty = true);
-
+	
     void update_edge_menu(QMenu* parent_menu, QMenu* menu, const QList<ViewItem*>& connect_source_items, const QList<ViewItem*>& connect_target_items, const QList<ViewItem*>& disconnect_items);
 
     QWidgetAction* construct_menu_search(QMenu* parent);
@@ -102,7 +102,7 @@ private:
     
     QSet<QMenu*> valid_menus;
     
-    struct DeployTitles{
+    struct DeployTitles {
         QAction* disconnect_title = nullptr;
         QAction* connect_to_title = nullptr;
         QAction* connect_from_title = nullptr;

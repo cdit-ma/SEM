@@ -4,7 +4,7 @@
 const qreal ratio = 4.0 / 7.0;
 
 BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
-        : NodeItem(viewItem, parentItem)
+	: NodeItem(viewItem, parentItem)
 {
     setMoveEnabled(true);
     setExpandEnabled(true);
@@ -79,10 +79,8 @@ void BasicNodeItem::setPos(const QPointF &p)
 
 QPointF BasicNodeItem::getNearestGridPoint(QPointF newPos)
 {
-    if(getParentContainer() && getParentContainer()->isSortOrdered()){
+    if (getParentContainer() && getParentContainer()->isSortOrdered()) {
         return getParentContainer()->getElementPosition(this);
-    }else{
-
     }
     return NodeItem::getNearestGridPoint(newPos);
 }
@@ -199,18 +197,18 @@ QRectF BasicNodeItem::headerContent_Data_Secondary() const
 
 QRectF BasicNodeItem::headerContent_Icon() const
 {
-    const auto& header_rect = headerContent();
-    QRectF rect(header_rect);
-    
-    //Make it a square
-    rect.setWidth(rect.height());
-
-    if (isRightJustified()) {
-        rect.moveTopRight(header_rect.topRight());
-    } else {
-        rect.moveTopLeft(header_rect.topLeft());
-    }
-   return rect;
+	const auto& header_rect = headerContent();
+	QRectF rect(header_rect);
+	
+	//Make it a square
+	rect.setWidth(rect.height());
+	
+	if (isRightJustified()) {
+		rect.moveTopRight(header_rect.topRight());
+	} else {
+		rect.moveTopLeft(header_rect.topLeft());
+	}
+	return rect;
 }
 
 QRectF BasicNodeItem::headerContent_Icon_Overlay() const

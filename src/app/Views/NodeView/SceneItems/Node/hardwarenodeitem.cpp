@@ -1,7 +1,7 @@
 #include "hardwarenodeitem.h"
 
 HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
-        : StackNodeItem(viewItem, parentItem, Qt::Vertical)
+	: StackNodeItem(viewItem, parentItem, Qt::Vertical)
 {
     online_icon = {"Icons", "arrowsUpDownDark"};
     offline_icon = {"Notification", "Warning"};

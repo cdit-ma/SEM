@@ -4,7 +4,8 @@
 #include <QStyleOptionGraphicsItem>
 #include <algorithm>
 
-NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(viewItem, parentItem, EntityItem::NODE)
+NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
+	: EntityItem(viewItem, parentItem, EntityItem::NODE)
 {
     node_view_item = viewItem;
 
@@ -793,7 +794,6 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
         default:
             break;
     }
-    
     return EntityItem::getElementPath(rect);
 }
 

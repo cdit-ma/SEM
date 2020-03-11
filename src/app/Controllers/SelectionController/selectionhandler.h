@@ -13,18 +13,17 @@ class SelectionHandler: public QObjectRegistrar
     Q_OBJECT
     
 protected:
-    explicit SelectionHandler(SelectionController* controller);
+    explicit SelectionHandler();
     int getID();
 
 public:
     void toggleItemsSelection(ViewItem* item, bool append = false);
-    void toggleItemsSelection(QList<ViewItem*> items, bool append = false);
+    void toggleItemsSelection(const QList<ViewItem*>& items, bool append = false);
 
     void setActiveSelectedItem(ViewItem* viewItem);
     void cycleActiveSelectedItem(bool forward = true);
 
     QVector<ViewItem*> getSelection() const;
-    QVector<int> getSelectionIDs();
     int getSelectionCount();
 
     ViewItem* getFirstSelectedItem();
@@ -33,7 +32,6 @@ public:
 signals:
     void itemSelectionChanged(ViewItem*, bool selected);
     void itemActiveSelectionChanged(ViewItem* item, bool active);
-    void selectAll();
     void selectionChanged(int count);
     
 public slots:
@@ -52,11 +50,8 @@ private:
     
     ViewItem* currentActiveSelectedItem = nullptr;
     ViewItem* newActiveSelectedItem = nullptr;
-    SelectionController* selectionController = nullptr;
     
     QVector<ViewItem*> currentSelection;
-    QVector<ViewItem*> orderedSelection;
-    bool orderedSelectionValid;
 };
 
 #endif // SELECTIONHANDLER_H

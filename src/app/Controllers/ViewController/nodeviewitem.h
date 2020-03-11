@@ -52,7 +52,6 @@ signals:
     void edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edgeKind, int ID);
     void visualEdgeKindsChanged();
     void nestedVisualEdgeKindsChanged2();
-    void descendantVisualEdgeKindsChanged();
     
 private:
     QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > nested_edge_kinds;

@@ -8,6 +8,7 @@ class NodeViewItem;
 class EdgeViewItem: public ViewItem
 {
     Q_OBJECT
+    
 public:
     EdgeViewItem(ViewController* controller, int ID, NodeViewItem* src, NodeViewItem* dst, EDGE_KIND kind);
     EdgeViewItem(ViewController* controller, EDGE_KIND kind, const QString& label);

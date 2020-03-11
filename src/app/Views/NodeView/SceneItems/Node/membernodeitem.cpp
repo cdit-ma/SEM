@@ -1,7 +1,7 @@
 #include "membernodeitem.h"
 
 MemberNodeItem::MemberNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
-        : BasicNodeItem(viewItem, parentItem)
+	: BasicNodeItem(viewItem, parentItem)
 {
     addRequiredData("key");
     reloadRequiredData();

@@ -15,7 +15,6 @@ public:
     QPair<QString, QString> getIconPair() const;
     QString getIconPath() const;
     QString getIconAlias() const;
-    QString getCategory() const;
 
     QAction* constructSubAction(bool stealth = true);
 

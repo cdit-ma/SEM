@@ -1,9 +1,7 @@
 #ifndef QOSBROWSER_H
 #define QOSBROWSER_H
 
-#include <QObject>
 #include <QFrame>
-#include <QWidget>
 #include <QTreeView>
 #include <QListView>
 #include <QPushButton>
@@ -16,35 +14,38 @@
 class QOSBrowser : public QFrame
 {
     Q_OBJECT
+    
 public:
-    explicit QOSBrowser(ViewController *vc, QWidget *parent = 0);
+    explicit QOSBrowser(ViewController *vc, QWidget *parent = nullptr);
 
 private slots:
     void themeChanged();
+
     void profileSelected(QModelIndex, QModelIndex);
     void settingSelected(QModelIndex, QModelIndex);
-
     void removeSelectedProfile();
 
 private:
     void setupLayout();
-
-    QWidget* mainWidget;
-
-    QListView* profileView;
-    QTreeView* elementView;
-    QSplitter* horizontalSplitter;
-    QAction* removeSelection;
-    QToolBar* toolbar;
-
-    QPushButton* profileLabelButton;
-    QPushButton* policyLabelButton;
-    QPushButton* attributeLabelButton;
-
-    QItemSelectionModel* elementViewSelectionModel;
-    DataTableView* tableView;
-    ViewController* vc;
-    QOSProfileModel* qosModel;
+    
+    ViewController* vc = nullptr;
+    
+    QWidget* mainWidget = nullptr;
+    
+    QListView* profileView = nullptr;
+    QTreeView* elementView = nullptr;
+    DataTableView* tableView = nullptr;
+    
+    QToolBar* toolbar = nullptr;
+    QAction* removeSelection = nullptr;
+    QSplitter* horizontalSplitter = nullptr;
+    
+    QPushButton* profileLabelButton = nullptr;
+    QPushButton* policyLabelButton = nullptr;
+    QPushButton* attributeLabelButton = nullptr;
+    
+    QOSProfileModel* qosModel = nullptr;
+    QItemSelectionModel* elementViewSelectionModel = nullptr;
 };
 
 #endif // QOSBROWSER_H

@@ -1,13 +1,10 @@
 #include "selectionhandler.h"
-#include "../../Controllers/SelectionController/selectioncontroller.h"
 
 int SelectionHandler::_SelectionHandlerID  = 0;
 
-SelectionHandler::SelectionHandler(SelectionController *controller)
+SelectionHandler::SelectionHandler()
 {
     ID = ++_SelectionHandlerID;
-    selectionController = controller;
-    orderedSelectionValid = true;
 
     //Empty selection will result in destruction.
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
@@ -25,7 +22,7 @@ void SelectionHandler::toggleItemsSelection(ViewItem *item, bool append)
     toggleItemsSelection(items, append);
 }
 
-void SelectionHandler::toggleItemsSelection(QList<ViewItem*> items, bool append)
+void SelectionHandler::toggleItemsSelection(const QList<ViewItem*>& items, bool append)
 {
     int changes = 0;
     if (!append) {
@@ -69,13 +66,11 @@ void SelectionHandler::cycleActiveSelectedItem(bool forward)
         }else{
             index --;
         }
-
         if(index > lastPos){
             index = 0;
         }else if(index < 0){
             index = lastPos;
         }
-
         newActiveSelectedItem = currentSelection.at(index);
         _selectionChanged();
     }
@@ -84,15 +79,6 @@ void SelectionHandler::cycleActiveSelectedItem(bool forward)
 QVector<ViewItem *> SelectionHandler::getSelection() const
 {
     return currentSelection;
-}
-
-QVector<int> SelectionHandler::getSelectionIDs()
-{
-    QVector<int> IDs;
-    for (ViewItem* item : currentSelection) {
-        IDs.append(item->getID());
-    }
-    return IDs;
 }
 
 int SelectionHandler::getSelectionCount()
@@ -117,7 +103,6 @@ ViewItem *SelectionHandler::getActiveSelectedItem()
 void SelectionHandler::_selectionChanged(int changes)
 {
     if(changes > 0){
-        orderedSelectionValid = false;
         emit selectionChanged(currentSelection.size());
     }
     if(newActiveSelectedItem != currentActiveSelectedItem){
@@ -140,13 +125,11 @@ int SelectionHandler::_clearSelection()
     return itemsChanged;
 }
 
-
-
 int SelectionHandler::_toggleItemsSelection(ViewItem *item, bool deletingItem)
 {
     int changeCount = 0;
-
     bool inSelection = currentSelection.contains(item);
+    
     if(deletingItem){
         if(!inSelection){
             //We don't need to unselect item.
@@ -192,5 +175,3 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
     }
     return changeCount;
 }
-
-

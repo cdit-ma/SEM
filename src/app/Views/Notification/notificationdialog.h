@@ -19,7 +19,7 @@ class NotificationDialog : public QFrame
     Q_OBJECT
 
 public:
-    NotificationDialog(ViewController* viewController, QWidget *parent = 0);
+    explicit NotificationDialog(ViewController* viewController, QWidget *parent = nullptr);
 
 signals:
     void mouseEntered();
@@ -40,6 +40,9 @@ private slots:
     void flashEntity(int ID);
     void selectAndCenterEntity(int ID);
     void clearFilteredNotifications();
+    
+protected:
+    void enterEvent(QEvent* event) override;
 
 private:
     NotificationItem* constructNotificationItem(QSharedPointer<NotificationObject> notification);
@@ -60,58 +63,48 @@ private:
     void loadNextResults();
     void updateLabels();
 
-    QLabel* info_label = 0;
-    QLabel* status_label = 0;
+    QLabel* info_label = nullptr;
+    QLabel* status_label = nullptr;
     
-    QWidget* filters_widget = 0;
-    QWidget* notifications_widget = 0;
-    QVBoxLayout* notifications_layout = 0;
-    QVBoxLayout* filters_layout = 0;
+    QWidget* filters_widget = nullptr;
+    QWidget* notifications_widget = nullptr;
+    QWidget* notifications_status_widget = nullptr;
     
-    QWidget* notifications_status_widget = 0;
+    QVBoxLayout* notifications_layout = nullptr;
+    QVBoxLayout* filters_layout = nullptr;
 
-    QSet<QSharedPointer<NotificationObject> > filtered_notifications;
+    QToolBar* top_toolbar = nullptr;
+    QToolBar* bottom_toolbar = nullptr;
+    QToolBar* left_toolbar = nullptr;
 
-    QToolBar* top_toolbar = 0;
-    QToolBar* bottom_toolbar = 0;
-    QToolBar* left_toolbar = 0;
+    QToolButton* load_more_button = nullptr;
+    QAction* center_action = nullptr;
+    QAction* popup_action = nullptr;
+    QAction* clear_filtered_action = nullptr;
+    QAction* sort_time_action = nullptr;
+    QAction* clock_action = nullptr;
+    QAction* reset_filters_action = nullptr;
 
-    QToolButton* load_more_button = 0;
-    QAction* center_action = 0;
-    QAction* popup_action = 0;
-    QAction* clear_filtered_action = 0;
-    QAction* sort_time_action = 0;
-    QAction* clock_action = 0;
-    QAction* reset_filters_action = 0;
+    QSplitter* splitter = nullptr;
 
-    QSplitter* splitter = 0;
+    QScrollArea* filters_scroll = nullptr;
+    QScrollArea* notifications_scroll = nullptr;
 
-    QScrollArea* filters_scroll = 0;
-    QScrollArea* notifications_scroll = 0;
-
-    OptionGroupBox* context_filters = 0;
-    OptionGroupBox* severity_filters = 0;
-    OptionGroupBox* category_filters = 0;
-    OptionGroupBox* source_filters = 0;
-
-    int current_visible = 0;
-    int filtered_match_count = 0;
+    OptionGroupBox* context_filters = nullptr;
+    OptionGroupBox* severity_filters = nullptr;
+    OptionGroupBox* category_filters = nullptr;
+    OptionGroupBox* source_filters = nullptr;
 
     int max_visible = 0;
-
     int total_notifications = 0;
     int current_matched_notifications = 0;
     int current_visible_notifications = 0;
-
-    int notification_count = 0;
-
+    
+    QSet<QSharedPointer<NotificationObject> > filtered_notifications;
     QHash<int, NotificationItem*> notification_items;
-    NotificationItem* selected_notification = 0;
-    ViewController* viewController = 0;
-
-protected:
-    void enterEvent(QEvent* event);
-
+    
+    NotificationItem* selected_notification = nullptr;
+    ViewController* viewController = nullptr;
 };
 
 #endif // NOTIFICATIONDIALOG_H

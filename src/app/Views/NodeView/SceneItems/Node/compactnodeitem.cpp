@@ -1,7 +1,7 @@
 #include "compactnodeitem.h"
 
 CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem)
-        : BasicNodeItem(viewItem, parentItem)
+	: BasicNodeItem(viewItem, parentItem)
 {
     setMoveEnabled(false);
     setExpandEnabled(true);

@@ -7,7 +7,7 @@
 class ArrowLine : public QGraphicsLineItem
 {
 public:
-    ArrowLine();
+    ArrowLine() = default;
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;

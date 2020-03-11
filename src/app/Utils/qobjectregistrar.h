@@ -8,7 +8,7 @@ class QObjectRegistrar : public QObject
     Q_OBJECT
     
 public:
-    QObjectRegistrar(QObject *parent = nullptr);
+    explicit QObjectRegistrar(QObject *parent = nullptr);
 
     void registerObject(QObject* object);
     bool hasRegisteredObjects();

@@ -1,9 +1,9 @@
 #include "notificationenumerations.h"
 #include "../../theme.h"
 
-class NotificationSorter{
+class NotificationSorter {
     public:
-        NotificationSorter(){
+        NotificationSorter() {
             severities = Notification::getSeverities().toList();
             type = Notification::getTypes().toList();
             categories = Notification::getCategories().toList();
@@ -19,39 +19,44 @@ class NotificationSorter{
 
 static NotificationSorter sorted;
 
-QSet<Notification::Context> Notification::getContexts(){
+QSet<Notification::Context> Notification::getContexts()
+{
     return {Context::NOT_SELECTED, Context::SELECTED};
 }
-QSet<Notification::Type> Notification::getTypes(){
+
+QSet<Notification::Type> Notification::getTypes()
+{
     return {Type::APPLICATION, Type::MODEL};
 }
 
-QSet<Notification::Category> Notification::getCategories(){
+QSet<Notification::Category> Notification::getCategories()
+{
     return {Category::NONE, Category::FILE, Category::JENKINS, Category::VALIDATION};
 }
 
-QSet<Notification::Severity> Notification::getSeverities(){
+QSet<Notification::Severity> Notification::getSeverities()
+{
     return {Severity::NONE, Severity::RUNNING, Severity::INFO, Severity::WARNING, Severity::ERROR, Severity::SUCCESS};
 }
 
-const QList<Notification::Severity>& Notification::getSortedSeverities(){
+const QList<Notification::Severity>& Notification::getSortedSeverities()
+{
     return sorted.severities;
 }
 
 QString Notification::getTypeString(Notification::Type type)
 {
-    switch (type){
+    switch (type) {
     case Type::MODEL:
         return "Model";
     case Type::APPLICATION:
         return "Application";
     }
-    return QString();
 }
 
 QString Notification::getSeverityString(Notification::Severity severity)
 {
-    switch (severity){
+    switch (severity) {
     case Severity::INFO:
         return "Information";
     case Severity::WARNING:
@@ -65,23 +70,21 @@ QString Notification::getSeverityString(Notification::Severity severity)
     case Severity::NONE:
         return "No Severity";
     }
-    return QString();
 }
 
 QString Notification::getContextString(Notification::Context context)
 {
-    switch (context){
+    switch (context) {
     case Context::SELECTED:
         return "Selected";
     case Context::NOT_SELECTED:
         return "Not Selected";
     }
-    return QString();
 }
 
 QString Notification::getCategoryString(Notification::Category category)
 {
-    switch (category){
+    switch (category) {
     case Category::FILE:
         return "File";
     case Category::JENKINS:
@@ -91,5 +94,4 @@ QString Notification::getCategoryString(Notification::Category category)
     case Category::NONE:
         return "No Category";
     }
-    return QString();
 }

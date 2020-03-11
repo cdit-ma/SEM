@@ -7,11 +7,10 @@
 #include <QSignalMapper>
 
 #include "../SelectionController/selectioncontroller.h"
+#include "../../Widgets/Dialogs/shortcutdialog.h"
 #include "../../Utils/rootaction.h"
 #include "../../Utils/actiongroup.h"
-#include "../../Widgets/Dialogs/shortcutdialog.h"
 #include "../../theme.h"
-
 
 class ViewController;
 class ActionController : public QObject
@@ -22,7 +21,7 @@ private:
     bool gotRegenAndJava();
     RootAction* createRootAction(const QString& category, const QString& name, const QString& actionHash, const QString& iconPath = "", const QString& aliasPath = "");
     
-    void createRecentProjectAction(QString fileName);
+    void createRecentProjectAction(const QString& fileName);
     void recentProjectsChanged();
     void setupActions();
     void setupMainMenu();
@@ -79,13 +78,8 @@ public:
     QHash<QString, RootAction*> actionHash;
     QMultiMap<QString, RootAction*> actionCategoryMap;
 
-    QHash<ACTION, RootAction*> rootActionHash;
-
     ActionGroup* applicationToolbar = nullptr;
     ActionGroup* contextToolbar = nullptr;
-    ActionGroup* recentProjects = nullptr;
-
-    QAction* toggleDock = nullptr;
 
     QAction* toolbar_context = nullptr;
     QAction* toolbar_undo = nullptr;
@@ -181,9 +175,6 @@ public:
 
     RootAction* toolbar_contextToolbar = nullptr;
     RootAction* toolbar_addChild = nullptr;
-    RootAction* toolbar_connect = nullptr;
-    RootAction* toolbar_popOutDefn = nullptr;
-    RootAction* toolbar_popOutImpl = nullptr;
     RootAction* toolbar_wiki = nullptr;
     RootAction* toolbar_replicateCount = nullptr;
     RootAction* toolbar_displayedChildrenOption = nullptr;

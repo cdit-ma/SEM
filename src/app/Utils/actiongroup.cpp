@@ -4,14 +4,14 @@
 #include <QDebug>
 
 ActionGroup::ActionGroup(QObject* parent)
-        : QActionGroup(parent)
+	: QActionGroup(parent)
 {
     setExclusive(false);
 }
 
 void ActionGroup::addSeparator()
 {
-    QAction* separator = new QAction(this);
+    auto separator = new QAction(this);
     separator->setSeparator(true);
     addAction(separator);
 }
@@ -56,7 +56,6 @@ QAction* ActionGroup::addAction(QAction *a)
     return QActionGroup::addAction(a);
 }
 
-
 void ActionGroup::removeAction(QAction *a)
 {
     if(a->isVisible()){
@@ -66,7 +65,6 @@ void ActionGroup::removeAction(QAction *a)
     disconnect(a, SIGNAL(toggled(bool)), this, SLOT(actionToggled(bool)));
     QActionGroup::removeAction(a);
 }
-
 
 /**
  * @brief ActionGroup::updateMasterAction
@@ -85,7 +83,6 @@ void ActionGroup::updateMasterAction()
         masterAction->setEnabled(anyEnabled);
     }
 }
-
 
 /**
  * @brief ActionGroup::actionToggled

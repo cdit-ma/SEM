@@ -4,12 +4,11 @@
 #include "../../Widgets/Dialogs/appsettings.h"
 
 #include <QApplication>
-#include <QSettings>
 #include <QStringBuilder>
 #include <QVariant>
 
 SettingsController::SettingsController(QObject *parent)
-        : QObject(parent)
+	: QObject(parent)
 {
     initializeSettings();
 
@@ -244,7 +243,8 @@ void SettingsController::initializeSettings()
     _getSetting(SETTINGS::CHARTS_AGGREGATION_BROKER_ENDPOINT)->setDefaultValue("tcp://localhost:12345");
 }
 
-QString getSettingKey(Setting* setting){
+QString getSettingKey(Setting* setting)
+{
     QString str;
     if(setting){
         str = QString::number(static_cast<uint>(setting->getID())) % "_" % setting->getName();
@@ -254,7 +254,8 @@ QString getSettingKey(Setting* setting){
     return str;
 }
 
-QString getSettingGroupKey(Setting* setting){
+QString getSettingGroupKey(Setting* setting)
+{
     QString str;
     if(setting){
         str = setting->getCategory() % "_" % setting->getSection();
@@ -264,13 +265,15 @@ QString getSettingGroupKey(Setting* setting){
     return str;
 }
 
-void SettingsController::writeSetting(Setting* setting, const QVariant& value){
+void SettingsController::writeSetting(Setting* setting, const QVariant& value)
+{
     if(setting && settingsFile){
         settingsFile->beginGroup(getSettingGroupKey(setting));
         settingsFile->setValue(getSettingKey(setting), value);
         settingsFile->endGroup();
     }
 }
+
 void SettingsController::loadSettingsFromFile()
 {
     for (Setting* setting : settingsHash.values()) {
@@ -305,7 +308,6 @@ void SettingsController::_setSetting(Setting *setting, const QVariant& value)
             resetSettings();
         }
     }
-
 }
 
 Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, const QString& category, const QString& section, const QString& name, const QString& iconPath, const QString& iconName)
@@ -358,6 +360,7 @@ void SettingsController::resetSettings()
     emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
     emit settingChanged(SETTINGS::THEME_APPLY, true);
     emit settingsApplied();
+    
     //Write settings
     saveSettings();
 }
@@ -385,4 +388,3 @@ SettingsController* SettingsController::settings()
     static SettingsController controller;
     return &controller;
 }
-

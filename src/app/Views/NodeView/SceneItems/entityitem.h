@@ -24,12 +24,12 @@ class EntityItem : public QGraphicsObject
     Q_OBJECT
 
 public:
-    enum KIND{
+    enum KIND {
         EDGE,
         NODE,
     };
     
-    enum class EntityRect{
+    enum class EntityRect {
         SHAPE,
         MOVE,
         EXPAND_CONTRACT,
@@ -108,14 +108,13 @@ public:
     void paintPixmap(QPainter *painter, qreal lod, const QRectF& pos, const QPair<QString, QString>& image, QColor tintColor=QColor());
     void paintPixmap(QPainter *painter, qreal lod, const QRectF& pos, const QString& imagePath, const QString& imageName, QColor tintColor=QColor());
     
-    void renderText(QPainter* painter, qreal lod, EntityRect pos, QString text, int textOptions = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere);
+    void renderText(QPainter* painter, qreal lod, EntityRect pos, const QString& text, int textOptions = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere);
     
     void addHoverFunction(EntityRect rect, std::function<void (bool, QPointF)> func);
     
     QRectF translatedBoundingRect() const;
     QRectF boundingRect() const override = 0;
     virtual QRectF currentRect() const = 0;
-    virtual QRectF viewRect() const;
     
     QSize smallIconSize() const;
     QPainterPath shape() const override;

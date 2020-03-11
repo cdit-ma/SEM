@@ -208,8 +208,6 @@ void ContextMenu::themeChanged()
     }
 }
 
-
-
 void ContextMenu::update_edge_menu(QMenu* parent_menu, QMenu* menu, const QList<ViewItem*>& connect_source_items, const QList<ViewItem*>& connect_target_items, const QList<ViewItem*>& disconnect_items)
 {
     if (menu && menu_requires_update(menu)) {
@@ -580,7 +578,6 @@ void ContextMenu::load_more_actions(QMenu* menu)
         
         //Remove the 
         valid_menus.remove(menu);
-
         update_menu(menu);
     }
 }

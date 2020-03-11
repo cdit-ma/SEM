@@ -1,44 +1,39 @@
 #include "notificationitem.h"
-
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationobject.h"
 
 #include <QMouseEvent>
-#include <QToolBar>
 
 /**
  * @brief NotificationItem::NotificationItem
  * @param obj
  * @param parent
+ * @throws std::invalid_argument
  */
 NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidget *parent)
-    : QFrame(parent)
+	: QFrame(parent)
 {
-    if (!obj) {
-        qWarning("NotificationItem::NotificationItem - Notification object is null.");
-        return;
+    if (obj.isNull()) {
+        throw std::invalid_argument("NotificationItem::NotificationItem - Notification object cannot be null.");
     }
     
     notification = obj;
-
+    
     setupLayout();
-
+    
     connect(notification.data(), &NotificationObject::progressStateChanged, this, &NotificationItem::updateIcon);
     connect(notification.data(), &NotificationObject::notificationChanged, this, &NotificationItem::timeChanged);
     connect(notification.data(), &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
     connect(notification.data(), &NotificationObject::titleChanged, this, &NotificationItem::titleChanged);
-
     connect(notification.data(), &NotificationObject::severityChanged, this, &NotificationItem::updateIcon);
     connect(notification.data(), &NotificationObject::iconChanged, this, &NotificationItem::updateIcon);
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
-
+    
     connect(action_delete, &QAction::triggered, [=]() {
         NotificationManager::manager()->deleteNotification(getID());
     });
 }
-
 
 /**
  * @brief NotificationItem::setupDescriptionLayout
@@ -48,11 +43,10 @@ void NotificationItem::setupDescriptionLayout()
     label_description = new QLabel(this);
     label_description->setObjectName("DESCRIPTION");
     label_description->setWordWrap(true);
-
+    
     //Add to the main layout
     layout()->addWidget(label_description);
 }
-
 
 /**
  * @brief NotificationItem::setupLayout
@@ -62,34 +56,33 @@ void NotificationItem::setupLayout()
     auto v_layout = new QVBoxLayout(this);
     v_layout->setMargin(2);
     v_layout->setSpacing(5);
-
+    
     auto layout = new QHBoxLayout();
     v_layout->addLayout(layout);
     layout->setMargin(0);
     layout->setSpacing(5);
-
+    
     label_icon = new QLabel(this);
     label_icon->setScaledContents(true);
     label_icon->setAlignment(Qt::AlignCenter);
-
+    
     label_text = new QLabel(this);
     label_text->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     label_time = new QLabel(this);
-
+    
     toolbar = new QToolBar(this);
     action_delete = toolbar->addAction("Delete Notification");
-
+    
     layout->addWidget(label_icon);
     layout->addWidget(label_text, 1);
     layout->addWidget(label_time);
     layout->addWidget(toolbar);
     layout->addStretch();
-
+    
     descriptionChanged();
     titleChanged();
     timeChanged();
 }
-
 
 /**
  * @brief NotificationItem::getID
@@ -100,7 +93,6 @@ int NotificationItem::getID()
     return notification->getID();
 }
 
-
 /**
  * @brief NotificationItem::getEntityID
  * @return
@@ -110,7 +102,6 @@ int NotificationItem::getEntityID()
     return notification->getEntityID();
 }
 
-
 /**
  * @brief NotificationItem::isSelected
  * @return
@@ -119,7 +110,6 @@ bool NotificationItem::isSelected()
 {
     return selected_;
 }
-
 
 /**
  * @brief NotificationItem::setSelected
@@ -132,7 +122,6 @@ void NotificationItem::setSelected(bool selected)
         updateStyleSheet();
     }
 }
-
 
 /**
  * @brief NotificationItem::themeChanged
@@ -150,7 +139,6 @@ void NotificationItem::themeChanged()
     updateIcon();
 }
 
-
 /**
  * @brief NotificationItem::descriptionChanged
  */
@@ -164,7 +152,6 @@ void NotificationItem::descriptionChanged()
     label_description->setVisible(description.length());
 }
 
-
 /**
  * @brief NotificationItem::titleChanged
  * @param description
@@ -174,7 +161,6 @@ void NotificationItem::titleChanged()
     label_text->setText(notification->getTitle());
 }
 
-
 /**
  * @brief NotificationItem::timestampChanged
  * @param time
@@ -183,7 +169,6 @@ void NotificationItem::timeChanged()
 {
     label_time->setText(notification->getModifiedTime().toString("H:mm:ss"));
 }
-
 
 /**
  * @brief NotificationItem::iconChanged
@@ -196,9 +181,9 @@ void NotificationItem::updateIcon()
     auto severity = notification->getSeverity();
     auto is_running = severity == Notification::Severity::RUNNING;
     auto icon_size = theme->getLargeIconSize();
-
+    
     label_icon->setFixedSize(icon_size);
-
+    
     if (is_running) {
         //Use a GIF if we are loading
         auto movie = theme->getGif("Icons", "loading");
@@ -214,11 +199,10 @@ void NotificationItem::updateIcon()
         auto pixmap = theme->getImage(icon.first, icon.second, icon_size, icon_color);
         label_icon->setPixmap(pixmap);
     }
-
+    
     //Can only delete finished notifications
     action_delete->setEnabled(!is_running);
 }
-
 
 /**
  * @brief NotificationItem::mouseReleaseEvent
@@ -256,7 +240,6 @@ void NotificationItem::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
-
 /**
  * @brief NotificationItem::toggleSelected
  * This should only be called from within the mouse events, when this item is clicked/double-clicked.
@@ -265,7 +248,7 @@ void NotificationItem::toggleSelected()
 {
     setSelected(!selected_);
     emit notificationItemClicked(this);
-
+    
     // when selected, flash the linked entity item if there is one
     // unfortunately, this is also triggered when the item is expanded/contracted
     if (selected_) {
@@ -275,7 +258,6 @@ void NotificationItem::toggleSelected()
         }
     }
 }
-
 
 /**
  * @brief NotificationItem::updateStyleSheet
@@ -288,7 +270,7 @@ void NotificationItem::updateStyleSheet()
     } else {
         backgroundColor_ = theme->getBackgroundColorHex();
     }
-
+    
     setStyleSheet("QFrame {"
                   "border-style: solid;"
                   "border-width: 0px 0px 1px 0px;"

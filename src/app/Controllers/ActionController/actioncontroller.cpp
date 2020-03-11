@@ -1,14 +1,13 @@
 #include "actioncontroller.h"
 #include "../ViewController/viewcontroller.h"
-#include "../../theme.h"
 #include "../../Utils/filehandler.h"
-#include "../../Utils/rootaction.h"
 #include "../../../modelcontroller/modelcontroller.h"
+
 #include <QShortcut>
 #include <QApplication>
 
 ActionController::ActionController(ViewController* vc)
-        : QObject(vc)
+	: QObject(vc)
 {
     viewController = vc;
     selectionController = viewController->getSelectionController();
@@ -183,7 +182,6 @@ void ActionController::clearRecentProjects()
     SettingsController::settings()->setSetting(SETTINGS::GENERAL_RECENT_PROJECTS, QStringList());
 }
 
-
 void ActionController::addRecentProject(QString file_path)
 {
     FileHandler::sanitizeFilePath(file_path);
@@ -217,7 +215,6 @@ void ActionController::settingChanged(SETTINGS key, const QVariant& value)
     bool boolVal = value.toBool();
 
     QAction* action = getSettingAction(key);
-
     if(action){
         action->setVisible(boolVal);
     }
@@ -251,7 +248,8 @@ void ActionController::gotRe(bool re)
     }
 }
 
-void ActionController::gotRegen(bool regen){
+void ActionController::gotRegen(bool regen)
+{
     if(got_regen != regen){
         got_regen = regen;
         updateReActions();
@@ -265,7 +263,6 @@ void ActionController::selectionChanged(int selection_size)
         QSet<SELECTION_PROPERTIES> selection_properties;
         auto selection = selectionController->getSelectionIDs();
         selection_size = selection.size();
-
         
         auto model_controller = viewController->getModelController();
         if(model_controller){
@@ -275,7 +272,6 @@ void ActionController::selectionChanged(int selection_size)
 
         bool controller_ready = viewController->isControllerReady();
         bool model_actions = controller_ready;
-
 
         bool got_selection = selection_size > 0;
         bool got_single_selection = selection_size == 1;
@@ -295,7 +291,6 @@ void ActionController::selectionChanged(int selection_size)
         edit_incrementRow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_CHANGE_ROW));
         edit_decrementRow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_CHANGE_ROW));
 
-
         //Active selection based.
         view_centerOnDefn->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
         view_viewDefnInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
@@ -304,7 +299,6 @@ void ActionController::selectionChanged(int selection_size)
         view_viewConnections->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
         //view_viewInstances->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
         view_viewInstances->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_INSTANCES));
-
     
         //Selection based.
         toolbar_wiki->setEnabled(got_selection);
@@ -315,7 +309,6 @@ void ActionController::selectionChanged(int selection_size)
         edit_clearSelection->setEnabled(got_selection);
         view_centerOn->setEnabled(got_selection);
 
-    
         //Single Selection
         edit_selectAll->setEnabled(got_single_selection);
         view_viewInNewWindow->setEnabled(got_single_selection);
@@ -332,7 +325,6 @@ void ActionController::selectionChanged(int selection_size)
         model_getCodeForComponent->setEnabled(got_java && got_regen && selection_properties.contains(SELECTION_PROPERTIES::CAN_GENERATE_CODE));
 
         auto active_item = selectionController->getActiveSelectedItem();
-        
         if(active_item && active_item->isNode()){
             auto node_item = (NodeViewItem*) active_item;
             auto node_kind = node_item->getNodeKind();
@@ -388,11 +380,13 @@ void ActionController::updateJenkinsActions()
     model_validateModel->setEnabled(controller_ready && r);
 }
 
-bool ActionController::gotRegenAndJava(){
+bool ActionController::gotRegenAndJava()
+{
     return got_java && got_regen;
 }
 
-void ActionController::updateReActions(){
+void ActionController::updateReActions()
+{
     bool controller_ready = viewController->isControllerReady();
     model_executeLocalJob->setEnabled(controller_ready && got_re && got_java);
 }
@@ -458,9 +452,6 @@ void ActionController::updateActions()
     file_closeProject->setEnabled(true);
 
     file_importGraphML->setEnabled(controller_ready);
-    
-    
-    
     file_saveProject->setEnabled(controller_ready);
     file_saveAsProject->setEnabled(controller_ready);
     file_closeProject->setEnabled(controller_ready);
@@ -486,10 +477,10 @@ void ActionController::updateActions()
     updateReActions();
 }
 
-void ActionController::createRecentProjectAction(QString fileName)
+void ActionController::createRecentProjectAction(const QString& fileName)
 {
     if(!recentProjectActions.contains(fileName)){
-        RootAction* action = new RootAction("Project", fileName, this);
+        auto action = new RootAction("Project", fileName, this);
         action->setIconPath("Icons", "file");
         updateIcon(action);
         recentProjectActions.insert(fileName, action);
@@ -500,6 +491,8 @@ void ActionController::createRecentProjectAction(QString fileName)
 
 void ActionController::recentProjectsChanged()
 {
+	// NOTE: QSignalMapper is deprecated
+	// TODO: Refactor or find an alternative
     if (!recentProjectMapper) {
         recentProjectMapper = new QSignalMapper(this);
         connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped), viewController, &ViewController::OpenExistingProject);
@@ -664,9 +657,6 @@ void ActionController::setupActions()
     edit_goto->setShortcutContext(Qt::ApplicationShortcut);
     edit_goto->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
 
-    //edit_sort = createRootAction("Edit", "Sort", "", "Icons", "letterAZ");
-    //edit_sort->setToolTip("Sort selection.");
-
     edit_alignVertical = createRootAction("Edit", "Align Vertically", "", "Icons", "alignVertical");
     edit_alignVertical->setToolTip("Align selection vertically.");
 
@@ -825,20 +815,12 @@ void ActionController::setupActions()
     file_exit = createRootAction("Project", "Exit", "", "Icons", "arrowIntoBox");
 
     toolbar_contextToolbar = createRootAction("Toolbar", "Show Context Toolbar", "", "Icons", "gearDark");
-
     toolbar_addChild = createRootAction("Toolbar", "Add Child Entity", "", "Icons", "plus");
-    toolbar_connect = createRootAction("Toolbar", "Connect Selection", "", "Icons", "connect");
-    toolbar_popOutDefn = createRootAction("Toolbar", "Popout Definition", "", "Icons", "popOut");
-    toolbar_popOutImpl = createRootAction("Toolbar", "Popout Implementation", "", "Icons", "popOut");
-
     toolbar_wiki = createRootAction("Toolbar", "View Wiki", "", "Icons", "book");
     toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Icons", "copyX");
     toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Icons", "dotsVertical");
-
     toolbar_addDDSQOSProfile = createRootAction("Toolbar", "Add Profile", "", "Icons", "plus");
     toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Icons", "bin");
-
-    toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Icons", "dotsVertical");
 
     view_actions.append(edit_cut);
     view_actions.append(edit_copy);
@@ -917,7 +899,6 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_goto);
     
     menu_edit->addSeparator();
-    //menu_edit->addAction(edit_sort);
     menu_edit->addAction(edit_alignHorizontal);
     menu_edit->addAction(edit_alignVertical);
     menu_edit->addSeparator();
@@ -994,7 +975,6 @@ void ActionController::setupApplicationToolbar()
     toolbar_centerOn = applicationToolbar->addAction(view_centerOn->constructSubAction(false));
     toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
     applicationToolbar->addSeparator();
-    //toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
     toolbar_contract = applicationToolbar->addAction(edit_contract->constructSubAction(false));
@@ -1018,22 +998,18 @@ void ActionController::setupContextToolbar()
 
     contextToolbar->addAction(toolbar_addChild);
     contextToolbar->addAction(edit_delete->constructSubAction());
-    //contextToolbar->addAction(toolbar_hardware);
-    //contextToolbar->addAction(toolbar_disconnectHardware);
     contextToolbar->addSeparator();
-    //contextToolbar->addSeparator();
     contextToolbar->addAction(view_centerOnDefn->constructSubAction());
     contextToolbar->addAction(view_centerOnImpl->constructSubAction());
     contextToolbar->addSeparator();
     contextToolbar->addAction(toolbar_displayedChildrenOption);
     contextToolbar->addAction(toolbar_replicateCount);
-    
     contextToolbar->addSeparator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
     contextToolbar->addAction(view_viewInstances->constructSubAction());
     contextToolbar->addAction(model_getCodeForComponent->constructSubAction());
 
-    // add chart action here
+    // insert chart action here
     contextToolbar->addAction(chart_viewInChart);
     contextToolbar->addSeparator();
 
@@ -1043,7 +1019,6 @@ void ActionController::setupContextToolbar()
 
 void ActionController::setupRecentProjects()
 {
-    recentProjects = new ActionGroup(this);
     recentProjectsChanged();
 }
 

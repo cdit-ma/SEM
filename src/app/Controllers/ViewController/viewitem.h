@@ -3,11 +3,11 @@
 
 #include <QObject>
 
+#include "../NotificationManager/notificationobject.h"
 #include "../../Views/Table/datatablemodel.h"
 #include "../../Utils/qobjectregistrar.h"
 #include "../../../modelcontroller/nodekinds.h"
 #include "../../../modelcontroller/kinds.h"
-#include "../NotificationManager/notificationobject.h"
 
 //Forward declaration.
 class ViewController;
@@ -82,8 +82,8 @@ protected:
     void changeData(const QString& keyName, const QVariant& data, bool is_protected = false);
     void removeData(const QString& keyName);
     
-    virtual void childAdded(ViewItem* child);
-    virtual void childRemoved(ViewItem* child);
+    virtual void childAdded(ViewItem* child) {};
+    virtual void childRemoved(ViewItem* child) {};
 
     virtual void Disconnect();
 

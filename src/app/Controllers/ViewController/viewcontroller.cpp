@@ -1,38 +1,23 @@
 #include "viewcontroller.h"
 
 #include "../WindowManager/windowmanager.h"
+#include "../../Utils/filehandler.h"
 #include "../../Widgets/Windows/basewindow.h"
-#include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../../Widgets/Dialogs/variabledialog.h"
-#include "../../Views/ContextMenu/contextmenu.h"
-
-#include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
-
 #include "../../Widgets/Monitors/jobmonitor.h"
 #include "../../Widgets/Monitors/consolemonitor.h"
 #include "../../Widgets/Monitors/jenkinsmonitor.h"
-//#include "../../Views/Table/popupdataeditor.h"
-
-#include "../../Controllers/ExecutionManager/executionmanager.h"
-#include "../../Controllers/JenkinsManager/jenkinsmanager.h"
-#include "../../Controllers/SearchManager/searchmanager.h"
-#include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationobject.h"
 #include "../../Widgets/Charts/ExperimentDataManager/experimentdatamanager.h"
-
+#include "../../Views/ContextMenu/contextmenu.h"
+#include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../../modelcontroller/modelcontroller.h"
 #include "../../../modelcontroller/entityfactory.h"
 #include "../../../modelcontroller/version.h"
 
-#include "../../Utils/filehandler.h"
-
-#undef ERROR
-
 #include <QtConcurrent/QtConcurrentRun>
 #include <QMessageBox>
-#include <QDebug>
 #include <QDateTime>
 #include <QApplication>
 #include <QClipboard>
@@ -40,18 +25,13 @@
 #include <QListIterator>
 #include <QStringBuilder>
 #include <QDesktopServices>
-#include <QTextBrowser>
-#include <QFile>
 #include <QFutureWatcher>
-#include <iostream>
-#include <sstream>
 #include <QJsonArray>
+
+#include <iostream>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
-
-#define IDL_FILE_EXT "IDL Documents (*.idl)"
-#define IDL_FILE_SUFFIX ".idl"
 
 ViewController::ViewController()
 {
@@ -129,7 +109,8 @@ void ViewController::AutosaveDurationChanged(int duration_minutes)
     }
 }
 
-void ViewController::StartAutosaveCountdown(){
+void ViewController::StartAutosaveCountdown()
+{
     if(!autosave_timer_.isActive()){
         autosave_timer_.start();
     }
@@ -145,11 +126,13 @@ QList<ViewItem*> ViewController::ToViewItemList(const QList<EdgeViewItem*>& edge
     return *(QList<ViewItem*>*)(&edge_items);
 }
 
-ContextMenu* ViewController::getContextMenu(){
+ContextMenu* ViewController::getContextMenu()
+{
     return menu;
 }
 
-void ViewController::RequestJenkinsNodes(){
+void ViewController::RequestJenkinsNodes()
+{
     auto request = jenkins_manager->getJenkinsNodes();
 
     if(request.first){
@@ -162,10 +145,11 @@ void ViewController::RequestJenkinsNodes(){
     }
 }
 
-void ViewController::ListJenkinsJobs(){
+void ViewController::ListJenkinsJobs()
+{
     auto request = jenkins_manager->GetJenkinsConfiguration();
-
     auto list_jobs_future = new QFutureWatcher<QJsonDocument>(this);
+    
     connect(list_jobs_future, &QFutureWatcher<QJsonDocument>::finished, [=](){
         auto json = list_jobs_future->result();
         QList<QString> jobs;
@@ -185,7 +169,8 @@ void ViewController::ListJenkinsJobs(){
     list_jobs_future->setFuture(request.second);
 }
 
-void ViewController::ShowJenkinsBuildDialog(const QStringList& job_names){
+void ViewController::ShowJenkinsBuildDialog(const QStringList& job_names)
+{
     VariableDialog dialog("Launch Jenkins Job");
     dialog.addOption("Job", SETTING_TYPE::STRINGLIST, job_names);
 
@@ -277,7 +262,6 @@ void ViewController::welcomeScreenToggled(bool visible)
 QList<ViewItem *> ViewController::getViewItemParents(const QList<ViewItem*>& entities)
 {
     QSet<ViewItem*> parent_set;
-
     for(auto view_item : entities){
         if(view_item){
             parent_set.insert(view_item->getParentItem());
@@ -320,7 +304,8 @@ QList<ViewItem *> ViewController::getConstructableNodeDefinitions(NODE_KIND node
     return items;
 }
 
-QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges(EDGE_KIND kind){
+QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges(EDGE_KIND kind)
+{
     QHash<EDGE_DIRECTION, ViewItem*>  items;
     if(selectionController && controller){
         auto selection = selectionController->getSelectionIDs();
@@ -338,9 +323,9 @@ QHash<EDGE_DIRECTION, ViewItem*> ViewController::getValidEdges(EDGE_KIND kind){
     return items;
 }
 
-QMultiMap<EDGE_DIRECTION, ViewItem*> ViewController::getExistingEndPointsOfSelection(EDGE_KIND kind){
+QMultiMap<EDGE_DIRECTION, ViewItem*> ViewController::getExistingEndPointsOfSelection(EDGE_KIND kind)
+{
     QMultiMap<EDGE_DIRECTION, ViewItem*>  items;
-
     for(auto view_item : selectionController->getSelection()){
         if(view_item->isNode()){
             auto node_item = (NodeViewItem*) view_item;
@@ -382,7 +367,8 @@ QList<ViewItem*> ViewController::getSearchableEntities()
     return items;
 }
 
-QStringList ViewController::GetIDs(){
+QStringList ViewController::GetIDs()
+{
     QStringList ids;
     for(auto id : view_items_.keys()){
         ids += QString::number(id);
@@ -473,9 +459,9 @@ QList<EdgeViewItem *> ViewController::getEdgeKindItems()
     return list;
 }
 
-void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction){
+void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction)
+{
     auto selection = getSelectionController()->getSelectionIDs();
-    
     if(!selection.isEmpty()){
         auto id_list = {id};
         auto src_ids = edge_direction == EDGE_DIRECTION::SOURCE ? id_list : selection;
@@ -484,7 +470,8 @@ void ViewController::constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION 
     }
 }
 
-QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ViewController::getValidEdgeKinds(const QList<int>& ids){
+QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ViewController::getValidEdgeKinds(const QList<int>& ids)
+{
     QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > edge_kinds;
     if(controller){
         edge_kinds = controller->getValidEdgeKinds(ids);
@@ -500,7 +487,6 @@ QSet<EDGE_KIND> ViewController::getCurrentEdgeKinds()
     }
     return edgeKinds;
 }
-
 
 QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
 {
@@ -530,7 +516,6 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
     chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_DEFINITIONS);
     return chart_valid_node_kinds;
 }
-
 
 QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
 {
@@ -603,7 +588,6 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
     return validDataKinds;
 }
 
-
 QList<QVariant> ViewController::getValidValuesForKey(int ID, const QString& keyName)
 {
     QList<QVariant> valid_values;
@@ -612,7 +596,6 @@ QList<QVariant> ViewController::getValidValuesForKey(int ID, const QString& keyN
     }
     return valid_values;
 }
-
 
 void ViewController::SetDefaultIcon(ViewItem& view_item)
 {
@@ -623,9 +606,9 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
     QString custom_icon_name = view_item.getData("icon").toString();
         
     if(view_item.isNode()){
+    
         auto& node_item = (NodeViewItem&)view_item;
         const auto& node_kind = node_item.getNodeKind();
-
 
         switch(node_kind){
         case NODE_KIND::HARDWARE_NODE:{
@@ -637,9 +620,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
         }
         case NODE_KIND::OPENCL_PLATFORM:{
             auto vendor = view_item.getData("vendor").toString();
-            
             custom_icon_prefix = "Icons";
-            
             if(vendor == "Advanced Micro Devices, Inc."){
                 custom_icon_name = "amd";
             }else if(vendor == "Altera Corporation"){
@@ -647,12 +628,10 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             }else if(vendor == "NVIDIA Corporation"){
                 custom_icon_name = "nvidia";
             }
-            
             break;
         }
         case NODE_KIND::OPENCL_DEVICE:{
             auto type = view_item.getData("type").toString();
-            
             custom_icon_prefix = "Icons";
             if(type == "CL_DEVICE_TYPE_CPU"){
                 custom_icon_name = "cpu";
@@ -709,7 +688,6 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             default_icon_name = "CallbackFunction";
             break;
         }
-
         case NODE_KIND::INPUT_PARAMETER:
         case NODE_KIND::INPUT_PARAMETER_GROUP:
         case NODE_KIND::INPUT_PARAMETER_GROUP_INST:{
@@ -790,7 +768,6 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
     if(Theme::theme()->gotImage(default_icon_prefix, default_icon_name)){
         view_item.setDefaultIcon(default_icon_prefix, default_icon_name);
     }
-    
     if(custom_icon_prefix.size() && custom_icon_name.size()){
         view_item.setIcon(custom_icon_prefix, custom_icon_name);
     }
@@ -800,7 +777,6 @@ ViewItem *ViewController::getModel()
 {
     return getViewItem(model_id_);
 }
-
 
 DefaultDockWidget* ViewController::constructDockWidget(const QString& title, const QString& icon_path, const QString& icon_name, QWidget* widget, BaseWindow* window)
 {
@@ -833,7 +809,8 @@ void ViewController::showCodeViewer(const QString& tabName, const QString& conte
     }
 }
 
-JobMonitor* ViewController::getExecutionMonitor(){
+JobMonitor* ViewController::getExecutionMonitor()
+{
     if(!job_monitor){
         job_monitor = new JobMonitor(jenkins_manager);
         auto toolbar = job_monitor->getToolbar();
@@ -875,7 +852,8 @@ void ViewController::RefreshExecutionMonitor(const QString& job_name)
     job_monitor->refreshRecentBuildsByName(job_name);
 }
 
-void ViewController::showExecutionMonitor(){
+void ViewController::showExecutionMonitor()
+{
     auto window_manager = WindowManager::manager();
 
     //First time 
@@ -885,8 +863,6 @@ void ViewController::showExecutionMonitor(){
     }
     WindowManager::ShowDockWidget(execution_monitor);
 }
-
-
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(const QString& graphmlData)
 {
@@ -918,8 +894,6 @@ void ViewController::selectModel()
 {
     emit selectionController->itemActiveSelectionChanged(getModel(), true);
 }
-
-
 
 void ViewController::table_dataChanged(int ID, const QString& key, const QVariant& data)
 {
@@ -974,7 +948,6 @@ void ViewController::setupEntityKindItems()
     }
 }
 
-
 void ViewController::_showGitHubPage(const QString& relURL)
 {
     QString URL = APP_URL() % relURL;
@@ -992,7 +965,6 @@ void ViewController::_showWiki(ViewItem *item)
     QString url = wikiURL;
 
     bool isGitWiki = wikiURL.contains("github.com", Qt::CaseInsensitive);
-
     if(!isGitWiki){
         url += "/SEM/MEDEA";
     }
@@ -1070,7 +1042,8 @@ bool ViewController::canRedo()
     return false;
 }
 
-void ViewController::ResetViewItems(){
+void ViewController::ResetViewItems()
+{
     //Destruct the view items
     DestructViewItem(root_item);
     //Unset the model id
@@ -1177,7 +1150,8 @@ NodeView* ViewController::getActiveNodeView()
     return nullptr;
 }
 
-void ViewController::AddNotification(MODEL_SEVERITY severity, const QString& title, const QString& description, int id){
+void ViewController::AddNotification(MODEL_SEVERITY severity, const QString& title, const QString& description, int id)
+{
     auto notification_severity = Notification::Severity::INFO;
     switch(severity){
         case MODEL_SEVERITY::ERROR:
@@ -1272,14 +1246,12 @@ void ViewController::editReplicationCount()
     }
 }
 
-
 void ViewController::viewSelectionChart(const QList<MEDEA::ChartDataKind>& dataKinds)
 {
     if (selectionController && !dataKinds.isEmpty()) {
         emit vc_viewItemsInChart(selectionController->getSelection(), dataKinds);
     }
 }
-
 
 void ViewController::TeardownController()
 {   
@@ -1308,7 +1280,8 @@ void ViewController::TeardownController()
     }
 }
 
-void ViewController::autoSaveProject(){
+void ViewController::autoSaveProject()
+{
     //Try and lock the mutex, if we can't lock
     if(controller && !controller->isProjectSaved()){
         auto project_action_count = controller->getProjectActionCount();
@@ -1432,14 +1405,16 @@ bool ViewController::_closeProject(bool show_welcome)
     return true;
 }
 
-VIEW_ASPECT ViewController::getNodeViewAspect(int ID){
+VIEW_ASPECT ViewController::getNodeViewAspect(int ID)
+{
     if(controller){
         return controller->getNodeViewAspect(ID);
     }
     return VIEW_ASPECT::NONE;
 }
 
-bool ViewController::isNodeAncestor(int ID, int ID2){
+bool ViewController::isNodeAncestor(int ID, int ID2)
+{
     bool is_ancestor = false;
     if(controller){
         is_ancestor = controller->isNodeAncestor(ID, ID2);
@@ -1447,21 +1422,13 @@ bool ViewController::isNodeAncestor(int ID, int ID2){
     return is_ancestor;
 }
 
-
-ModelController* ViewController::getModelController(){
+ModelController* ViewController::getModelController()
+{
     return controller;    
 }
 
-
-QVariant ViewController::getEntityDataValue(int ID, const QString& key_name)
+void ViewController::EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id)
 {
-    if (controller) {
-        return controller->getEntityDataValue(ID, key_name);
-    }
-    return QVariant();
-}
-
-void ViewController::EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id){
     auto src = getNodeViewItem(src_id);
     auto dst = getNodeViewItem(dst_id);
     auto parent = getSharedParent(src, dst);
@@ -1476,7 +1443,8 @@ void ViewController::EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst
     }
 }
 
-void ViewController::StoreViewItem(ViewItem* view_item){
+void ViewController::StoreViewItem(ViewItem* view_item)
+{
     if(view_item){
         auto id = view_item->getID();
         if(!view_items_.contains(id)){
@@ -1503,17 +1471,18 @@ void ViewController::StoreViewItem(ViewItem* view_item){
     }
 }
 
-void ViewController::SetParentNode(ViewItem* parent, ViewItem* child){
+void ViewController::SetParentNode(ViewItem* parent, ViewItem* child)
+{
     if(!parent){
         parent = root_item;
     }
-
     if(parent){
         parent->addChild(child);
     }
 }
 
-void ViewController::NodeConstructed(int parent_id, int id, NODE_KIND node_kind){
+void ViewController::NodeConstructed(int parent_id, int id, NODE_KIND node_kind)
+{
     auto node_item = new NodeViewItem(this, id, node_kind);
     auto parent_item = getNodeViewItem(parent_id);
     SetParentNode(parent_item, node_item);
@@ -1548,7 +1517,6 @@ void ViewController::NodeEdgeKindsChanged(int id)
         if(controller){
 
             const auto& edge_kinds = getValidEdgeKinds({id});
-
             QHash<EDGE_KIND, QSet<EDGE_DIRECTION> > valid_edge_kinds;
 
             //Sources
@@ -1576,7 +1544,6 @@ void ViewController::NodeTypesChanged(int id)
         }
     }
 }
-
 
 void ViewController::setClipboardData(const QString& data)
 {
@@ -1625,7 +1592,6 @@ bool ViewController::OpenExistingProject(QString file_path)
     }
     return false;
 }
-
 
 void ViewController::importProjects()
 {
@@ -1742,7 +1708,6 @@ void ViewController::alignSelectionHorizontal()
     }
 }
 
-
 /**
  * @brief ViewController::selectAndCenterConnectedEntities
  * Select and center on the selection's connected entities
@@ -1753,7 +1718,6 @@ void ViewController::selectAndCenterConnectedEntities()
         emit vc_selectAndCenterConnectedEntities(selectionController->getSelection());
     }
 }
-
 
 /**
  * @brief ViewController::selectAndCenterInstances
@@ -1773,7 +1737,6 @@ void ViewController::selectAndCenterInstances()
         HighlightItems(instanceIDs);
     }
 }
-
 
 /**
  * @brief ViewController::HighlightItems
@@ -1801,7 +1764,7 @@ void ViewController::centerOnID(int ID)
 
 void ViewController::showWiki()
 {
-    _showWiki(0);
+    _showWiki(nullptr);
 }
 
 void ViewController::reportBug()
@@ -1812,7 +1775,6 @@ void ViewController::reportBug()
 void ViewController::showWikiForSelectedItem()
 {
     _showWiki(getActiveSelectedItem());
-
 }
 
 void ViewController::centerImpl()
@@ -1903,7 +1865,6 @@ void ViewController::aboutMEDEA()
     QMessageBox::about(window, "About MEDEA " % APP_VERSION(), aboutString);
 }
 
-
 void ViewController::cut()
 {
     if(selectionController){
@@ -1950,7 +1911,6 @@ void ViewController::initializeController()
     }
 }
 
-
 ViewItem *ViewController::getViewItem(int ID) const
 {
     if (view_items_.contains(ID)) {
@@ -1958,8 +1918,6 @@ ViewItem *ViewController::getViewItem(int ID) const
     }
     return nullptr;
 }
-
-
 
 void ViewController::notification_Added(QSharedPointer<NotificationObject> notification)
 {

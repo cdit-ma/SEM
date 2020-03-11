@@ -8,7 +8,7 @@
 
 class NodeItem : public EntityItem
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
     NodeItem(NodeViewItem *viewItem, NodeItem* parentItem);
@@ -214,4 +214,4 @@ private:
     bool right_justified = false;
 };
 
-#endif //NODEITEM_H
+#endif // NODEITEM_H
