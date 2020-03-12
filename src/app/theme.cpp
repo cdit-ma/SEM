@@ -140,14 +140,14 @@ void Theme::UpdateActionIcon(QAction* action, Theme* theme){
         theme = Theme::theme();
     }
     if(action){
-        auto icon_path = action->property("icon_path").toString();
+        auto icon_path = action->property("icon_path_").toString();
         auto icon_alias = action->property("icon_alias").toString();
         action->setIcon(theme->getIcon(icon_path, icon_alias));
     }   
 }
 
 void Theme::StoreActionIcon(QAction* action, QString icon_path, QString icon_alias){
-    action->setProperty("icon_path", icon_path);
+    action->setProperty("icon_path_", icon_path);
     action->setProperty("icon_alias", icon_alias);
     UpdateActionIcon(action);
 }   

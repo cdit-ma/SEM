@@ -4,17 +4,15 @@
 #include <QFrame>
 #include <QToolBar>
 #include <QToolButton>
-#include <QPushButton>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
 
 class CustomGroupBox : public QFrame
 {
     Q_OBJECT
-public:
-    explicit CustomGroupBox(QString title = "", QWidget *parent = 0);
 
-    virtual void setTitle(QString title);
+public:
+    explicit CustomGroupBox(const QString& title = "", QWidget *parent = nullptr);
+
+    virtual void setTitle(const QString& title);
     QString getTitle();
 
     void setCheckable(bool checkable);
@@ -29,12 +27,10 @@ public slots:
 
 private:
     void setupLayout();
-
-    QString groupTitle;
-    QToolButton* groupTitleButton = 0;
-    QToolBar* widgetsToolbar = 0;
-    QToolBar* topToolbar = 0;
-
+    
+    QToolButton* groupTitleButton = nullptr;
+    QToolBar* widgetsToolbar = nullptr;
+    QToolBar* topToolbar = nullptr;
 };
 
 #endif // CUSTOMGROUPBOX_H

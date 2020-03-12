@@ -53,7 +53,7 @@ ConsoleMonitor* JobMonitor::constructConsoleMonitor(){
 
     if(!monitors.contains(lookup_key)){
         if(!running_jobs_box->gotOption(lookup_key)){
-            running_jobs_box->addOption(lookup_key, name, "Icons", "circleQuestion", false);
+            running_jobs_box->addOption(lookup_key, name, "Icons", "circleQuestion");
         }
 
         auto monitor = new ConsoleMonitor(this);
@@ -263,7 +263,7 @@ void JobMonitor::JobStatusChanged(Jenkins_Job_Status job_status){
         auto title = job_status.name + " #" + QString::number(job_status.number);
         
         if(!running_jobs_box->gotOption(key)){
-            running_jobs_box->addOption(key, title, "Icons", "circleQuestion", true);
+            running_jobs_box->addOption(key, title, "Icons", "circleQuestion");
         }else{
             running_jobs_box->updateOptionLabel(key, title);
         }

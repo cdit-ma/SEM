@@ -1384,7 +1384,7 @@ bool ViewController::_closeProject(bool show_welcome)
                 // This is the case where the user has clicked "Save"
                 // It attempts to save the project and only exits if it was successful
                 if (!_saveProject()) {
-                    // NOTE: This may cause issues; returning false from this function blocks other functions such as newProject and closeMedea
+                    // INSPECT: This may cause issues; returning false from this function blocks other functions such as newProject and closeMedea
                     // TODO: Investigate what other functions are affected by this case and find a fix for them
                     return false;
                 }
