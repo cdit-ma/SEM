@@ -4,7 +4,8 @@
 
 #include <QStyledItemDelegate>
 
-SearchPopup::SearchPopup():PopupWidget(PopupWidget::TYPE::POPUP, 0)
+SearchPopup::SearchPopup()
+	: PopupWidget(PopupWidget::TYPE::POPUP, nullptr)
 {
     setupLayout();
     
@@ -16,8 +17,8 @@ SearchPopup::SearchPopup():PopupWidget(PopupWidget::TYPE::POPUP, 0)
     hide();
 }
 
-
-void SearchPopup::takeFocus(){
+void SearchPopup::takeFocus()
+{
     search_bar->setFocus();
     search_bar->selectAll();
 }
@@ -28,7 +29,6 @@ void SearchPopup::themeChanged()
 
     toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 2px; spacing: 2px; }");
     toolbar->setIconSize(theme->getIconSize());
-    //toolbar->setIconSize(theme->getLargeIconSize());
     
     search_bar->setStyleSheet(theme->getLineEditStyleSheet());
     search_action->setIcon(theme->getIcon("Icons", "zoom"));
@@ -42,7 +42,7 @@ void SearchPopup::SearchRequested()
     hide();
 }
 
-void SearchPopup::updateSearchSuggestions(QStringList suggestions)
+void SearchPopup::updateSearchSuggestions(const QStringList& suggestions)
 {
     search_model->setStringList(suggestions);
 }

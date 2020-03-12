@@ -8,15 +8,16 @@
 #include <QSplitter>
 #include <QSet>
 
-#include "../../Controllers/ViewController/viewitem.h"
 #include "searchitemwidget.h"
+#include "../../Controllers/ViewController/viewitem.h"
 #include "../../Widgets/optiongroupbox.h"
 
 class SearchDialog : public QFrame
 {
     Q_OBJECT
+    
 public:
-    explicit SearchDialog(QWidget *parent = 0);
+    explicit SearchDialog(QWidget *parent = nullptr);
 
     void DisplaySearchResults(const QString& query, const QHash<QString, ViewItem*>& results);
 
@@ -27,15 +28,15 @@ signals:
     void CenterOn(int ID);
     void Popup(int ID);
 
-private slots:
-    void themeChanged();
-    void filtersChanged();
-
 public slots:
-    void viewItemDestructed(int ID, ViewItem* item);
-    void viewItemSelected(ViewItem* item, bool selected);
-
+	void viewItemDestructed(int ID, ViewItem* item);
+	void viewItemSelected(ViewItem* item, bool selected);
+	
     void searchItemClicked(int ID);
+
+private slots:
+	void themeChanged();
+	void filtersChanged();
 
 private:
     void scrollBarValueChanged();
@@ -51,39 +52,37 @@ private:
     SearchItemWidget* constructSearchItem(ViewItem* item);
     SearchItemWidget* getSearchItem(ViewItem* item);
 
-    QLabel* search_label = 0;
-    QLabel* query_label = 0;
+    QLabel* search_label = nullptr;
+    QLabel* query_label = nullptr;
     
-    QLabel* info_label = 0;
-    QLabel* status_label = 0;
+    QLabel* info_label = nullptr;
+    QLabel* status_label = nullptr;
 
-    QWidget* filters_widget = 0;
-    QWidget* results_widget = 0;
-    QWidget* result_status_widget = 0;
-    QVBoxLayout* results_layout = 0;
-    QVBoxLayout* filters_layout = 0;
+    QWidget* filters_widget = nullptr;
+    QWidget* results_widget = nullptr;
+    QWidget* result_status_widget = nullptr;
+    QVBoxLayout* results_layout = nullptr;
+    QVBoxLayout* filters_layout = nullptr;
 
-    QToolBar* top_toolbar = 0;
-    QToolBar* bottom_toolbar = 0;
+    QToolBar* top_toolbar = nullptr;
+    QToolBar* bottom_toolbar = nullptr;
 
-    QToolButton* load_more_button = 0;
-    QAction* center_action = 0;
-    QAction* popup_action = 0;
-    QAction* search_action = 0;
-    QAction* refresh_action = 0;
-    QAction* reset_filters_action = 0;
+    QToolButton* load_more_button = nullptr;
+    QAction* center_action = nullptr;
+    QAction* popup_action = nullptr;
+    QAction* search_action = nullptr;
+    QAction* refresh_action = nullptr;
+    QAction* reset_filters_action = nullptr;
     
-    QSplitter* splitter = 0;
+    QSplitter* splitter = nullptr;
 
-    QScrollArea* filters_scroll = 0;
-    QScrollArea* results_scroll = 0;
+    QScrollArea* filters_scroll = nullptr;
+    QScrollArea* results_scroll = nullptr;
 
-    OptionGroupBox* aspect_filters = 0;
-    OptionGroupBox* data_filters = 0;
+    OptionGroupBox* aspect_filters = nullptr;
+    OptionGroupBox* data_filters = nullptr;
 
-    QSet<int> current_search_items;
     QHash<int, SearchItemWidget*> search_items;
-
     QHash<ViewItem*, QString> search_key_lookups;
 
     int current_visible = 0;

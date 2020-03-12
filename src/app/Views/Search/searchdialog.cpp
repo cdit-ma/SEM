@@ -12,7 +12,7 @@
  * @param parent
  */
 SearchDialog::SearchDialog(QWidget *parent)
-    : QFrame(parent)
+	: QFrame(parent)
 {
     setupLayout();
 
@@ -23,7 +23,6 @@ SearchDialog::SearchDialog(QWidget *parent)
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
-
 
 /**
  * @brief SearchDialog::setQuery
@@ -36,7 +35,6 @@ void SearchDialog::setQuery(const QString &query)
         query_label->setText("\"" + query_text + "\"");
     }
 }
-
 
 /**
  * @brief SearchDialog::searchResults
@@ -54,7 +52,7 @@ void SearchDialog::DisplaySearchResults(const QString &query, const QHash<QStrin
     info_label->setVisible(!has_results);
 
     if (has_results) {
-        for (auto key : results.uniqueKeys()) {
+        for (const auto& key : results.uniqueKeys()) {
             auto view_items = results.values(key);
             for (auto item : view_items) {
                 search_key_lookups.insertMulti(item, key);
@@ -70,7 +68,6 @@ void SearchDialog::DisplaySearchResults(const QString &query, const QHash<QStrin
     // set the visibility of the search items based on the current filters
     filtersChanged();
 }
-
 
 /**
  * @brief SearchDialog::themeChanged
@@ -106,7 +103,6 @@ void SearchDialog::themeChanged()
     top_toolbar->setIconSize(theme->getIconSize());
     bottom_toolbar->setIconSize(theme->getIconSize());
 }
-
 
 /**
  * @brief SearchDialog::filtersChanged
@@ -164,24 +160,21 @@ void SearchDialog::filtersChanged()
     load_more_button->setVisible(!all_showing);
 }
 
-
 /**
  * @brief SearchDialog::viewItemDestructed
  */
 void SearchDialog::viewItemDestructed(int ID, ViewItem* item)
 {
-    SearchItemWidget* widget = search_items.value(ID, 0);
     search_key_lookups.remove(item);
-    if (widget) {
-        search_items.take(ID);
-        widget->hide();
-        widget->deleteLater();
+    if (search_items.contains(ID)) {
+    	auto widget = search_items.take(ID);
+    	widget->hide();
+    	widget->deleteLater();
     }
     if (selected_id == ID) {
         selected_id = -1;
     }
 }
-
 
 /**
  * @brief SearchDialog::viewItemSelected
@@ -192,14 +185,12 @@ void SearchDialog::viewItemDestructed(int ID, ViewItem* item)
 void SearchDialog::viewItemSelected(ViewItem *item, bool selected)
 {
     if (item) {
-        int ID = item->getID();
-        if (search_items.contains(ID)) {
-            auto searchItem = search_items.value(ID);
-            searchItem->viewItemSelected(selected);
+        auto search_item = search_items.value(item->getID(), nullptr);
+        if (search_item) {
+        	search_item->viewItemSelected(selected);
         }
     }
 }
-
 
 /**
  * @brief SearchDialog::searchItemClicked
@@ -210,16 +201,15 @@ void SearchDialog::searchItemClicked(int ID)
 {
     if (selected_id != ID) {
         // deselect the previously selected search item
-        if (search_items.contains(selected_id)) {
-            SearchItemWidget* item = search_items.value(selected_id);
-            item->setSelected(false);
+        auto search_item = search_items.value(selected_id, nullptr);
+        if (search_item) {
+        	search_item->setSelected(false);
         }
         selected_id = ID;
     } else {
         selected_id = -1;
     }
 }
-
 
 /**
  * @brief SearchDialog::setupLayout
@@ -228,7 +218,8 @@ void SearchDialog::setupLayout()
 {
     auto left_widget = new QWidget(this);
     auto right_widget = new QWidget(this);
-
+    
+    // TODO: Are these brackets necessary?
     {
         //LEFT WIDGET
         left_widget->setContentsMargins(5,5,1,5);
@@ -268,7 +259,6 @@ void SearchDialog::setupLayout()
         top_toolbar->addSeparator();
         center_action = top_toolbar->addAction("Center On Selection");
         popup_action = top_toolbar->addAction("Popup On Selection");
-
 
         auto top_layout = new QHBoxLayout();
         {
@@ -326,8 +316,6 @@ void SearchDialog::setupLayout()
             status_layout->setContentsMargins(0, 0, 0, 0);
             status_layout->addWidget(status_label, 1);
             status_layout->addWidget(bottom_toolbar);
-            
-
         }
 
         v_layout->addLayout(top_layout);
@@ -356,7 +344,6 @@ void SearchDialog::setupLayout()
     connect(refresh_action, &QAction::triggered, this, [=](){emit SearchQuery(query_text);});
 }
 
-
 /**
  * @brief SearchDialog::setupFilters
  */
@@ -381,7 +368,6 @@ void SearchDialog::setupFilters()
     connect(reset_filters_action, &QAction::triggered, data_filters, &OptionGroupBox::reset);
 }
 
-
 /**
  * @brief SearchDialog::clearsearch_items
  */
@@ -396,7 +382,6 @@ void SearchDialog::clearSearchItems()
     max_visible = 30;
 }
 
-
 /**
  * @brief SearchDialog::scrollBarValueChanged
  */
@@ -407,7 +392,6 @@ void SearchDialog::scrollBarValueChanged()
         loadNextResults();
     }
 }
-
 
 /**
  * @brief SearchDialog::loadNextResults
@@ -421,7 +405,6 @@ void SearchDialog::loadNextResults()
     }
 }
 
-
 /**
  * @brief SearchDialog::constructSearchItem
  * @param item
@@ -429,7 +412,7 @@ void SearchDialog::loadNextResults()
 SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 {
     if (!item) {
-        return 0;
+        return nullptr;
     }
 
     auto ID = item->getID();
@@ -447,7 +430,6 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
     return search_item;
 }
 
-
 /**
  * @brief SearchDialog::getSearchItem
  * @param item
@@ -456,7 +438,7 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 SearchItemWidget* SearchDialog::getSearchItem(ViewItem* item)
 {
     if (item) {
-        return search_items.value(item->getID(), 0);
+        return search_items.value(item->getID(), nullptr);
     }
-    return 0;
+    return nullptr;
 }
