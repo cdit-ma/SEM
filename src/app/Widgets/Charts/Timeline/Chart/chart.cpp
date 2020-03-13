@@ -1642,18 +1642,3 @@ double Chart::mapTimeToPixel(double time)
     auto adjustedTime = time - displayMin_;
     return adjustedTime / timeRange * width();
 }
-
-
-/**
- * @brief qHash
- * @param key
- * @param seed
- * @return
- */
-inline uint qHash(ChartDataKind key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
-
-
-

@@ -1,5 +1,6 @@
 #include "edgeitem.h"
 #include "../Node/nodeitem.h"
+#include <cmath>
 
 #define ARROW_SIZE 4
 
@@ -550,7 +551,7 @@ QPainterPath EdgeItem::calculateBezierCurve(QPointF P1, QPointF P2, bool P1_Left
     //If both ends exit the same side as each other, make our control points make a singularly curved loop
     if(P1_Left == P2_Left){
         //Calculate the vertical offset between our two end points.
-        qreal yOffset = fabs(P1.y() - P2.y());
+        qreal yOffset = std::fabs(P1.y() - P2.y());
 
         if(P1_Left){
             //Both exiting Left, so we should make the curve grow to the left of the smaller end point
