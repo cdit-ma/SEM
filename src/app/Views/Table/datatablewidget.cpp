@@ -1,49 +1,50 @@
 #include "datatablewidget.h"
-#include "../../theme.h"
 
 #include <QHeaderView>
-#include <QObject>
-#include <QDebug>
 #include <QStringBuilder>
 
-DataTableWidget::DataTableWidget(ViewController *controller, QWidget *parent) : QWidget(parent)
+DataTableWidget::DataTableWidget(ViewController *controller, QWidget *parent)
+	: QWidget(parent)
 {
-    activeItem = 0;
+    activeItem = nullptr;
     viewController = controller;
-    multilineDelegate = new DataTableDelegate(this);
+    
     setupLayout();
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    themeChanged();
-
-    setMinimumSize(130,130);
+	setMinimumSize(130,130);
+	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	
+	connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+	themeChanged();
     
     connect(viewController->getSelectionController(), &SelectionController::itemActiveSelectionChanged, this, &DataTableWidget::itemActiveSelectionChanged);
     connect(viewController, &ViewController::vc_editTableCell, tableView, &DataTableView::editDataValue);
     connect(entity_button, &QToolButton::clicked, this, &DataTableWidget::titleClicked);
 }
 
-void DataTableWidget::titleClicked(){
-    if(activeItem){
+void DataTableWidget::titleClicked()
+{
+    if (activeItem) {
         viewController->centerOnID(activeItem->getID());
     }
 }
 
 void DataTableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
 {
-    QAbstractItemModel* model = 0;
-    if(activeItem){
+    QAbstractItemModel* model = nullptr;
+    
+    if (activeItem) {
         disconnect(activeItem, &ViewItem::iconChanged, this, &DataTableWidget::activeItem_IconChanged);
         disconnect(activeItem, &ViewItem::labelChanged, this, &DataTableWidget::activeItem_LabelChanged);
     }
-    if(item && isActive){
+    if (item && isActive) {
         connect(item, &ViewItem::iconChanged, this, &DataTableWidget::activeItem_IconChanged);
         connect(item, &ViewItem::labelChanged, this, &DataTableWidget::activeItem_LabelChanged);
         activeItem = item;
         model = item->getTableModel();
-    }else{
-        activeItem = 0;
+    } else {
+        activeItem = nullptr;
     }
+    
     activeItem_IconChanged();
     activeItem_LabelChanged();
 
@@ -91,7 +92,7 @@ void DataTableWidget::themeChanged()
 
 void DataTableWidget::setupLayout()
 {
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
     setLayout(layout);

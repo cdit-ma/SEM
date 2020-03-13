@@ -2,29 +2,24 @@
 #include "../theme.h"
 
 #include <QHBoxLayout>
-#include <QDebug>
-
 
 /**
  * @brief FilterWidget::FilterWidget
  */
 FilterWidget::FilterWidget()
-    : QWidget()
+	: QWidget()
 {
     setupLayout();
-    
-    connect(line_edit, &QLineEdit::textChanged, this, &FilterWidget::filterChanged);
-    
-    setFocusProxy(line_edit);
-    setFocusPolicy(Qt::StrongFocus);
-    line_edit->installEventFilter(this);
-
-    setToolTip("Filter the Menu");
+	setFocusProxy(line_edit);
+	setFocusPolicy(Qt::StrongFocus);
+	setToolTip("Filter the Menu");
+	
+	line_edit->installEventFilter(this);
+	connect(line_edit, &QLineEdit::textChanged, this, &FilterWidget::filterChanged);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &FilterWidget::themeChanged);
     themeChanged();
 }
-
 
 /**
  * @brief FilterWidget::themeChanged
@@ -34,7 +29,6 @@ void FilterWidget::themeChanged()
     auto theme = Theme::theme();
     line_edit->setStyleSheet(theme->getLineEditStyleSheet()  + "QLineEdit{border-radius: " + theme->getSharpCornerRadius() + ";}");
 }
-
 
 /**
  * @brief FilterWidget::setupLayout
@@ -54,7 +48,6 @@ void FilterWidget::setupLayout()
 
     layout->addWidget(line_edit);
 }
-
 
 /**
  * @brief FilterWidget::eventFilter

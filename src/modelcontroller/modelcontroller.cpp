@@ -2371,7 +2371,6 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                 }
             }
 
-
             bool is_model = kind == NODE_KIND::MODEL;
 
             bool got_parent = node->getParentNode();

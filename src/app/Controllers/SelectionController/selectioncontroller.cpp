@@ -146,7 +146,7 @@ void SelectionController::removeSelectionHandler()
 
         if (!handler->hasRegisteredObjects()) {
 
-            // NOTE: This is added to avoid a null SelectionHandler from being passed around - remove handler from lookup
+            // NOTE: This is added to avoid a null SelectionHandler from being passed around - removed handler from lookup
             // TODO: Investigate further when this is being called (related to registering/unregistering of QObjectRegistrar)
             // Currently, deselecting an item unregisters its selection handler from it
             auto handler_id = handler->getID();
