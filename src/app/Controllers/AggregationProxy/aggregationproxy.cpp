@@ -772,7 +772,7 @@ PortEvent::PortEventType AggregationProxy::ConvertPortEventType(const AggServer:
 std::unique_ptr<google::protobuf::Timestamp> AggregationProxy::ConstructTimestampFromMS(qint64 milliseconds)
 {
     google::protobuf::Timestamp timestamp = google::protobuf::util::TimeUtil::MillisecondsToTimestamp(milliseconds);
-    return std::make_unique<google::protobuf::Timestamp>(timestamp);
+    return std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp(timestamp));
 }
 
 
