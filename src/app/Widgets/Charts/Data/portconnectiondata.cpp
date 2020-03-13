@@ -13,7 +13,6 @@ PortConnectionData::PortConnectionData(quint32 exp_run_id, const AggServerRespon
       to_port_graphml_id_(port_connection.to_port_graphml),
       type_(port_connection.type) {}
 
-
 /**
  * @brief PortConnectionData::getFromPortID
  * @return
@@ -22,7 +21,6 @@ const QString& PortConnectionData::getFromPortID() const
 {
     return from_port_graphml_id_;
 }
-
 
 /**
  * @brief PortConnectionData::getToPortID
@@ -33,7 +31,6 @@ const QString& PortConnectionData::getToPortID() const
     return to_port_graphml_id_;
 }
 
-
 /**
  * @brief PortConnectionData::getPortConnectionType
  * @return
@@ -42,4 +39,3 @@ AggServerResponse::PortConnection::ConnectionType PortConnectionData::getPortCon
 {
     return type_;
 }
-

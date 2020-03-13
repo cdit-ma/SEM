@@ -165,8 +165,8 @@ QVariant QOSModelItem::data(int role) const
 void QOSModelItem::setData(const QVariant &value, int role)
 {
     // NOTE: According to Qt's documentation, this function should call emitDataChanged() if the base implementation
-    // of setData() is not being called. This will ensure that views using the model are notified of the changes.
-    // At the moment, we call emitDataChanged when the nodeViewItem (associated with this model item)'s data has changed
+    //  of setData() is not being called. This will ensure that views using the model are notified of the changes.
+    //  At the moment, we call emitDataChanged when the nodeViewItem (associated with this model item)'s data has changed
     if (role == Qt::EditRole) {
         if (nodeViewItem_ && !nodeViewItem_->isDataProtected("label")) {
             emit nodeViewItem_->getTableModel()->req_dataChanged(ID, "label", value);

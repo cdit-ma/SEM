@@ -23,7 +23,6 @@ MarkerSetData::MarkerSetData(quint32 exp_run_id, const QString& marker_name, QOb
     emit requestData(*this);
 }
 
-
 /**
  * @brief MarkerSetData::getID
  * @return
@@ -32,7 +31,6 @@ int MarkerSetData::getID() const
 {
     return marker_set_id_;
 }
-
 
 /**
  * @brief MarkerSetData::getMarkerName
@@ -43,7 +41,6 @@ const QString& MarkerSetData::getMarkerName() const
     return marker_name_;
 }
 
-
 /**
  * @brief MarkerSetData::getMarkerRequest
  * @return
@@ -52,7 +49,6 @@ const MarkerRequest& MarkerSetData::getMarkerRequest() const
 {
     return marker_request_;
 }
-
 
 /**
  * @brief MarkerSetData::addMarkerEvents
@@ -63,16 +59,18 @@ void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
     marker_event_series_->addEvents(events);
 }
 
-
 /**
  * @brief MarkerSetData::getMarkerEventSeries
+ * @throws std::runtime_error
  * @return
  */
-MarkerEventSeries* MarkerSetData::getMarkerEventSeries() const
+const MarkerEventSeries& MarkerSetData::getMarkerEventSeries() const
 {
-    return marker_event_series_;
+	if (marker_event_series_ == nullptr) {
+		throw std::runtime_error("MarkerEventSeries& MarkerSetData::getMarkerEventSeries - Marker event series is null");
+	}
+	return *marker_event_series_;
 }
-
 
 /**
  * @brief MarkerSetData::updateData

@@ -6,8 +6,8 @@
 #include <QStringBuilder>
 #include <QXmlStreamReader>
 
-// (SEM-96) NOTE: Not entirely sure if ViewController should be passed into the QObject's constructor as a parent
-// This may cause issues; check/revert if that happens
+// NOTE (SEM-96): Not entirely sure if ViewController should be passed into the QObject's constructor as a parent
+//  This may cause issues; check/revert if that happens
 ExecutionManager::ExecutionManager(ViewController *view_controller)
 	: QObject(view_controller)
 {

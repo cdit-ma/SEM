@@ -17,19 +17,17 @@ CPUUtilisationEvent::CPUUtilisationEvent(const QString& hostname,
       hostname_(hostname),
       utilisation_(utilisation) {}
 
-
 /**
  * @brief CPUUtilisationEvent::toString
  * @param dateTimeFormat
  * @return
  */
-QString CPUUtilisationEvent::toString(const QString &dateTimeFormat) const
+QString CPUUtilisationEvent::toString(const QString& dateTimeFormat) const
 {
     return "Host: " + hostname_ + "\n" +
            "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
-            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+		   "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
-
 
 /**
  * @brief CPUUtilisationEvent::getSeriesID
@@ -40,7 +38,6 @@ const QString& CPUUtilisationEvent::getSeriesID() const
     return series_id_;
 }
 
-
 /**
  * @brief CPUUtilisationEvent::getID
  * @return
@@ -50,7 +47,6 @@ const QString& CPUUtilisationEvent::getID() const
     return id_;
 }
 
-
 /**
  * @brief CPUUtilisationEvent::getHostname
  * @return
@@ -59,7 +55,6 @@ const QString& CPUUtilisationEvent::getHostname() const
 {
     return hostname_;
 }
-
 
 /**
  * @brief CPUUtilisationEvent::getUtilisation

@@ -33,7 +33,6 @@ private:
     QString name_;
 
     AggServerResponse::Container::ContainerType type_;
-
     QHash<QString, ComponentInstanceData*> comp_inst_data_hash_;
 };
 

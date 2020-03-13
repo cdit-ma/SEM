@@ -11,7 +11,7 @@ class PortLifecycleEventSeries : public MEDEA::EventSeries
 public:
     explicit PortLifecycleEventSeries(const QString& ID, QObject* parent = nullptr);
 
-    void addEvent(MEDEA::Event* event);
+    void addEvent(MEDEA::Event* event) override;
 };
 
 #endif // PORTLIFECYCLEEVENTSERIES_H

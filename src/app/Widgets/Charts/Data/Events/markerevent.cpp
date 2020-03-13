@@ -18,19 +18,17 @@ MarkerEvent::MarkerEvent(const QString& markerName,
       id_(series_id_ + QString::number(time)),
       markerID_(markerID) {}
 
-
 /**
  * @brief MarkerEvent::toString
  * @param dateTimeFormat
  * @return
  */
-QString MarkerEvent::toString(const QString &dateTimeFormat) const
+QString MarkerEvent::toString(const QString& dateTimeFormat) const
 {
-    return "Marker Name: " + getSeriesName() + "\n" +
-            "ID: " + QString::number(markerID_) + "\n" +
-            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+	return "Marker Name: " + getSeriesName() + "\n" +
+		   "ID: " + QString::number(markerID_) + "\n" +
+		   "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
-
 
 /**
  * @brief MarkerEvent::getSeriesID
@@ -41,7 +39,6 @@ const QString& MarkerEvent::getSeriesID() const
     return series_id_;
 }
 
-
 /**
  * @brief MarkerEvent::getID
  * @return
@@ -51,14 +48,11 @@ const QString& MarkerEvent::getID() const
     return id_;
 }
 
-
 /**
  * @brief MarkerEvent::getMarkerID
  * @return
  */
 qint64 MarkerEvent::getMarkerID() const
 {
-    return markerID_;
+	return markerID_;
 }
-
-

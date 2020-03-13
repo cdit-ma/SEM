@@ -21,10 +21,10 @@ public:
     QString getHoveredDataString (
             qint64 fromTimeMS,
             qint64 toTimeMS,
-            int numberOfItemsToDisplay = getDefaultNumberOfItemsToDisplay(),
-            const QString& displayFormat = getDefaultDisplayFormat()) const;
+            int numberOfItemsToDisplay,
+            const QString& displayFormat) const override;
 
-    void addEvent(MEDEA::Event* event);
+    void addEvent(MEDEA::Event* event) override;
 
 protected:
     QString getDataString (
@@ -35,7 +35,6 @@ private:
     QHash<qint64, QPair<qint64, qint64>> markerIDSetRanges_;
     QHash<qint64, qint64> markerIDSetDurations_;
     QMap<qint64, QSet<qint64>> startTimeMap_;
-
 };
 
 #endif // MARKEREVENTSERIES_H

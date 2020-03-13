@@ -6,7 +6,7 @@
 class UtilisationRequest : public Request {
 
 protected:
-    explicit UtilisationRequest(MEDEA::ChartDataKind kind);
+    explicit UtilisationRequest() = default;
 
 public:
     void setNodeIDs(const QVector<QString>& node_ids);
@@ -18,7 +18,6 @@ public:
 private:
     QVector<QString> nodeIDs_;
     QVector<QString> nodeHostnames_;
-
 };
 
 #endif // UTILISATIONREQUEST_H

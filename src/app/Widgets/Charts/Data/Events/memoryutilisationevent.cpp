@@ -17,19 +17,17 @@ MemoryUtilisationEvent::MemoryUtilisationEvent(const QString& hostname,
       hostname_(hostname),
       utilisation_(utilisation) {}
 
-
 /**
  * @brief MemoryUtilisationEvent::toString
  * @param dateTimeFormat
  * @return
  */
-QString MemoryUtilisationEvent::toString(const QString &dateTimeFormat) const
+QString MemoryUtilisationEvent::toString(const QString& dateTimeFormat) const
 {
-    return "Host: " + hostname_ + "\n" +
-           "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
-            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
+	return "Host: " + hostname_ + "\n" +
+		   "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
+		   "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
-
 
 /**
  * @brief MemoryUtilisationEvent::getSeriesID
@@ -40,7 +38,6 @@ const QString& MemoryUtilisationEvent::getSeriesID() const
     return series_id_;
 }
 
-
 /**
  * @brief MemoryUtilisationEvent::getID
  * @return
@@ -50,7 +47,6 @@ const QString& MemoryUtilisationEvent::getID() const
     return id_;
 }
 
-
 /**
  * @brief MemoryUtilisationEvent::getHostname
  * @return
@@ -59,7 +55,6 @@ const QString& MemoryUtilisationEvent::getHostname() const
 {
     return hostname_;
 }
-
 
 /**
  * @brief MemoryUtilisationEvent::getUtilisation

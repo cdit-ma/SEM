@@ -19,7 +19,6 @@ enum class LifecycleType {
     TERMINATE
 };
 
-
 /*
  * STRUCTS
  */
@@ -35,9 +34,9 @@ struct PortConnection {
     // REVIEW (Jackson): this field doesn't make sense by itself (connections are usually between
     //  two different nodes?), needs more documentation as to what it is, why its here and
     //  potentially why not in another class
+    // NOTE: This struct, like its data/event/series counterparts, is not finalised yet; it will very likely change
     QString node_hostname;
 };
-
 
 struct Port {
     enum Kind {
@@ -55,16 +54,13 @@ struct Port {
     QString graphml_id;
 };
 
-
 struct Worker {
     QString name;
 };
 
-
 struct Component {
     QString name;
 };
-
 
 struct WorkerInstance {
     QString name;
@@ -72,7 +68,6 @@ struct WorkerInstance {
     QString graphml_id;
     QString type;
 };
-
 
 struct ComponentInstance {
     QString name;
@@ -82,7 +77,6 @@ struct ComponentInstance {
     QVector<Port> ports;
     QVector<WorkerInstance> worker_instances;
 };
-
 
 struct Container {
     enum ContainerType {
@@ -95,13 +89,11 @@ struct Container {
     QVector<ComponentInstance> component_instances;
 };
 
-
 struct Node {
     QString hostname;
     QString ip;
     QVector<Container> containers;
 };
-
 
 struct ExperimentState {
     QVector<Node> nodes;
@@ -112,7 +104,6 @@ struct ExperimentState {
     qint64 last_updated_time = 0;
 };
 
-
 struct ExperimentRun {
     QString experiment_name;
     quint32 job_num;
@@ -121,7 +112,6 @@ struct ExperimentRun {
     qint64 last_updated_time = 0;
     qint32 experiment_run_id = -1;
 };
-
 
 struct Experiment {
     QString name;

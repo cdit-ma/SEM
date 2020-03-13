@@ -22,15 +22,15 @@ public:
                            WorkloadEventType type,
                            quint32 workloadID,
                            qint64 time,
-                           const QString& functionName,
-                           const QString& args,
+                           QString functionName,
+                           QString args,
                            quint32 logLevel,
                            QObject* parent = nullptr);
 
-    QString toString(const QString& dateTimeFormat) const;
+    QString toString(const QString& dateTimeFormat) const override;
 
-    const QString& getSeriesID() const;
-    const QString& getID() const;
+    const QString& getSeriesID() const override;
+    const QString& getID() const override;
 
     const QString& getArgs() const;
     const QString& getFunctionName() const;

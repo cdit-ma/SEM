@@ -11,7 +11,7 @@ class WorkloadEventSeries : public MEDEA::EventSeries
 public:
     explicit WorkloadEventSeries(const QString& ID, QObject* parent = nullptr);
 
-    void addEvent(MEDEA::Event* event);
+    void addEvent(MEDEA::Event* event) override;
 };
 
 #endif // WORKLOADEVENTSERIES_H

@@ -718,7 +718,7 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     }
 
     // NOTE: This calls into the class one below/above this class' base class
-    // This is intentional; calling BasicNodeItem's paint here stops the circle arrow/plus buttons from being rendered
+    //  This is intentional; calling BasicNodeItem's paint here stops the circle arrow/plus buttons from being rendered
     NodeItem::paint(painter, option, widget);
 }
 

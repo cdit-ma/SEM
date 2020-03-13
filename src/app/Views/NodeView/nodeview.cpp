@@ -166,7 +166,7 @@ void NodeView::fitToScreen()
 void NodeView::translate(QPointF point)
 {
     // NOTE: View transformations move the scene (not the view)
-    // Hence, some stored scene positions may need to be remapped after any transform functions
+    //  Hence, some stored scene positions may need to be remapped after any transform functions
     QGraphicsView::translate(point.x(), point.y());
 }
 

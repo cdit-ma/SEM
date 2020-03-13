@@ -8,7 +8,6 @@
 WorkloadEventSeries::WorkloadEventSeries(const QString& ID, QObject* parent)
     : MEDEA::EventSeries(ID, MEDEA::ChartDataKind::WORKLOAD, parent) {}
 
-
 /**
  * @brief WorkloadEventSeries::addEvent
  * @param event

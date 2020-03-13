@@ -1,7 +1,5 @@
 #include "componentinstancedata.h"
 
-#include <QDebug>
-
 /**
  * @brief ComponentInstanceData::ComponentInstanceData
  * @param exp_run_id
@@ -9,13 +7,13 @@
  * @param parent
  */
 ComponentInstanceData::ComponentInstanceData(quint32 exp_run_id, const AggServerResponse::ComponentInstance& component_instance, QObject *parent)
-    : QObject(parent),
-      experiment_run_id_(exp_run_id),
-      last_updated_time_(0),
-      graphml_id_(component_instance.graphml_id),
-      name_(component_instance.name),
-      path_(component_instance.path),
-      type_(component_instance.type)
+	: QObject(parent),
+	  experiment_run_id_(exp_run_id),
+	  last_updated_time_(0),
+	  graphml_id_(component_instance.graphml_id),
+	  name_(component_instance.name),
+	  path_(component_instance.path),
+	  type_(component_instance.type)
 {
     for (const auto& port : component_instance.ports) {
         addPortInstanceData(port);
@@ -24,7 +22,6 @@ ComponentInstanceData::ComponentInstanceData(quint32 exp_run_id, const AggServer
         addWorkerInstanceData(worker_inst);
     }
 }
-
 
 /**
  * @brief ComponentInstanceData::getGraphmlID
@@ -35,7 +32,6 @@ const QString& ComponentInstanceData::getGraphmlID() const
     return graphml_id_;
 }
 
-
 /**
  * @brief ComponentInstanceData::getName
  * @return
@@ -44,7 +40,6 @@ const QString& ComponentInstanceData::getName() const
 {
     return name_;
 }
-
 
 /**
  * @brief ComponentInstanceData::getPath
@@ -55,7 +50,6 @@ const QString& ComponentInstanceData::getPath() const
     return path_;
 }
 
-
 /**
  * @brief ComponentInstanceData::getType
  * @return
@@ -64,7 +58,6 @@ const QString& ComponentInstanceData::getType() const
 {
     return type_;
 }
-
 
 /**
  * @brief ComponentInstanceData::addPortInstanceData
@@ -81,7 +74,6 @@ void ComponentInstanceData::addPortInstanceData(const AggServerResponse::Port& p
     }
 }
 
-
 /**
  * @brief ComponentInstanceData::getPortInstanceData
  * @return
@@ -90,7 +82,6 @@ QList<PortInstanceData*> ComponentInstanceData::getPortInstanceData() const
 {
     return port_inst_data_hash_.values();
 }
-
 
 /**
  * @brief ComponentInstanceData::addWorkerInstanceData
@@ -107,7 +98,6 @@ void ComponentInstanceData::addWorkerInstanceData(const AggServerResponse::Worke
     }
 }
 
-
 /**
  * @brief ComponentInstanceData::getWorkerInstanceData
  * @return
@@ -116,7 +106,6 @@ QList<WorkerInstanceData*> ComponentInstanceData::getWorkerInstanceData() const
 {
     return worker_inst_data_hash_.values();
 }
-
 
 /**
  * @brief ComponentInstanceData::updateData

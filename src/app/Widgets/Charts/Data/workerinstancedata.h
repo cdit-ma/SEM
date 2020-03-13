@@ -22,7 +22,7 @@ public:
     const WorkloadRequest& getWorkloadRequest() const;
 
     void addWorkloadEvents(const QVector<WorkloadEvent*>& events);
-    WorkloadEventSeries* getWorkloadEventSeries() const;
+    const WorkloadEventSeries& getWorkloadEventSeries() const;
 
     void updateData(qint64 new_last_updated_time);
 

@@ -17,7 +17,7 @@ public:
     void setBackgroundColor(QColor color);
     
     // NOTE: These are non-virtual functions
-    // QGraphicsView's implementations are called within the function
+    //  QGraphicsView's implementations are called within the function
     void setEnabled(bool enabled);
     void setScene(QGraphicsScene *scene);
     

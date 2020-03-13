@@ -1,7 +1,5 @@
 #include "containerinstancedata.h"
 
-#include <QDebug>
-
 /**
  * @brief ContainerInstanceData::ContainerInstanceData
  * @param exp_run_id
@@ -21,7 +19,6 @@ ContainerInstanceData::ContainerInstanceData(quint32 exp_run_id, const AggServer
     }
 }
 
-
 /**
  * @brief ContainerInstanceData::getGraphmlID
  * @return
@@ -30,7 +27,6 @@ const QString& ContainerInstanceData::getGraphmlID() const
 {
     return graphml_id_;
 }
-
 
 /**
  * @brief ContainerInstanceData::getName
@@ -41,7 +37,6 @@ const QString& ContainerInstanceData::getName() const
     return name_;
 }
 
-
 /**
  * @brief ContainerInstanceData::getType
  * @return
@@ -50,7 +45,6 @@ AggServerResponse::Container::ContainerType ContainerInstanceData::getType() con
 {
     return type_;
 }
-
 
 /**
  * @brief ContainerInstanceData::addComponentInstanceData
@@ -67,7 +61,6 @@ void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::Co
     }
 }
 
-
 /**
  * @brief ContainerInstanceData::getComponentInstanceData
  * @return
@@ -76,7 +69,6 @@ QList<ComponentInstanceData*> ContainerInstanceData::getComponentInstanceData() 
 {
     return comp_inst_data_hash_.values();
 }
-
 
 /**
  * @brief ContainerInstanceData::updateData
@@ -87,7 +79,7 @@ QList<ComponentInstanceData*> ContainerInstanceData::getComponentInstanceData() 
  */
 void ContainerInstanceData::updateData(const AggServerResponse::Container& container, qint64 new_last_updated_time)
 {
-    // NOTE: Update last_updated_time_ before calling addComponentInstanceData
+	// NOTE: Update last_updated_time_ before calling addComponentInstanceData
     last_updated_time_ = new_last_updated_time;
     for (const auto& comp_inst : container.component_instances) {
         addComponentInstanceData(comp_inst);

@@ -311,14 +311,12 @@ void ViewItem::addNotification(QSharedPointer<NotificationObject> notification)
     notifications_.insert(notification);
     connect(notification.data(), &NotificationObject::notificationChanged, this, &ViewItem::notificationsChanged);
     
-    // (SEM-96) NOTE: Changed connect notation to the one above
-    // Revert/investigate if there are any issues regarding notification objects/changes
-    /*
-    connect(notification.data(), &NotificationObject::notificationChanged, [=](const QSharedPointer<NotificationObject>&)
+    // NOTE (SEM-96): Changed connect notation to the one above
+    //  Revert/investigate if there are any issues regarding notification objects/changes
+    /*connect(notification.data(), &NotificationObject::notificationChanged, [=](const QSharedPointer<NotificationObject>&)
     {
         emit notificationsChanged();
-    });
-    */
+    });*/
     
     emit notificationsChanged();
 }

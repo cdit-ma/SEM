@@ -3,9 +3,9 @@
 
 #include "experimentrundata.h"
 #include "protomessagestructs.h"
-#include <unordered_map>
 
 #include <QObject>
+#include <unordered_map>
 
 namespace MEDEA {
 
@@ -14,7 +14,7 @@ class ExperimentData : public QObject
     Q_OBJECT
 
 public:
-    ExperimentData(const QString& experiment_name, QObject* parent = nullptr);
+    explicit ExperimentData(QString experiment_name, QObject* parent = nullptr);
 
     const QString& experiment_name() const;
 

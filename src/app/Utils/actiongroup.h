@@ -15,7 +15,7 @@ public:
     void updateSpacers();
     
     // NOTE: These are non-virtual functions
-    // QActionGroup's implementations are called within the function
+    //  QActionGroup's implementations are called within the function
     QAction* addAction(QAction *a);
     void removeAction(QAction* a);
 

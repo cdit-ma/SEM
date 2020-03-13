@@ -30,9 +30,10 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     port_event_request_.setPortIDs({graphml_id_});
     port_event_request_.setPortPaths({path_});
 
-    // TODO: This extra request fields are returning unexpected events
-    // When they are added, they also return port events from other children ports of the parenting ComponentInstance
-    //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    // INSPECT: This extra request fields are returning unexpected events
+    //  When they are added, they also return port events from other children ports of the parenting ComponentInstance
+	// TODO: Find out what is causing this
+	//port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
     //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
 
     // Setup event series
@@ -46,7 +47,6 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     emit requestData(*this);
 }
 
-
 /**
  * @brief PortInstanceData::getGraphmlID
  * @return
@@ -55,7 +55,6 @@ const QString& PortInstanceData::getGraphmlID() const
 {
     return graphml_id_;
 }
-
 
 /**
  * @brief PortInstanceData::getName
@@ -66,7 +65,6 @@ const QString& PortInstanceData::getName() const
     return name_;
 }
 
-
 /**
  * @brief PortInstanceData::getPath
  * @return
@@ -75,7 +73,6 @@ const QString& PortInstanceData::getPath() const
 {
     return path_;
 }
-
 
 /**
  * @brief PortInstanceData::getMiddleware
@@ -86,7 +83,6 @@ const QString& PortInstanceData::getMiddleware() const
     return middleware_;
 }
 
-
 /**
  * @brief PortInstanceData::getKind
  * @return
@@ -95,7 +91,6 @@ AggServerResponse::Port::Kind PortInstanceData::getKind() const
 {
     return kind_;
 }
-
 
 /**
  * @brief PortInstanceData::getPortLifecycleRequest
@@ -106,7 +101,6 @@ const PortLifecycleRequest& PortInstanceData::getPortLifecycleRequest() const
     return port_lifecycle_request_;
 }
 
-
 /**
  * @brief PortInstanceData::getPortEventRequest
  * @return
@@ -115,7 +109,6 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
 {
     return port_event_request_;
 }
-
 
 /**
  * @brief PortInstanceData::getPreviousEventTime
@@ -137,7 +130,6 @@ qint64 PortInstanceData::getPreviousEventTime(qint64 time) const
     return qMax(prev_port_lifecycle_event_time, prev_port_event_time);
 }
 
-
 /**
  * @brief PortInstanceData::getNextEventTime
  * @param time
@@ -158,7 +150,6 @@ qint64 PortInstanceData::getNextEventTime(qint64 time) const
     return qMin(next_port_lifecycle_event_time, next_port_event_time);
 }
 
-
 /**
  * @brief PortInstanceData::addPortLifecycleEvents
  * @param events
@@ -168,9 +159,9 @@ void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>
     port_lifecycle_series_->addEvents(events);
 }
 
-
 /**
  * @brief PortInstanceData::getPortLifecycleEventSeries
+ * @throws std::runtime_error
  * @return
  */
 const PortLifecycleEventSeries& PortInstanceData::getPortLifecycleEventSeries() const
@@ -181,7 +172,6 @@ const PortLifecycleEventSeries& PortInstanceData::getPortLifecycleEventSeries() 
     return *port_lifecycle_series_;
 }
 
-
 /**
  * @brief PortInstanceData::addPortEvents
  * @param events
@@ -190,7 +180,6 @@ void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
     port_event_series_->addEvents(events);
 }
-
 
 /**
  * @brief PortInstanceData::getPortEventSeries
@@ -204,7 +193,6 @@ const PortEventSeries& PortInstanceData::getPortEventSeries() const
     }
     return *port_event_series_;
 }
-
 
 /**
  * @brief PortInstanceData::updateData

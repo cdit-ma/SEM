@@ -85,7 +85,7 @@ void DataEditWidget::setValue(const QVariant& data)
     dataChanged(data);
 	
 	// INSPECT: Nothing happens in the cases where the casted edit widget is null or if the newData is invalid
-	// Is that intentional???
+	//  Is that intentional???
 
     switch(type){
     case SETTING_TYPE::BOOL:{
@@ -216,7 +216,7 @@ void DataEditWidget::editFinished()
 	// This is very much like the setValue function
 	// TODO: Investigate and refactor this and setValue
 	// INSPECT: There are cases where calling dataChanged or setting the displayed value of the widget is unnecessary
-	// Those cases are handled using connections made for specific widgets in the setupLayout
+	//  Those cases are handled using connections made for specific widgets in the setupLayout
 
     switch(type){
     case SETTING_TYPE::BOOL:{

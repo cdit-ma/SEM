@@ -11,7 +11,6 @@
 MarkerEventSeries::MarkerEventSeries(const QString& ID, QObject *parent)
     : MEDEA::EventSeries(ID, MEDEA::ChartDataKind::MARKER, parent) {}
 
-
 /**
  * @brief MarkerEventSeries::getMarkerIDSetRanges
  * @return
@@ -30,7 +29,6 @@ const QMap<qint64, QSet<qint64>>& MarkerEventSeries::getMarkerIDsMappedByStartTi
     return startTimeMap_;
 }
 
-
 /**
  * @brief MarkerEventSeries::getMarkerIDSetDurations
  * @return
@@ -39,7 +37,6 @@ const QHash<qint64, qint64>& MarkerEventSeries::getMarkerIDSetDurations() const
 {
     return markerIDSetDurations_;
 }
-
 
 /**
  * @brief MarkerEventSeries::getHoveredDataString
@@ -69,9 +66,9 @@ QString MarkerEventSeries::getHoveredDataString (
     auto upper = std::upper_bound(startTimes.constBegin(), startTimes.constEnd(), toTimeMS, [](const qint64 &time, const qint64 &idSetStartTime) {
         return time < idSetStartTime;
     });
+    
     return getDataString(current, upper);
 }
-
 
 /**
  * @brief MarkerEventSeries::getDataString
@@ -104,7 +101,7 @@ QString MarkerEventSeries::getDataString (
     QTextStream stream(&hoveredData);
 
     if (numberOfIDSets > 0) {
-        double avgDuration = static_cast<double>(totalDurationMS / numberOfIDSets);
+        auto avgDuration = static_cast<double>(totalDurationMS / numberOfIDSets);
         stream << "Marker ID Sets Started#: " << numberOfIDSets << "\n"
                << "Average Duration: " << avgDuration << "ms \n\n";
     }

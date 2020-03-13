@@ -60,8 +60,7 @@ void PlaybackControlsWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    // NOTE: Need to use stretcher widgets if you decide to use the whole widget as the progress bar
-    //setStyleSheet("QWidget{background: red;}");
+    // NOTE: Need to use stretcher widgets if we decide to use the whole widget as the progress bar
 
     controls_toolbar_->setIconSize(theme->getIconSize() * 1.5);
     controls_toolbar_->setStyleSheet(theme->getToolBarStyleSheet() +

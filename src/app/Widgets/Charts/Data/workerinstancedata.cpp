@@ -33,7 +33,6 @@ WorkerInstanceData::WorkerInstanceData(quint32 exp_run_id, const ComponentInstan
     emit requestData(*this);
 }
 
-
 /**
  * @brief WorkerInstanceData::getGraphmlID
  * @return
@@ -42,7 +41,6 @@ const QString& WorkerInstanceData::getGraphmlID() const
 {
     return graphml_id_;
 }
-
 
 /**
  * @brief WorkerInstanceData::getName
@@ -53,7 +51,6 @@ const QString& WorkerInstanceData::getName() const
     return name_;
 }
 
-
 /**
  * @brief WorkerInstanceData::getPath
  * @return
@@ -62,7 +59,6 @@ const QString& WorkerInstanceData::getPath() const
 {
     return path_;
 }
-
 
 /**
  * @brief WorkerInstanceData::getType
@@ -73,7 +69,6 @@ const QString& WorkerInstanceData::getType() const
     return type_;
 }
 
-
 /**
  * @brief WorkerInstanceData::getWorkloadRequest
  * @return
@@ -82,7 +77,6 @@ const WorkloadRequest& WorkerInstanceData::getWorkloadRequest() const
 {
     return workload_request_;
 }
-
 
 /**
  * @brief WorkerInstanceData::addWorkloadEvents
@@ -93,16 +87,18 @@ void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events
     workload_event_series_->addEvents(events);
 }
 
-
 /**
  * @brief WorkerInstanceData::getWorkloadEventSeries
+ * @throws std::runtime_error
  * @return
  */
-WorkloadEventSeries* WorkerInstanceData::getWorkloadEventSeries() const
+const WorkloadEventSeries& WorkerInstanceData::getWorkloadEventSeries() const
 {
-    return workload_event_series_;
+	if (workload_event_series_ == nullptr) {
+		throw std::runtime_error("WorkloadEventSeries& WorkerInstanceData::getWorkloadEventSeries - Workload event series is null");
+	}
+	return *workload_event_series_;
 }
-
 
 /**
  * @brief WorkerInstanceData::updateData

@@ -28,10 +28,10 @@ public:
     const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
 
     void addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events);
-    CPUUtilisationEventSeries* getCPUUtilisationSeries() const;
+    const CPUUtilisationEventSeries& getCPUUtilisationSeries() const;
 
     void addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events);
-    MemoryUtilisationEventSeries* getMemoryUtilisationSeries() const;
+    const MemoryUtilisationEventSeries& getMemoryUtilisationSeries() const;
 
     void updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time);
 

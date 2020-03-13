@@ -13,10 +13,10 @@ public:
                                 qint64 time,
                                 QObject* parent = nullptr);
 
-    QString toString(const QString& dateTimeFormat) const;
+    QString toString(const QString& dateTimeFormat) const override;
 
-    const QString& getSeriesID() const;
-    const QString& getID() const;
+    const QString& getSeriesID() const override;
+    const QString& getID() const override;
 
     AggServerResponse::LifecycleType getType() const;
     static const QString& getTypeString(AggServerResponse::LifecycleType type);

@@ -22,7 +22,7 @@ public:
     explicit PortEvent(const AggServerResponse::Port& port,
                        quint64 sequence_num,
                        PortEventType type,
-                       const QString& message,
+                       QString message,
                        qint64 time,
                        QObject* parent = nullptr);
 
@@ -30,7 +30,6 @@ public:
 
     const QString& getSeriesID() const override;
     const QString& getID() const override;
-    const AggServerResponse::Port& getPort() const;
 
     PortEventType getType() const;
     static const QString& getTypeString(PortEventType type);

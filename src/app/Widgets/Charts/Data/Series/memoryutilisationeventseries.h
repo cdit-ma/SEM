@@ -12,14 +12,11 @@ class MemoryUtilisationEventSeries : public MEDEA::EventSeries
 public:
     explicit MemoryUtilisationEventSeries(const QString& ID, QObject* parent = nullptr);
 
-    void addEvent(MEDEA::Event* event);
-
-    double getMaxUtilisation() const;
+    void addEvent(MEDEA::Event* event) override;
 
 private:
     double minUtilisation_ = DBL_MAX;
     double maxUtilisation_ = DBL_MIN;
-
 };
 
 #endif // MEMORYUTILISATIONEVENTSERIES_H

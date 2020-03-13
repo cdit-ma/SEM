@@ -1,13 +1,20 @@
 #ifndef MEDEAEVENT_H
 #define MEDEAEVENT_H
 
-#include <QDebug>
 #include <QObject>
 #include "../protomessagestructs.h"
 
 namespace MEDEA {
 
-enum class ChartDataKind{DATA, PORT_LIFECYCLE, WORKLOAD, CPU_UTILISATION, MEMORY_UTILISATION, MARKER, PORT_EVENT};
+enum class ChartDataKind {
+	DATA,
+	PORT_LIFECYCLE,
+	WORKLOAD,
+	CPU_UTILISATION,
+	MEMORY_UTILISATION,
+	MARKER,
+	PORT_EVENT
+};
 
 class Event : public QObject
 {
@@ -17,7 +24,7 @@ public:
     // time should be in milliseconds since epoch
     explicit Event(ChartDataKind kind,
                    qint64 time,
-                   const QString& name = "no_name",
+                   QString name = "no_name",
                    QObject* parent = nullptr);
 
     ChartDataKind getKind() const;
