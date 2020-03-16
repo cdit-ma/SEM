@@ -20,9 +20,6 @@ public:
     Qt::Alignment getAlignment() const;
     double getAxisPenWidth() const;
 
-    double getMinRatio() const;
-    double getMaxRatio() const;
-
     void setZoomFactor(double factor);
     void setPanning(bool panning);
 
@@ -40,15 +37,15 @@ public slots:
 protected:
     void themeChanged();
 
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 
-    void leaveEvent(QEvent *event);
-    void resizeEvent(QResizeEvent *event);
-    void paintEvent(QPaintEvent *event);
+    void leaveEvent(QEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     HIT_RECT getCursorHitRect(QPointF cursorPos);
@@ -92,7 +89,6 @@ private:
     double actualMax_;
 
     bool isPanning_ = false;
-
 };
 
 #endif // AXISSLIDER_H

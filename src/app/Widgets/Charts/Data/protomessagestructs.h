@@ -35,6 +35,7 @@ struct PortConnection {
     //  two different nodes?), needs more documentation as to what it is, why its here and
     //  potentially why not in another class
     // NOTE: This struct, like its data/event/series counterparts, is not finalised yet; it will very likely change
+    //  This member is currently not being used
     QString node_hostname;
 };
 

@@ -23,8 +23,8 @@ class ChartLabel : public QWidget
     Q_OBJECT
 
 public:
-    explicit ChartLabel(QString label = "", QWidget* parent = nullptr);
-    ~ChartLabel();
+    explicit ChartLabel(const QString& label = "", QWidget* parent = nullptr);
+    ~ChartLabel() final;
 
     int getAllDepthChildrenCount() const;
 
@@ -33,11 +33,10 @@ public:
     void setDepth(int depth);
     int getDepth() const;
 
-    void setLabel(QString label);
+    void setLabel(const QString& label);
     QString getLabel() const;
 
     void addChildChartLabel(ChartLabel* child);
-    void setParentChartLabel(ChartLabel* parent);
     const QList<ChartLabel*>& getChildrenChartLabels() const;
 
     void setHovered(bool hovered);
@@ -57,16 +56,16 @@ public slots:
     void themeChanged(Theme *theme);
 
     void toggleExpanded();
-    void setVisible(bool visible);
+    void setVisible(bool visible) override;
 
     void childLabelAdded();
     void childLabelRemoved(ChartLabel* child);
 
 protected:
-    bool eventFilter(QObject* object, QEvent* event);
-    void enterEvent(QEvent* event);
-    void leaveEvent(QEvent* event);
-    void paintEvent(QPaintEvent* event);
+    bool eventFilter(QObject* object, QEvent* event) override;
+    void enterEvent(QEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
 
     void setAxisLineVisible(bool visible);
     void setTickVisible(bool visible);
@@ -86,12 +85,12 @@ private:
     QPen tickPen_;
     int tickLength_;
 
-    QToolBar* toolbar_;
-    QAction* closeAction_;
+    QToolBar* toolbar_ = nullptr;
+    QAction* closeAction_ = nullptr;
     QIcon closeIcon_;
 
-    QLabel* textLabel_;
-    QLabel* expandedIconLabel_;
+    QLabel* textLabel_ = nullptr;
+    QLabel* expandedIconLabel_ = nullptr;
 
     QPixmap unExpandablePixmap_;
     QPixmap expandedPixmap_;
@@ -100,7 +99,6 @@ private:
     QString textColorStr_;
     QString highlighColorStr_;
 
-    ChartLabel* parentChartLabel_ = nullptr;
     QList<ChartLabel*> childrenChartLabels_;
 };
 

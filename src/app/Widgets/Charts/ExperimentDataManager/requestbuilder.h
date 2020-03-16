@@ -12,17 +12,15 @@
 
 class RequestBuilder {
 
-    friend class ExperimentDataManager;
-
 protected:
-    explicit RequestBuilder();
+    explicit RequestBuilder() = default;
 
 public:
     static RequestBuilder build();
 
     void buildRequests(const QList<MEDEA::ChartDataKind> &requestKinds);
 
-    void setExperimentRunID(const quint32 experiment_run_id);
+    void setExperimentRunID(quint32 experiment_run_id);
     void setTimeInterval(const QVector<qint64>& time_interval);
     void setComponentNames(const QVector<QString>& component_names);
     void setComponentInstanceIDS(const QVector<QString>& component_instance_ids);

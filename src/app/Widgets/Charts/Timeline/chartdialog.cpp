@@ -1,20 +1,17 @@
 #include "chartdialog.h"
-#include "../../../theme.h"
 
 #include <QVBoxLayout>
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QImageWriter>
 #include <QMessageBox>
-#include <QLayout>
-
 
 /**
  * @brief ChartDialog::ChartDialog
  * @param parent
  */
 ChartDialog::ChartDialog(QWidget *parent)
-    : QFrame(parent)
+	: QFrame(parent)
 {
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartDialog::themeChanged);
     themeChanged();
@@ -25,7 +22,6 @@ ChartDialog::ChartDialog(QWidget *parent)
     displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 }
 
-
 /**
  * @brief ChartDialog::getChartView
  * @return
@@ -35,7 +31,6 @@ TimelineChartView& ChartDialog::getChartView()
     return chartView_;
 }
 
-
 /**
  * @brief ChartDialog::setupChartView
  */
@@ -44,13 +39,12 @@ void ChartDialog::setupChartView()
     if (layout()) {
         layout()->addWidget(&chartView_);
     } else {
-        QVBoxLayout* layout = new QVBoxLayout(this);
+        auto layout = new QVBoxLayout(this);
         layout->setMargin(0);
         layout->setSpacing(0);
         layout->addWidget(&chartView_);
     }
 }
-
 
 /**
  * @brief ChartDialog::themeChanged
@@ -61,25 +55,23 @@ void ChartDialog::themeChanged()
     setStyleSheet("background:" + theme->getBackgroundColorHex() + "; border: none;");
 }
 
-
 /**
  * @brief ChartDialog::toggleTimelineAxisFormat
  */
 void ChartDialog::toggleTimelineAxisFormat()
 {
-    switch (displayFormat_) {
-    case TIME_DISPLAY_FORMAT::DATE_TIME:
-        displayFormat_ = TIME_DISPLAY_FORMAT::ELAPSED_TIME;
-        break;
-    case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
-        displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
-        break;
-    default:
-        break;
-    }
-    chartView_.setTimeDisplayFormat(displayFormat_);
+	switch (displayFormat_) {
+		case TIME_DISPLAY_FORMAT::DATE_TIME:
+			displayFormat_ = TIME_DISPLAY_FORMAT::ELAPSED_TIME;
+			break;
+		case TIME_DISPLAY_FORMAT::ELAPSED_TIME:
+			displayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
+			break;
+		default:
+			break;
+	}
+	chartView_.setTimeDisplayFormat(displayFormat_);
 }
-
 
 /**
  * @brief ChartDialog::snapShot
@@ -100,7 +92,7 @@ void ChartDialog::snapShot()
     fileDialog.setDirectory(initialPath);
 
     QStringList mimeTypes;
-    foreach (const QByteArray &bf, QImageWriter::supportedMimeTypes()) {
+    for (const QByteArray& bf : QImageWriter::supportedMimeTypes()) {
         mimeTypes.append(QLatin1String(bf));
     }
 
@@ -118,7 +110,6 @@ void ChartDialog::snapShot()
     }
 }
 
-
 /**
  * @brief ChartDialog::clear
  */
@@ -126,4 +117,3 @@ void ChartDialog::clear()
 {
     chartView_.clearChartList();
 }
-

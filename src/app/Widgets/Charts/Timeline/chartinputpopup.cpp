@@ -1,11 +1,9 @@
 #include "chartinputpopup.h"
-#include "../../../theme.h"
 
 #include <QScrollArea>
 #include <QRadioButton>
 #include <QToolButton>
 #include <QFutureWatcher>
-#include <QStyledItemDelegate>
 #include <QKeyEvent>
 
 #define MIN_WIDTH 425
@@ -13,7 +11,6 @@
 #define FILTER "filter"
 #define GROUPBOX_ITEM_SPACING 5
 #define GROUPBOX_MAX_HEIGHT 400
-
 
 /**
  * @brief ChartInputPopup::ChartInputPopup
@@ -23,7 +20,6 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     : HoverPopup(parent)
 {
     setupLayout();
-    setVisible(false);
     setModal(true);
 
     // initially hide all filter group boxes
@@ -33,8 +29,8 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartInputPopup::themeChanged);
     themeChanged();
+    hide();
 }
-
 
 /**
  * @brief ChartInputPopup::enableFilters
@@ -46,7 +42,6 @@ void ChartInputPopup::enableFilters()
     setupFilterWidgets();
 }
 
-
 /**
  * @brief ChartInputPopup::eventFilter
  * @param watched
@@ -56,14 +51,13 @@ void ChartInputPopup::enableFilters()
 bool ChartInputPopup::eventFilter(QObject* watched, QEvent* event)
 {
    if (event->type() == QEvent::KeyPress) {
-       QKeyEvent* ke = dynamic_cast<QKeyEvent*>(event);
+       auto ke = dynamic_cast<QKeyEvent*>(event);
        if (ke->key() == Qt::Key_Escape) {
            experimentNameLineEdit_->setText(typedExperimentName_);
        }
    }
    return QDialog::eventFilter(watched, event);
 }
-
 
 /**
  * @brief ChartInputPopup::themeChanged
@@ -108,9 +102,9 @@ void ChartInputPopup::themeChanged()
                                                   "QAbstractItemView::item{ padding: 2px 0px; }"
                                                   "QAbstractItemView::item::selected{ background:red; }");
 
-    live_splitter_widget_->setStyleSheet("QFrame{ color:" + theme->getAltTextColorHex() + ";} QLabel{ color:" + theme->getAltTextColorHex() + ";}");
+    live_splitter_widget_->setStyleSheet("QFrame{ color:" + theme->getAltTextColorHex() + ";}"
+										 "QLabel{ color:" + theme->getAltTextColorHex() + ";}");
 }
-
 
 /**
  * @brief ChartInputPopup::setPopupVisible
@@ -129,7 +123,6 @@ void ChartInputPopup::setPopupVisible(bool visible)
         experimentNameChanged(typedExperimentName_);
     }
 }
-
 
 /**
  * @brief ChartInputPopup::setExperimentRuns
@@ -156,7 +149,6 @@ void ChartInputPopup::setExperimentRuns(const QString& experimentName, const QLi
     experimentNameChanged(typedExperimentName_);
 }
 
-
 /**
  * @brief ChartInputPopup::filterMenuTriggered
  * This should only be called when there is a selected experiment run
@@ -181,7 +173,6 @@ void ChartInputPopup::filterMenuTriggered(QAction* action)
     recenterPopup();
 }
 
-
 /**
  * @brief ChartInputPopup::accept
  */
@@ -194,7 +185,6 @@ void ChartInputPopup::accept()
     resetPopup();
 }
 
-
 /**
  * @brief ChartInputPopup::reject
  */
@@ -203,7 +193,6 @@ void ChartInputPopup::reject()
     PopupWidget::reject();
     resetPopup();
 }
-
 
 /**
  * @brief ChartInputPopup::experimentNameChanged
@@ -216,7 +205,6 @@ void ChartInputPopup::experimentNameChanged(const QString& experimentName)
         experimentNameActivated(name);
     }
 }
-
 
 /**
  * @brief ChartInputPopup::experimentNameActivated
@@ -236,7 +224,6 @@ void ChartInputPopup::experimentNameActivated(const QString &experimentName)
     recenterPopup();
 }
 
-
 /**
  * @brief ChartInputPopup::experimentRunSelected
  * @param experimentRun
@@ -249,7 +236,6 @@ void ChartInputPopup::experimentRunSelected(const AggServerResponse::ExperimentR
     selectedExperimentRun_ = experimentRun;
     selectedExperimentRunID_ = experimentRun.experiment_run_id;
 }
-
 
 /**
  * @brief ChartInputPopup::populateExperimentRuns
@@ -285,7 +271,7 @@ void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::Expe
         QString text = run.experiment_name + " [" + QString::number(ID) + "] - started at " +
                        QDateTime::fromMSecsSinceEpoch(run.start_time).toString("MMM d, hh:mm:ss.zzz");
 
-        QRadioButton* button = new QRadioButton(text, this);
+        auto button = new QRadioButton(text, this);
         button->setProperty("ID", ID);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
         connect(button, &QRadioButton::toggled, [=](bool checked) {
@@ -311,7 +297,6 @@ void ChartInputPopup::populateExperimentRuns(const QList<AggServerResponse::Expe
     setFixedWidth(qMax(MIN_WIDTH, maxButtonWidth) + PADDING * 2);
 }
 
-
 /**
  * @brief ChartInputPopup::populateGroupBox
  * @param filter
@@ -325,7 +310,7 @@ void ChartInputPopup::populateGroupBox(ChartInputPopup::FILTER_KEY filter)
 
     auto filterList = getFilterList(filter);
     for (const auto& text : filterList) {
-        QRadioButton* button = new QRadioButton(text, this);
+        auto button = new QRadioButton(text, this);
         groupBoxLayouts[filter]->addWidget(button);
         button->setProperty("ID", text);
         button->setStyleSheet("color:" + Theme::theme()->getTextColorHex() + ";");
@@ -339,7 +324,6 @@ void ChartInputPopup::populateGroupBox(ChartInputPopup::FILTER_KEY filter)
     resizePopup();
 }
 
-
 /**
  * @brief ChartInputPopup::clearGroupBox
  * @param filter
@@ -350,15 +334,12 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
     if (groupBox == nullptr) {
         return;
     }
-
-    switch (filter) {
-    case FILTER_KEY::RUNS_FILTER:
-        selectedExperimentRunID_ = -1;
-        break;
-    default:
-        getSelectedFilter(filter) = "";
-        break;
-    }
+    
+    if (filter == FILTER_KEY::RUNS_FILTER) {
+    	selectedExperimentRunID_ = -1;
+    } else {
+		getSelectedFilter(filter) = "";
+	}
 
     auto layout = groupBoxLayouts.value(filter, nullptr);
     if (layout == nullptr) {
@@ -375,7 +356,6 @@ void ChartInputPopup::clearGroupBox(ChartInputPopup::FILTER_KEY filter)
     groupBox->updateGeometry();
 }
 
-
 /**
  * @brief ChartInputPopup::resetGroupBox
  * @param filter
@@ -388,7 +368,6 @@ void ChartInputPopup::resetGroupBox(ChartInputPopup::FILTER_KEY filter)
         setGroupBoxVisible(filter, false);
     }
 }
-
 
 /**
  * @brief ChartInputPopup::setGroupBoxVisible
@@ -404,7 +383,6 @@ void ChartInputPopup::setGroupBoxVisible(ChartInputPopup::FILTER_KEY filter, boo
     updateGeometry();
 }
 
-
 /**
  * @brief ChartInputPopup::recenterPopup
  */
@@ -415,7 +393,6 @@ void ChartInputPopup::recenterPopup()
     move(originalCenterPos_.x() - newSize.width(), originalCenterPos_.y() - newSize.height());
 }
 
-
 /**
  * @brief ChartInputPopup::resizePopup
  */
@@ -425,7 +402,6 @@ void ChartInputPopup::resizePopup()
     adjustChildrenSize("", Qt::FindDirectChildrenOnly);
     updateGeometry();
 }
-
 
 /**
  * @brief ChartInputPopup::resetPopup
@@ -448,7 +424,6 @@ void ChartInputPopup::resetPopup()
     recenterPopup();
     setFixedWidth(MIN_WIDTH + PADDING);
 }
-
 
 /**
  * @brief ChartInputPopup::setupLayout
@@ -504,7 +479,7 @@ void ChartInputPopup::setupLayout()
         experimentRunsScrollWidget_->setStyleSheet("background: rgba(0,0,0,0);");
         experimentRunsScrollWidget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
-        QScrollArea* scroll = new QScrollArea(this);
+        auto scroll = new QScrollArea(this);
         scroll->setWidget(experimentRunsScrollWidget_);
         scroll->setWidgetResizable(true);
         scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -568,7 +543,7 @@ void ChartInputPopup::setupLayout()
     toolbar_->addWidget(pulse_checkbox_);
     toolbar_->addSeparator();
 
-    QWidget* spacerWidget = new QWidget(this);
+    auto spacerWidget = new QWidget(this);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     toolbar_->addWidget(spacerWidget);
 
@@ -578,7 +553,7 @@ void ChartInputPopup::setupLayout()
     okAction_ = toolbar_->addAction("Ok");
     connect(okAction_, &QAction::triggered, this, &ChartInputPopup::accept);
 
-    QWidget* holderWidget = new QWidget(this);
+    auto holderWidget = new QWidget(this);
     holderWidget->setStyleSheet("background: rgba(0,0,0,0);");
 
     QVBoxLayout* mainLayout = constructVBoxLayout(holderWidget, 5, 5);
@@ -589,7 +564,6 @@ void ChartInputPopup::setupLayout()
 
     setWidget(holderWidget);
 }
-
 
 /**
  * @brief ChartInputPopup::setupFilterWidgets
@@ -607,7 +581,7 @@ void ChartInputPopup::setupFilterWidgets()
     QAction* spacerAction = toolbar_->actions().at(0);
     toolbar_->insertAction(spacerAction, filterAction_);
 
-    QToolButton* button = qobject_cast<QToolButton*>(toolbar_->widgetForAction(filterAction_));
+    auto button = qobject_cast<QToolButton*>(toolbar_->widgetForAction(filterAction_));
     button->setPopupMode(QToolButton::InstantPopup);
     button->setStyleSheet("QToolButton::menu-indicator{ image:none; }");
 
@@ -625,7 +599,6 @@ void ChartInputPopup::setupFilterWidgets()
     }
 }
 
-
 /**
  * @brief ChartInputPopup::getSelectedFilter
  * @param filter
@@ -634,18 +607,17 @@ void ChartInputPopup::setupFilterWidgets()
  */
 QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
 {
-    switch (filter) {
-    case FILTER_KEY::NODE_FILTER:
-        return selectedNode_;
-    case FILTER_KEY::COMPONENT_FILTER:
-        return selectedComponent_;
-    case FILTER_KEY::WORKER_FILTER:
-        return selectedWorker_;
-    default:
-        throw std::runtime_error("ChartInputPopup::getSelectedFilter - Filter key is not handled.");
-    }
+	switch (filter) {
+		case FILTER_KEY::NODE_FILTER:
+			return selectedNode_;
+		case FILTER_KEY::COMPONENT_FILTER:
+			return selectedComponent_;
+		case FILTER_KEY::WORKER_FILTER:
+			return selectedWorker_;
+		default:
+			throw std::runtime_error("ChartInputPopup::getSelectedFilter - Filter key is not handled.");
+	}
 }
-
 
 /**
  * @brief ChartInputPopup::getFilterList
@@ -655,18 +627,17 @@ QString& ChartInputPopup::getSelectedFilter(ChartInputPopup::FILTER_KEY filter)
  */
 QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
 {
-    switch (filter) {
-    case FILTER_KEY::NODE_FILTER:
-        return nodes_;
-    case FILTER_KEY::COMPONENT_FILTER:
-        return components_;
-    case FILTER_KEY::WORKER_FILTER:
-        return workers_;
-    default:
-        throw std::runtime_error("ChartInputPopup::getSelectedFilter - Filter key is not handled.");
-    }
+	switch (filter) {
+		case FILTER_KEY::NODE_FILTER:
+			return nodes_;
+		case FILTER_KEY::COMPONENT_FILTER:
+			return components_;
+		case FILTER_KEY::WORKER_FILTER:
+			return workers_;
+		default:
+			throw std::runtime_error("ChartInputPopup::getSelectedFilter - Filter key is not handled.");
+	}
 }
-
 
 /**
  * @brief ChartInputPopup::getFilterGroupBox
@@ -675,18 +646,17 @@ QStringList& ChartInputPopup::getFilterList(ChartInputPopup::FILTER_KEY filter)
  */
 QGroupBox* ChartInputPopup::getFilterGroupBox(ChartInputPopup::FILTER_KEY filter)
 {
-    switch (filter) {
-    case FILTER_KEY::RUNS_FILTER:
-        return experimentRunsGroupBox_;
-    case FILTER_KEY::NODE_FILTER:
-        return nodesGroupBox_;
-    case FILTER_KEY::COMPONENT_FILTER:
-        return componentsGroupBox_;
-    case FILTER_KEY::WORKER_FILTER:
-        return workersGroupBox_;
-    }
+	switch (filter) {
+		case FILTER_KEY::RUNS_FILTER:
+			return experimentRunsGroupBox_;
+		case FILTER_KEY::NODE_FILTER:
+			return nodesGroupBox_;
+		case FILTER_KEY::COMPONENT_FILTER:
+			return componentsGroupBox_;
+		case FILTER_KEY::WORKER_FILTER:
+			return workersGroupBox_;
+	}
 }
-
 
 /**
  * @brief ChartInputPopup::constructFilterWidgets
@@ -694,9 +664,9 @@ QGroupBox* ChartInputPopup::getFilterGroupBox(ChartInputPopup::FILTER_KEY filter
  * @param filterName
  * @return
  */
-QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY filter, QString filterName)
+QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY filter, const QString& filterName)
 {
-    QGroupBox* groupBox = new QGroupBox("Filter Events By " + filterName + ":", this);
+    auto groupBox = new QGroupBox("Filter Events By " + filterName + ":", this);
     groupBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     groupBoxLayouts[filter] = constructVBoxLayout(groupBox, GROUPBOX_ITEM_SPACING);
 
@@ -708,7 +678,6 @@ QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY f
     return groupBox;
 }
 
-
 /**
  * @brief ChartInputPopup::constructVBoxLayout
  * @param widget
@@ -718,7 +687,7 @@ QGroupBox* ChartInputPopup::constructFilterWidgets(ChartInputPopup::FILTER_KEY f
  */
 QVBoxLayout* ChartInputPopup::constructVBoxLayout(QWidget* widget, int spacing, int margin)
 {
-    QVBoxLayout* layout = new QVBoxLayout(widget);
+    auto layout = new QVBoxLayout(widget);
     layout->setMargin(margin);
     layout->setSpacing(spacing);
     layout->setContentsMargins(1, 5, 1, 1);

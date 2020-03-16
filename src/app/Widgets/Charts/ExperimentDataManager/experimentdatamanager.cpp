@@ -1,5 +1,4 @@
 #include "experimentdatamanager.h"
-#include "requestbuilder.h"
 #include "../../../Controllers/WindowManager/windowmanager.h"
 
 #include <QFutureWatcher>
@@ -13,10 +12,12 @@ ExperimentDataManager* ExperimentDataManager::manager_ = nullptr;
  * @param vc
  */
 ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
-    : viewController_(vc)
+	: viewController_(vc)
 {
     chartDialog_ = new ChartDialog();
     dataflowDialog_ = new DataflowDialog();
+    
+    live_exp_run_id_ = invalid_experiment_id;
 
     connect(&vc, &ViewController::modelClosed, this, &ExperimentDataManager::clear);
     connect(&vc, &ViewController::vc_displayChartPopup, this, &ExperimentDataManager::showChartInputPopup);
@@ -25,9 +26,9 @@ ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
     connect(&chartPopup_, &ChartInputPopup::visualiseExperimentRunData, this, &ExperimentDataManager::visualiseSelectedExperimentRun);
 }
 
-
 /**
  * @brief ExperimentDataManager::aggregationProxy
+ * @throws
  * @return
  */
 AggregationProxy& ExperimentDataManager::aggregationProxy()
@@ -40,7 +41,6 @@ AggregationProxy& ExperimentDataManager::aggregationProxy()
     }
 }
 
-
 /**
  * @brief ExperimentDataManager::timelineChartView
  * @return
@@ -50,7 +50,6 @@ TimelineChartView& ExperimentDataManager::timelineChartView()
     return getChartDialog().getChartView();
 }
 
-
 /**
  * @brief ExperimentDataManager::requestExperimentData
  * @param request_type
@@ -58,92 +57,91 @@ TimelineChartView& ExperimentDataManager::timelineChartView()
  */
 void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* sender_obj)
 {
-    if (request_param.isNull() || !request_param.isValid()) {
-        throw std::invalid_argument("ExperimentDataManager::requestExperimentData - Provided request parameter is invalid.");
-    }
-
-    try {
-
-        bool valid = true;
-
-        switch (request_type) {
-        case ExperimentDataRequestType::ExperimentRun: {
-            const auto& exp_name = request_param.toString();
-            requestExperimentRuns(exp_name, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
-            break;
-        }
-        case ExperimentDataRequestType::ExperimentState: {
-            valid = request_param.canConvert<quint32>();
-            if (valid) {
-                quint32 exp_run_id = request_param.toUInt();
-                requestExperimentState(exp_run_id, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
-            }
-            break;
-        }
-        case ExperimentDataRequestType::PortLifecycleEvent: {
-            valid = request_param.canConvert<PortLifecycleRequest>();
-            if (valid) {
-                auto request = request_param.value<PortLifecycleRequest>();
-                requestPortLifecycleEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
-            }
-            break;
-        }
-        case ExperimentDataRequestType::WorkloadEvent: {
-            valid = request_param.canConvert<WorkloadRequest>();
-            if (valid) {
-                auto request = request_param.value<WorkloadRequest>();
-                requestWorkloadEvents(request, selectedExperimentRun_, qobject_cast<WorkerInstanceData*>(sender_obj));
-            }
-            break;
-        }
-        case ExperimentDataRequestType::CPUUtilisationEvent: {
-            valid = request_param.canConvert<CPUUtilisationRequest>();
-            if (valid) {
-                auto request = request_param.value<CPUUtilisationRequest>();
-                requestCPUUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
-            }
-            break;
-        }
-        case ExperimentDataRequestType::MemoryUtilisationEvent: {
-            valid = request_param.canConvert<MemoryUtilisationRequest>();
-            if (valid) {
-                auto request = request_param.value<MemoryUtilisationRequest>();
-                requestMemoryUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
-            }
-            break;
-        }
-        case ExperimentDataRequestType::MarkerEvent: {
-            valid = request_param.canConvert<MarkerRequest>();
-            if (valid) {
-                auto request = request_param.value<MarkerRequest>();
-                requestMarkerEvents(request, selectedExperimentRun_, qobject_cast<MarkerSetData*>(sender_obj));
-            }
-            break;
-        }
-        case ExperimentDataRequestType::PortEvent: {
-            valid = request_param.canConvert<PortEventRequest>();
-            if (valid) {
-                auto request = request_param.value<PortEventRequest>();
-                requestPortEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
-            }
-            break;
-        }
-        }
-
-        if (!valid) {
-            auto&& request_str = QString::number(static_cast<int>(request_type)).toStdString() + request_param.toString().toStdString();
-            throw std::invalid_argument("Failed to request data (" + request_str + ") - Invalid request parameter.");
-        }
-
-    } catch (const NoRequesterException& ex) {
-        toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.What(), "chart", Notification::Severity::ERROR);
-    } catch (const RequestException& ex) {
-        toastNotification("ExperimentDataManager::requestExperimentData - Failed to request experiment data: " + ex.What(), "chart", Notification::Severity::ERROR);
-    } catch (const std::exception& ex) {
-        toastNotification("ExperimentDataManager::requestExperimentData: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-    }
+	if (request_param.isNull() || !request_param.isValid()) {
+		throw std::invalid_argument("ExperimentDataManager::requestExperimentData - Provided request parameter is invalid.");
+	}
+	
+	try {
+		
+		bool valid = true;
+		
+		switch (request_type) {
+			case ExperimentDataRequestType::ExperimentRun: {
+				const auto& exp_name = request_param.toString();
+				requestExperimentRuns(exp_name, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
+				break;
+			}
+			case ExperimentDataRequestType::ExperimentState: {
+				valid = request_param.canConvert<quint32>();
+				if (valid) {
+					quint32 exp_run_id = request_param.toUInt();
+					requestExperimentState(exp_run_id, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
+				}
+				break;
+			}
+			case ExperimentDataRequestType::PortLifecycleEvent: {
+				valid = request_param.canConvert<PortLifecycleRequest>();
+				if (valid) {
+					auto request = request_param.value<PortLifecycleRequest>();
+					requestPortLifecycleEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
+				}
+				break;
+			}
+			case ExperimentDataRequestType::WorkloadEvent: {
+				valid = request_param.canConvert<WorkloadRequest>();
+				if (valid) {
+					auto request = request_param.value<WorkloadRequest>();
+					requestWorkloadEvents(request, selectedExperimentRun_, qobject_cast<WorkerInstanceData*>(sender_obj));
+				}
+				break;
+			}
+			case ExperimentDataRequestType::CPUUtilisationEvent: {
+				valid = request_param.canConvert<CPUUtilisationRequest>();
+				if (valid) {
+					auto request = request_param.value<CPUUtilisationRequest>();
+					requestCPUUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+				}
+				break;
+			}
+			case ExperimentDataRequestType::MemoryUtilisationEvent: {
+				valid = request_param.canConvert<MemoryUtilisationRequest>();
+				if (valid) {
+					auto request = request_param.value<MemoryUtilisationRequest>();
+					requestMemoryUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+				}
+				break;
+			}
+			case ExperimentDataRequestType::MarkerEvent: {
+				valid = request_param.canConvert<MarkerRequest>();
+				if (valid) {
+					auto request = request_param.value<MarkerRequest>();
+					requestMarkerEvents(request, selectedExperimentRun_, qobject_cast<MarkerSetData*>(sender_obj));
+				}
+				break;
+			}
+			case ExperimentDataRequestType::PortEvent: {
+				valid = request_param.canConvert<PortEventRequest>();
+				if (valid) {
+					auto request = request_param.value<PortEventRequest>();
+					requestPortEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
+				}
+				break;
+			}
+		}
+		
+		if (!valid) {
+			auto&& request_str = QString::number(static_cast<int>(request_type)).toStdString() + request_param.toString().toStdString();
+			throw std::invalid_argument("Failed to request data (" + request_str + ") - Invalid request parameter.");
+		}
+		
+	} catch (const NoRequesterException& ex) {
+		toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.What(), "chart", Notification::Severity::ERROR);
+	} catch (const RequestException& ex) {
+		toastNotification("ExperimentDataManager::requestExperimentData - Failed to request experiment data: " + ex.What(), "chart", Notification::Severity::ERROR);
+	} catch (const std::exception& ex) {
+		toastNotification("ExperimentDataManager::requestExperimentData: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
+	}
 }
-
 
 /**
  * @brief ExperimentDataManager::requestExperimentRuns
@@ -172,7 +170,6 @@ void ExperimentDataManager::requestExperimentRuns(const QString& experimentName,
 
     futureWatcher->setFuture(future);
 }
-
 
 /**
  * @brief ExperimentDataManager::requestExperimentState
@@ -204,7 +201,6 @@ void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID
     futureWatcher->setFuture(future);
 }
 
-
 /**
  * @brief ExperimentDataManager::requestEvents
  * This is the last function that is called, from when a valid experiment run is selected from the ChartInputPopup
@@ -222,44 +218,43 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
     try {
         auto&& request_param = QVariant::fromValue<PortLifecycleRequest>(builder.getPortLifecycleRequest());
         requestExperimentData(ExperimentDataRequestType::PortLifecycleEvent, request_param);
-    } catch (const std::exception&) {
-        qInfo("No PortLifecycleRequest");
+    } catch (const std::exception& ex) {
+        qInfo(ex.what());
     }
     try {
         auto&& request_param = QVariant::fromValue<WorkloadRequest>(builder.getWorkloadRequest());
         requestExperimentData(ExperimentDataRequestType::WorkloadEvent, request_param);
-    } catch (const std::exception&) {
-        qInfo("No WorkloadRequest");
+    } catch (const std::exception& ex) {
+		qInfo(ex.what());
     }
     try {
         auto&& request_param = QVariant::fromValue<CPUUtilisationRequest>(builder.getCPUUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, request_param);
-    } catch (const std::exception&) {
-        qInfo("No CPUUtilisationRequest");
-    }
+	} catch (const std::exception& ex) {
+		qInfo(ex.what());
+	}
     try {
         auto&& request_param = QVariant::fromValue<MemoryUtilisationRequest>(builder.getMemoryUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, request_param);
-    } catch (const std::exception&) {
-        qInfo("No MemoryUtilisationRequest");
-    }
+	} catch (const std::exception& ex) {
+		qInfo(ex.what());
+	}
     try {
         auto&& request_param = QVariant::fromValue<MarkerRequest>(builder.getMarkerRequest());
         requestExperimentData(ExperimentDataRequestType::MarkerEvent, request_param);
-    } catch (const std::exception&) {
-        qInfo("No MarkerRequest");
-    }
+	} catch (const std::exception& ex) {
+		qInfo(ex.what());
+	}
     try {
         auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
-    } catch (const std::exception&) {
-        qInfo("No PortEventRequest");
-    }
+	} catch (const std::exception& ex) {
+		qInfo(ex.what());
+	}
 
     // Reset the selected experiment run
     selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
 }
-
 
 /**
  * @brief ExperimentDataManager::requestPortLifecycleEvents
@@ -288,7 +283,6 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
     futureWatcher->setFuture(future);
 }
 
-
 /**
  * @brief ExperimentDataManager::requestWorkloadEvents
  * @param request
@@ -315,7 +309,6 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
 
     futureWatcher->setFuture(future);
 }
-
 
 /**
  * @brief ExperimentDataManager::requestCPUUtilisationEvents
@@ -344,7 +337,6 @@ void ExperimentDataManager::requestCPUUtilisationEvents(const CPUUtilisationRequ
     futureWatcher->setFuture(future);
 }
 
-
 /**
  * @brief ExperimentDataManager::requestMemoryUtilisationEvents
  * @param request
@@ -371,7 +363,6 @@ void ExperimentDataManager::requestMemoryUtilisationEvents(const MemoryUtilisati
 
     futureWatcher->setFuture(future);
 }
-
 
 /**
  * @brief ExperimentDataManager::requestMarkerEvents
@@ -400,7 +391,6 @@ void ExperimentDataManager::requestMarkerEvents(const MarkerRequest& request, co
     futureWatcher->setFuture(future);
 }
 
-
 /**
  * @brief ExperimentDataManager::requestPortEvents
  * @param request
@@ -427,7 +417,6 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
 
     futureWatcher->setFuture(future);
 }
-
 
 /**
  * @brief ExperimentDataManager::processExperimentRuns
@@ -472,7 +461,6 @@ void ExperimentDataManager::processExperimentRuns(const QString& experiment_name
     chartPopup_.setExperimentRuns(experiment_name, experiment_runs.toList());
 }
 
-
 /**
  * @brief ExperimentDataManager::processExperimentState
  * @param experiment_name
@@ -504,7 +492,6 @@ void ExperimentDataManager::processExperimentState(const QString& experiment_nam
     }
 }
 
-
 /**
  * @brief ExperimentDataManager::processPortLifecycleEvents
  * @param exp_run
@@ -521,7 +508,6 @@ void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::
         }
     }
 }
-
 
 /**
  * @brief ExperimentDataManager::processWorkloadEvents
@@ -540,7 +526,6 @@ void ExperimentDataManager::processWorkloadEvents(const AggServerResponse::Exper
     }
 }
 
-
 /**
  * @brief ExperimentDataManager::processCPUUtilisationEvents
  * @param exp_run
@@ -557,7 +542,6 @@ void ExperimentDataManager::processCPUUtilisationEvents(const AggServerResponse:
         }
     }
 }
-
 
 /**
  * @brief ExperimentDataManager::processMemoryUtilisationEvents
@@ -576,7 +560,6 @@ void ExperimentDataManager::processMemoryUtilisationEvents(const AggServerRespon
     }
 }
 
-
 /**
  * @brief ExperimentDataManager::processMarkerEvents
  * @param exp_run
@@ -593,7 +576,6 @@ void ExperimentDataManager::processMarkerEvents(const AggServerResponse::Experim
         }
     }
 }
-
 
 /**
  * @brief ExperimentDataManager::processPortEvents
@@ -612,7 +594,6 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
     }
 }
 
-
 /**
  * @brief ExperimentDataManager::constructExperimentData
  * @param experiment_name
@@ -628,7 +609,6 @@ MEDEA::ExperimentData* ExperimentDataManager::constructExperimentData(const QStr
     return exp_data;
 }
 
-
 /**
  * @brief ExperimentDataManager::getExperimentData
  * @param exp_run_id
@@ -640,7 +620,6 @@ MEDEA::ExperimentData* ExperimentDataManager::getExperimentData(quint32 exp_run_
     return experiment_data_hash_.value(exp_name, nullptr);
 }
 
-
 /**
  * @brief ExperimentDataManager::toastNotification
  * @param description
@@ -651,7 +630,6 @@ void ExperimentDataManager::toastNotification(const QString &description, const 
 {
     NotificationManager::manager()->AddNotification(description, "Icons", iconName, severity, Notification::Type::APPLICATION, Notification::Category::NONE);
 }
-
 
 /**
  * @brief ExperimentDataManager::getItemLabel
@@ -666,7 +644,6 @@ QString ExperimentDataManager::getItemLabel(const ViewItem *item) const
     return "";
 }
 
-
 /**
  * @brief ExperimentDataManager::manager
  * @return
@@ -675,7 +652,6 @@ ExperimentDataManager* ExperimentDataManager::manager()
 {
     return manager_;
 }
-
 
 /**
  * @brief ExperimentDataManager::getChartDialog
@@ -690,7 +666,6 @@ ChartDialog& ExperimentDataManager::getChartDialog()
     return *chartDialog_;
 }
 
-
 /**
  * @brief ExperimentDataManager::getDataflowDialog
  * @throws std::runtime_error
@@ -704,7 +679,6 @@ DataflowDialog& ExperimentDataManager::getDataflowDialog()
     return *dataflowDialog_;
 }
 
-
 /**
  * @brief ExperimentDataManager::startTimerLoop
  * @param exp_run_id
@@ -714,11 +688,8 @@ void ExperimentDataManager::startTimerLoop(quint32 exp_run_id)
     if (!exp_run_timers_.contains(exp_run_id)) {
         auto timer_id = startTimer(default_playback_interval_ms);
         exp_run_timers_.insert(exp_run_id, timer_id);
-        qDebug() << "-----------------------------------------------------------------------";
-        qDebug() << "STARTED timer for [" << exp_run_id << "]";
     }
 }
-
 
 /**
  * @brief ExperimentDataManager::stopTimerLoop
@@ -729,11 +700,8 @@ void ExperimentDataManager::stopTimerLoop(quint32 exp_run_id)
     if (exp_run_timers_.contains(exp_run_id)) {
         const auto& timer_id = exp_run_timers_.take(exp_run_id);
         killTimer(timer_id);
-        qDebug() << "KILLED timer for [" << exp_run_id << "]";
-        qDebug() << "-----------------------------------------------------------------------";
     }
 }
-
 
 /**
  * @brief ExperimentDataManager::timerEvent
@@ -744,7 +712,7 @@ void ExperimentDataManager::timerEvent(QTimerEvent* event)
     Q_UNUSED(event);
 
     if (live_exp_run_id_ != invalid_experiment_id) {
-        quint32 exp_run_id = static_cast<quint32>(live_exp_run_id_);
+        auto exp_run_id = static_cast<quint32>(live_exp_run_id_);
         const auto& exp_data = getExperimentData(exp_run_id);
         if (exp_data) {
             const auto& exp_run_data = exp_data->getExperimentRun(exp_run_id);
@@ -777,7 +745,6 @@ void ExperimentDataManager::timerEvent(QTimerEvent* event)
     }*/
 }
 
-
 /**
  * @brief ExperimentDataManager::showChartInputPopup
  */
@@ -787,7 +754,6 @@ void ExperimentDataManager::showChartInputPopup()
     requestExperimentData(ExperimentDataRequestType::ExperimentRun, "");
     chartPopup_.setPopupVisible(true);
 }
-
 
 /**
  * @brief ExperimentDataManager::filterRequestsBySelectedEntities
@@ -801,7 +767,6 @@ void ExperimentDataManager::filterRequestsBySelectedEntities(const QVector<ViewI
     showChartInputPopup();
 }
 
-
 /**
  * @brief ExperimentDataManager::requestPortInstanceData
  * @param port
@@ -812,7 +777,6 @@ void ExperimentDataManager::requestPortInstanceEvents(PortInstanceData& port)
     requestExperimentData(ExperimentDataRequestType::PortEvent, QVariant::fromValue(port.getPortEventRequest()), &port);
 }
 
-
 /**
  * @brief ExperimentDataManager::requestWorkerInstanceData
  * @param worker_inst
@@ -821,7 +785,6 @@ void ExperimentDataManager::requestWorkerInstanceEvents(WorkerInstanceData& work
 {
     requestExperimentData(ExperimentDataRequestType::WorkloadEvent, QVariant::fromValue(worker_inst.getWorkloadRequest()), &worker_inst);
 }
-
 
 /**
  * @brief ExperimentDataManager::requestNodeEvents
@@ -833,7 +796,6 @@ void ExperimentDataManager::requestNodeEvents(NodeData& node)
     requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, QVariant::fromValue(node.getMemoryUtilisationRequest()), &node);
 }
 
-
 /**
  * @brief ExperimentDataManager::requestMarkerSetEvents
  * @param marker_set
@@ -842,7 +804,6 @@ void ExperimentDataManager::requestMarkerSetEvents(MarkerSetData& marker_set)
 {
     requestExperimentData(ExperimentDataRequestType::MarkerEvent, QVariant::fromValue(marker_set.getMarkerRequest()), &marker_set);
 }
-
 
 /**
  * @brief ExperimentDataManager::clear
@@ -868,7 +829,6 @@ void ExperimentDataManager::clear()
     exp_run_timers_.clear();
     live_exp_run_id_ = invalid_experiment_id;
 }
-
 
 /**
  * @brief ExperimentDataManager::visualiseSelectedExperimentRun
@@ -901,134 +861,124 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
     }
 }
 
-
 /**
  * @brief ExperimentDataManager::setupRequestsForExperimentRun
  * @param experimentRunID
  */
 void ExperimentDataManager::setupRequestsForExperimentRun(const quint32 experimentRunID)
 {
-    if (selectedDataKinds_.isEmpty()) {
-        selectedDataKinds_ = MEDEA::Event::GetChartDataKinds();
-        selectedDataKinds_.removeAll(MEDEA::ChartDataKind::DATA);
-    }
-
-    auto builder = RequestBuilder::build();
-    builder.buildRequests(selectedDataKinds_);
-    builder.setExperimentRunID(experimentRunID);
-
-    if (!selectedViewItems_.isEmpty()) {
-
-        QVector<QString> compNames;
-        QVector<QString> compInstPaths;
-        QVector<QString> portPaths;
-        QVector<QString> workerInstPaths;
-        QVector<QString> nodeHostnames;
-
-        for (auto item : selectedViewItems_) {
-
-            if (!item || !item->isNode())
-                continue;
-
-            auto nodeItem = qobject_cast<NodeViewItem*>(item);
-            auto nodeItemID = nodeItem->getID();
-            auto label = getItemLabel(nodeItem);
-
-            switch (nodeItem->getNodeKind()) {
-            case NODE_KIND::COMPONENT:
-            case NODE_KIND::COMPONENT_IMPL:
-                // can send port/workload requests
-                compNames.append(label);
-                break;
-            case NODE_KIND::COMPONENT_INST:
-                // can send port/workload requests
-                //compInstIDs_.append(QString::number(nodeItem->getParentID() + "_0"));
-                compInstPaths.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
-                break;
-            case NODE_KIND::PORT_REPLIER_IMPL:
-            case NODE_KIND::PORT_REQUESTER_IMPL:
-            case NODE_KIND::PORT_PUBLISHER_IMPL:
-            case NODE_KIND::PORT_SUBSCRIBER_IMPL:
-                nodeItemID = viewController_.getNodeDefinitionID(nodeItemID);
-            case NODE_KIND::PORT_REPLIER:
-            case NODE_KIND::PORT_REQUESTER:
-            case NODE_KIND::PORT_PUBLISHER:
-            case NODE_KIND::PORT_SUBSCRIBER:
-            case NODE_KIND::PORT_PERIODIC:
-                // can send port requests
-                if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
-                    /*for (auto instID : viewController_.getNodeInstanceIDs(nodeItemID)) {
-                        portIDs_.append(QString::number(instID) + "_0");
-                    }*/
-                    for (auto instItem : viewController_.getNodesInstances(item->getID())) {
-                        if (instItem && instItem->getParentItem()) {
-                            auto compInstItem = instItem->getParentItem();
-                            portPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                        }
-                    }
-                }
-                break;
-            case NODE_KIND::PORT_REPLIER_INST:
-            case NODE_KIND::PORT_REQUESTER_INST:
-            case NODE_KIND::PORT_PUBLISHER_INST:
-            case NODE_KIND::PORT_SUBSCRIBER_INST:
-            case NODE_KIND::PORT_PERIODIC_INST:
-                // can send port requests
-                if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
-                    auto compInstItem = nodeItem->getParentItem();
-                    if (compInstItem)
-                        portPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                }
-                break;
-            case NODE_KIND::CLASS_INST:
-                // can send workload requests
-                if (selectedDataKinds_.contains(MEDEA::ChartDataKind::WORKLOAD)) {
-                    // a ClassInstance can be a child of either a CompImpl or CompInst
-                    /*auto parentNodeKind = nodeItem->getParentNodeKind();
-                    if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                        for (auto instID : viewController_.getNodeInstanceIDs(nodeItemID)) {
-                            workerInstIDs_.append(QString::number(instID) + "_0");
-                        }
-                    } else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
-                        workerInstIDs_.append(QString::number(nodeItemID) + "_0");
-                    }*/
-                    auto parentNodeKind = nodeItem->getParentNodeKind();
-                    if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-                        for (auto instItem : viewController_.getNodesInstances(item->getID())) {
-                            if (instItem && instItem->getParentItem()) {
-                                auto compInstItem = instItem->getParentItem();
-                                workerInstPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                            }
-                        }
-                    } else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
-                        auto compInstItem = nodeItem->getParentItem();
-                        if (compInstItem)
-                            workerInstPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-                    }
-                }
-                break;
-            case NODE_KIND::HARDWARE_NODE:
-                // can send cpu/mem requests
-                //nodeIDs_.append(label);
-                nodeHostnames.append(label);
-                break;
-            default:
-                break;
-            }
-        }
-
-        builder.setComponentNames(compNames);
-        builder.setComponentInstancePaths(compInstPaths);
-        builder.setPortPaths(portPaths);
-        builder.setWorkerInstancePaths(workerInstPaths);
-        builder.setNodeHostnames(nodeHostnames);
-    }
-
-    requestEvents(builder);
-    selectedDataKinds_.clear();
-    selectedViewItems_.clear();
+	if (selectedDataKinds_.isEmpty()) {
+		selectedDataKinds_ = MEDEA::Event::GetChartDataKinds();
+		selectedDataKinds_.removeAll(MEDEA::ChartDataKind::DATA);
+	}
+	
+	auto builder = RequestBuilder::build();
+	builder.buildRequests(selectedDataKinds_);
+	builder.setExperimentRunID(experimentRunID);
+	
+	if (!selectedViewItems_.isEmpty()) {
+		
+		QVector<QString> compNames;
+		QVector<QString> compInstPaths;
+		QVector<QString> portPaths;
+		QVector<QString> workerInstPaths;
+		QVector<QString> nodeHostnames;
+		
+		for (auto item : selectedViewItems_) {
+			
+			if (!item || !item->isNode()) {
+				continue;
+			}
+			
+			auto nodeItem = qobject_cast<NodeViewItem*>(item);
+			auto label = getItemLabel(nodeItem);
+			
+			switch (nodeItem->getNodeKind()) {
+				case NODE_KIND::COMPONENT:
+				case NODE_KIND::COMPONENT_IMPL:
+					// can send port/workload requests
+					compNames.append(label);
+					break;
+				case NODE_KIND::COMPONENT_INST:
+					// can send port/workload requests
+					compInstPaths.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
+					break;
+				case NODE_KIND::PORT_REPLIER_IMPL:
+				case NODE_KIND::PORT_REQUESTER_IMPL:
+				case NODE_KIND::PORT_PUBLISHER_IMPL:
+				case NODE_KIND::PORT_SUBSCRIBER_IMPL:
+				case NODE_KIND::PORT_REPLIER:
+				case NODE_KIND::PORT_REQUESTER:
+				case NODE_KIND::PORT_PUBLISHER:
+				case NODE_KIND::PORT_SUBSCRIBER:
+				case NODE_KIND::PORT_PERIODIC:
+					// can send port requests
+					if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
+						for (auto instItem : viewController_.getNodesInstances(item->getID())) {
+							if (instItem && instItem->getParentItem()) {
+								auto compInstItem = instItem->getParentItem();
+								portPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+							}
+						}
+					}
+					break;
+				case NODE_KIND::PORT_REPLIER_INST:
+				case NODE_KIND::PORT_REQUESTER_INST:
+				case NODE_KIND::PORT_PUBLISHER_INST:
+				case NODE_KIND::PORT_SUBSCRIBER_INST:
+				case NODE_KIND::PORT_PERIODIC_INST:
+					// can send port requests
+					if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
+						auto compInstItem = nodeItem->getParentItem();
+						if (compInstItem) {
+							portPaths.append(
+								getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" +
+								label);
+						}
+					}
+					break;
+				case NODE_KIND::CLASS_INST:
+					// can send workload requests
+					if (selectedDataKinds_.contains(MEDEA::ChartDataKind::WORKLOAD)) {
+						// a ClassInstance can be a child of either a CompImpl or CompInst
+						auto parentNodeKind = nodeItem->getParentNodeKind();
+						if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
+							for (auto instItem : viewController_.getNodesInstances(item->getID())) {
+								if (instItem && instItem->getParentItem()) {
+									auto compInstItem = instItem->getParentItem();
+									workerInstPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
+								}
+							}
+						} else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
+							auto compInstItem = nodeItem->getParentItem();
+							if (compInstItem) {
+								workerInstPaths.append(
+									getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) +
+									"/" + label);
+							}
+						}
+					}
+					break;
+				case NODE_KIND::HARDWARE_NODE:
+					// can send cpu/mem requests
+					nodeHostnames.append(label);
+					break;
+				default:
+					break;
+			}
+		}
+		
+		builder.setComponentNames(compNames);
+		builder.setComponentInstancePaths(compInstPaths);
+		builder.setPortPaths(portPaths);
+		builder.setWorkerInstancePaths(workerInstPaths);
+		builder.setNodeHostnames(nodeHostnames);
+	}
+	
+	requestEvents(builder);
+	selectedDataKinds_.clear();
+	selectedViewItems_.clear();
 }
-
 
 /**
  * @brief ExperimentDataManager::constructSingleton

@@ -43,7 +43,7 @@ public:
 
     void startTimerLoop(quint32 exp_run_id);
     void stopTimerLoop(quint32 exp_run_id);
-    void timerEvent(QTimerEvent* event);
+    void timerEvent(QTimerEvent* event) override;
 
     static void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
 
@@ -70,16 +70,17 @@ protected:
     static void constructSingleton(ViewController* vc);
 
 private:
-    ExperimentDataManager(const ViewController &vc);
-    AggregationProxy& aggregationProxy();
+    explicit ExperimentDataManager(const ViewController &vc);
+    
+    static AggregationProxy& aggregationProxy();
     TimelineChartView& timelineChartView();
 
     void requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* sender_obj = nullptr);
 
     void requestExperimentRuns(const QString& experimentName, MEDEA::ExperimentData* exp_data_requester = nullptr);
-    void requestExperimentState(const quint32 experimentRunID, MEDEA::ExperimentData* exp_data_requester = nullptr);
+    void requestExperimentState(quint32 experimentRunID, MEDEA::ExperimentData* exp_data_requester = nullptr);
 
-    void setupRequestsForExperimentRun(const quint32 experimentRunID);
+    void setupRequestsForExperimentRun(quint32 experimentRunID);
 
     void requestEvents(const RequestBuilder &builder);
     void requestPortLifecycleEvents(const PortLifecycleRequest& request, const AggServerResponse::ExperimentRun& experimentRun, PortInstanceData* port_data_requester = nullptr);
@@ -91,7 +92,6 @@ private:
 
     void processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs);
     void processExperimentState(const QString &experiment_name, quint32 experiment_run_id, const AggServerResponse::ExperimentState& experiment_state);
-
     void processPortLifecycleEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortLifecycleEvent*>& events);
     void processWorkloadEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<WorkloadEvent*>& events);
     void processCPUUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<CPUUtilisationEvent*>& events);

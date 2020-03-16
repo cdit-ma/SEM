@@ -788,7 +788,7 @@ void EntityItem::updateZValue(bool childSelected, bool childActive)
     // TODO - Ask Jackson why this is always true
     if(z == 0 && raise){
         z = 1;
-        z *= raise ? 2: -2;
+        z *= 2;
     }
 
     z *= childActive ? 2 : 1;

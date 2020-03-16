@@ -136,11 +136,11 @@ void ContextMenu::themeChanged()
         }
     }
 
-    for(auto menu : add_edge_menu_hash.values()){
-        auto action = menu->menuAction();
-        Theme::UpdateActionIcon(action, theme);
-        if(menu){ // TODO: Ask Jackson why this is always true
-            menu->setStyle(menu_style);
+    for (auto menu : add_edge_menu_hash.values()) {
+        if (menu) {
+			auto action = menu->menuAction();
+			Theme::UpdateActionIcon(action, theme);
+			menu->setStyle(menu_style);
             menu->setStyleSheet(main_menu->styleSheet());
         }
     }
