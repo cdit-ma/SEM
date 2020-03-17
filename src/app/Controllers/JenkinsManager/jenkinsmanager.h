@@ -90,6 +90,10 @@ private:
 
     void SetSettingsDirty();
     void SetSettingsValidated(bool valid);
+    
+    void ClearFutures();
+    void ClearCache();
+    
     bool WaitForSettingsValidation();
     bool ShouldRequestJob(const QString& job_name, int job_number);
 

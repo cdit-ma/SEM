@@ -10,7 +10,7 @@ class EventSeries : public QObject
     Q_OBJECT
 
 public:
-    explicit EventSeries(const QString& ID, MEDEA::ChartDataKind kind = MEDEA::ChartDataKind::DATA, QObject* parent = nullptr);
+    explicit EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent = nullptr);
     ~EventSeries() override;
 
     void clear();

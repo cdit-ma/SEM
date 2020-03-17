@@ -10,21 +10,20 @@ class HoverPopup : public PopupWidget
 public:
     explicit HoverPopup(QWidget* parent = nullptr);
 
-    void adjustChildrenSize(QString widgetName = "", Qt::FindChildOptions options = Qt::FindChildrenRecursively);
+    void adjustChildrenSize(const QString& widgetName = "", Qt::FindChildOptions options = Qt::FindChildrenRecursively);
 
-    void setBorderColor(QColor color);
+    void setBorderColor(const QColor& color);
 
 public slots:
     void themeChanged();
 
 protected:
-    void paintEvent(QPaintEvent* event);
+    void paintEvent(QPaintEvent* event) override;
 
 private:
     QColor backgroundColor_;
     QColor borderColor_;
     bool useDefaultBorder;
-
 };
 
 #endif // HOVERPOPUP_H

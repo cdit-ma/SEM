@@ -731,25 +731,29 @@ bool JenkinsManager::RequestValidation()
 
 void JenkinsManager::SetSettingsValidated(bool valid)
 {
-	// TODO: Ask Jackson if the brackets are necessary
-    {
-        QMutexLocker future_lock(&futures_mutex_);
-        //Clear all futures
-        json_futures_.clear();
-        bool_futures_.clear();
-        string_futures_.clear();
-        parameter_futures_.clear();
-        status_futures_.clear();
-    }
-    {
-        QMutexLocker cache_lock(&cache_mutex_);
-        cached_json_.clear();
-    }
-    {
-        QMutexLocker var_lock(&var_mutex_);
-        settings_validated_ = valid;
-        emit SettingsValidated(settings_validated_);
-    }
+	ClearFutures();
+	ClearCache();
+	
+	QMutexLocker var_lock(&var_mutex_);
+	settings_validated_ = valid;
+	emit SettingsValidated(settings_validated_);
+}
+
+void JenkinsManager::ClearFutures()
+{
+	//Clear all futures
+	QMutexLocker future_lock(&futures_mutex_);
+	json_futures_.clear();
+	bool_futures_.clear();
+	string_futures_.clear();
+	parameter_futures_.clear();
+	status_futures_.clear();
+}
+
+void JenkinsManager::ClearCache()
+{
+	QMutexLocker cache_lock(&cache_mutex_);
+	cached_json_.clear();
 }
 
 QNetworkRequest JenkinsManager::getAuthenticatedRequest(const QString& url, bool auth)

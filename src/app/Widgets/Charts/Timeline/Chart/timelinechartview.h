@@ -24,8 +24,6 @@ enum class VALUE_TYPE{DOUBLE, DATE_TIME};
 enum class TIME_DISPLAY_FORMAT{VALUE, DATE_TIME, ELAPSED_TIME};
 
 class AxisWidget;
-class ChartList;
-
 class TimelineChartView : public QWidget
 {
     Q_OBJECT
@@ -33,7 +31,7 @@ class TimelineChartView : public QWidget
 public:
     explicit TimelineChartView(QWidget* parent = nullptr);
 
-    bool eventFilter(QObject *watched, QEvent* event);
+    bool eventFilter(QObject *watched, QEvent* event) override;
 
     void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent *>& events);
     void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent *>& events);
@@ -42,12 +40,11 @@ public:
     void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent *>& events);
     void addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent *>& events);
 
-    void updateExperimentRunLastUpdatedTime(const quint32 experimentRunID, const qint64 time);
+    void updateExperimentRunLastUpdatedTime(quint32 experimentRunID, qint64 time);
 
-    void setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format);
+    void setTimeDisplayFormat( TIME_DISPLAY_FORMAT format);
 
     void clearChartList();
-    void updateChartList();
 
 signals:
     void seriesLegendHovered(MEDEA::ChartDataKind kind);
@@ -64,11 +61,11 @@ public slots:
     void updateHoverDisplay();
 
 private slots:
-    void minSliderMoved(const double ratio);
-    void maxSliderMoved(const double ratio);
+    void minSliderMoved(double ratio);
+    void maxSliderMoved(double ratio);
 
-    void timelineZoomed(const int delta);
-    void timelinePanned(const double dx, const double dy);
+    void timelineZoomed(int delta);
+    void timelinePanned(double dx, double dy);
     void timelineRubberbandUsed(double left, double right);
     
 private:
@@ -81,33 +78,28 @@ private:
     MEDEA::Chart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
     void removeChart(const QString& ID, bool clearing = false);
 
-    void updateRangeForExperimentRun(const quint32 experimentRunID, const qint64 startTime, const qint64 lastUpdatedTime);
-    void removedDataFromExperimentRun(const quint32 experimentRunID);
+    void updateRangeForExperimentRun(quint32 experimentRunID, qint64 startTime, qint64 lastUpdatedTime);
+    void removedDataFromExperimentRun(quint32 experimentRunID);
     void updateTimelineRange(bool updateDisplayRange = true);
 
     const QString& getDateTimeDisplayFormat(const MEDEA::ChartDataKind& kind) const;
 
     void setupLayout();
 
-    bool rangeSet = false;
-    bool scrollbarVisible = false;
-    bool showHoverLine = false;
-    double verticalScrollValue = 0.0;
-
     QLabel* emptyLabel_ = nullptr;
     QWidget* mainWidget_ = nullptr;
 
-    MEDEA::ChartList* chartList_;
-    MEDEA::ChartLabelList* chartLabelList_;
-    AxisWidget* timelineAxis_;
-    HoverPopup* hoverDisplay_;
+    MEDEA::ChartList* chartList_ = nullptr;
+    MEDEA::ChartLabelList* chartLabelList_ = nullptr;
+    AxisWidget* timelineAxis_ = nullptr;
+    HoverPopup* hoverDisplay_ = nullptr;
 
-    QToolBar* legendToolbar_;
-    QScrollArea* scrollArea_;
+    QToolBar* legendToolbar_ = nullptr;
+    QScrollArea* scrollArea_ = nullptr;
 
-    QWidget* topFillerWidget_;
-    QWidget* bottomFillerWidget_;
-    QWidget* hoverWidget_;
+    QWidget* topFillerWidget_ = nullptr;
+    QWidget* bottomFillerWidget_ = nullptr;
+    QWidget* hoverWidget_ = nullptr;
 
     TIME_DISPLAY_FORMAT timeDisplayFormat_ = TIME_DISPLAY_FORMAT::DATE_TIME;
 
