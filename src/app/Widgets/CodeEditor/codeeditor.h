@@ -3,24 +3,17 @@
 
 #include <QSyntaxHighlighter>
 #include <QPlainTextEdit>
-#include <QObject>
 
 #include "syntaxhighlighter.h"
 
-class QPaintEvent;
-class QResizeEvent;
-class QSize;
-class QWidget;
-
 class LineNumberArea;
-
 
 class CodeEditor : public QPlainTextEdit
 {
     Q_OBJECT
 
 public:
-    CodeEditor(QWidget *parent = 0);
+    explicit CodeEditor(QWidget* parent = nullptr);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
@@ -30,24 +23,23 @@ protected:
 
 private slots:
     void gotoLine();
-    void updateLineNumberAreaWidth(int newBlockCount);
+    void updateLineNumberAreaWidth();
     void updateLineNumberArea(const QRect &, int);
 
     void matchParentheses();
     void themeChanged();
 
 private:
-    SyntaxHighlighter *highlighter;
-    QWidget *lineNumberArea;
-    QColor selectedColor;
-    QColor textColor;
-    QColor selectedTextColor;
-    QColor altBackgroundColor;
-
-    bool matchOtherParenthesis(ParenthesisInfo* p, QTextBlock currentBlock, int index, int openCount=0);
-
-
-    void createParenthesisSelection(int pos);
+	bool matchOtherParenthesis(ParenthesisInfo* p, QTextBlock currentBlock, int index, int openCount = 0);
+	void createParenthesisSelection(int pos);
+	
+	SyntaxHighlighter* highlighter = nullptr;
+	LineNumberArea* lineNumberArea = nullptr;
+	
+	QColor selectedColor;
+	QColor textColor;
+	QColor selectedTextColor;
+	QColor altBackgroundColor;
 
     QList<QTextEdit::ExtraSelection> highlights;
 };
@@ -56,13 +48,13 @@ private:
 class LineNumberArea : public QWidget
 {
 public:
-    LineNumberArea(CodeEditor *editor) : QWidget(editor) {
+    explicit LineNumberArea(CodeEditor *editor) : QWidget(editor) {
         codeEditor = editor;
-        this->setContentsMargins(0,0,0,0);
+        setContentsMargins(0,0,0,0);
     }
 
     QSize sizeHint() const Q_DECL_OVERRIDE {
-        return QSize(codeEditor->lineNumberAreaWidth(), codeEditor->height());
+        return {codeEditor->lineNumberAreaWidth(), codeEditor->height()};
     }
 
 protected:
@@ -71,8 +63,7 @@ protected:
     }
 
 private:
-    CodeEditor *codeEditor;
+    CodeEditor* codeEditor = nullptr;
 };
 
-
-#endif
+#endif // CODEEDITOR_H
