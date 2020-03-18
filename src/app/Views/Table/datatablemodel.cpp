@@ -279,11 +279,11 @@ void DataTableModel::setupDataBinding()
 void DataTableModel::sort(int, Qt::SortOrder order)
 {
 	if (order == Qt::AscendingOrder) {
-		std::sort(lockedKeys.begin(), lockedKeys.end(), std::less<>());
-		std::sort(editableKeys.begin(), editableKeys.end(), std::less<>());
+		std::sort(lockedKeys.begin(), lockedKeys.end(), std::less<QString>());
+		std::sort(editableKeys.begin(), editableKeys.end(), std::less<QString>());
 	} else {
-		std::sort(lockedKeys.begin(), lockedKeys.end(), std::greater<>());
-		std::sort(editableKeys.begin(), editableKeys.end(), std::greater<>());
+		std::sort(lockedKeys.begin(), lockedKeys.end(), std::greater<QString>());
+		std::sort(editableKeys.begin(), editableKeys.end(), std::greater<QString>());
 	}
 
     QModelIndex indexA = index(0, 0, QModelIndex());
