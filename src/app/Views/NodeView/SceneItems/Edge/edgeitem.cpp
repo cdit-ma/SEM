@@ -4,6 +4,9 @@
 
 #define ARROW_SIZE 4
 
+const QSizeF small_circle_size {8, 8};
+const QSizeF default_circle_size {10, 10};
+
 EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *source, NodeItem *destination)
 	: EntityItem(edgeViewItem, parent, EDGE)
 {
@@ -322,22 +325,36 @@ void EdgeItem::dataRemoved(const QString& key_name)
  * @param pointLeft Whether the arrow header points facing left/right
  * @return
  */
-QPainterPath EdgeItem::calculateArrowHead(QPointF endPoint, bool pointLeft) const
+QPainterPath EdgeItem::calculateArrowHead(const QPointF& endPoint, bool pointLeft) const
 {
-    QPainterPath path;
-
     int x = pointLeft ? -ARROW_SIZE: ARROW_SIZE;
     // |=>
     // <=|
+    
     QPointF startPoint = endPoint - QPointF(x, 0);
     QPointF topPoint = startPoint + QPointF(x, -ARROW_SIZE / 2);
     QPointF bottomPoint = startPoint + QPointF(x, ARROW_SIZE / 2);
-
-    path.moveTo(startPoint);
+    
+    QPainterPath path(startPoint);
     path.lineTo(topPoint);
     path.lineTo(bottomPoint);
     path.lineTo(startPoint);
     return path;
+}
+
+/**
+ * @brief EdgeItem::getRect
+ * @param center
+ * @param size
+ * @return a rectangle centered at center with a width and height specified by size
+ */
+QRectF EdgeItem::getRect(const QPointF& center, const QSizeF& size) const
+{
+    QRectF rect(QPointF(), size);
+    if (!center.isNull()) {
+        rect.moveCenter(center);
+    }
+    return rect;
 }
 
 /**
@@ -346,9 +363,7 @@ QPainterPath EdgeItem::calculateArrowHead(QPointF endPoint, bool pointLeft) cons
  */
 QRectF EdgeItem::srcIconRect() const
 {
-    QRectF rect(QPointF(),smallIconSize());
-    rect.moveCenter(srcIconCircle().center());
-    return rect;
+    return getRect(srcIconCircle().center(), smallIconSize());
 }
 
 /**
@@ -357,9 +372,7 @@ QRectF EdgeItem::srcIconRect() const
  */
 QRectF EdgeItem::centerIconRect() const
 {
-    QRectF rect(QPointF(), smallIconSize());
-    rect.moveCenter(translatedCenterCircleRect().center());
-    return rect;
+    return getRect(translatedCenterCircleRect().center(), smallIconSize());
 }
 
 /**
@@ -368,9 +381,7 @@ QRectF EdgeItem::centerIconRect() const
  */
 QRectF EdgeItem::dstIconRect() const
 {
-    QRectF rect(QPointF(),smallIconSize());
-    rect.moveCenter(dstIconCircle().center());
-    return rect;
+    return getRect(dstIconCircle().center(), smallIconSize());
 }
 
 /**
@@ -381,15 +392,12 @@ QRectF EdgeItem::dstIconRect() const
 QRectF EdgeItem::srcIconCircle() const
 {
     QRectF r;
-    if(isSelected()){
-        r.setSize(QSizeF(10,10));
-
+    if (isSelected()) {
         QRectF cR = translatedCenterCircleRect();
-        r.moveCenter(cR.center());
-
-        if(srcCurveEntersCenterLeft){
+        r = getRect(cR.center(), default_circle_size);
+        if (srcCurveEntersCenterLeft) {
             r.moveRight(cR.left());
-        }else{
+        } else {
             r.moveLeft(cR.right());
         }
     }
@@ -404,15 +412,12 @@ QRectF EdgeItem::srcIconCircle() const
 QRectF EdgeItem::dstIconCircle() const
 {
     QRectF r;
-    if(isSelected()){
-        r.setSize(QSizeF(10,10));
-
+    if (isSelected()) {
         QRectF cR = translatedCenterCircleRect();
-        r.moveCenter(cR.center());
-
-        if(!srcCurveEntersCenterLeft){
+        r = getRect(cR.center(), default_circle_size);
+        if (!srcCurveEntersCenterLeft) {
             r.moveRight(cR.left());
-        }else{
+        } else {
             r.moveLeft(cR.right());
         }
     }
@@ -425,7 +430,7 @@ QRectF EdgeItem::dstIconCircle() const
  * @param center The defined center point to use (If undefined, will use the current Center)
  * @return
  */
-QPointF EdgeItem::getCenterCircleTermination(bool left, QPointF center) const
+QPointF EdgeItem::getCenterCircleTermination(bool left, const QPointF& center) const
 {
     QRectF r = translatedCenterCircleRect(center);
     QPointF point = r.center();
@@ -434,18 +439,17 @@ QPointF EdgeItem::getCenterCircleTermination(bool left, QPointF center) const
 }
 
 /**
- * @brief EdgeItem::centerCircleRect Gets the center circle bounding rectangle (Non translated)
- * @return
+ * @brief EdgeItem::centerCircleRectSize
+ * @return the center circle's size
+ * The circle is slightly bigger when it is no longer auto-centered.
  */
-QRectF EdgeItem::centerCircleRect() const
+QSizeF EdgeItem::centerCircleRectSize() const
 {
-    QRectF r;
-    if(_isCentered){
-        r.setSize(QSizeF(8, 8));
-    }else{
-        r.setSize(QSizeF(10, 10));
+    if (_isCentered) {
+        return small_circle_size;
+    } else {
+        return default_circle_size;
     }
-    return r;
 }
 
 /**
@@ -453,14 +457,12 @@ QRectF EdgeItem::centerCircleRect() const
  * @param center
  * @return
  */
-QRectF EdgeItem::translatedCenterCircleRect(QPointF center) const
+QRectF EdgeItem::translatedCenterCircleRect(const QPointF& center) const
 {
-    if(center.isNull()){
-        center = _centerPoint;
+    if (center.isNull()) {
+        return getRect(_centerPoint, centerCircleRectSize());
     }
-    QRectF r = centerCircleRect();
-    r.moveCenter(center);
-    return r;
+    return getRect(center, centerCircleRectSize());
 }
 
 /**
@@ -568,9 +570,8 @@ QPainterPath EdgeItem::calculateBezierCurve(QPointF P1, QPointF P2, bool P1_Left
         ctrlP2.rx() = ctrlP1.x();
     }
     
-    QPainterPath curve;
-    //Move to the first point.
-    curve.moveTo(mapFromScene(P1));
+    // Create a path starting at the first point
+    QPainterPath curve(mapFromScene(P1));
     //Setup our cubic bezier curve.
     curve.cubicTo(mapFromScene(ctrlP1), mapFromScene(ctrlP2), mapFromScene(P2));
     return curve;
