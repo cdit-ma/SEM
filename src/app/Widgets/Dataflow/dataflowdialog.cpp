@@ -27,7 +27,7 @@ DataflowDialog::DataflowDialog(QWidget *parent)
       playback_controls(this),
       playback_interval_(default_playback_interval_ms)
 {
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    auto mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(0);
     mainLayout->setMargin(0);
     mainLayout->addWidget(view_);
@@ -45,7 +45,6 @@ DataflowDialog::DataflowDialog(QWidget *parent)
     themeChanged();
 }
 
-
 /**
  * @brief DataflowDialog::themeChanged
  */
@@ -57,7 +56,6 @@ void DataflowDialog::themeChanged()
     view_->setBackgroundBrush(theme->getBackgroundColor());
 }
 
-
 /**
  * @brief DataflowDialog::speedMultiplierChanged
  * @param multiplier
@@ -66,7 +64,6 @@ void DataflowDialog::playbackSpeedChanged(double multiplier)
 {
     playback_interval_ = default_playback_interval_ms * multiplier;
 }
-
 
 /**
  * @brief DataflowDialog::constructGraphicsItemsForExperimentRun
@@ -125,11 +122,9 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
         }
     }
 
-
     // Construct the edges
     constructEdgeItems(port_items_, exp_run_data.getPortConnectionData());
 }
-
 
 /**
  * @brief DataflowDialog::clear
@@ -151,7 +146,6 @@ void DataflowDialog::clear()
     port_items_.clear();
     comp_inst_items_.clear();
 }
-
 
 /**
  * @brief DataflowDialog::playback
@@ -176,7 +170,6 @@ void DataflowDialog::playback()
     startPlaybackTimer();
 }
 
-
 /**
  * @brief DataflowDialog::pausePlayback
  */
@@ -184,7 +177,6 @@ void DataflowDialog::pausePlayback()
 {
     stopPlaybackTimer();
 }
-
 
 /**
  * @brief DataflowDialog::jumpToPreviousActivity
@@ -202,7 +194,6 @@ void DataflowDialog::jumpToPreviousActivity()
     }
 }
 
-
 /**
  * @brief DataflowDialog::jumpToNextActivity
  */
@@ -219,7 +210,6 @@ void DataflowDialog::jumpToNextActivity()
     }
 }
 
-
 /**
  * @brief DataflowDialog::jumpToStart
  */
@@ -229,7 +219,6 @@ void DataflowDialog::jumpToStart()
     playback_controls.setCurrentTime(playback_current_time_);
 }
 
-
 /**
  * @brief DataflowDialog::jumpToEnd
  */
@@ -238,7 +227,6 @@ void DataflowDialog::jumpToEnd()
     playback_current_time_ = exp_run_end_time_;
     playback_controls.setCurrentTime(playback_current_time_);
 }
-
 
 /**
  * @brief DataflowDialog::turnOffLiveStatus
@@ -251,7 +239,6 @@ void DataflowDialog::turnOffLiveStatus()
     emit updateLiveStatus(false);
 }
 
-
 /**
  * @brief DataflowDialog::playbackEndTimeChanged
  * @param exp_run_last_updated_time
@@ -261,7 +248,6 @@ void DataflowDialog::playbackEndTimeChanged(qint64 exp_run_last_updated_time)
     exp_run_end_time_ = exp_run_last_updated_time;
     playback_controls.updateEndTime(exp_run_last_updated_time);
 }
-
 
 /**
  * @brief DataflowDialog::setExperimentInfo
@@ -282,7 +268,6 @@ void DataflowDialog::setExperimentInfo(const QString& exp_name, quint32 exp_run_
     parent_dockwidget->setTitle(title);
 }
 
-
 /**
  * @brief DataflowDialog::startPlaybackTimer
  */
@@ -295,7 +280,6 @@ void DataflowDialog::startPlaybackTimer()
     timer_active_ = true;
 }
 
-
 /**
  * @brief DataflowDialog::stopPlaybackTimer
  */
@@ -307,7 +291,6 @@ void DataflowDialog::stopPlaybackTimer()
     timer_id_ = -1;
     timer_active_ = false;
 }
-
 
 /**
  * @brief DataflowDialog::setPlaybackTimeRange
@@ -322,7 +305,6 @@ void DataflowDialog::setPlaybackTimeRange(qint64 start_time, qint64 end_time)
     playback_controls.setTimeRange(start_time, end_time);
 }
 
-
 /**
  * @brief DataflowDialog::resetPlayback
  */
@@ -332,7 +314,6 @@ void DataflowDialog::resetPlayback()
     playback_controls.resetTimeProgress();
     playback_current_time_ = exp_run_start_time_;
 }
-
 
 /**
  * @brief DataflowDialog::timerEvent
@@ -359,9 +340,6 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
         playback_controls.incrementCurrentTime(playback_interval_);
         playback_current_time_ += playback_interval_;
 
-        //auto&& elapsed_time = playback_current_time_ - exp_run_start_time_;
-        //qDebug() << QDateTime::fromMSecsSinceEpoch(playback_current_time_).toString("hh:mm:ss.zzz") << " - " << elapsed_time / 1000.000 << "S";
-
         for (const auto& port_item : port_items_) {
             port_item->playEvents(from_time, playback_current_time_);
         }
@@ -369,7 +347,6 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
 
     QFrame::timerEvent(event);
 }
-
 
 /**
  * @brief DataflowDialog::constructEdgeItems
@@ -389,7 +366,6 @@ void DataflowDialog::constructEdgeItems(const QHash<QString, PortInstanceGraphic
         addItemToScene(edge_item);
     }
 }
-
 
 /**
  * @brief DataflowDialog::addItemToScene

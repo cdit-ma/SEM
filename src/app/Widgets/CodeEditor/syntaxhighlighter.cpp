@@ -3,6 +3,21 @@
 
 #include <QtGui>
 
+const QStringList SyntaxHighlighter::keyword_patterns_{
+        "char", "class", "const",
+        "double", "enum", "explicit",
+        "friend", "inline", "int",
+        "long", "namespace", "operator",
+        "private", "protected", "public",
+        "short", "signals", "signed",
+        "slots", "static", "struct",
+        "template", "typedef", "typename",
+        "union", "unsigned", "virtual",
+        "void", "volatile", "float",
+        "extern", "#include", "virtual",
+        "this", "const"
+};
+
 QVector<ParenthesisInfo *> TextBlockData::parentheses()
 {
 	return m_parentheses;
@@ -15,7 +30,6 @@ void TextBlockData::insert(ParenthesisInfo *info)
 		   info->position > m_parentheses.at(i)->position) {
 		++i;
 	}
-	
 	m_parentheses.insert(i, info);
 }
 
@@ -42,7 +56,7 @@ void SyntaxHighlighter::highlightBlock(const QString &text)
 			}
 		}
 	}
-	
+
 	highlightParenthesis(text);
 }
 
@@ -50,7 +64,7 @@ void SyntaxHighlighter::highlightParenthesis(const QString &text)
 {
 	QRegExp rx(R"(\(|\)|\{|\}|\[|\]|\<|\>)");
 	auto data = new TextBlockData;
-	
+
 	int pos = 0;
 	while(true){
 		pos = text.indexOf(rx, pos);
@@ -64,70 +78,65 @@ void SyntaxHighlighter::highlightParenthesis(const QString &text)
 			break;
 		}
 	}
-	
+
 	setCurrentBlockUserData(data);
 }
 
 void SyntaxHighlighter::themeChanged()
 {
-	highlightingRules.clear();
-	
-	commentFormat.setForeground(Theme::theme()->getTextColor(ColorRole::DISABLED));
+	Theme* theme = Theme::theme();
+	commentFormat.setForeground(theme->getTextColor(ColorRole::DISABLED));
 	commentFormat.setFontItalic(true);
-	
-	functionFormat.setForeground(Theme::theme()->getHighlightColor());
-	functionFormat.setFontItalic(true);
-	keywordFormat.setForeground(Theme::theme()->getHighlightColor());
-	keywordFormat.setFontWeight(QFont::Bold);
-	templateFormat.setForeground(Theme::theme()->getAltTextColor());
-	quotationFormat.setForeground(Theme::theme()->getAltTextColor());
-	
-	HighlightingRule rule;
-	QStringList keywordPatterns;
-	keywordPatterns << "char" << "class" << "const"
-					<< "double" << "enum" << "explicit"
-					<< "friend" << "inline" << "int"
-					<< "long" << "namespace" << "operator"
-					<< "private" << "protected" << "public"
-					<< "short" << "signals" << "signed"
-					<< "slots" << "static" << "struct"
-					<< "template" << "typedef" << "typename"
-					<< "union" << "unsigned" << "virtual"
-					<< "void" << "volatile" << "float" << "extern"
-					<< "#include" << "virtual"
-					<< "this" << "const";
-	
-	for (const auto& pattern : keywordPatterns) {
-		rule.pattern = QRegularExpression("(" + pattern + ")");
-		rule.format = keywordFormat;
-		highlightingRules.append(rule);
-	}
 
-	{
-		auto str_reg = QRegularExpression(R"((".*?"))");
-		rule.pattern = str_reg;
-		rule.format = quotationFormat;
-		highlightingRules.append(rule);
-	}
-	
-	{
-		rule.pattern = QRegularExpression(R"((\w+[\w|\d]*(?:<.*?>)?)\()");
-		rule.format = functionFormat;
-		highlightingRules.append(rule);
-	}
-	
-	{
-		auto angle_reg = QRegularExpression("<(.*?)>");
-		rule.pattern = angle_reg;
-		rule.format = templateFormat;
-		highlightingRules.append(rule);
-	}
-	
-	{
-		rule.pattern = QRegularExpression("(//.*)");
-		rule.format = commentFormat;
-		highlightingRules.append(rule);
-	}
+	functionFormat.setForeground(theme->getHighlightColor());
+	functionFormat.setFontItalic(true);
+
+	keywordFormat.setForeground(theme->getHighlightColor());
+	keywordFormat.setFontWeight(QFont::Bold);
+
+	templateFormat.setForeground(theme->getAltTextColor());
+	quotationFormat.setForeground(theme->getAltTextColor());
+
+    setupHighlightingRules();
+}
+
+void SyntaxHighlighter::setupHighlightingRules()
+{
+    highlightingRules.clear();
+
+    HighlightingRule rule;
+
+    for (const auto& pattern : keyword_patterns_) {
+        rule.pattern = QRegularExpression("(" + pattern + ")");
+        rule.format = keywordFormat;
+        highlightingRules.append(rule);
+    }
+
+    {
+        auto str_reg = QRegularExpression(R"((".*?"))");
+        rule.pattern = str_reg;
+        rule.format = quotationFormat;
+        highlightingRules.append(rule);
+    }
+
+    {
+        rule.pattern = QRegularExpression(R"((\w+[\w|\d]*(?:<.*?>)?)\()");
+        rule.format = functionFormat;
+        highlightingRules.append(rule);
+    }
+
+    {
+        auto angle_reg = QRegularExpression("<(.*?)>");
+        rule.pattern = angle_reg;
+        rule.format = templateFormat;
+        highlightingRules.append(rule);
+    }
+
+    {
+        rule.pattern = QRegularExpression("(//.*)");
+        rule.format = commentFormat;
+        highlightingRules.append(rule);
+    }
 }
 
 bool ParenthesisInfo::isOpening() const

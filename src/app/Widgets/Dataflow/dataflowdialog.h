@@ -43,7 +43,7 @@ private slots:
     void themeChanged();
 
 protected:
-    void timerEvent(QTimerEvent* event);
+    void timerEvent(QTimerEvent* event) override;
 
 private:
     void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);

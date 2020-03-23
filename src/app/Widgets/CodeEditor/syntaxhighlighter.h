@@ -32,7 +32,7 @@ private:
 
 class SyntaxHighlighter : public QSyntaxHighlighter
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
 	explicit SyntaxHighlighter(QTextDocument *parent = nullptr);
@@ -43,6 +43,7 @@ protected:
 
 private:
 	void themeChanged();
+	void setupHighlightingRules();
 	
 	struct HighlightingRule
 	{
@@ -57,6 +58,8 @@ private:
 	QTextCharFormat quotationFormat;
 	QTextCharFormat functionFormat;
 	QTextCharFormat templateFormat;
+
+	static const QStringList keyword_patterns_;
 };
 
 #endif // SYNTAXHIGHLIGHTER_H

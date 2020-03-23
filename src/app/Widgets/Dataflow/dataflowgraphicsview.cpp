@@ -2,7 +2,6 @@
 #include "EntityItems/componentinstancegraphicsitem.h"
 
 #include <QtMath>
-#include <QDebug>
 
 #define ZOOM_FACTOR 1.05
 
@@ -18,10 +17,9 @@ DataflowGraphicsView::DataflowGraphicsView(QWidget* parent)
     setMinimumSize(600, 400);
 
     setFocusPolicy(Qt::StrongFocus);
-    setCacheMode(QGraphicsView::CacheBackground);
-
-    setTransformationAnchor(QGraphicsView::NoAnchor);
-    setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+    setCacheMode(CacheBackground);
+    setTransformationAnchor(NoAnchor);
+    setViewportUpdateMode(MinimalViewportUpdate);
 
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::SmoothPixmapTransform, true);
@@ -29,7 +27,6 @@ DataflowGraphicsView::DataflowGraphicsView(QWidget* parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
-
 
 /**
  * @brief DataflowGraphicsView::mousePressEvent
@@ -41,10 +38,8 @@ void DataflowGraphicsView::mousePressEvent(QMouseEvent *event)
         panning_ = true;
         prev_pan_origin_ = mapToScene(event->pos());
     }
-
     QGraphicsView::mousePressEvent(event);
 }
-
 
 /**
  * @brief DataflowGraphicsView::mouseMoveEvent
@@ -58,10 +53,8 @@ void DataflowGraphicsView::mouseMoveEvent(QMouseEvent *event)
         translate(delta.x(), delta.y());
         prev_pan_origin_ = mapToScene(event->pos());
     }
-
     QGraphicsView::mouseMoveEvent(event);
 }
-
 
 /**
  * @brief DataflowGraphicsView::mouseReleaseEvent
@@ -79,7 +72,7 @@ void DataflowGraphicsView::mouseReleaseEvent(QMouseEvent *event)
             centerOn(hit_item);
 
             // TODO: Need to do additional calculation to center the item within the view
-            // if the scene rect is smaller than the viewport rect
+            //  if the scene rect is smaller than the viewport rect
 
             // NOTE: Moving the center of the scene rect changes its size
             //  The scene rect needs to be re-positioned if its size is smaller than the
@@ -99,7 +92,6 @@ void DataflowGraphicsView::mouseReleaseEvent(QMouseEvent *event)
 
     QGraphicsView::mouseReleaseEvent(event);
 }
-
 
 /**
  * @brief DataflowGraphicsView::wheelEvent

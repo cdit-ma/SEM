@@ -51,13 +51,12 @@ private:
     void setupLayout();
     void setupSubInfoLayout();
 
-    // This is used to prevent the flash from being stopped/reset prematurely due to previous flash timers ending
-    qint64 flash_end_time_ = 0;
     bool event_src_port_ = false;
-
     Qt::Alignment alignment_ = Qt::AlignLeft;
+
     QPair<QString, QString> icon_path;
 
+    // These are used to prevent the flash from being stopped/reset prematurely due to previous flash timers ending
     qint64 port_lifecycle_flash_end_time_ = 0;
     qint64 port_event_flash_end_time_ = 0;
 

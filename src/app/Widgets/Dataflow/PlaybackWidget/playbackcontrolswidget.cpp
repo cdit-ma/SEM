@@ -52,7 +52,6 @@ PlaybackControlsWidget::PlaybackControlsWidget(QWidget* parent)
     themeChanged();
 }
 
-
 /**
  * @brief PlaybackControlsWidget::themeChanged
  */
@@ -85,7 +84,6 @@ void PlaybackControlsWidget::themeChanged()
     jump_to_end_action_->setIcon(theme->getIcon("Icons", "skipNext"));
 }
 
-
 /**
  * @brief PlaybackControlsWidget::setControlsEnabled
  * @param enabled
@@ -99,7 +97,6 @@ void PlaybackControlsWidget::setControlsEnabled(bool enabled)
     time_progressbar_.setEnabled(enabled);
 }
 
-
 /**
  * @brief PlaybackControlsWidget::setPlayPauseCheckedState
  * @param checked
@@ -108,7 +105,6 @@ void PlaybackControlsWidget::setPlayPauseCheckedState(bool checked)
 {
     play_pause_action_->setChecked(checked);
 }
-
 
 /**
  * @brief PlaybackControlsWidget::setTimeRange
@@ -120,7 +116,6 @@ void PlaybackControlsWidget::setTimeRange(qint64 start_time, qint64 end_time)
     time_progressbar_.setTimeRange(start_time, end_time);
 }
 
-
 /**
  * @brief PlaybackControlsWidget::updateEndTime
  * @param time
@@ -129,7 +124,6 @@ void PlaybackControlsWidget::updateEndTime(qint64 time)
 {
     time_progressbar_.updateEndTime(time);
 }
-
 
 /**
  * @brief PlaybackControlsWidget::setCurrentTime
@@ -140,7 +134,6 @@ void PlaybackControlsWidget::setCurrentTime(qint64 time)
     time_progressbar_.setCurrentTime(time);
 }
 
-
 /**
  * @brief PlaybackControlsWidget::incrementCurrentTime
  * @param ms
@@ -149,7 +142,6 @@ void PlaybackControlsWidget::incrementCurrentTime(int ms)
 {
     time_progressbar_.incrementCurrentTime(ms);
 }
-
 
 /**
  * @brief PlaybackControlsWidget::resetTimeProgress

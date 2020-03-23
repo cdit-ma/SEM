@@ -12,7 +12,7 @@ class PlaybackControlsWidget : public QWidget
     Q_OBJECT
 
 public:
-    PlaybackControlsWidget(QWidget* parent = nullptr);
+    explicit PlaybackControlsWidget(QWidget* parent = nullptr);
 
 signals:
     void play();

@@ -10,12 +10,10 @@ class TimeProgressBar : public QWidget
     Q_OBJECT
 
 public:
-    TimeProgressBar(QWidget* parent = nullptr);
+    explicit TimeProgressBar(QWidget* parent = nullptr);
 
 public slots:
     void themeChanged();
-
-    void setEnabled(bool enabled);
 
     void setTimeRange(qint64 start_time, qint64 end_time);
     void updateEndTime(qint64 time);

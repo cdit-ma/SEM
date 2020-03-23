@@ -8,11 +8,11 @@ namespace MEDEA {
 class GraphicsLayoutItem : public QGraphicsLayoutItem
 {
 protected:
-    GraphicsLayoutItem();
+    GraphicsLayoutItem() = default;
 
     // Required for QGraphicsLayoutItem
-    virtual void setGeometry(const QRectF &geom) override = 0;
-    virtual QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override = 0;
+    void setGeometry(const QRectF &geom) override = 0;
+    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override = 0;
 
     int getDefaultWidth() const;
     int getDefaultHeight() const;
