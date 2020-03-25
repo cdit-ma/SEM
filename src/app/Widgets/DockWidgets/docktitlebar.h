@@ -4,7 +4,6 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QAction>
-//#include <QPixmap>
 
 class DockTitleBar : public QToolBar
 {
@@ -13,38 +12,37 @@ class DockTitleBar : public QToolBar
 public:
     enum DOCK_ACTION{DA_CLOSE, DA_MAXIMIZE, DA_POPOUT, DA_PROTECT, DA_HIDE, DA_ICON};
 
-    explicit DockTitleBar(QWidget *parent=0);
+    explicit DockTitleBar(QWidget* parent = nullptr);
 
     void setActive(bool active);
-    void setIcon(QString iconPath, QString iconName);
+    void setIcon(const QString& iconPath, const QString& iconName);
 
     QAction* getAction(DOCK_ACTION action);
-    QList<QAction*> getToolActions();
-    void addToolAction(QAction* action, QString iconPath, QString iconName, Qt::Alignment alignment = Qt::AlignRight);
+    QList<QAction*> getToolActions() const ;
+    void addToolAction(QAction* action, const QString& iconPath, const QString& iconName, Qt::Alignment alignment = Qt::AlignRight);
 
-    void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
-    QString getTitle();
+    void setTitle(const QString& title, Qt::Alignment alignment = Qt::AlignCenter);
+    QString getTitle() const;
 
 private slots:
     void themeChanged();
     void updateActiveStyle();
 
 private:
-    void updateIcon(QAction* action, QString iconPath, QString iconName);
+    void updateIcon(QAction* action, const QString& iconPath, const QString& iconName);
     void setupToolBar();
-    bool isActive();
 
-private:
-    QLabel* titleLabel = 0;
+    QLabel* titleLabel = nullptr;
 
-    QAction* closeAction;
-    QAction* maximizeAction;
-    QAction* popOutAction;
-    QAction* protectAction;
-    QAction* hideAction;
-    QAction* iconAction;
+    QAction* closeAction = nullptr;
+    QAction* maximizeAction = nullptr;
+    QAction* popOutAction = nullptr;
+    QAction* protectAction = nullptr;
+    QAction* hideAction = nullptr;
+    QAction* iconAction = nullptr;
 
     QList<QAction*> toolActions;
-    bool _isActive;
+    bool _isActive = false;
 };
+
 #endif // DOCKTITLEBAR_H

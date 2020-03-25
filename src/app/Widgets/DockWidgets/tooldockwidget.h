@@ -9,8 +9,9 @@ class ToolDockWidget : public BaseDockWidget
     Q_OBJECT
 
 protected:
-    ToolDockWidget(QString title, QWidget* parent = nullptr);
-    void themeChanged();
+    explicit ToolDockWidget(const QString& title, QWidget* parent = nullptr);
+
+    void themeChanged() override;
 };
 
 #endif // TOOLDOCKWIDGET_H
