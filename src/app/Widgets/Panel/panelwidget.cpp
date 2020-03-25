@@ -1,4 +1,6 @@
 #include "panelwidget.h"
+#include "../Windows/mainwindow.h"
+#include "../DockWidgets/defaultdockwidget.h"
 
 #ifdef _WIN32
     #define NOMINMAX
@@ -11,10 +13,6 @@
 #include <QStandardPaths>
 #include <QImageWriter>
 #include <QMessageBox>
-
-#include "../../theme.h"
-#include "../Windows/mainwindow.h"
-#include "../DockWidgets/defaultdockwidget.h"
 
 #define PANEL_OPACITY 248
 #define TAB_WIDTH 100
@@ -49,7 +47,6 @@ PanelWidget::PanelWidget(QWidget *parent)
     }
 }
 
-
 /**
  * @brief PanelWidget::addTab
  * @param title
@@ -59,9 +56,8 @@ PanelWidget::PanelWidget(QWidget *parent)
  */
 QAction* PanelWidget::addTab(QString title, QString iconPath, QString iconName)
 {
-    return addTab(title, new QWidget(this), iconPath, iconName);
+    return addTab(std::move(title), new QWidget(this), std::move(iconPath), std::move(iconName));
 }
-
 
 /**
  * @brief PanelWidget::addTab
@@ -86,7 +82,6 @@ QAction* PanelWidget::addTab(QString title, QWidget* widget, QString iconPath, Q
         if (iconPath.isEmpty() || iconName.isEmpty()) {
             iconPath = "Icons";
             iconName = "dotsInCircle";
-            //iconName = "circleHalo";
         }
 
         // TODO - Setup icons that ignore toggle state colouring
@@ -108,85 +103,78 @@ QAction* PanelWidget::addTab(QString title, QWidget* widget, QString iconPath, Q
             tabsActionGroup->setExclusive(true);
         }
 
-        int maxWidth = qMax(fontMetrics().width(title) + 40, TAB_WIDTH);
+        int maxWidth = qMax(fontMetrics().horizontalAdvance(title) + 40, TAB_WIDTH);
         tabsActionGroup->addAction(action);
         tabBar->widgetForAction(action)->setFixedWidth(maxWidth);
         return action;
     }
 
-    return 0;
+    return nullptr;
 }
-
 
 /**
  * @brief PanelWidget::isMinimised
  * @return
  */
-bool PanelWidget::isMinimised()
+bool PanelWidget::isMinimised() const
 {
     return minimiseAction->isChecked();
 }
-
 
 /**
  * @brief PanelWidget::constructEventsView
  */
 void PanelWidget::constructEventsView()
 {
-    TimelineChartView* view = new TimelineChartView(this);
+    auto view = new TimelineChartView(this);
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Events", view);
     defaultActiveAction->trigger();
 }
-
 
 /**
  * @brief PanelWidget::constructPortLifecycleEventsView
  */
 void PanelWidget::constructPortLifecycleEventsView()
 {
-    TimelineChartView* view = new TimelineChartView(this);
+    auto view = new TimelineChartView(this);
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("PortLifecycle", view);
     defaultActiveAction->trigger();
 }
-
 
 /**
  * @brief PanelWidget::constructWorkloadEventsView
  */
 void PanelWidget::constructWorkloadEventsView()
 {
-    TimelineChartView* view = new TimelineChartView(this);
+    auto view = new TimelineChartView(this);
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Workload", view);
     defaultActiveAction->trigger();
 }
-
 
 /**
  * @brief PanelWidget::constructCPUEventsView
  */
 void PanelWidget::constructCPUEventsView()
 {
-    TimelineChartView* view = new TimelineChartView(this);
+    auto view = new TimelineChartView(this);
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("CPUUtilisation", view);
     defaultActiveAction->trigger();
 }
-
 
 /**
  * @brief PanelWidget::constructMemoryEventsView
  */
 void PanelWidget::constructMemoryEventsView()
 {
-    TimelineChartView* view = new TimelineChartView(this);
+    auto view = new TimelineChartView(this);
     connectChartViewToAggreagtionProxy(view);
     defaultActiveAction = addTab("Memory", view);
     defaultActiveAction->trigger();
 }
-
 
 /**
  * @brief PanelWidget::setViewController
@@ -210,7 +198,6 @@ void PanelWidget::setViewController(ViewController *vc)
     //constructMemoryEventsView();
     constructEventsView();
 }
-
 
 /**
  * @brief PanelWidget::themeChanged
@@ -261,15 +248,14 @@ void PanelWidget::themeChanged()
     }
 }
 
-
 /**
  * @brief PanelWidget::activeTabChanged
  */
 void PanelWidget::activeTabChanged()
 {
-    QAction* activeTabAction = qobject_cast<QAction*>(sender());
+    auto activeTabAction = qobject_cast<QAction*>(sender());
     if (activeTabAction) {
-        /*QWidget* tabWidget = tabWidgets.value(activeTabAction, 0);
+        /*QWidget* tabWidget = tabWidgets.value(activeTabAction, nullptr);
         // TODO - This is temporary; testing live data stream
         if (tabWidget) {
             playPauseAction->setVisible(activeTabAction->text() == "Test");
@@ -278,14 +264,13 @@ void PanelWidget::activeTabChanged()
     }
 }
 
-
 /**
  * @brief PanelWidget::tabMenuTriggered
  * @param action
  */
 void PanelWidget::tabMenuTriggered(QAction* action)
 {
-    QAction* tabAction = tabMenuActions.value(action, 0);
+    QAction* tabAction = tabMenuActions.value(action, nullptr);
     if (!tabAction)
         return;
 
@@ -317,24 +302,22 @@ void PanelWidget::tabMenuTriggered(QAction* action)
     }
 }
 
-
 /**
  * @brief PanelWidget::setActiveTabTitle
  * @param title
  */
-void PanelWidget::setActiveTabTitle(QString title)
+void PanelWidget::setActiveTabTitle(const QString& title)
 {
     if (tabsActionGroup) {
         auto activeAction = tabsActionGroup->checkedAction();
         if (activeAction) {
             activeAction->setText(title);
             activeAction->setToolTip(title);
-            auto maxWidth = qMax(fontMetrics().width(title) + 40, TAB_WIDTH);
+            auto maxWidth = qMax(fontMetrics().horizontalAdvance(title) + 40, TAB_WIDTH);
             tabBar->widgetForAction(activeAction)->setFixedWidth(maxWidth);
         }
     }
 }
-
 
 /**
  * @brief PanelWidget::minimisePanel
@@ -346,7 +329,6 @@ void PanelWidget::minimisePanel(bool checked)
     emit minimiseTriggered(checked);
 }
 
-
 /**
  * @brief PanelWidget::closePanel
  */
@@ -355,7 +337,6 @@ void PanelWidget::closePanel()
     setVisible(false);
     emit closeTriggered();
 }
-
 
 /**
  * @brief PanelWidget::snapShotPanel
@@ -366,7 +347,7 @@ void PanelWidget::snapShotPanel()
     if (!activeAction)
         return;
 
-    QWidget* tabWidget = tabWidgets.value(activeAction, 0);
+    QWidget* tabWidget = tabWidgets.value(activeAction, nullptr);
     if (!tabWidget)
         return;
 
@@ -383,7 +364,7 @@ void PanelWidget::snapShotPanel()
     fileDialog.setDirectory(initialPath);
 
     QStringList mimeTypes;
-    foreach (const QByteArray &bf, QImageWriter::supportedMimeTypes())
+    for (const QByteArray &bf : QImageWriter::supportedMimeTypes())
         mimeTypes.append(QLatin1String(bf));
     fileDialog.setMimeTypeFilters(mimeTypes);
     fileDialog.selectMimeTypeFilter("image/" + format);
@@ -397,7 +378,6 @@ void PanelWidget::snapShotPanel()
         QMessageBox::warning(this, tr("Save Error"), tr("The image could not be saved to \"%1\".")
                              .arg(QDir::toNativeSeparators(fileName)));
 }
-
 
 /**
  * @brief PanelWidget::popOutActiveTab
@@ -415,7 +395,7 @@ void PanelWidget::popOutActiveTab()
         return;
     }
 
-    QWidget* tabWidget = tabWidgets.value(activeTab, 0);
+    QWidget* tabWidget = tabWidgets.value(activeTab, nullptr);
     dockWidget->setWidget(tabWidget);
 
     // remove tab and related actions from this panel
@@ -424,7 +404,6 @@ void PanelWidget::popOutActiveTab()
     // we need to set another tab active
     activateNewTab(activeTab);
 }
-
 
 /**
  * @brief PanelWidget::clearActiveTab
@@ -435,14 +414,13 @@ void PanelWidget::clearActiveTab()
     if (!activeTab)
         return;
 
-    auto widget = tabWidgets.value(activeTab, 0);
+    auto widget = tabWidgets.value(activeTab, nullptr);
     if (widget) {
         auto view = qobject_cast<TimelineChartView*>(widget);
         if (view)
             view->clearChartList();
     }
 }
-
 
 /**
  * @brief PanelWidget::requestData
@@ -451,7 +429,6 @@ void PanelWidget::requestData()
 {
     emit reloadTimelineEvents();
 }
-
 
 /**
  * @brief PanelWidget::handleTimeout
@@ -478,7 +455,6 @@ void PanelWidget::handleTimeout()
     //chart->scroll(nextX, 0);
 }
 
-
 /**
  * @brief PanelWidget::playPauseToggled
  * @param checked
@@ -490,7 +466,6 @@ void PanelWidget::playPauseToggled(bool checked)
         timer->start();
     }
 }
-
 
 /**
  * @brief PanelWidget::removeTab
@@ -523,7 +498,6 @@ void PanelWidget::removeTab(QAction* tabAction, bool deleteWidget)
     }
 }
 
-
 /**
  * @brief PanelWidget::activateNewTab
  * @param previouslyActivatedTab
@@ -540,7 +514,6 @@ void PanelWidget::activateNewTab(QAction* previouslyActivatedTab)
         }
     }
 }
-
 
 /**
  * @brief PanelWidget::setupLayout
@@ -584,9 +557,8 @@ void PanelWidget::setupLayout()
     tabsMenuAction->setMenu(tabsMenu);
     tabsMenuAction->setVisible(false); // hide for now
 
-    QToolButton* menuButton = (QToolButton*) titleBar->widgetForAction(tabsMenuAction);
+    auto menuButton = (QToolButton*) titleBar->widgetForAction(tabsMenuAction);
     menuButton->setPopupMode(QToolButton::InstantPopup);
-    //titleBar->addSeparator();
 
     clearActiveTabAction = titleBar->addAction("Clear Charts");
     connect(clearActiveTabAction, &QAction::triggered, this, &PanelWidget::clearActiveTab);
@@ -602,7 +574,7 @@ void PanelWidget::setupLayout()
 
     tabStack = new QStackedWidget(this);
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
     layout->addWidget(titleBar);
@@ -618,7 +590,6 @@ void PanelWidget::setupLayout()
     chartPopup = new ChartInputPopup(this);
 }
 
-
 /**
  * @brief PanelWidget::updateIcon
  * @param action
@@ -626,7 +597,7 @@ void PanelWidget::setupLayout()
  * @param iconName
  * @param newIcon
  */
-void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon)
+void PanelWidget::updateIcon(QAction* action, const QString& iconPath, const QString& iconName, bool newIcon)
 {
     if (!action)
         return;
@@ -638,7 +609,6 @@ void PanelWidget::updateIcon(QAction* action, QString iconPath, QString iconName
 
     action->setIcon(Theme::theme()->getIcon(iconPath, iconName));
 }
-
 
 /**
  * @brief PanelWidget::connectChartViewToAggreagtionProxy

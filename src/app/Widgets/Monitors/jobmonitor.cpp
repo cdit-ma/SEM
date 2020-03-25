@@ -301,7 +301,7 @@ void JobMonitor::requestJobConsoleOutput(const QString& job_name, int job_id)
     if (!job_monitor) {
         //Has to be Jenkins
         auto jenkins_job_monitor = constructJenkinsMonitor(job_name, job_id);
-        // NOTE: If the function above returned the existing monitor if we have one, we don't need null checks here and below
+        // NOTE: If the function above returned the existing monitor if we already have one, we don't need null checks here and below
         if (jenkins_job_monitor && jenkins_manager) {
             connect(jenkins_job_monitor, &JenkinsMonitor::Abort, [=](){ jenkins_manager->AbortJob(job_name, job_id); });
             connect(jenkins_job_monitor, &JenkinsMonitor::GotoURL, [=](){ jenkins_manager->GotoJob(job_name, job_id); });

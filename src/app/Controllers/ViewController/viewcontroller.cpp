@@ -1642,12 +1642,17 @@ void ViewController::executeModelLocal()
             auto local_monitor = exec_monitor->getConsoleMonitor("Local Deployment");
             if(!local_monitor){
                 local_monitor = exec_monitor->constructConsoleMonitor();
-                connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, local_monitor, &Monitor::AppendLine);
-                connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, local_monitor, &Monitor::AppendLine);
-                connect(execution_manager, &ExecutionManager::ModelExecutionStateChanged, local_monitor, &Monitor::StateChanged);
-                connect(local_monitor, &Monitor::Abort, execution_manager, &ExecutionManager::CancelModelExecution);
+                // NOTE: If the function above returned the existing monitor if we already have one, we don't need null checks here and below
+                if (local_monitor) {
+                    connect(execution_manager, &ExecutionManager::GotProcessStdOutLine, local_monitor, &Monitor::AppendLine);
+                    connect(execution_manager, &ExecutionManager::GotProcessStdErrLine, local_monitor, &Monitor::AppendLine);
+                    connect(execution_manager, &ExecutionManager::ModelExecutionStateChanged, local_monitor, &Monitor::StateChanged);
+                    connect(local_monitor, &Monitor::Abort, execution_manager, &ExecutionManager::CancelModelExecution);
+                }
             }
-            local_monitor->Clear();
+            if (local_monitor) {
+                local_monitor->Clear();
+            }
             showExecutionMonitor();
         }
     }
