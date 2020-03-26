@@ -175,9 +175,9 @@ void DockTitleBar::setupToolBar()
 {
     iconAction = addAction("");
 
-    /*
     // TODO: Test further and keep an eye out for weird looking/behaving icons on DockWidget's DockTitleBars
     //  As far as I'm aware, the icons are purely used for display and have no functionality; this shouldn't be needed
+    /*
     iconAction->setCheckable(true);
     iconAction->setChecked(true);
     connect(iconAction, &QAction::triggered, [=](){iconAction->setChecked(true);});
