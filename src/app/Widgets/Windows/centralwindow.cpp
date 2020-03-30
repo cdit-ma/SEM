@@ -1,5 +1,7 @@
 #include "centralwindow.h"
-CentralWindow::CentralWindow(BaseWindow* parent_window):ViewWindow(parent_window)
+
+CentralWindow::CentralWindow(BaseWindow* parent_window)
+    : ViewWindow(parent_window)
 {
     this->parent_window = parent_window;
     setAcceptDrops(true);
@@ -11,15 +13,11 @@ CentralWindow::CentralWindow(BaseWindow* parent_window):ViewWindow(parent_window
     setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
 }
 
-CentralWindow::~CentralWindow()
+QMenu* CentralWindow::createPopupMenu()
 {
-}
-
-QMenu* CentralWindow::createPopupMenu(){
-    if(parent_window){
+    if (parent_window) {
         return parent_window->createPopupMenu();
-    }else{
+    } else {
         return new QMenu(this);
     }
 }
-
