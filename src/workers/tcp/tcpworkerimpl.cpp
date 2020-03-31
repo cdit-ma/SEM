@@ -1,8 +1,17 @@
+
 #include <memory>
+
 
 #include "tcpworkerimpl.h"
 #include <boost/bind.hpp>
 #include <iostream>
+
+// Boost deprecated the old get_io_service() in favour of get_executor() since 1.67
+#if BOOST_VERSION >= 107000
+#define GET_IO_SERVICE(s) ((boost::asio::io_context&)(s).get_executor().context())
+#else
+#define GET_IO_SERVICE(s) ((s).get_io_service())
+#endif
 
 TcpWorkerImpl::TcpWorkerImpl() { context_ = std::make_shared<boost::asio::io_context>(); }
 
@@ -140,7 +149,9 @@ void TcpWorkerImpl::StartAccept(boost::asio::ip::tcp::acceptor& acceptor)
 {
     using boost::asio::ip::tcp;
 
-    auto socket = std::make_shared<tcp::socket>(acceptor.get_io_service());
+    //auto socket = std::make_shared<tcp::socket>(GET_IO_SERVICE(acceptor));
+
+    auto socket = std::make_shared<tcp::socket>(*context_);
 
     // Add an accept call to the service.  This will prevent io_service::run()
     // from returning.

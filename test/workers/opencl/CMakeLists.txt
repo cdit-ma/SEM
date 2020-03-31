@@ -26,9 +26,35 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_runparallel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_buffer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/openclworker_kmeans.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/openclfftworker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/common.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common.h
 )
+
+# Search for OpenCL FFT libraries
+set(CLFFT_ROOT $ENV{CLFFT_ROOT})
+set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
+
+find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
+
+if(DEFINED ENV{ALTERA_OCLSDK_LIB})
+    set(ALTERA_OCLSDK_LIB_ROOT $ENV{ALTERA_OCLSDK_LIB_ROOT})
+    find_library(ALTERA_OCLSDK_LIB OpenCL ${ALTERA_OCLSDK_LIB_ROOT})
+endif()
+
+if (CLFFT_LIB)
+    SET(OPENCL_HAS_FFT true)
+elseif (ALTERA_OCLSDK_LIB)
+    SET(OPENCL_HAS_FFT true)
+else()
+    SET(OPENCL_HAS_FFT false)
+endif()
+
+if (OPENCL_HAS_FFT)
+    target_sources(${PROJECT_NAME} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/openclfftworker.cpp)
+else()
+    message("No OpenCL FFT library present, skipping FFT tests")
+endif(OPENCL_HAS_FFT)
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_TEST_SOURCE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)

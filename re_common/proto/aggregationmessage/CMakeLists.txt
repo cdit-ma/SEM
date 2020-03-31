@@ -13,6 +13,7 @@ endif()
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/aggregationmessage.proto)
 
 add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
+target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 
 # Include Directories
 target_include_directories(${PROJ_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})

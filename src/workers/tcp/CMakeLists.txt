@@ -2,6 +2,12 @@ set(PROJ_NAME tcp_worker)
 project(${PROJ_NAME}
         VERSION ${PROJECT_VERSION})
 
+# See the TCP Worker wiki page for the reasoning.
+if (APPLE)
+    message(WARNING "Not building TCP Worker on apple platforms due to bug that causes hangs")
+    return()
+endif(APPLE)
+
 add_library(${PROJ_NAME} SHARED "")
 target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 

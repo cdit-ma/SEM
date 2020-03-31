@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include <unordered_map>
+
 namespace re::types::test {
 TEST(re_types_uuid, random_cons)
 {

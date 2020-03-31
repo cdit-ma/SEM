@@ -13,6 +13,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         ipv4.hpp
         socketaddress.hpp)
 
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
+
 add_subdirectory(proto)
 
 if (BUILD_TEST)
