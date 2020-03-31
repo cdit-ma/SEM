@@ -5,6 +5,9 @@
 #ifndef RE_COMMON_H
 #define RE_COMMON_H
 
+// Provides floating-point compatible version of std::abs on clang
+#include <cmath>
+
 #include <algorithm>
 #include <vector>
 
@@ -28,7 +31,8 @@ void expect_nearly_equal(const std::vector<T>& expected, const std::vector<T>& a
         if(actual[idx] == 0) {
             EXPECT_NEAR(expected[idx], actual[idx], thresh) << "at index: " << idx;
         } else {
-            EXPECT_NEAR(std::abs((expected[idx]) / (actual[idx])), 1, thresh);
+            const auto&& ratio = std::abs(expected[idx] / actual[idx]);
+            EXPECT_NEAR(ratio, 1, thresh);
         }
     }
 }

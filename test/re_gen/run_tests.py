@@ -1,5 +1,9 @@
 import glob, time, subprocess, os, sys
 
+import argparse
+
+from xml.sax.saxutils import quoteattr
+
 cd_stack = []
 def push_cd(new_dir):
     global cd_stack
@@ -26,7 +30,7 @@ def run_command(args):
     except subprocess.CalledProcessError as e:
         success = False
         output = e.output
-    return [success, output, time.time() - start_time]
+    return [success, output.decode(), time.time() - start_time]
 
 
 def run_regen_generation(model_path):
@@ -57,7 +61,7 @@ def get_test_case(test_name, test_pass, test_time, fail_string = ""):
         output += tab + '<testcase ' + args + '/>\n'
     else:
         output += tab + '<testcase ' + args + '>\n'
-        output += tab + '\t<failure message="' + fail_string + '" />\n'
+        output += tab + '\t<failure message=' + quoteattr(fail_string) + ' />\n'
         output += tab + '</testcase>\n'
     return output
 
@@ -76,12 +80,29 @@ def get_test_suites_close():
 def get_xml_preamble():
     return '<?xml version="1.0" encoding="UTF-8"?>\n'
 
+parser  = argparse.ArgumentParser(description='Run re_gen tests and collate the results in JUnit XML format')
+parser.add_argument('-o', '--output_file',
+                    help='The xml file test output should be written to',
+                    default='output.xml'
+                    )
+parser.add_argument('--re_path',
+                    help='The path the the RE directory being tested',
+                    )
+cmd_args = parser.parse_args()
 
-try:
-    RE_GEN_PATH = os.environ.get('RE_PATH') + '/re_gen/'
-except:
-    print("RE_PATH environment variable not set")
-    sys.exit(-1)
+
+output_file = cmd_args.output_file
+
+if cmd_args.re_path:
+    print(cmd_args.re_path)
+    RE_GEN_PATH = cmd_args.re_path + '/re_gen/'
+else:
+    print("No --re_path parameter supplied, attempting to find from RE_PATH environment variable...")
+    try:
+        RE_GEN_PATH = os.environ.get('RE_PATH') + '/re_gen/'
+    except:
+        print("RE_PATH environment variable not set")
+        sys.exit(-1)
 
 all_suite_output = ""
 total_tests = 0
@@ -134,11 +155,6 @@ junit_output += get_test_suites_open("regen_tests", total_tests, total_fails, to
 junit_output += all_suite_output
 junit_output += get_test_suites_close()
 
-
-output_file = 'output.xml'
-if(len(sys.argv) == 2):
-    # Get the output name
-    output_file = sys.argv[1]
 
 print("Writing JUnit: " + output_file)
 f = open(output_file, "w")

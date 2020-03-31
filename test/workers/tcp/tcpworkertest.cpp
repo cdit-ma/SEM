@@ -102,6 +102,7 @@ TEST(Complex, Callback) {
     Tcp_Worker tx_worker(*tx_component, "tx_worker");
     tx_worker.SetAttributeValue("ip_address", ip_address);
     tx_worker.SetAttributeValue("port", port);
+    tx_worker.Configure();
 
     auto connect_success = tx_worker.Connect();
     EXPECT_TRUE(connect_success);
@@ -146,6 +147,7 @@ TEST(Complex, SendReceive) {
     Tcp_Worker tx_worker(*tx_component, "tx_worker");
     tx_worker.SetAttributeValue("ip_address", ip_address);
     tx_worker.SetAttributeValue("port", port);
+    tx_worker.Configure();
 
     auto connect_success = tx_worker.Connect();
     EXPECT_TRUE(connect_success);
@@ -231,6 +233,7 @@ TEST(Complex, BoundSend) {
     Tcp_Worker tx_worker(*tx_component, "tx_worker");
     tx_worker.SetAttributeValue("ip_address", ip_address);
     tx_worker.SetAttributeValue("port", port);
+    tx_worker.Configure();
 
     auto connect_success = tx_worker.Connect();
     EXPECT_TRUE(connect_success);
@@ -251,4 +254,4 @@ TEST(Complex, BoundSend) {
     rx_worker.Terminate();
     tx_worker.Terminate();
 }
- */
+*/

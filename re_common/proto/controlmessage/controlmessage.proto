@@ -190,6 +190,8 @@ message Component{
 
     repeated int32 replicate_indices = 5;
     repeated string location = 6;
+
+    repeated TriggerPrototype prototype_triggers = 7;
 }
 
 message Port{
@@ -231,6 +233,34 @@ message Attribute{
     repeated string s = 3;
     int64 i = 4;
     double d = 5;
+}
+
+message TriggerPrototype{
+    enum Metric{
+        CPU_UTIL = 0; // Prototype will be based on CPU as a whole rather than a specific core
+        MEM_UTIL = 1;
+    }
+    enum Comparator{
+        EQUAL = 0;
+        GREATER = 1;
+        LESS = 2;
+        GREATER_OR_EQUAL = 3;
+        LESS_OR_EQUAL = 4;
+    }
+    Info info = 1;
+    Metric metric = 2;
+    Comparator comparator = 3;
+    double value = 4;
+    bool single_activation = 5; // Is the trigger unable to be activated again if it has been activated once already?
+    uint64 reactivation_disabled_ms = 6; // If able to be reactivated, what is the minimum amount of time
+                                         //  (milliseconds) between activations ?
+    StrategyPrototype strategy = 7;
+}
+
+// Strategies are currently limited to spawning containers in the beta version, full version will be more configurable
+message StrategyPrototype {
+    Info info = 1;
+    Container container = 2;
 }
 
 message Logger{

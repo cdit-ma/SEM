@@ -61,3 +61,6 @@ cmake_install.cmake
 
 #Generated protobuf files
 *.pb.*
+
+# CLion virtual environment for Python development
+/venv/
