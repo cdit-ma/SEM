@@ -1,3 +1,4 @@
+
 #ifndef KEYNAME_LITERALS_H
 #define KEYNAME_LITERALS_H
 
@@ -109,5 +110,4 @@ namespace KeyName {
     extern const char* WaitPeriod;
     extern const char* ContainerReference;
 };
-
-#endif // KEYNAME_LITERALS_H
+#endif //KEYNAME_LITERALS_H
