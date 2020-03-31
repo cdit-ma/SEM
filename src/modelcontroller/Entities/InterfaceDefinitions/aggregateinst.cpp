@@ -33,9 +33,9 @@ AggregateInst::AggregateInst(EntityFactoryBroker& broker, bool is_temp) : DataNo
     }
     
     //Setup Data
-    broker.AttachData(this, "column_count", QVariant::Int, ProtectedState::UNPROTECTED, 1);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::ColumnCount, QVariant::Int, ProtectedState::UNPROTECTED, 1);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
 }
 
 bool AggregateInst::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
@@ -128,8 +128,8 @@ void AggregateInst::ParentSet(DataNode* child){
 void AggregateInst::parentSet(Node* parent){
     switch(parent->getNodeKind()){
         case NODE_KIND::PORT_SUBSCRIBER_IMPL:{
-            getFactoryBroker().AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
-            getFactoryBroker().AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
+            getFactoryBroker().AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
+            getFactoryBroker().AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, -1);
             break;
         }
         case NODE_KIND::AGGREGATE:
@@ -137,7 +137,7 @@ void AggregateInst::parentSet(Node* parent){
         case NODE_KIND::VARIABLE:
         case NODE_KIND::INPUT_PARAMETER_GROUP:
         case NODE_KIND::RETURN_PARAMETER_GROUP:{
-            getFactoryBroker().AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+            getFactoryBroker().AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
             SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
             break;
         }

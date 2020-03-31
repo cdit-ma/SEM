@@ -19,13 +19,12 @@ Header::Header(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_ki
     }
     
     //Setup Data
-    broker.AttachData(this, "code", QVariant::String, ProtectedState::UNPROTECTED);
-
-    auto header_location = broker.AttachData(this, "header_location", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Code, QVariant::String, ProtectedState::UNPROTECTED);
+    
+    auto header_location = broker.AttachData(this, KeyName::HeaderLocation, QVariant::String, ProtectedState::UNPROTECTED);
     header_location->addValidValues({"CPP", "Class Declaration", "Header"});
 
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, -1);
 }

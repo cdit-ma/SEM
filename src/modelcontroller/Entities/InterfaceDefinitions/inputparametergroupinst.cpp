@@ -32,11 +32,10 @@ MEDEA::InputParameterGroupInst::InputParameterGroupInst(::EntityFactoryBroker& b
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
-    
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, -1);
 }
 
 bool MEDEA::InputParameterGroupInst::canAdoptChild(Node* child){
@@ -67,7 +66,7 @@ bool MEDEA::InputParameterGroupInst::canAdoptVariadicParameters() const{
     auto parent_node = getParentNode();
 
     if(parent_node && parent_node->getNodeKind() == NODE_KIND::FUNCTION_CALL){
-        if(parent_node->getDataValue("is_variadic").toBool()){
+        if(parent_node->getDataValue(KeyName::IsVariadic).toBool()){
             return true;
         }
     }

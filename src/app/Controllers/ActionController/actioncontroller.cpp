@@ -64,10 +64,10 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_expand, &QAction::triggered, viewController, &ViewController::expandSelection);
         connect(edit_contract, &QAction::triggered, viewController, &ViewController::contractSelection);
 
-        connect(edit_incrementIndex, &QAction::triggered, [=](){viewController->incrementSelectedKey("index");});
-        connect(edit_decrementIndex, &QAction::triggered, [=](){viewController->decrementSelectedKey("index");});
-        connect(edit_incrementRow, &QAction::triggered, [=](){viewController->incrementSelectedKey("row");});
-        connect(edit_decrementRow, &QAction::triggered, [=](){viewController->decrementSelectedKey("row");});
+        connect(edit_incrementIndex, &QAction::triggered, [=](){viewController->incrementSelectedKey(KeyName::Index);});
+        connect(edit_decrementIndex, &QAction::triggered, [=](){viewController->decrementSelectedKey(KeyName::Index);});
+        connect(edit_incrementRow, &QAction::triggered, [=](){viewController->incrementSelectedKey(KeyName::Row);});
+        connect(edit_decrementRow, &QAction::triggered, [=](){viewController->decrementSelectedKey(KeyName::Row);});
 
         connect(view_fitView, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(true);});
         connect(view_fitAllViews, &QAction::triggered, [=](){emit viewController->vc_fitToScreen(false);});
@@ -817,7 +817,7 @@ void ActionController::setupActions()
     toolbar_contextToolbar = createRootAction("Toolbar", "Show Context Toolbar", "", "Icons", "gearDark");
     toolbar_addChild = createRootAction("Toolbar", "Add Child Entity", "", "Icons", "plus");
     toolbar_wiki = createRootAction("Toolbar", "View Wiki", "", "Icons", "book");
-    toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Icons", "copyX");
+    toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Value", "", "Icons", "copyX");
     toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Icons", "dotsVertical");
     toolbar_addDDSQOSProfile = createRootAction("Toolbar", "Add Profile", "", "Icons", "plus");
     toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Icons", "bin");

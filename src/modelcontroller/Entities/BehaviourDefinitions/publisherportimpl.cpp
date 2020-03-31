@@ -29,8 +29,8 @@ PublisherPortImpl::PublisherPortImpl(EntityFactoryBroker& broker, bool is_temp) 
     }
     
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
 bool PublisherPortImpl::canAdoptChild(Node *child)

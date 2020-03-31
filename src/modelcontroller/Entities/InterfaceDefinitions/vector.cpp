@@ -26,10 +26,10 @@ Vector::Vector(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     }
 
     //Setup Data
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "outer_type", QVariant::String, ProtectedState::PROTECTED, "Vector");
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::OuterType, QVariant::String, ProtectedState::PROTECTED, "Vector");
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
 bool Vector::canAdoptChild(Node *child)
@@ -62,13 +62,13 @@ bool Vector::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     return DataNode::canAcceptEdge(edge_kind, dst);
 }
 
-void Vector::updateVectorIcon(Node* node){
+void Vector::updateVectorIcon(Node* node)
+{
     auto children = node->getChildren(0);
     auto child_kind = children.size() ? children.first()->getNodeKind() : NODE_KIND::NONE;
-    
-    auto icon = node->getDataValue("kind").toString();
+    auto icon = node->getDataValue(KeyName::Kind).toString();
 
-    switch(child_kind){
+    switch (child_kind) {
         case NODE_KIND::NONE:
             break;
         case NODE_KIND::AGGREGATE_INST:
@@ -78,8 +78,9 @@ void Vector::updateVectorIcon(Node* node){
             icon += "_Member";
             break;
     }
-    node->setDataValue("icon_prefix", "EntityIcons");
-    node->setDataValue("icon", icon);
+    
+    node->setDataValue(KeyName::IconPrefix, "EntityIcons");
+    node->setDataValue(KeyName::Icon, icon);
 }
 
 void Vector::childAdded(Node* child){
@@ -95,12 +96,13 @@ void Vector::childRemoved(Node* child){
     Vector::BindVectorTypes(this, child, false);
 }
 
-void Vector::BindVectorTypes(Node* vector, Node* child, bool bind){
-    auto src_inner_type_data = vector->getData("inner_type");
-    auto child_type_data = child->getData("type");
+void Vector::BindVectorTypes(Node* vector, Node* child, bool bind)
+{
+    auto src_inner_type_data = vector->getData(KeyName::InnerType);
+    auto child_type_data = child->getData(KeyName::Type);
 
     //Got fully described data
-    if(src_inner_type_data && child_type_data){
+    if (src_inner_type_data && child_type_data) {
         child_type_data->linkData(src_inner_type_data, bind);
     }
 }

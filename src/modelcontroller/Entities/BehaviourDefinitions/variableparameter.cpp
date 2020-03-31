@@ -22,9 +22,8 @@ VariableParameter::VariableParameter(EntityFactoryBroker& broker, bool is_temp) 
         return;
     }
 
-
     //Setup Data
-    broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.RemoveData(this, "inner_type");
-    broker.RemoveData(this, "outer_type");
+    broker.AttachData(this, KeyName::Value, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.RemoveData(this, KeyName::InnerType);
+    broker.RemoveData(this, KeyName::OuterType);
 }

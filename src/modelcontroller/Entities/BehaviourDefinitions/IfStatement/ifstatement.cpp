@@ -25,8 +25,8 @@ MEDEA::IfStatement::IfStatement(::EntityFactoryBroker& broker, bool is_temp) : N
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::UNPROTECTED, "If Group");
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::UNPROTECTED, "If Group");
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
 
     broker.ConstructChildNode(*this, NODE_KIND::IF_CONDITION);
 }

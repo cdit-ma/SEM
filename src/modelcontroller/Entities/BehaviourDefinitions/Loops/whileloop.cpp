@@ -28,20 +28,20 @@ MEDEA::WhileLoop::WhileLoop(::EntityFactoryBroker& broker, bool is_temp) : Node(
         return;
     }
 
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
     
     auto expression = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::BOOLEAN_EXPRESSION);
     expression_ = expression;
-    broker.AttachData(expression_, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
-    broker.AttachData(expression_, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
-    broker.AttachData(expression_, "index", QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(expression_, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(expression_, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(expression_, KeyName::Index, QVariant::Int, ProtectedState::PROTECTED);
     
     //Set that the Expression can accept data
     expression->setDataReceiver(true);
     expression->setDataProducer(false);
 
-    auto data_expression_label = expression_->getData("label");
+    auto data_expression_label = expression_->getData(KeyName::Label);
     connect(data_expression_label, &Data::dataChanged, this, &MEDEA::WhileLoop::updateLabel);
     updateLabel();
 }
@@ -51,9 +51,9 @@ void MEDEA::WhileLoop::updateLabel(){
     QString new_label = "while";
     if(expression_){
         new_label += "(";
-        auto expression_label = expression_->getDataValue("label").toString();
+        auto expression_label = expression_->getDataValue(KeyName::Label).toString();
         new_label += expression_label;
         new_label += ")";
     }
-    setDataValue("label", new_label);
+    setDataValue(KeyName::Label, new_label);
 }

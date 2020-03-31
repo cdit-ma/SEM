@@ -18,7 +18,7 @@ EventPort::EventPort(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_t
         return;
     }
 
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
 };
 
 bool EventPort::isPubSubPort() const{

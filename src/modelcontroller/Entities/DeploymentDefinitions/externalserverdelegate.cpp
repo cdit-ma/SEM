@@ -26,12 +26,12 @@ MEDEA::ExternalServerDelegate::ExternalServerDelegate(EntityFactoryBroker& broke
     }
 
     //Setup Data
-    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, "ExternalAssembly");
+    broker.AttachData(this, KeyName::Comment, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "ExternalAssembly");
 
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
-    auto data_external = broker.AttachData(this, "blackbox", QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    auto data_middleware = broker.AttachData(this, KeyName::Middleware, QVariant::String, ProtectedState::UNPROTECTED);
+    auto data_external = broker.AttachData(this, KeyName::BlackBox, QVariant::Bool, ProtectedState::UNPROTECTED, false);
     data_middleware->addValidValues({"ZMQ", "TAO", "QPID"});
 
     in_ = broker.ConstructChildNode(*this, NODE_KIND::PORT_REQUEST_DELEGATE);
@@ -40,35 +40,28 @@ MEDEA::ExternalServerDelegate::ExternalServerDelegate(EntityFactoryBroker& broke
     broker.SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, false);
     broker.SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
 
-    broker.AttachData(in_, "label", QVariant::String, ProtectedState::PROTECTED, "Requests");
-    broker.AttachData(in_, "middleware", QVariant::String, ProtectedState::PROTECTED);
-
-    Data::LinkData(this, "middleware", in_, "middleware", true);
-
-
-    
-
+    broker.AttachData(in_, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Requests");
+    broker.AttachData(in_, KeyName::Middleware, QVariant::String, ProtectedState::PROTECTED);
+    Data::LinkData(this, KeyName::Middleware, in_, KeyName::Middleware, true);
 
     QSet<Node*> elements = {this, in_};
 
     for(auto node : elements){
-        broker.AttachData(node, "tao_server_name", QVariant::String, ProtectedState::PROTECTED, "context/server_name");
-        broker.AttachData(node, "tao_server_kind", QVariant::String, ProtectedState::PROTECTED, "kind");
-        broker.AttachData(node, "tao_naming_service_endpoint", QVariant::String, ProtectedState::PROTECTED, "corbaloc:iiop:IP:PORT");
-        broker.AttachData(node, "qpid_broker_address", QVariant::String, ProtectedState::PROTECTED, "IP:PORT");
-        broker.AttachData(node, "zmq_server_address", QVariant::String, ProtectedState::PROTECTED, "tcp://IP:PORT");
-        broker.AttachData(node, "topic_name", QVariant::String, ProtectedState::PROTECTED, "");
+        broker.AttachData(node, KeyName::TaoServerName, QVariant::String, ProtectedState::PROTECTED, "context/server_name");
+        broker.AttachData(node, KeyName::TaoServerKind, QVariant::String, ProtectedState::PROTECTED, "kind");
+        broker.AttachData(node, KeyName::TaoNamingServiceEndpoint, QVariant::String, ProtectedState::PROTECTED, "corbaloc:iiop:IP:PORT");
+        broker.AttachData(node, KeyName::QpidBrokerAddress, QVariant::String, ProtectedState::PROTECTED, "IP:PORT");
+        broker.AttachData(node, KeyName::ZmqServerAddress, QVariant::String, ProtectedState::PROTECTED, "tcp://IP:PORT");
+        broker.AttachData(node, KeyName::TopicName, QVariant::String, ProtectedState::PROTECTED, "");
     }
 
-
     //Bind the Data
-    Data::LinkData(this, "tao_server_name", in_, "tao_server_name", true);
-    Data::LinkData(this, "tao_naming_service_endpoint", in_, "tao_naming_service_endpoint", true);
-    Data::LinkData(this, "tao_server_kind", in_, "tao_server_kind", true);
-    Data::LinkData(this, "qpid_broker_address", in_, "qpid_broker_address", true);
-    Data::LinkData(this, "zmq_server_address", in_, "zmq_server_address", true);
-    Data::LinkData(this, "topic_name", in_, "topic_name", true);
-
+    Data::LinkData(this, KeyName::TaoServerName, in_, KeyName::TaoServerName, true);
+    Data::LinkData(this, KeyName::TaoNamingServiceEndpoint, in_, KeyName::TaoNamingServiceEndpoint, true);
+    Data::LinkData(this, KeyName::TaoServerKind, in_, KeyName::TaoServerKind, true);
+    Data::LinkData(this, KeyName::QpidBrokerAddress, in_, KeyName::QpidBrokerAddress, true);
+    Data::LinkData(this, KeyName::ZmqServerAddress, in_, KeyName::ZmqServerAddress, true);
+    Data::LinkData(this, KeyName::TopicName, in_, KeyName::TopicName, true);
 
     connect(data_middleware, &Data::dataChanged, this, &MEDEA::ExternalServerDelegate::MiddlewareUpdated);
     connect(data_external, &Data::dataChanged, this, &MEDEA::ExternalServerDelegate::MiddlewareUpdated);
@@ -115,28 +108,27 @@ bool MEDEA::ExternalServerDelegate::canAcceptEdge(EDGE_KIND edge_kind, Node *dst
         break;
     }
 
-    return EventPortAssembly::canAcceptEdge(edge_kind, dst);;
+    return EventPortAssembly::canAcceptEdge(edge_kind, dst);
 }
 
-void MEDEA::ExternalServerDelegate::MiddlewareUpdated(){
-    const auto& external = getDataValue("blackbox").toBool();
-    const auto& middleware = getDataValue("middleware").toString();
+void MEDEA::ExternalServerDelegate::MiddlewareUpdated()
+{
+    const auto& external = getDataValue(KeyName::BlackBox).toBool();
+    const auto& middleware = getDataValue(KeyName::Middleware).toString();
 
-    getFactoryBroker().AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, (external ? "ManagementComponent" : "ExternalAssembly"));
-    getFactoryBroker().AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    getFactoryBroker().AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, (external ? "ManagementComponent" : "ExternalAssembly"));
+    getFactoryBroker().AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
 
     const auto zmq_options_state =  (external && middleware == "ZMQ") ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
     const auto qpid_options_state = (external && middleware == "QPID") ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
     const auto tao_options_state =  (external && middleware == "TAO") ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
 
-    getFactoryBroker().AttachData(this, "tao_server_name", QVariant::String, tao_options_state);
-    getFactoryBroker().AttachData(this, "tao_server_kind", QVariant::String, tao_options_state);
-    getFactoryBroker().AttachData(this, "tao_naming_service_endpoint", QVariant::String, tao_options_state);
-
-    getFactoryBroker().AttachData(this, "qpid_broker_address", QVariant::String, qpid_options_state);
-    getFactoryBroker().AttachData(this, "topic_name", QVariant::String, middleware == "QPID" ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED);
-
-    getFactoryBroker().AttachData(this, "zmq_server_address", QVariant::String, zmq_options_state);
+    getFactoryBroker().AttachData(this, KeyName::TaoServerName, QVariant::String, tao_options_state);
+    getFactoryBroker().AttachData(this, KeyName::TaoServerKind, QVariant::String, tao_options_state);
+    getFactoryBroker().AttachData(this, KeyName::TaoNamingServiceEndpoint, QVariant::String, tao_options_state);
+    getFactoryBroker().AttachData(this, KeyName::QpidBrokerAddress, QVariant::String, qpid_options_state);
+    getFactoryBroker().AttachData(this, KeyName::TopicName, QVariant::String, middleware == "QPID" ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED);
+    getFactoryBroker().AttachData(this, KeyName::ZmqServerAddress, QVariant::String, zmq_options_state);
 
     getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, true);
     getFactoryBroker().SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, !external);
