@@ -1030,6 +1030,12 @@ void ViewController::spawnSubView(ViewItem * item)
             dockWidget = constructViewDockWidget(label, parent);
             dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
+            // Need to connect the ViewItem's labelChanged signal so that the title of the DockWidget that contains it,
+            // updates with the ViewItem
+            connect(item, &ViewItem::labelChanged, [dockWidget] (const QString& new_label) {
+                dockWidget->setTitle(new_label);
+            });
+
             //Try and reparent it
             if(window_manager->reparentDockWidget(dockWidget)){
                 //Set the icon

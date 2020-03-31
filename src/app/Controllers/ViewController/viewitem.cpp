@@ -321,8 +321,6 @@ void ViewItem::removeData(const QString& keyName)
     }
 }
 
-
-
 void ViewItem::addNotification(QSharedPointer<NotificationObject> notification){
     notifications_.insert(notification);
     connect(notification.data(), &NotificationObject::notificationChanged, [=](QSharedPointer<NotificationObject>){emit notificationsChanged();});

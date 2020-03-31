@@ -986,6 +986,9 @@ void NodeView::viewItem_LabelChanged(QString label)
     // Calculate the rectangle which contains the background text
     auto fm = QFontMetrics(background_font_);
     background_text_rect_ = fm.boundingRect(text);
+
+    // Since the cached mode is set to CacheBackground, resetting the cache is necessary to redraw the background text
+    resetCachedContent();
 }
 
 
