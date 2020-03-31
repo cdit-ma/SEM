@@ -152,9 +152,9 @@ void BaseDockWidget::setTitle(const QString& title, Qt::Alignment alignment)
     if (titleBar) {
         titleBar->setTitle(title, alignment);
         QDockWidget::setWindowTitle(title);
+        this->title = title;
         emit titleChanged();
     }
-    this->title = title;
 }
 
 QString BaseDockWidget::getTitle() const
