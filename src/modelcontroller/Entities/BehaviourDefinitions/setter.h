@@ -28,7 +28,6 @@ private:
 	DataNode* lhs_ = 0;
 	DataNode* operator_ = 0;
 	DataNode* rhs_ = 0;
-
 };
 
 #endif //SETFUNCTION_H

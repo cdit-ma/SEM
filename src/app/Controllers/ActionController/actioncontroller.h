@@ -11,7 +11,7 @@
 #include "../../Utils/actiongroup.h"
 #include "../../Widgets/Dialogs/shortcutdialog.h"
 #include "../../theme.h"
-
+#include "../../../modelcontroller/keynames.h"
 
 class ViewController;
 class ActionController : public QObject

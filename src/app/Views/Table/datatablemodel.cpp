@@ -2,11 +2,11 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../theme.h"
 
-#include <QDebug>
+#include <keynames.h>
 
-const static QSet<QString> multiline_keys({"processes_to_log","code"});
-const static QSet<QString> icon_keys({"icon", "icon_prefix"});
-const static QSet<QString> ignoredKeys({"x", "y", "width", "height", "readOnly", "isExpanded"});
+const static QSet<QString> multiline_keys({KeyName::ProcessesToLog, KeyName::Code});
+const static QSet<QString> icon_keys({KeyName::Icon, KeyName::IconPrefix});
+const static QSet<QString> ignoredKeys({KeyName::X, KeyName::Y, KeyName::Width, KeyName::Height, KeyName::ReadOnly, KeyName::IsExpanded});
 
 //TODO: FIX ME
 DataTableModel::DataTableModel(ViewItem *item)

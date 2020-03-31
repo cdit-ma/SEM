@@ -23,6 +23,6 @@ DDS_TransportPriorityQosPolicy::DDS_TransportPriorityQosPolicy(EntityFactoryBrok
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "transport_priority");
-    broker.AttachData(this, "qos_dds_int_value", QVariant::Int, ProtectedState::UNPROTECTED, 0);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "transport_priority");
+    broker.AttachData(this, KeyName::QosDdsIntValue, QVariant::Int, ProtectedState::UNPROTECTED, 0);
 }

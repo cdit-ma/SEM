@@ -658,7 +658,7 @@ void ExperimentDataManager::toastNotification(const QString &description, const 
 QString ExperimentDataManager::getItemLabel(const ViewItem *item) const
 {
     if (item) {
-        return item->getData("label").toString();
+        return item->getData(KeyName::Label).toString();
     }
     return "";
 }

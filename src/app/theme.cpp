@@ -1341,15 +1341,17 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "axisTimeToggle", "Icons", "clock", "Icons", "timeElapsed");
 }
 
-void Theme::setupAliasIcons(){
+void Theme::setupAliasIcons()
+{
     setIconAlias("EntityIcons", "WorkerDefinitions", "EntityIcons", "Workload");
-    setIconAlias("Data", "label", "Icons", "label");
-    setIconAlias("Data", "description", "Icons", "speechBubbleFilled");
-    setIconAlias("Data", "kind", "Icons", "tiles");
-    setIconAlias("Data", "namespace", "Icons", "letterA");
-    setIconAlias("Data", "value", "Icons", "pencil");
-    setIconAlias("Data", "type", "Icons", "gearDark");
-    setIconAlias("Data", "ID", "Icons", "numberOne");
+    
+    setIconAlias("Data", KeyName::Label, "Icons", "label");
+    setIconAlias("Data", KeyName::Description, "Icons", "speechBubbleFilled");
+    setIconAlias("Data", KeyName::Kind, "Icons", "tiles");
+    setIconAlias("Data", KeyName::Namespace, "Icons", "letterA");
+    setIconAlias("Data", KeyName::Value, "Icons", "pencil");
+    setIconAlias("Data", KeyName::Type, "Icons", "gearDark");
+    setIconAlias("Data", KeyName::ID, "Icons", "numberOne");
 
     setIconAlias("Data", "SRC ID", "Icons", "planeLaunch");
     setIconAlias("Data", "DST ID", "Icons", "planeLand");
