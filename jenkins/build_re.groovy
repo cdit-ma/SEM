@@ -139,7 +139,7 @@ pipeline{
                                 dir("test/re_gen"){
                                     def test_suite_xml = "${node_name}_regen_tests.xml"
 
-                                    if(utils.runScript("python run_tests.py ${test_suite_xml}") != 0){
+                                    if(utils.runScript("python run_tests.py -o ${test_suite_xml} --re_path ${re_path}") != 0){
                                         error("Running run_tests.py Failed!")
                                     }
 

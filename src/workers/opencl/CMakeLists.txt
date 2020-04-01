@@ -74,10 +74,10 @@ set(CLFFT_LIB_ROOT $ENV{CLFFT_LIB_ROOT})
 find_library(CLFFT_LIB clFFT ${CLFFT_LIB_ROOT})
 
 # Add implementations for fft library as necessary
+# TODO: Break these out into the appropriate sub-projects in order to keep this file manageable
 if(ALTERA_OCLSDK_LIB)
     message(STATUS "Building OpenCL worker with FPGA FFT library")
     target_sources(${PROJ_NAME} PRIVATE
-        #${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl_worker_alterafpga.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fpgafftprovider.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fft1d/opencl.cpp
     )
@@ -85,15 +85,11 @@ if(ALTERA_OCLSDK_LIB)
 elseif (CLFFT_LIB)
     message(STATUS "Building OpenCL worker with GPU FFT library (clFFT)")
     target_sources(${PROJ_NAME} PRIVATE
-        #${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_clfft.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/clfftprovider.cpp
     )
     target_compile_definitions(${PROJ_NAME} PUBLIC CLFFT_PRESENT)
 else()
     message(STATUS "No FFT library found when building OpenCL worker")
-    target_sources(${PROJ_NAME} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker_fftdummy.cpp
-    )
 endif()
 
 

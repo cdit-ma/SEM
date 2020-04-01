@@ -41,6 +41,7 @@ endif()
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
 #target_include_directories(${PROJ_NAME} PRIVATE "C:/git/libpqxx/include")
 #target_include_directories(${PROJ_NAME} PRIVATE "/usr/include/pqxx")

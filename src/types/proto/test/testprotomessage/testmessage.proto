@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package re.types.proto.test;
+
+message Message {
+    string string = 1;
+    uint32 number = 2;
+    int32 signed_number = 3;
+    Message recursive_message = 4;
+    repeated string repeated_strings = 5;
+    repeated uint32 repeated_numbers = 6;
+
+    enum Enum {
+        ENUM_OPT_A = 0;
+        ENUM_OPT_B = 1;
+        ENUM_OPT_C = 2;
+    }
+
+    Enum enum = 7;
+}
