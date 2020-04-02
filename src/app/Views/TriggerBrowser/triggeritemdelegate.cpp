@@ -8,6 +8,7 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <keynames.h>
+#include <cfloat>
 
 /**
  * TriggerItemDelegate::TriggerItemDelegate

@@ -103,11 +103,11 @@ namespace KeyName {
     extern const char* ZmqPublisherAddress;
     extern const char* ZmqServerAddress;
 
-    extern const QString TriggerType;
-    extern const QString Condition;
-    extern const QString SingleActivation;
-    extern const QString WaitPeriod;
-    extern const QString ContainerReference;
+    extern const char* TriggerType;
+    extern const char* Condition;
+    extern const char* SingleActivation;
+    extern const char* WaitPeriod;
+    extern const char* ContainerReference;
 };
 
 #endif // KEYNAME_LITERALS_H
