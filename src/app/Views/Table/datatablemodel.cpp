@@ -2,12 +2,11 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../theme.h"
 
-#include <QBitmap>
-#include <QDebug>
+#include <keynames.h>
 
-const static QSet<QString> multiline_keys({"processes_to_log","code"});
-const static QSet<QString> icon_keys({"icon", "icon_prefix"});
-const static QSet<QString> ignoredKeys({"x", "y", "width", "height", "readOnly", "isExpanded"});
+const static QSet<QString> multiline_keys({KeyName::ProcessesToLog, KeyName::Code});
+const static QSet<QString> icon_keys({KeyName::Icon, KeyName::IconPrefix});
+const static QSet<QString> ignoredKeys({KeyName::X, KeyName::Y, KeyName::Width, KeyName::Height, KeyName::ReadOnly, KeyName::IsExpanded});
 
 //TODO: FIX ME
 DataTableModel::DataTableModel(ViewItem *item)
@@ -178,20 +177,13 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
             return QVariant(Qt::AlignCenter);
         }
     }
-    
     if (role == Qt::DecorationRole) {
-        auto&& theme = Theme::theme();
-        auto&& icon_size = theme->getIconSize();
-        if (isIndexProtected(index)) {
-            return theme->getImage("Icons", "lockClosed", icon_size, theme->getMenuIconColor(ColorRole::DISABLED));
+        if(isIndexProtected(index)){
+            return Theme::theme()->getIcon("Icons", "lockClosed");
         }
-        if (hasCodeEditor(index) || hasIconEditor(index)) {
-            return theme->getImage("Icons", "popOut", icon_size, theme->getMenuIconColor(ColorRole::DISABLED));
+        if(hasCodeEditor(index) || hasIconEditor(index)){
+            return Theme::theme()->getIcon("Icons", "popOut");
         }
-        // Return a hidden icon for everything else to keep the values aligned
-        auto hidden_icon = theme->getImage("Icons", "blank", icon_size);
-        hidden_icon.fill(Qt::transparent);
-        return hidden_icon;
     }
 
     if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {

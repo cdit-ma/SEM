@@ -9,6 +9,7 @@ namespace MEDEA {
 
 enum class ChartDataKind{DATA, PORT_LIFECYCLE, WORKLOAD, CPU_UTILISATION, MEMORY_UTILISATION, MARKER, PORT_EVENT};
 
+
 class Event : public QObject
 {
     Q_OBJECT
@@ -43,6 +44,11 @@ private:
     QString series_name_;
 };
 
+inline uint qHash(ChartDataKind key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 }
 
+Q_DECLARE_METATYPE(MEDEA::ChartDataKind)
 #endif // MEDEAEVENT_H

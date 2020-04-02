@@ -27,8 +27,8 @@ Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind
     }
  
     //Setup Data
-    broker.AttachData(this, "medea_version", QVariant::String, ProtectedState::PROTECTED, APP_VERSION());
-    broker.AttachData(this, "description", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::MedeaVersion, QVariant::String, ProtectedState::PROTECTED, APP_VERSION());
+    broker.AttachData(this, KeyName::Description, QVariant::String, ProtectedState::PROTECTED);
 
     //Attach Children
     broker.ConstructChildNode(*this, NODE_KIND::INTERFACE_DEFINITIONS);

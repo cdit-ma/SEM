@@ -8,8 +8,8 @@
 #include <QStack>
 #include <QQueue>
 
-const QSet<QString> ViewItem::permanent_protected_keys({"ID"});
-const QSet<QString> ViewItem::permanent_editable_keys({"column_count"});
+const QSet<QString> ViewItem::permanent_protected_keys({KeyName::ID});
+const QSet<QString> ViewItem::permanent_editable_keys({KeyName::ColumnCount});
 
 
 bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b){
@@ -41,7 +41,7 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
     this->ID = ID;
     this->entityKind = entity_kind;
     //Add X/Y
-    changeData("ID", ID);
+    changeData(KeyName::ID, ID);
     
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
 }
@@ -320,8 +320,6 @@ void ViewItem::removeData(const QString& keyName)
         emit dataRemoved(keyName);
     }
 }
-
-
 
 void ViewItem::addNotification(QSharedPointer<NotificationObject> notification){
     notifications_.insert(notification);

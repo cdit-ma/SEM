@@ -398,9 +398,9 @@ void ContextMenu::action_triggered(QAction* action){
             if(item){
                 auto parent_id = item->getID();
 
-                if(item->hasData("isExpanded")){
+                if(item->hasData(KeyName::IsExpanded)){
                     //Expand!
-                    emit view_controller->SetData(parent_id, "isExpanded", true);
+                    emit view_controller->SetData(parent_id, KeyName::IsExpanded, true);
                 }
 
                 switch(node_position){
@@ -421,7 +421,7 @@ void ContextMenu::action_triggered(QAction* action){
             auto item = view_controller->getSelectionController()->getActiveSelectedItem();
             if(item){
                 auto parent_id = item->getID();
-                emit view_controller->SetData(parent_id, "isExpanded", true);
+                emit view_controller->SetData(parent_id, KeyName::IsExpanded, true);
 
                 switch(node_position){
                     case NodePosition::INDEX:{
@@ -774,9 +774,10 @@ void ContextMenu::update_add_node_menu(){
     }
 }
 
-void updateAction(QAction* action, ViewItem* item){
-    if(action && item){
-        action->setText(item->getData("label").toString());
+void updateAction(QAction* action, ViewItem* item)
+{
+    if (action && item) {
+        action->setText(item->getData(KeyName::Label).toString());
         Theme::StoreActionIcon(action, item->getIcon());
     }
 }

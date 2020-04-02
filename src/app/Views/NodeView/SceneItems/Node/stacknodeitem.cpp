@@ -9,7 +9,7 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     BasicNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
-    addRequiredData("column_count");
+    addRequiredData(KeyName::ColumnCount);
 
     reloadRequiredData();
     this->orientation = orientation;
@@ -28,9 +28,9 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     RecalculateCells();
 }
 
-void StackNodeItem::dataChanged(const QString& key_name, const QVariant& data){
-    if(isDataRequired(key_name)){
-        if(key_name == "column_count"){
+void StackNodeItem::dataChanged(const QString& key_name, const QVariant& data) {
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::ColumnCount) {
             SetColumnCount(data.toInt());
         }
     }

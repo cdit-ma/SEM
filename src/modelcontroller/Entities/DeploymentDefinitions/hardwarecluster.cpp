@@ -24,6 +24,6 @@ HardwareCluster::HardwareCluster(EntityFactoryBroker& broker, bool is_temp) : No
     }
     
     //Setup Data
-    broker.AttachData(this, "uuid", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "url", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::UUID, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Url, QVariant::String, ProtectedState::PROTECTED);
 }

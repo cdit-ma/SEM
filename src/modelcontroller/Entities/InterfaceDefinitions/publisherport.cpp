@@ -21,6 +21,6 @@ PublisherPort::PublisherPort(EntityFactoryBroker& broker, bool is_temp) : EventP
         return;
     }
     
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 2);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 2);
 }

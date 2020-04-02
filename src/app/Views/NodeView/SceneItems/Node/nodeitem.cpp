@@ -18,9 +18,9 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
 {
     node_view_item = viewItem;
 
-    addRequiredData("index");
-    addRequiredData("row");
-    addRequiredData("column");
+    addRequiredData(KeyName::Index);
+    addRequiredData(KeyName::Row);
+    addRequiredData(KeyName::Column);
 
     setMoveEnabled(true);
     setExpandEnabled(true);
@@ -578,33 +578,34 @@ QString NodeItem::getTertiaryText() const
     return QString();
 }
 
-void NodeItem::dataChanged(const QString& key_name, const QVariant& data){
-    if(isDataRequired(key_name)){
-        if(key_name == "isExpanded"){
+void NodeItem::dataChanged(const QString& key_name, const QVariant& data)
+{
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::IsExpanded) {
             bool boolData = data.toBool();
             setExpanded(boolData);
-        }else if(key_name == "readOnly"){
+        } else if (key_name == KeyName::ReadOnly) {
             update();
-        }else if(key_name == "index"){
+        } else if (key_name == KeyName::Index) {
             auto index = data.toInt();
-            if(index_ != index){
+            if (index_ != index) {
                 index_ = index;
                 emit indexChanged();
             }
-        }else if(key_name == "row"){
+        } else if (key_name == KeyName::Row) {
             auto row = data.toInt();
-            if(row_ != row){
+            if (row_ != row) {
                 row_ = row;
                 emit indexChanged();
             }
-        }else if(key_name == "column"){
+        } else if (key_name == KeyName::Column) {
             auto row = data.toInt();
-            if(column_ != row){
+            if (column_ != row) {
                 column_ = row;
                 emit indexChanged();
             }
         }
-        if(key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey){
+        if (key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey) {
             update();
         }
     }

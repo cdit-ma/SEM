@@ -236,7 +236,7 @@ void NodeView::setContainedNodeViewItem(NodeViewItem *item)
         connect(contained_node_view_item_, &NodeViewItem::labelChanged, this, &NodeView::viewItem_LabelChanged);
 
         // This sets the view's background text
-        viewItem_LabelChanged(contained_node_view_item_->getData("label").toString());
+        viewItem_LabelChanged(contained_node_view_item_->getData(KeyName::Label).toString());
 
         // This NEEDS to be called before the code below or the NodeViewItem won't be setup correctly!
         contained_aspect_ = contained_node_view_item_->getViewAspect();
@@ -398,8 +398,8 @@ void NodeView::alignHorizontal()
 
         if (item->setMoveFinished()) {
             pos = item->getNearestGridPoint();
-            emit setData(item->getID(), "x", pos.x());
-            emit setData(item->getID(), "y", pos.y());
+            emit setData(item->getID(), KeyName::X, pos.x());
+            emit setData(item->getID(), KeyName::Y, pos.y());
         }
     }
 }
@@ -431,8 +431,8 @@ void NodeView::alignVertical()
 
         if (item->setMoveFinished()) {
             pos = item->getNearestGridPoint();
-            emit setData(item->getID(), "x", pos.x());
-            emit setData(item->getID(), "y", pos.y());
+            emit setData(item->getID(), KeyName::X, pos.x());
+            emit setData(item->getID(), KeyName::Y, pos.y());
         }
     }
 }
@@ -688,7 +688,7 @@ void NodeView::item_SetExpanded(EntityItem* item, bool expand)
     if (item) {
         int ID = item->getID();
         emit triggerAction("Expanding Selection");
-        emit setData(ID, "isExpanded", expand);
+        emit setData(ID, KeyName::IsExpanded, expand);
     }
 }
 
@@ -809,7 +809,7 @@ void NodeView::showItem(EntityItem* item)
             if (!node_item->isExpanded()) {
                 node_item->setExpanded(true);
                 int ID = parent->getID();
-                emit setData(ID, "isExpanded", true);
+                emit setData(ID, KeyName::IsExpanded, true);
             }
         }
         parent = parent->getParent();
@@ -986,6 +986,9 @@ void NodeView::viewItem_LabelChanged(QString label)
     // Calculate the rectangle which contains the background text
     auto fm = QFontMetrics(background_font_);
     background_text_rect_ = fm.boundingRect(text);
+
+    // Since the cached mode is set to CacheBackground, resetting the cache is necessary to redraw the background text
+    resetCachedContent();
 }
 
 
@@ -1052,13 +1055,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             switch (node_kind) {
             case NODE_KIND::HARDWARE_NODE:
                 node_item = new HardwareNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("ip_address");
+                node_item->setSecondaryTextKey(KeyName::IpAddress);
                 node_item->setExpandEnabled(true);
                 break;
             case NODE_KIND::LOGGINGSERVER:
                 node_item = new DefaultNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("database");
+                node_item->setSecondaryTextKey(KeyName::Database);
                 node_item->setIconVisible(NodeItem::EntityRect::SECONDARY_ICON, {"Icons", "servers"}, true);
                 break;
             case NODE_KIND::DEPLOYMENT_CONTAINER:
@@ -1067,31 +1070,31 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::LOGGINGPROFILE:
                 node_item = new DefaultNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("mode");
+                node_item->setSecondaryTextKey(KeyName::Mode);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "gear"}, true);
                 break;
             case NODE_KIND::IDL:
                 node_item = new DefaultNodeItem(item, parent_node_item);
                 break;
-            case NODE_KIND::NAMESPACE:{
+            case NODE_KIND::NAMESPACE: {
                 {
                     auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
                     stack_item->SetUseColumnCount(0, 0, true);
                     stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
                     node_item = stack_item;
                 }
-                node_item->setSecondaryTextKey("namespace");
+                node_item->setSecondaryTextKey(KeyName::Namespace);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
             }
             case NODE_KIND::SHARED_DATATYPES:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                stack_item->SetUseColumnCount(0, 0, true);
-                stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
-                node_item = stack_item;
-            }
-                node_item->setSecondaryTextKey("version");
+                {
+                    auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+                    node_item = stack_item;
+                }
+                node_item->setSecondaryTextKey(KeyName::Version);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
             case NODE_KIND::COMPONENT:
@@ -1099,30 +1102,30 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Vertical);
                 stack_item->SetRenderCellSuffixIcon(3, 0, true, "Icons", "plus");
                 node_item = stack_item;
-            }
                 break;
+            }
             case NODE_KIND::COMPONENT_IMPL:
             {
                 auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
                 node_item = stack_item;
-            }
                 break;
+            }
             case NODE_KIND::CLASS:
             {
                 auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
                 node_item = stack_item;
-                node_item->setSecondaryTextKey("version");
+                node_item->setSecondaryTextKey(KeyName::Version);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
-            }
                 break;
+            }
             case NODE_KIND::COMPONENT_INST:
                 node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Component"}, true);
                 break;
             case NODE_KIND::COMPONENT_ASSEMBLY:
                 node_item = new DefaultNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("replicate_value");
+                node_item->setSecondaryTextKey(KeyName::ReplicateValue);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "copyX"}, true);
                 break;
             case NODE_KIND::HARDWARE_CLUSTER:
@@ -1131,7 +1134,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::PORT_REQUEST_DELEGATE:
                 node_item = new DefaultNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
                 break;
             case NODE_KIND::PORT_SUBSCRIBER_DELEGATE:
@@ -1139,7 +1142,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::PORT_PUBSUB_DELEGATE:
                 node_item = new DefaultNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
                 break;
             case NODE_KIND::PORT_REPLIER_INST:
@@ -1147,121 +1150,117 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::PORT_SUBSCRIBER_INST:
             case NODE_KIND::PORT_PUBLISHER_INST:
                 node_item = new CompactNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
-                node_item->setTertiaryTextKey("middleware");
+                node_item->setTertiaryTextKey(KeyName::Middleware);
                 node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "sliders"}, true);
-
                 if (node_kind == NODE_KIND::PORT_PUBLISHER_INST || node_kind == NODE_KIND::PORT_REQUESTER_INST) {
                     node_item->setRightJustified(true);
                 }
                 break;
-            case NODE_KIND::EXTERNAL_SERVER_DELEGATE:{
+            case NODE_KIND::EXTERNAL_SERVER_DELEGATE: {
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "ServerInterface"}, true);
                 break;
             }
-            case NODE_KIND::EXTERNAL_PUBSUB_DELEGATE:{
+            case NODE_KIND::EXTERNAL_PUBSUB_DELEGATE: {
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"EntityIcons", "Aggregate"}, true);
                 break;
             }
             case NODE_KIND::DEPLOYMENT_ATTRIBUTE:
                 node_item = new CompactNodeItem(item, parent_node_item);
                 node_item->setMoveEnabled(true);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                node_item->setTertiaryTextKey("value");
+                node_item->setTertiaryTextKey(KeyName::Value);
                 node_item->setIconVisible(EntityItem::EntityRect::TERTIARY_ICON, {"Icons", "pencil"}, true);
                 break;
             case NODE_KIND::ATTRIBUTE_INST:
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-
                 switch (item->getViewAspect()) {
-                case VIEW_ASPECT::BEHAVIOUR:{
-                    node_item->setSecondaryTextKey("type");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                    break;
-                }
-                default:{
-                    node_item->setSecondaryTextKey("value");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                    break;
-                }
+                    case VIEW_ASPECT::BEHAVIOUR: {
+                        node_item->setSecondaryTextKey(KeyName::Type);
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+                        break;
+                    }
+                    default: {
+                        node_item->setSecondaryTextKey(KeyName::Value);
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+                        break;
+                    }
                 }
                 break;
             case NODE_KIND::SERVER_INTERFACE:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("namespace");
+                node_item->setSecondaryTextKey(KeyName::Namespace);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
             case NODE_KIND::AGGREGATE:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                stack_item->SetUseColumnCount(0, 0, true);
-                node_item = stack_item;
-            }
-                node_item->setSecondaryTextKey("namespace");
+                {
+                    auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    node_item = stack_item;
+                }
+                node_item->setSecondaryTextKey(KeyName::Namespace);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "letterA"}, true);
                 break;
             case NODE_KIND::AGGREGATE_INST:
-            {
-                auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                stack_item->SetUseColumnCount(0, 0, true);
-                node_item = stack_item;
-            }
-                node_item->setSecondaryTextKey("type");
+                {
+                    auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
+                    stack_item->SetUseColumnCount(0, 0, true);
+                    node_item = stack_item;
+                }
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::FUNCTION_CALL:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("class");
+                node_item->setSecondaryTextKey(KeyName::Class);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
                 break;
             case NODE_KIND::CALLBACK_FNC_INST:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("class");
+                node_item->setSecondaryTextKey(KeyName::Class);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
                 break;
             case NODE_KIND::MEMBER:
             case NODE_KIND::MEMBER_INST:
                 node_item = new MemberNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                
-                if (item->hasData("value")) {
-                    node_item->setSecondaryTextKey("value");
+                if (item->hasData(KeyName::Value)) {
+                    node_item->setSecondaryTextKey(KeyName::Value);
                     node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 } else {
-                    node_item->setSecondaryTextKey("type");
+                    node_item->setSecondaryTextKey(KeyName::Type);
                     node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 }
                 break;
             case NODE_KIND::VARIABLE:
                 node_item = new StackNodeItem(item, parent_node_item);
-
                 switch (item->getViewAspect()) {
-                case VIEW_ASPECT::ASSEMBLIES:{
-                    node_item->setSecondaryTextKey("value");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
-                    break;
-                }
-                default:{
-                    node_item->setSecondaryTextKey("type");
-                    node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
-                    break;
-                }
+                    case VIEW_ASPECT::ASSEMBLIES: {
+                        node_item->setSecondaryTextKey(KeyName::Value);
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
+                        break;
+                    }
+                    default: {
+                        node_item->setSecondaryTextKey(KeyName::Type);
+                        node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
+                        break;
+                    }
                 }
                 break;
             case NODE_KIND::ATTRIBUTE_IMPL:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Vertical);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
-            case NODE_KIND::ENUM:{
+            case NODE_KIND::ENUM: {
                 {
                     auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
                     stack_item->SetUseColumnCount(0, 0, true);
@@ -1273,43 +1272,40 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::ENUM_INST:
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                
-                if (item->hasData("value")) {
-                    node_item->setSecondaryTextKey("value");
+                if (item->hasData(KeyName::Value)) {
+                    node_item->setSecondaryTextKey(KeyName::Value);
                     node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 } else {
-                    node_item->setSecondaryTextKey("type");
+                    node_item->setSecondaryTextKey(KeyName::Type);
                     node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 }
                 break;
             case NODE_KIND::PORT_PUBLISHER_IMPL:
                 node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::ATTRIBUTE:
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::VARIABLE_PARAMETER:
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "value"}, true);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", KeyName::Value}, true);
                 break;
-            case NODE_KIND::INPUT_PARAMETER:{
+            case NODE_KIND::INPUT_PARAMETER: {
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-
-                if (item->hasData("editable_key")) {
+                if (item->hasData(KeyName::EditableKey)) {
                     node_item->setPrimaryTextKey("");
-                    node_item->setSecondaryTextKey(item->getData("editable_key").toString());
+                    node_item->setSecondaryTextKey(item->getData(KeyName::EditableKey).toString());
                 } else {
-                    node_item->setPrimaryTextKey("label");
-                    node_item->setSecondaryTextKey("value");
+                    node_item->setPrimaryTextKey(KeyName::Label);
+                    node_item->setSecondaryTextKey(KeyName::Value);
                 }
-
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
             }
@@ -1317,42 +1313,42 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
                 node_item->setPrimaryTextKey("");
-                node_item->setSecondaryTextKey("value");
+                node_item->setSecondaryTextKey(KeyName::Value);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "pencil"}, true);
                 break;
             case NODE_KIND::RETURN_PARAMETER:
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::PORT_REPLIER:
-            case NODE_KIND::PORT_REQUESTER:{
+            case NODE_KIND::PORT_REQUESTER: {
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             }
-            case NODE_KIND::PORT_REQUESTER_IMPL:{
+            case NODE_KIND::PORT_REQUESTER_IMPL: {
                 auto stack_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
                 node_item = stack_item;
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
-                
+
                 stack_item->SetRenderCellArea(0, -1, true, true);
                 stack_item->SetCellOrientation(0, -1, Qt::Vertical);
                 stack_item->SetRenderCellArea(0, 1, true, true);
                 stack_item->SetCellOrientation(0, 1, Qt::Vertical);
                 break;
             }
-            case NODE_KIND::VOID_TYPE:{
+            case NODE_KIND::VOID_TYPE: {
                 node_item = new BasicNodeItem(item, parent_node_item);
                 node_item->setExpandEnabled(false);
                 node_item->setContractedHeight(node_item->getContractedHeight() / 2);
                 node_item->setContractedWidth(40);
                 break;
             }
-            case NODE_KIND::CLASS_INST:{
+            case NODE_KIND::CLASS_INST: {
                 node_item = new StackNodeItem(item, parent_node_item);
                 if (item->getData(KeyName::IsWorker).toBool()) {
                     node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
@@ -1362,7 +1358,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                     emit setData(ID, KeyName::Row, 2);
                     emit setData(ID, KeyName::Column, 1);
                 }
-                node_item->setSecondaryTextKey("version");
+                node_item->setSecondaryTextKey(KeyName::Version);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
             }
@@ -1370,7 +1366,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::INPUT_PARAMETER_GROUP_INST:
             case NODE_KIND::RETURN_PARAMETER_GROUP:
             case NODE_KIND::RETURN_PARAMETER_GROUP_INST:
-            case NODE_KIND::PORT_PERIODIC_INST:{
+            case NODE_KIND::PORT_PERIODIC_INST: {
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setContractedHeight(node_item->getContractedHeight() / 2);
                 node_item->setContractedWidth(40);
@@ -1379,12 +1375,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::PORT_PUBLISHER:
             case NODE_KIND::PORT_SUBSCRIBER:
                 node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::PORT_SUBSCRIBER_IMPL:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::PORT_PERIODIC:
@@ -1397,15 +1393,15 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::VECTOR:
             case NODE_KIND::VECTOR_INST:
                 node_item = new StackNodeItem(item, parent_node_item);
-                node_item->setSecondaryTextKey("type");
+                node_item->setSecondaryTextKey(KeyName::Type);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "category"}, true);
                 break;
             case NODE_KIND::FUNCTION:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                if (!item->isDataProtected("operation")) {
-                    node_item->setPrimaryTextKey("operation");
+                if (!item->isDataProtected(KeyName::Operation)) {
+                    node_item->setPrimaryTextKey(KeyName::Operation);
                 } else {
-                    node_item->setPrimaryTextKey("label");
+                    node_item->setPrimaryTextKey(KeyName::Label);
                 }
                 break;
             case NODE_KIND::TRIGGER_INST:
@@ -1422,7 +1418,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             if (contained_node_view_item_ == item) {
                 node_item->setIgnorePosition(true);
             }
-    
+
             // Remove data-fields that don't need to be shown in the data table for a Trigger/StrategyInst
             if (node_kind == NODE_KIND::TRIGGER_INST || node_kind == NODE_KIND::STRATEGY_INST) {
                 auto data_table = node_item->getViewItem()->getTableModel();
@@ -1469,7 +1465,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                     stack_item->SetRenderCellText(1, 1, true, "Variables");
                     stack_item->SetUseColumnCount(1, 1, true);
                     stack_item->SetCellSpacing(1, 1, 10);
-
 
                     stack_item->SetRenderCellArea(1, -1, true, true);
                     stack_item->SetRenderCellText(1, -1, true, "Headers");
@@ -1876,8 +1871,8 @@ void NodeView::setMovingModeOff()
         if (any_moved) {
             // Send a signal to update the model (graphml) data
             QPointF pos = item->getNearestGridPoint();
-            emit setData(item->getID(), "x", pos.x());
-            emit setData(item->getID(), "y", pos.y());
+            emit setData(item->getID(), KeyName::X, pos.x());
+            emit setData(item->getID(), KeyName::Y, pos.y());
         }
     }
 }

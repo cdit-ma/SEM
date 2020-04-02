@@ -321,11 +321,6 @@ private:
     bool showingWelcomeScreen = true;
 };
 
-inline uint qHash(MEDEA::ChartDataKind key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
-}
-Q_DECLARE_METATYPE(MEDEA::ChartDataKind)
 
 
 

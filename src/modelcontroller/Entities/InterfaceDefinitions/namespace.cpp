@@ -20,29 +20,28 @@ Namespace::Namespace(EntityFactoryBroker& broker, bool is_temp) : Node(broker, n
     }
 
     //Setup Data
-    broker.AttachData(this, "column_count", QVariant::Int, ProtectedState::UNPROTECTED, 5);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::ColumnCount, QVariant::Int, ProtectedState::UNPROTECTED, 5);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Namespace, QVariant::String, ProtectedState::PROTECTED);
 }
 
 void Namespace::BindNamespace(Node* parent, Node* child, bool bind){
-    auto src_namespace_data = parent->getData("namespace");
-    auto dst_namespace_data = child->getData("namespace");
-    if(src_namespace_data && dst_namespace_data){
+    auto src_namespace_data = parent->getData(KeyName::Namespace);
+    auto dst_namespace_data = child->getData(KeyName::Namespace);
+    if (src_namespace_data && dst_namespace_data) {
         src_namespace_data->linkData(dst_namespace_data, bind);
     }
 }
 
-void Namespace::DataAdded(Data* data){
+void Namespace::DataAdded(Data* data)
+{
     Node::DataAdded(data);
 
     auto key_name = data->getKeyName();
-
-    if(key_name == "label" || key_name == "namespace"){
-        auto label_data = getData("label");
-        auto namespace_data = getData("namespace");
-
-        if(label_data && namespace_data){
+    if (key_name == KeyName::Label || key_name == KeyName::Namespace) {
+        auto label_data = getData(KeyName::Label);
+        auto namespace_data = getData(KeyName::Namespace);
+        if (label_data && namespace_data) {
             label_data->linkData(namespace_data, true);
         }
     }

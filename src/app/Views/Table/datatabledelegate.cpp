@@ -8,6 +8,7 @@
 #include <QDialog>
 #include <QStringBuilder>
 #include <QDebug>
+#include <keynames.h>
 
 
 DataTableDelegate::DataTableDelegate(QWidget *parent):QStyledItemDelegate(parent)
@@ -83,9 +84,9 @@ QPair<QModelIndex, QModelIndex> DataTableDelegate::getModelIconIndex(const QAbst
     QPair<QModelIndex, QModelIndex> icon;
     for(int row = 0; row < model->rowCount(); row ++){
         QString key_name = model->headerData(row, Qt::Vertical).toString();
-        if(key_name == "icon"){
+        if(key_name == KeyName::Icon){
             icon.second = model->index(row, column);
-        }else if(key_name == "icon_prefix"){
+        }else if(key_name == KeyName::IconPrefix){
             icon.first = model->index(row, column);
         }
     }

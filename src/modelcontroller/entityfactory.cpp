@@ -893,7 +893,7 @@ bool EntityFactory::RegisterEntity(GraphML* graphml, int id){
         case GRAPHML_KIND::EDGE:{
             auto entity = (Entity*) graphml;
 
-            auto uuid_data = entity->getData("uuid");
+            auto uuid_data = entity->getData(KeyName::UUID);
             if(uuid_data){
                 uuid_data->revalidateData();
             }

@@ -29,11 +29,11 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
 
 
     //setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "???");
-    auto data_value = broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "???");
+    auto data_value = broker.AttachData(this, KeyName::Value, QVariant::String, ProtectedState::UNPROTECTED);
     
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED, "Boolean");
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED, "Boolean");
     
     //Attach Children
     lhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
@@ -41,41 +41,38 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     rhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
 
     //Setup LHS
-    broker.AttachData(lhs_, "label", QVariant::String, ProtectedState::PROTECTED, "lhs");
-    broker.AttachData(lhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
-    broker.AttachData(lhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
-    broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
-    broker.AttachData(lhs_, "is_generic_param_src", QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(lhs_, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "lhs");
+    broker.AttachData(lhs_, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(lhs_, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(lhs_, KeyName::IsGenericParam, QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(lhs_, KeyName::IsGenericParamSrc, QVariant::Bool, ProtectedState::PROTECTED, true);
 
     //Setup Comparator
     comparator_->setDataReceiver(false);
     comparator_->setDataProducer(false);
-    auto data_comparator = broker.AttachData(comparator_, "label", QVariant::String, ProtectedState::UNPROTECTED);
+    auto data_comparator = broker.AttachData(comparator_, KeyName::Label, QVariant::String, ProtectedState::UNPROTECTED);
     data_comparator->addValidValues({"==", ">", "<", ">=", "<=", "!=", "&&", "||"});
 
+    broker.AttachData(comparator_, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "circleQuestionDark");
+    broker.AttachData(comparator_, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(comparator_, KeyName::IsGenericParam, QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(comparator_, KeyName::Value, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(comparator_, KeyName::EditableKey, QVariant::String, ProtectedState::PROTECTED, KeyName::Label);
+    Data::LinkData(comparator_, KeyName::Label, comparator_, KeyName::Value, true);
 
-
-    broker.AttachData(comparator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circleQuestionDark");
-    broker.AttachData(comparator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(comparator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
-    broker.AttachData(comparator_, "value", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(comparator_, "editable_key", QVariant::String, ProtectedState::PROTECTED, "label");
-    Data::LinkData(comparator_, "label", comparator_, "value", true);
-
-    broker.RemoveData(comparator_, "type");
-    broker.RemoveData(comparator_, "inner_type");
-    broker.RemoveData(comparator_, "outer_type");
+    broker.RemoveData(comparator_, KeyName::Type);
+    broker.RemoveData(comparator_, KeyName::InnerType);
+    broker.RemoveData(comparator_, KeyName::OuterType);
 
     //Setup RHS
-    broker.AttachData(rhs_, "label", QVariant::String, ProtectedState::PROTECTED, "rhs");
-    broker.AttachData(rhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
-    broker.AttachData(rhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
-    broker.AttachData(rhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
-
+    broker.AttachData(rhs_, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "rhs");
+    broker.AttachData(rhs_, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(rhs_, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(rhs_, KeyName::IsGenericParam, QVariant::Bool, ProtectedState::PROTECTED, true);
 
     //Bind Value changing
-    auto data_rhs_value = rhs_->getData("value");
-    auto data_lhs_value = lhs_->getData("value");
+    auto data_rhs_value = rhs_->getData(KeyName::Value);
+    auto data_lhs_value = lhs_->getData(KeyName::Value);
 
     //Update Label on data Change
     connect(data_rhs_value, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
@@ -83,7 +80,6 @@ MEDEA::BooleanExpression::BooleanExpression(::EntityFactoryBroker& broker, bool 
     connect(data_comparator, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
     connect(data_value, &Data::dataChanged, this, &MEDEA::BooleanExpression::updateLabel);
     
-
     updateLabel();
     TypeKey::BindTypes(lhs_, rhs_, true, true);
 };
@@ -104,25 +100,25 @@ bool MEDEA::BooleanExpression::canAdoptChild(Node* child)
     return DataNode::canAdoptChild(child);
 }
 
-void MEDEA::BooleanExpression::updateLabel(){
+void MEDEA::BooleanExpression::updateLabel()
+{
     QString new_label = "???";
     
-    auto value = getDataValue("value").toString();
-    if(value.length()){
+    auto value = getDataValue(KeyName::Value).toString();
+    if (value.length()) {
         new_label = value;
-    }else{
+    } else {
         if(lhs_ && comparator_ && rhs_){
-            auto lhs_value = lhs_->getDataValue("value").toString();
-            auto comparator = comparator_->getDataValue("label").toString();
-            auto rhs_value = rhs_->getDataValue("value").toString();
-
-            if(lhs_value.length() && rhs_value.length()){
+            auto lhs_value = lhs_->getDataValue(KeyName::Value).toString();
+            auto comparator = comparator_->getDataValue(KeyName::Label).toString();
+            auto rhs_value = rhs_->getDataValue(KeyName::Value).toString();
+            if (lhs_value.length() && rhs_value.length()) {
                 new_label = lhs_value + " " + comparator + " " + rhs_value;
             }
         }
     }
 
-    setDataValue("label", new_label);
+    setDataValue(KeyName::Label, new_label);
 }
 
 DataNode* MEDEA::BooleanExpression::GetLhs(){

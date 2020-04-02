@@ -26,10 +26,10 @@ VectorInst::VectorInst(EntityFactoryBroker& broker, bool is_temp) : DataNode(bro
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "outer_type", QVariant::String, ProtectedState::PROTECTED, "Vector");
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::OuterType, QVariant::String, ProtectedState::PROTECTED, "Vector");
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED);
 }
 
 bool VectorInst::canAdoptChild(Node *child)
