@@ -952,8 +952,8 @@ void TimelineChartView::removedDataFromExperimentRun(const quint32 experimentRun
 
     for (auto id : experimentRunTimeRange_.keys()) {
         auto val = experimentRunTimeRange_.value(id);
-        min = qMin(min, val.first);
-        max = qMax(max, val.second);
+        min = qMin(static_cast<long long>(min), val.first);
+        max = qMax(static_cast<long long>(max), val.second);
         if (updateLongestDuration) {
             auto range = val.second - val.first;
             if (range > longestExperimentRunDuration_.second) {
@@ -1171,16 +1171,4 @@ void TimelineChartView::setupLayout()
 
     auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
     setMinimumWidth(chartLabelList_->minimumWidth() + minTimeAxisWidth + SPACING * 2);
-}
-
-
-/**
- * @brief qHash
- * @param key
- * @param seed
- * @return
- */
-inline uint qHash(MEDEA::ChartDataKind key, uint seed)
-{
-    return ::qHash(static_cast<uint>(key), seed);
 }

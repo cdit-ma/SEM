@@ -29,8 +29,7 @@ InterfaceDefinitions::InterfaceDefinitions(EntityFactoryBroker& broker, bool is_
 
     //Setup Data
     setLabelFunctional(false);
-
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "INTERFACES");
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "INTERFACES");
 }
 
 VIEW_ASPECT InterfaceDefinitions::getViewAspect() const

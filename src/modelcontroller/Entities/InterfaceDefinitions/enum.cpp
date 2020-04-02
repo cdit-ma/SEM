@@ -27,17 +27,17 @@ Enum::Enum(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, 
 
 
     //Setup Data
-    broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "column_count", QVariant::Int, ProtectedState::UNPROTECTED, 1);
+    broker.AttachData(this, KeyName::Namespace, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::ColumnCount, QVariant::Int, ProtectedState::UNPROTECTED, 1);
 }
 
-void Enum::DataAdded(Data* data){
+void Enum::DataAdded(Data* data)
+{
     Node::DataAdded(data);
 
     auto key_name = data->getKeyName();
-
-    if(key_name == "label" || key_name == "namespace" || key_name == "type"){
+    if (key_name == KeyName::Label || key_name == KeyName::Namespace || key_name == KeyName::Type) {
         TypeKey::BindNamespaceAndLabelToType(this, true);
     }
 }

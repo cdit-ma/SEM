@@ -30,10 +30,9 @@ Variable::Variable(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker,
     }
     
     //Setup Data
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 1);
 }
 
 bool Variable::canAdoptChild(Node* child)

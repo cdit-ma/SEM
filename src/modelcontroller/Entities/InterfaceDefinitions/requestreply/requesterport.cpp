@@ -28,9 +28,9 @@ MEDEA::RequesterPort::RequesterPort(::EntityFactoryBroker& broker, bool is_temp)
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 2);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 2);
 }
 
 

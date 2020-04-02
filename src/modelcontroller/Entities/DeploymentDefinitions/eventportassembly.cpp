@@ -13,7 +13,7 @@ EventPortAssembly::EventPortAssembly(EntityFactoryBroker& broker, NODE_KIND node
         return;
     }
 
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
 };
 
 bool EventPortAssembly::isSubPortDelegate() const
@@ -157,20 +157,19 @@ bool EventPortAssembly::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     return EventPort::canAcceptEdge(edge_kind, dst);
 }
 
-void EventPortAssembly::MiddlewareUpdated(){
-    const auto& middleware = getDataValue("middleware").toString();
-
+void EventPortAssembly::MiddlewareUpdated()
+{
+    const auto& middleware = getDataValue(KeyName::Middleware).toString();
     QSet<QString> qos_middlewares = {"RTI", "OSPL"};
     QSet<QString> topic_middlewares = {"RTI", "OSPL", "QPID"};
 
-
-    auto topic_key = getFactoryBroker().GetKey("topic_name", QVariant::String);
-    if(topic_middlewares.contains(middleware)){
-        if(!gotData(topic_key)){
+    auto topic_key = getFactoryBroker().GetKey(KeyName::TopicName, QVariant::String);
+    if (topic_middlewares.contains(middleware)) {
+        if (!gotData(topic_key)) {
             getFactoryBroker().AttachData(this, topic_key, ProtectedState::UNPROTECTED);
         }
-    }else{
-        getFactoryBroker().RemoveData(this, "topic_name");
+    } else {
+        getFactoryBroker().RemoveData(this, KeyName::TopicName);
     }
 
     setAcceptsEdgeKind(EDGE_KIND::QOS, EDGE_DIRECTION::SOURCE, qos_middlewares.contains(middleware));

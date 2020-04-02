@@ -23,6 +23,6 @@ DDS_UserDataQosPolicy::DDS_UserDataQosPolicy(EntityFactoryBroker& broker, bool i
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "user_data");
-    broker.AttachData(this, "qos_dds_str_value", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "user_data");
+    broker.AttachData(this, KeyName::QosDdsStrValue, QVariant::String, ProtectedState::UNPROTECTED);
 }

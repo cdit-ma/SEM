@@ -402,7 +402,7 @@ Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind, in
         //Construct node with default data
         auto node = entity_factory->CreateNode(node_kind, true); 
         if(index != -1){
-            node->setDataValue("index", index);
+            node->setDataValue(KeyName::Index, index);
         }
         return node;
     }
@@ -533,12 +533,13 @@ void ModelController::constructNodeAtPos(int parent_id, NODE_KIND kind, QPointF 
     auto parent_node = entity_factory->GetNode(parent_id);
     auto node = constructNode(parent_node, kind);
 
-    if(node && !pos.isNull()){
-        setData_(node, "x", pos.x());
-        setData_(node, "y", pos.y());
+    if (node && !pos.isNull()) {
+        setData_(node, KeyName::X, pos.x());
+        setData_(node, KeyName::Y, pos.y());
     }
     emit ActionFinished();
 }
+
 void ModelController::constructDDSQOSProfile(){
     if(assemblyDefinitions){
         constructNodeAtIndex(assemblyDefinitions->getID(), NODE_KIND::QOS_DDS_PROFILE, -1);
@@ -552,7 +553,7 @@ void ModelController::constructNodeAtIndex(int parent_id, NODE_KIND kind, int in
     auto node = constructNode(parent_node, kind, index);
 
     if(node && index >= 0){
-        setData_(node, "index", index);
+        setData_(node, KeyName::Index, index);
     }
     emit ActionFinished();
 }
@@ -648,18 +649,20 @@ Node* ModelController::construct_component_node(Node* parent, int index){
     return 0;
 }
 
-void ModelController::constructConnectedNodeAtPos(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos){
+void ModelController::constructConnectedNodeAtPos(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, QPointF pos)
+{
     QWriteLocker lock(&lock_);
     auto parent_node = entity_factory->GetNode(parent_id);
     auto dst_node = entity_factory->GetNode(dst_id);
     auto node = constructConnectedNode(parent_node, node_kind, dst_node, edge_kind);
 
-    if(node && !pos.isNull()){
-        setData_(node, "x", pos.x());
-        setData_(node, "y", pos.y());
+    if (node && !pos.isNull()) {
+        setData_(node, KeyName::X, pos.x());
+        setData_(node, KeyName::Y, pos.y());
     }
     emit ActionFinished();
 }
+
 void ModelController::constructConnectedNodeAtIndex(int parent_id, NODE_KIND node_kind, int dst_id, EDGE_KIND edge_kind, int index){
     QWriteLocker lock(&lock_);
     auto parent_node = entity_factory->GetNode(parent_id);
@@ -667,7 +670,7 @@ void ModelController::constructConnectedNodeAtIndex(int parent_id, NODE_KIND nod
     auto node = constructConnectedNode(parent_node, node_kind, dst_node, edge_kind);
 
     if(node && index >= 0){
-        setData_(node, "index", index);
+        setData_(node, KeyName::Index, index);
     }
     emit ActionFinished();
 }
@@ -1179,10 +1182,9 @@ QList<Node*> ModelController::get_matching_dependant_of_definition(Node* target_
             }else if(target_child->getDefinition()){
                 
             }else{
-                auto target_type_data = target_child->getData("type");
-                auto definition_type_data = definition->getData("type");
-
-                if(Data::CompareData(target_type_data, definition_type_data)){
+                auto target_type_data = target_child->getData(KeyName::Type);
+                auto definition_type_data = definition->getData(KeyName::Type);
+                if (Data::CompareData(target_type_data, definition_type_data)) {
                     matching_nodes << target_child;
                 }
             }
@@ -1581,7 +1583,7 @@ void ModelController::setupModel()
         }
         
         connect(model, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
-            if(key_name == "label"){
+            if (key_name == KeyName::Label) {
                 emit ProjectNameChanged(value.toString());
             }
         });
@@ -2053,11 +2055,11 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                         auto key_name = key->getName();
                         auto value = xml.readElementText();
                         
-                        if(key_name == "uuid"){
+                        if(key_name == KeyName::UUID){
                             //Run the UUID through
                             value = ExportIDKey::GetUUIDOfValue(value);
                             unique_entity_ids.push_back(current_entity->getIDStr());
-                        }else if(key_name == "medea_version"){
+                        }else if(key_name == KeyName::MedeaVersion){
                             model_import_version = value;
                             int model_version = 0;
                             try {
@@ -2102,7 +2104,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                         //If we are meant to generate UUIDS
                         //Use the String'd ID as the seed for the UUID
                         auto uuid_id = ExportIDKey::GetUUIDOfValue(id);
-                        entity->addData("uuid", uuid_id);
+                        entity->addData(KeyName::UUID, uuid_id);
                         unique_entity_ids.push_back(id);
                     }
 
@@ -2161,7 +2163,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         }
 
         bool handle_uuid = IS_IMPORT;
-        auto kind = entity->getDataValue("kind").toString();
+        auto kind = entity->getDataValue(KeyName::Kind).toString();
 
         if(!handle_uuid && entity->isNode()){
             auto parent_node_kinds_set = entity->getParentStack().toSet();
@@ -2172,9 +2174,9 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
         //Handle UUIDS
         if(handle_uuid){
-            const auto& uuid = entity->getDataValue("uuid").toString();
+            const auto& uuid = entity->getDataValue(KeyName::UUID).toString();
             //If we have a uuid, we should set the entity as read-only
-            entity->addData("readOnly", true);
+            entity->addData(KeyName::ReadOnly, true);
             entity->setUUIDMatched(true);
             
             //Lookup the entity in the 
@@ -2184,10 +2186,10 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                 //Produce a notification for updating shared_datatypes
                 
                 if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES || matched_node->getNodeKind() == NODE_KIND::CLASS){
-                    auto version = entity->getDataValue("version").toString();
-                    auto old_version = matched_entity->getDataValue("version").toString();
-                    auto old_label = matched_entity->getDataValue("label").toString();
-                    auto node_kind = matched_node->getDataValue("kind").toString();
+                    auto version = entity->getDataValue(KeyName::Version).toString();
+                    auto old_version = matched_entity->getDataValue(KeyName::Version).toString();
+                    auto old_label = matched_entity->getDataValue(KeyName::Label).toString();
+                    auto node_kind = matched_node->getDataValue(KeyName::Kind).toString();
 
                     if(!version.isEmpty() && !old_version.isEmpty()){
                         int version_compare = 0;
@@ -2231,7 +2233,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                     //Create a list of all required uuids this entity we are loading requires
                     QStringList required_uuids;
                     for(auto child : entity->getChildren()){
-                        required_uuids << child->getDataValue("uuid").toString();
+                        required_uuids << child->getDataValue(KeyName::UUID).toString();
                     }
                     
                     //Remove all visual data.
@@ -2243,8 +2245,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
                     //Compare the children we already have in the Model to the children we need to import. Remove any which aren't needed
                     for(auto child : matched_node->getChildren(0)){
-                        if(child->gotData("uuid")){
-                            auto child_uuid = child->getDataValue("uuid").toString();
+                        if(child->gotData(KeyName::UUID)){
+                            auto child_uuid = child->getDataValue(KeyName::UUID).toString();
                             if(!required_uuids.contains(child_uuid)){
                                 to_remove.push_back(child);
                             }
@@ -2860,7 +2862,7 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
 
     //Check Active Selection
     if(item){
-        auto label = item->getData("label");
+        auto label = item->getData(KeyName::Label);
         if(label && !item->isReadOnly() && !label->isProtected()){
             properties.insert(SELECTION_PROPERTIES::CAN_RENAME);
         }
@@ -2977,7 +2979,7 @@ bool ModelController::canChangeIndex(const QList<Entity *>& unordered_selection)
 
     if(valid){
         for(const auto& entity : unordered_selection){
-            auto data = entity->getData("index");
+            auto data = entity->getData(KeyName::Index);
             if(!data || data->isProtected()){
                 valid = false;
                 break;
@@ -2993,7 +2995,7 @@ bool ModelController::canChangeRow(const QList<Entity *>& unordered_selection)
 
     if(valid){
         for(const auto& entity : unordered_selection){
-            auto data = entity->getData("row");
+            auto data = entity->getData(KeyName::Row);
             if(!data || data->isProtected()){
                 valid = false;
                 break;

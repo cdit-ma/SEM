@@ -30,19 +30,18 @@ HardwareDefinitions::HardwareDefinitions(EntityFactoryBroker& broker, bool is_te
 
     //Setup Data
     setLabelFunctional(false);
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "HARDWARE");
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "HARDWARE");
 
     //Attach Children
     auto localhost = broker.ConstructChildNode(*this, NODE_KIND::HARDWARE_NODE);
 
-    broker.AttachData(localhost, "label", QVariant::String, ProtectedState::PROTECTED, "localhost");
-    broker.AttachData(localhost, "ip_address", QVariant::String, ProtectedState::PROTECTED, "127.0.0.1");
-    broker.AttachData(localhost, "os", QVariant::String, ProtectedState::PROTECTED, QSysInfo::productType());
-    broker.AttachData(localhost, "os_version", QVariant::String, ProtectedState::PROTECTED, QSysInfo::productVersion());
-    broker.AttachData(localhost, "architecture", QVariant::String, ProtectedState::PROTECTED,  QSysInfo::currentCpuArchitecture());
-    broker.AttachData(localhost, "uuid", QVariant::String,ProtectedState::PROTECTED,  "localhost");
-
-    broker.AttachData(localhost, "readOnly", QVariant::Bool, ProtectedState::PROTECTED,  true);
+    broker.AttachData(localhost, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "localhost");
+    broker.AttachData(localhost, KeyName::IpAddress, QVariant::String, ProtectedState::PROTECTED, "127.0.0.1");
+    broker.AttachData(localhost, KeyName::OS, QVariant::String, ProtectedState::PROTECTED, QSysInfo::productType());
+    broker.AttachData(localhost, KeyName::OsVersion, QVariant::String, ProtectedState::PROTECTED, QSysInfo::productVersion());
+    broker.AttachData(localhost, KeyName::Architecture, QVariant::String, ProtectedState::PROTECTED,  QSysInfo::currentCpuArchitecture());
+    broker.AttachData(localhost, KeyName::UUID, QVariant::String,ProtectedState::PROTECTED,  "localhost");
+    broker.AttachData(localhost, KeyName::ReadOnly, QVariant::Bool, ProtectedState::PROTECTED,  true);
 }
 
 

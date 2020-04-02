@@ -358,8 +358,9 @@ QMultiMap<EDGE_DIRECTION, ViewItem*> ViewController::getExistingEndPointsOfSelec
     return items;
 }
 
-QStringList getSearchableKeys(){
-    return {"label", "description", "kind", "namespace", "type", "value", "ID"};
+QStringList getSearchableKeys()
+{
+    return {KeyName::Label, KeyName::Description, KeyName::Kind, KeyName::Namespace, KeyName::Type, KeyName::Value, KeyName::ID};
 };
 
 QList<ViewItem*> ViewController::getSearchableEntities(){
@@ -544,7 +545,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             if (!validChartNodeKinds.contains(nodeKind)) {
                 return validDataKinds;
             }
-            if ((nodeKind == NODE_KIND::CLASS_INST) && !nodeItem->getData("is_worker").toBool()) {
+            if ((nodeKind == NODE_KIND::CLASS_INST) && !nodeItem->getData(KeyName::IsWorker).toBool()) {
                 return validDataKinds;
             }
             selectedKinds.insert(nodeKind);
@@ -612,29 +613,26 @@ QList<QVariant> ViewController::getValidValuesForKey(int ID, QString keyName)
 void ViewController::SetDefaultIcon(ViewItem& view_item)
 {
     QString default_icon_prefix = "EntityIcons";
-    QString default_icon_name = view_item.getData("kind").toString();
+    QString default_icon_name = view_item.getData(KeyName::Kind).toString();
     
-    QString custom_icon_prefix = view_item.getData("icon_prefix").toString();
-    QString custom_icon_name = view_item.getData("icon").toString();
+    QString custom_icon_prefix = view_item.getData(KeyName::IconPrefix).toString();
+    QString custom_icon_name = view_item.getData(KeyName::Icon).toString();
         
     if(view_item.isNode()){
         auto& node_item = (NodeViewItem&)view_item;
         const auto& node_kind = node_item.getNodeKind();
-
-
+        
         switch(node_kind){
         case NODE_KIND::HARDWARE_NODE:{
-            auto os = view_item.getData("os").toString();
-            auto arch = view_item.getData("architecture").toString();
+            auto os = view_item.getData(KeyName::OS).toString();
+            auto arch = view_item.getData(KeyName::Architecture).toString();
             custom_icon_prefix = "EntityIcons";
             custom_icon_name = (os % "_" % arch);
             break;
         }
         case NODE_KIND::OPENCL_PLATFORM:{
-            auto vendor = view_item.getData("vendor").toString();
-            
+            auto vendor = view_item.getData(KeyName::Vendor).toString();
             custom_icon_prefix = "Icons";
-            
             if(vendor == "Advanced Micro Devices, Inc."){
                 custom_icon_name = "amd";
             }else if(vendor == "Altera Corporation"){
@@ -642,12 +640,10 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             }else if(vendor == "NVIDIA Corporation"){
                 custom_icon_name = "nvidia";
             }
-            
             break;
         }
         case NODE_KIND::OPENCL_DEVICE:{
-            auto type = view_item.getData("type").toString();
-            
+            auto type = view_item.getData(KeyName::Type).toString();
             custom_icon_prefix = "Icons";
             if(type == "CL_DEVICE_TYPE_CPU"){
                 custom_icon_name = "cpu";
@@ -994,7 +990,7 @@ void ViewController::_showWiki(ViewItem *item)
     }
 
     if(item){
-        QString kind = item->getData("kind").toString();
+        QString kind = item->getData(KeyName::Kind).toString();
         if(isGitWiki){
             //GIT USES FLAT STRUCTURE
             url += "/ModelEntities-" + kind;
@@ -1025,10 +1021,16 @@ void ViewController::spawnSubView(ViewItem * item)
         if(dockWidget){
             dockWidget->setVisible(true);
         }else{
-            auto label = item->getData("label").toString();
+            auto label = item->getData(KeyName::Label).toString();
             auto parent = window_manager->getMainWindow();
             dockWidget = constructViewDockWidget(label, parent);
             dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+
+            // Need to connect the ViewItem's labelChanged signal so that the title of the DockWidget that contains it,
+            // updates with the ViewItem
+            connect(item, &ViewItem::labelChanged, [dockWidget] (const QString& new_label) {
+                dockWidget->setTitle(new_label);
+            });
 
             //Try and reparent it
             if(window_manager->reparentDockWidget(dockWidget)){
@@ -1238,7 +1240,7 @@ void ViewController::expandSelection()
     if(selection.size()){
         emit TriggerAction("Expand Selection");
         for(auto id : selection){
-            emit SetData(id, "isExpanded", true);
+            emit SetData(id, KeyName::IsExpanded, true);
         }
     }
 }
@@ -1249,7 +1251,7 @@ void ViewController::contractSelection()
     if(selection.size()){
         emit TriggerAction("Expand Selection");
         for(auto id : selection){
-            emit SetData(id, "isExpanded", false);
+            emit SetData(id, KeyName::IsExpanded, false);
         }
     }
 }
@@ -1258,7 +1260,7 @@ void ViewController::editLabel()
 {
     ViewItem* item = getActiveSelectedItem();
     if(item){
-        emit vc_editTableCell(item->getID(), "label");
+        emit vc_editTableCell(item->getID(), KeyName::Label);
     }
 }
 
@@ -1266,7 +1268,7 @@ void ViewController::editReplicationCount()
 {
     ViewItem* item = getActiveSelectedItem();
     if(item){
-        emit vc_editTableCell(item->getID(), "replicate_count");
+        emit vc_editTableCell(item->getID(), KeyName::ReplicateValue);
     }
 }
 
