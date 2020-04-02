@@ -23,6 +23,6 @@ DDS_EntityFactoryQosPolicy::DDS_EntityFactoryQosPolicy(EntityFactoryBroker& brok
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED,  "entity_factory");
-    broker.AttachData(this, "qos_dds_autoenable_created_entities", QVariant::Bool, ProtectedState::UNPROTECTED, true);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED,  "entity_factory");
+    broker.AttachData(this, KeyName::QosDdsAutoEnableCreatedEntities, QVariant::Bool, ProtectedState::UNPROTECTED, true);
 }

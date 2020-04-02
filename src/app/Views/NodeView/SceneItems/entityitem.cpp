@@ -8,7 +8,6 @@
 #include "Node/nodeitem.h"
 
 
-
 EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
 {
     this->parent_item = parent_item;
@@ -21,14 +20,13 @@ EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
 
     connectViewItem(view_item);
 
-
     //setup the lock state
     setIconVisible(EntityRect::LOCKED_STATE_ICON, {"Icons", "lockClosed"}, false);
 
-
-    addRequiredData("readOnly");
+    addRequiredData(KeyName::ReadOnly);
     addHoverFunction(EntityRect::SHAPE, std::bind(&NodeItem::shapeHover, this, std::placeholders::_1, std::placeholders::_2));
 }
+
 
 QList<EntityItem::EntityRect> EntityItem::GetEntityRects(){
     return {
@@ -324,12 +322,12 @@ QPainterPath EntityItem::shape() const
 void EntityItem::setIgnorePosition(bool ignore)
 {
     is_ignoring_positon = ignore;
-    if(ignore){
-        removeRequiredData("x");
-        removeRequiredData("y");
-    }else{
-        addRequiredData("x");
-        addRequiredData("y");
+    if (ignore) {
+        removeRequiredData(KeyName::X);
+        removeRequiredData(KeyName::Y);
+    } else {
+        addRequiredData(KeyName::X);
+        addRequiredData(KeyName::Y);
     }
 }
 
@@ -340,23 +338,21 @@ bool EntityItem::isIgnoringPosition()
 
 void EntityItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
             qreal realData = data.toReal();
             QPointF oldPos = getPos();
             QPointF newPos = oldPos;
-
-            if(key_name == "x"){
+            if (key_name == KeyName::X) {
                 newPos.setX(realData);
-            }else if(key_name == "y"){
+            } else if (key_name == KeyName::Y) {
                 newPos.setY(realData);
             }
-
-            if(newPos != oldPos){
+            if (newPos != oldPos) {
                 setPos(newPos);
                 setPos(getNearestGridPoint());
             }
-        }else if(key_name == "readOnly"){
+        } else if (key_name == KeyName::ReadOnly) {
             bool isReadOnly = data.toBool();
             setIconVisible(EntityRect::LOCKED_STATE_ICON, isReadOnly);
         }
@@ -981,9 +977,9 @@ void EntityItem::setExpandEnabled(bool enabled)
 {
     if(is_expand_enabled != enabled){
         if(enabled){
-            addRequiredData("isExpanded");
+            addRequiredData(KeyName::IsExpanded);
         }else{
-            removeRequiredData("isExpanded");
+            removeRequiredData(KeyName::IsExpanded);
             setExpanded(false);
         }
         is_expand_enabled = enabled;

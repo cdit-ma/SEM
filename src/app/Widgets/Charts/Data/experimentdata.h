@@ -4,6 +4,7 @@
 #include "experimentrundata.h"
 #include "protomessagestructs.h"
 #include <unordered_map>
+#include <memory>
 
 #include <QObject>
 

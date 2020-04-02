@@ -23,7 +23,7 @@ DDS_DestinationOrderQosPolicy::DDS_DestinationOrderQosPolicy(EntityFactoryBroker
     }
     
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "destination_order");
-    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "destination_order");
+    auto dds_kind_data = broker.AttachData(this, KeyName::QosDdsKind, QVariant::String, ProtectedState::UNPROTECTED);
     dds_kind_data->addValidValues({"BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS", "BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS"});
 }

@@ -23,12 +23,11 @@ MEDEA::ReturnParameterGroup::ReturnParameterGroup(::EntityFactoryBroker& broker,
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "Return Parameters");
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
-
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Return Parameters");
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 1);
 }
 
 bool MEDEA::ReturnParameterGroup::canAdoptChild(Node* child)

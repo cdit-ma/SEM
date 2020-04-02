@@ -25,8 +25,8 @@ MemberInst::MemberInst(EntityFactoryBroker& broker, bool is_temp) : DataNode(bro
 
     //Setup Data
     setLabelFunctional(false);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::PROTECTED);
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
 }
 
 

@@ -24,7 +24,7 @@ EnumInst::EnumInst(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker,
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
 }
 
 bool EnumInst::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
@@ -57,7 +57,7 @@ bool EnumInst::canAcceptEdge(EDGE_KIND edge_kind, Node * dst)
 void EnumInst::parentSet(Node* parent){
     switch(parent->getNodeKind()){
         case NODE_KIND::AGGREGATE:{
-            getFactoryBroker().AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+            getFactoryBroker().AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
             SetEdgeRuleActive(EdgeRule::DISALLOW_DEFINITION_CHAINING);
             break;
         }

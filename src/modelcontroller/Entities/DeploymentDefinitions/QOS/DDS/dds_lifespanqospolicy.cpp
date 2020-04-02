@@ -23,7 +23,7 @@ DDS_LifespanQosPolicy::DDS_LifespanQosPolicy(EntityFactoryBroker& broker, bool i
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "lifespan");
-    broker.AttachData(this, "qos_dds_duration_sec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
-    broker.AttachData(this, "qos_dds_duration_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "lifespan");
+    broker.AttachData(this, KeyName::QosDdsDurationSec, QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
+    broker.AttachData(this, KeyName::QosDdsDurationNanoSec, QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
 }

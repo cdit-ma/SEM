@@ -37,12 +37,10 @@ MEDEA::CallbackFunctionInst::CallbackFunctionInst(::EntityFactoryBroker& broker,
     setLabelFunctional(false);
 
     //Setup Data
-    broker.AttachData(this, "class", QVariant::String, ProtectedState::PROTECTED);
-
-    broker.AttachData(this, "operation", QVariant::String, ProtectedState::UNPROTECTED, "Function");
-
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Class, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Operation, QVariant::String, ProtectedState::UNPROTECTED, "Function");
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::UNPROTECTED);
 }
 
 

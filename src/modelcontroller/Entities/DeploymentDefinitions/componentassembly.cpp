@@ -29,14 +29,14 @@ ComponentAssembly::ComponentAssembly(EntityFactoryBroker& broker, bool is_temp) 
 
     auto replication = broker.ConstructChildNode(*this, NODE_KIND::VARIABLE);
     replication->setLabelFunctional(false);
-    broker.AttachData(replication, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(replication, "icon", QVariant::String, ProtectedState::PROTECTED, "copyX");
-    broker.AttachData(replication, "label", QVariant::String, ProtectedState::PROTECTED, "Replication");
-    broker.AttachData(replication, "inner_type", QVariant::String, ProtectedState::PROTECTED, "Integer");
-    auto replication_value_data = broker.AttachData(replication, "value", QVariant::String, ProtectedState::UNPROTECTED, "1");
+    broker.AttachData(replication, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(replication, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "copyX");
+    broker.AttachData(replication, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Replication");
+    broker.AttachData(replication, KeyName::InnerType, QVariant::String, ProtectedState::PROTECTED, "Integer");
+    auto replication_value_data = broker.AttachData(replication, KeyName::Value, QVariant::String, ProtectedState::UNPROTECTED, "1");
 
-    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
-    auto replicate_data = broker.AttachData(this, "replicate_value", QVariant::String, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Comment, QVariant::String, ProtectedState::UNPROTECTED);
+    auto replicate_data = broker.AttachData(this, KeyName::ReplicateValue, QVariant::String, ProtectedState::PROTECTED, 1);
     replication_value_data->linkData(replicate_data, true);
 }
 

@@ -23,7 +23,8 @@ DDS_OwnershipQosPolicy::DDS_OwnershipQosPolicy(EntityFactoryBroker& broker, bool
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "ownership");
-    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "ownership");
+    
+    auto dds_kind_data = broker.AttachData(this, KeyName::QosDdsKind, QVariant::String, ProtectedState::UNPROTECTED);
     dds_kind_data->addValidValues({"SHARED_OWNERSHIP_QOS", "EXCLUSIVE_OWNERSHIP_QOS"});
 }

@@ -35,10 +35,9 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
         return;
     }
 
-
     //setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
 
     //Attach Children
     lhs_ = (DataNode*) broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
@@ -48,44 +47,42 @@ Setter::Setter(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     operator_->setDataReceiver(false);
     operator_->setDataProducer(false);
 
-
     //Setup LHS
-    broker.AttachData(lhs_, "label", QVariant::String, ProtectedState::PROTECTED, "lhs");
-    broker.AttachData(lhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
-    broker.AttachData(lhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
-    broker.AttachData(lhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
-    broker.AttachData(lhs_, "is_generic_param_src", QVariant::Bool, ProtectedState::PROTECTED, true);
-
+    broker.AttachData(lhs_, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "lhs");
+    broker.AttachData(lhs_, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(lhs_, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(lhs_, KeyName::IsGenericParam, QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(lhs_, KeyName::IsGenericParamSrc, QVariant::Bool, ProtectedState::PROTECTED, true);
 
     //Setup Comparator
-    auto data_operator = broker.AttachData(operator_, "label", QVariant::String, ProtectedState::UNPROTECTED);
+    auto data_operator = broker.AttachData(operator_, KeyName::Label, QVariant::String, ProtectedState::UNPROTECTED);
     QList<QVariant> operator_list;
     for(const auto& o : operators){
         operator_list.push_back(o);
     }
     data_operator->addValidValues(operator_list);
 
-    broker.AttachData(operator_, "icon", QVariant::String, ProtectedState::PROTECTED, "circlePlusDark");
-    broker.AttachData(operator_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(operator_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
-    broker.AttachData(operator_, "value", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(operator_, "editable_key", QVariant::String, ProtectedState::PROTECTED, "label");
+    broker.AttachData(operator_, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "circlePlusDark");
+    broker.AttachData(operator_, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(operator_, KeyName::IsGenericParam, QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(operator_, KeyName::Value, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(operator_, KeyName::EditableKey, QVariant::String, ProtectedState::PROTECTED, KeyName::Label);
 
-    Data::LinkData(operator_, "label", operator_, "value", true);
+    Data::LinkData(operator_, KeyName::Label, operator_, KeyName::Value, true);
 
-    broker.RemoveData(operator_, "type");
-    broker.RemoveData(operator_, "inner_type");
-    broker.RemoveData(operator_, "outer_type");
+    broker.RemoveData(operator_, KeyName::Type);
+    broker.RemoveData(operator_, KeyName::InnerType);
+    broker.RemoveData(operator_, KeyName::OuterType);
 
     //Setup RHS
-    broker.AttachData(rhs_, "label", QVariant::String, ProtectedState::PROTECTED, "rhs");
-    broker.AttachData(rhs_, "icon", QVariant::String, ProtectedState::PROTECTED, "Variable");
-    broker.AttachData(rhs_, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
-    broker.AttachData(rhs_, "is_generic_param", QVariant::Bool, ProtectedState::PROTECTED, true);
+    broker.AttachData(rhs_, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "rhs");
+    broker.AttachData(rhs_, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "Variable");
+    broker.AttachData(rhs_, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(rhs_, KeyName::IsGenericParam, QVariant::Bool, ProtectedState::PROTECTED, true);
 
     //Bind Value changing
-    auto data_rhs_value = rhs_->getData("value");
-    auto data_lhs_value = lhs_->getData("value");
+    auto data_rhs_value = rhs_->getData(KeyName::Value);
+    auto data_lhs_value = lhs_->getData(KeyName::Value);
 
     //Update Label on data Change
     connect(data_rhs_value, &Data::dataChanged, this, &Setter::updateLabel);
@@ -116,9 +113,9 @@ bool Setter::canAdoptChild(Node* child)
     return Node::canAdoptChild(child);
 }
 
-void Setter::operatorChanged(){
-    if(operator_){
-        auto operator_value = operator_->getDataValue("label").toString();
+void Setter::operatorChanged() {
+    if (operator_) {
+        auto operator_value = operator_->getDataValue(KeyName::Label).toString();
         QSet<QString> producers = {"+", "-", "*", "/"};
 
         bool valid_producer = producers.contains(operator_value);
@@ -143,18 +140,18 @@ QString GetWrappedString(const QString& str){
     return str;
 }
 
-void Setter::updateLabel(){
+void Setter::updateLabel()
+{
     QString new_label = "???";
-    if(lhs_ && operator_ && rhs_){
-        auto lhs_value = GetWrappedString(lhs_->getDataValue("value").toString());
-        auto operator_value = operator_->getDataValue("label").toString();
-        auto rhs_value = GetWrappedString(rhs_->getDataValue("value").toString());
-
-        if(lhs_value.length() && rhs_value.length()){
+    if (lhs_ && operator_ && rhs_) {
+        auto lhs_value = GetWrappedString(lhs_->getDataValue(KeyName::Value).toString());
+        auto operator_value = operator_->getDataValue(KeyName::Label).toString();
+        auto rhs_value = GetWrappedString(rhs_->getDataValue(KeyName::Value).toString());
+        if (lhs_value.length() && rhs_value.length()) {
             new_label = lhs_value + " " + operator_value + " " + rhs_value;
         }
     }
-    setDataValue("label", new_label);
+    setDataValue(KeyName::Label, new_label);
 }
 
 DataNode* Setter::GetLhs(){
