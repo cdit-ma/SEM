@@ -1,5 +1,6 @@
 #include "experimentdatamanager.h"
 #include "../../../Controllers/WindowManager/windowmanager.h"
+#include "../../../../modelcontroller/keynames.h"
 
 #include <QFutureWatcher>
 
@@ -217,7 +218,7 @@ void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID
  */
 void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
 {
-    // Check if there is a valid selected experiment run
+     // Check if there is a valid selected experiment run
     if (selectedExperimentRun_.experiment_run_id == invalid_experiment_id) {
         toastNotification("ExperimentDataManager::requestEvents - Aborted requests; there is no valid selected experiment run", "chart", Notification::Severity::ERROR);
         return;
@@ -257,13 +258,13 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
         auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
     } catch (const std::exception&) {
-        qInfo("No PortEventRequest");
+		qInfo(ex.what());
     }
     try {
         auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
     } catch (const std::exception&) {
-        qInfo("No NetworkUtilisationRequest");
+		qInfo(ex.what());
     }
 
     // Reset the selected experiment run
