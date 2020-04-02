@@ -1,5 +1,6 @@
 #include "experimentdatamanager.h"
 #include "../../../Controllers/WindowManager/windowmanager.h"
+#include "../../../../modelcontroller/keynames.h"
 
 #include <QFutureWatcher>
 
@@ -219,37 +220,37 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
         auto&& request_param = QVariant::fromValue<PortLifecycleRequest>(builder.getPortLifecycleRequest());
         requestExperimentData(ExperimentDataRequestType::PortLifecycleEvent, request_param);
     } catch (const std::exception& ex) {
-        qInfo(ex.what());
+        qInfo() << ex.what();
     }
     try {
         auto&& request_param = QVariant::fromValue<WorkloadRequest>(builder.getWorkloadRequest());
         requestExperimentData(ExperimentDataRequestType::WorkloadEvent, request_param);
     } catch (const std::exception& ex) {
-		qInfo(ex.what());
+        qInfo() << ex.what();
     }
     try {
         auto&& request_param = QVariant::fromValue<CPUUtilisationRequest>(builder.getCPUUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, request_param);
 	} catch (const std::exception& ex) {
-		qInfo(ex.what());
+        qInfo() << ex.what();
 	}
     try {
         auto&& request_param = QVariant::fromValue<MemoryUtilisationRequest>(builder.getMemoryUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, request_param);
 	} catch (const std::exception& ex) {
-		qInfo(ex.what());
+        qInfo() << ex.what();
 	}
     try {
         auto&& request_param = QVariant::fromValue<MarkerRequest>(builder.getMarkerRequest());
         requestExperimentData(ExperimentDataRequestType::MarkerEvent, request_param);
 	} catch (const std::exception& ex) {
-		qInfo(ex.what());
+        qInfo() << ex.what();
 	}
     try {
         auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
 	} catch (const std::exception& ex) {
-		qInfo(ex.what());
+        qInfo() << ex.what();
 	}
 
     // Reset the selected experiment run
