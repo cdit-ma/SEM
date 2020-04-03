@@ -83,7 +83,7 @@ QList<ContainerInstanceData*> NodeData::getContainerInstanceData() const
  * @brief NodeData::getCPUUtilisationRequest
  * @return
  */
-const CPUUtilisationRequest &NodeData::getCPUUtilisationRequest() const
+const UtilisationRequest &NodeData::getCPUUtilisationRequest() const
 {
     return cpu_utilisation_request_;
 }
@@ -92,7 +92,7 @@ const CPUUtilisationRequest &NodeData::getCPUUtilisationRequest() const
  * @brief NodeData::getMemoryUtilisationRequest
  * @return
  */
-const MemoryUtilisationRequest &NodeData::getMemoryUtilisationRequest() const
+const UtilisationRequest &NodeData::getMemoryUtilisationRequest() const
 {
     return memory_utilisation_request_;
 }

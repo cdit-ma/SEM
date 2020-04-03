@@ -276,8 +276,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/portlifecyclerequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/porteventrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/workloadrequest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/cpuutilisationrequest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/memoryutilisationrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/protomessagestructs.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.h

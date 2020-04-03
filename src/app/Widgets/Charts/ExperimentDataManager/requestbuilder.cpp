@@ -18,22 +18,22 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
     for (auto kind : requestKinds) {
         switch (kind) {
         case MEDEA::ChartDataKind::PORT_LIFECYCLE:
-            portLifecycleRequest_ = std::unique_ptr<PortLifecycleRequest>(new PortLifecycleRequest());
+            portLifecycleRequest_ = std::make_unique<PortLifecycleRequest>(PortLifecycleRequest());
             break;
         case MEDEA::ChartDataKind::WORKLOAD:
-            workloadRequest_ = std::unique_ptr<WorkloadRequest>(new WorkloadRequest());
+            workloadRequest_ = std::make_unique<WorkloadRequest>( WorkloadRequest());
             break;
         case MEDEA::ChartDataKind::CPU_UTILISATION:
-            cpuUtilisationRequest_ = std::unique_ptr<CPUUtilisationRequest>(new CPUUtilisationRequest());
+            cpuUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = std::unique_ptr<MemoryUtilisationRequest>(new MemoryUtilisationRequest());
+            memoryUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MARKER:
-            markerRequest_ = std::unique_ptr<MarkerRequest>(new MarkerRequest());
+            markerRequest_ = std::make_unique<MarkerRequest>(MarkerRequest());
             break;
         case MEDEA::ChartDataKind::PORT_EVENT:
-            portEventRequest_ = std::unique_ptr<PortEventRequest>(new PortEventRequest());
+            portEventRequest_ = std::make_unique<PortEventRequest>(PortEventRequest());
             break;
         default:
 	        throw std::invalid_argument("RequestBuilder::buildRequests - Unknown chart data kind");
@@ -268,7 +268,7 @@ const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
  * @throws std::invalid_argument
  * @return
  */
-const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
+const UtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
 {
     if (!cpuUtilisationRequest_) {
         throw std::invalid_argument("There is no built CPUUtilisationRequest");
@@ -281,7 +281,7 @@ const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
  * @throws std::invalid_argument
  * @return
  */
-const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
+const UtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
 {
     if (!memoryUtilisationRequest_) {
         throw std::invalid_argument("There is no built MemoryUtilisationRequest");
