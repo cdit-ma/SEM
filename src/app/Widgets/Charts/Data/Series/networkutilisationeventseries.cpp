@@ -1,4 +1,5 @@
 #include "networkutilisationeventseries.h"
+#include <cmath>
 
 /**
  * @brief NetworkUtilisationEventSeries::NetworkUtilisationEventSeries
