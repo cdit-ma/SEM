@@ -6,7 +6,7 @@
 class PortLifecycleRequest : public EventRequest {
 
 public:
-    explicit PortLifecycleRequest();
+    explicit PortLifecycleRequest() = default;
 
     void setPortIDs(const QVector<QString>& port_ids);
     void setPortPaths(const QVector<QString>& port_paths);

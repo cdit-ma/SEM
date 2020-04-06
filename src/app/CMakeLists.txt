@@ -125,7 +125,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/cpuutilisationrequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/memoryutilisationrequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/networkutilisationrequest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portevent.cpp
@@ -285,7 +284,6 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/cpuutilisationrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/memoryutilisationrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/networkutilisationrequest.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/protomessagestructs.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.h

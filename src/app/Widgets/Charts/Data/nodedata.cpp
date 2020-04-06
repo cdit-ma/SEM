@@ -117,7 +117,7 @@ const MemoryUtilisationRequest& NodeData::getMemoryUtilisationRequest() const
  * @brief NodeData::getNetworkUtilisationRequest
  * @return
  */
-const NetworkUtilisationRequest& NodeData::getNetworkUtilisationRequest() const
+const UtilisationRequest& NodeData::getNetworkUtilisationRequest() const
 {
     return network_utilisation_request_;
 }

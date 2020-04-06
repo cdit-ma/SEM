@@ -16,7 +16,6 @@
 #include "../Data/Requests/memoryutilisationrequest.h"
 #include "../Data/Requests/markerrequest.h"
 #include "../Data/Requests/porteventrequest.h"
-#include "../Data/Requests/networkutilisationrequest.h"
 
 enum class ExperimentDataRequestType
 {
@@ -90,7 +89,7 @@ private:
     void requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
     void requestMarkerEvents(const MarkerRequest& request, const AggServerResponse::ExperimentRun& experimentRun, MarkerSetData* marker_data_requester = nullptr);
     void requestPortEvents(const PortEventRequest& request, const AggServerResponse::ExperimentRun& experimentRun, PortInstanceData* port_data_requester = nullptr);
-    void requestNetworkUtilisationEvents(const NetworkUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
+    void requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
 
     void processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs);
     void processExperimentState(const QString &experiment_name, quint32 experiment_run_id, const AggServerResponse::ExperimentState& experiment_state);
@@ -134,6 +133,6 @@ Q_DECLARE_METATYPE(CPUUtilisationRequest);
 Q_DECLARE_METATYPE(MemoryUtilisationRequest);
 Q_DECLARE_METATYPE(MarkerRequest);
 Q_DECLARE_METATYPE(PortEventRequest);
-Q_DECLARE_METATYPE(NetworkUtilisationRequest);
+Q_DECLARE_METATYPE(UtilisationRequest);
 
 #endif // EXPERIMENTDATAMANAGER_H

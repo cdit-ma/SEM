@@ -6,7 +6,7 @@
 class MemoryUtilisationRequest : public UtilisationRequest {
 
 public:
-    explicit MemoryUtilisationRequest();
+    explicit MemoryUtilisationRequest() = default;
 };
 
 #endif // MEMORYUTILISATIONREQUEST_H

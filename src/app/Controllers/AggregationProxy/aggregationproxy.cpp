@@ -132,7 +132,7 @@ QFuture<QVector<PortEvent*> > AggregationProxy::RequestPortEvents(const PortEven
  * @param request
  * @return
  */
-QFuture<QVector<NetworkUtilisationEvent*> > AggregationProxy::RequestNetworkUtilisationEvents(const NetworkUtilisationRequest& request) const
+QFuture<QVector<NetworkUtilisationEvent*> > AggregationProxy::RequestNetworkUtilisationEvents(const UtilisationRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetNetworkUtilisationEvents, request);
 }
@@ -530,7 +530,7 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest& requ
  * @param request
  * @return
  */
-QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(const NetworkUtilisationRequest& request) const
+QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(const UtilisationRequest& request) const
 {
     CheckRequester();
 

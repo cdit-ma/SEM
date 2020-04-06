@@ -129,9 +129,9 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
             break;
         }
         case ExperimentDataRequestType::NetworkUtilisationEvent: {
-            valid = request_param.canConvert<NetworkUtilisationRequest>();
+            valid = request_param.canConvert<UtilisationRequest>();
             if (valid) {
-                auto request = request_param.value<NetworkUtilisationRequest>();
+                auto request = request_param.value<UtilisationRequest>();
                 requestNetworkUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
             }
             break;
@@ -264,7 +264,7 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
         qInfo("No PortEventRequest");
     }
     try {
-        auto&& request_param = QVariant::fromValue<NetworkUtilisationRequest>(builder.getNetworkUtilisationRequest());
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
     } catch (const std::exception&) {
         qInfo("No NetworkUtilisationRequest");
@@ -449,7 +449,7 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
  * @param experimentRun
  * @param node_data_requester
  */
-void ExperimentDataManager::requestNetworkUtilisationEvents(const NetworkUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
 {
     auto future = aggregationProxy().RequestNetworkUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);

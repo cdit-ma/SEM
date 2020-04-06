@@ -6,7 +6,6 @@
 
 #include "Requests/cpuutilisationrequest.h"
 #include "Requests/memoryutilisationrequest.h"
-#include "Requests/networkutilisationrequest.h"
 
 #include "Events/cpuutilisationevent.h"
 #include "Events/memoryutilisationevent.h"
@@ -29,7 +28,7 @@ public:
 
     const CPUUtilisationRequest& getCPUUtilisationRequest() const;
     const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
-    const NetworkUtilisationRequest& getNetworkUtilisationRequest() const;
+    const UtilisationRequest& getNetworkUtilisationRequest() const;
 
     void addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events);
     CPUUtilisationEventSeries* getCPUUtilisationSeries() const;
@@ -58,7 +57,7 @@ private:
 
     CPUUtilisationRequest cpu_utilisation_request_;
     MemoryUtilisationRequest memory_utilisation_request_;
-    NetworkUtilisationRequest network_utilisation_request_;
+    UtilisationRequest network_utilisation_request_;
 
     CPUUtilisationEventSeries* cpu_utilisation_series_ = nullptr;
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;
