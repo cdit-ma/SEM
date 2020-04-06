@@ -58,7 +58,7 @@ private:
     void resetPlayback();
 
     QGraphicsView* view_ = nullptr;
-    PlaybackControlsWidget playback_controls;
+    PlaybackControlsWidget playback_controls_;
 
     QHash<QString, ComponentInstanceGraphicsItem*> comp_inst_items_;
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
