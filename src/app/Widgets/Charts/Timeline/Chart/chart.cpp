@@ -294,8 +294,9 @@ void Chart::setSeriesKindVisible(ChartDataKind kind, bool visible)
  */
 void Chart::seriesKindHovered(ChartDataKind kind)
 {
-    if (kind == hoveredSeriesKind_)
+    if (kind == hoveredSeriesKind_) {
         return;
+    }
 
     portLifecycleColor_ = backgroundColor_;
     workloadColor_ = backgroundColor_;
@@ -305,6 +306,7 @@ void Chart::seriesKindHovered(ChartDataKind kind)
     portEventColor_ = backgroundColor_;
     networkColor_sent_ = backgroundColor_;
     networkColor_received_ = backgroundColor_;
+    networkColor_combined_ = backgroundColor_;
 
     double alpha = 0.25;
     portLifecycleSeriesOpacity_ = alpha;
@@ -349,6 +351,7 @@ void Chart::seriesKindHovered(ChartDataKind kind)
     case ChartDataKind::NETWORK_UTILISATION: {
         networkColor_sent_ = defaultNetworkColor_sent_;
         networkColor_received_ = defaultNetworkColor_received_;
+        networkColor_combined_ = Qt::blue;
         networkSeriesOpacity_ = 1.0;
         break;
     }
@@ -362,6 +365,7 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         portEventColor_ = defaultPortEventColor_;
         networkColor_sent_ = defaultNetworkColor_sent_;
         networkColor_received_ = defaultNetworkColor_received_;
+        networkColor_combined_ = Qt::blue;
         portLifecycleSeriesOpacity_ = 1.0;
         workloadSeriesOpacity_ = 1.0;
         cpuSeriesOpacity_ = 1.0;
@@ -1436,7 +1440,7 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
     }
     
     if (rects_sent == rects_received) {
-        drawLineFromRects(painter, rects_sent, Qt::blue, networkSeriesOpacity_,
+        drawLineFromRects(painter, rects_sent, networkColor_combined_, networkSeriesOpacity_,
                           ChartDataKind::NETWORK_UTILISATION);
     } else {
         drawLineFromRects(painter, rects_sent, networkColor_sent_, networkSeriesOpacity_,

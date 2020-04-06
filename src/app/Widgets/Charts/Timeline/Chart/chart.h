@@ -146,6 +146,7 @@ private:
 
     QColor networkColor_sent_ = defaultNetworkColor_sent_;
     QColor networkColor_received_ = defaultNetworkColor_received_;
+    QColor networkColor_combined_ = Qt::blue;
 
     double portLifecycleSeriesOpacity_ = 1.0;
     double workloadSeriesOpacity_ = 1.0;
