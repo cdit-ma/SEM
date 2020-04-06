@@ -99,32 +99,18 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
         emit updateLiveStatus(live_mode_);
     }
 
-    // REVIEW (Jackson): The nesting here is getting pretty deep - the inner functionality can be
-    //  fairly safely moved to the classes you're iterating over
     for (const auto& node_data : exp_run_data.getNodeData()) {
 
         auto node_item = new NodeGraphicsItem(*node_data);
         addItemToScene(node_item);
 
-        for (const auto& container_data : node_data->getContainerInstanceData()) {
-            for (const auto& comp_inst_data : container_data->getComponentInstanceData()) {
-                if (comp_inst_data == nullptr) {
-                    throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - ComponentInstanceData is null.");
-                }
-
-                auto comp_inst_item = node_item->addComponentInstanceItem(*comp_inst_data);
-                comp_inst_items_.insert(comp_inst_data->getGraphmlID(), comp_inst_item);
-                for (const auto& port_data : comp_inst_data->getPortInstanceData()) {
-                    if (port_data == nullptr) {
-                        throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - PortInstanceData is null.");
-                    }
-                    auto port_inst_item = comp_inst_item->addPortInstanceItem(*port_data);
-                    port_items_.insert(port_data->getGraphmlID(), port_inst_item);
-                }
+        for (const auto& comp_inst_item : node_item->getComponentInstanceItems()) {
+            for (const auto& port_inst_item : comp_inst_item->getPortInstanceItems()) {
+                const auto& port_id = port_inst_item->getGraphmlID();
+                port_items_.insert(port_id, port_inst_item);
             }
         }
     }
-
 
     // Construct the edges
     constructEdgeItems(port_items_, exp_run_data.getPortConnectionData());
