@@ -10,18 +10,31 @@ using google::protobuf::util::TimeUtil;
 
 namespace re::logging::aggregation::broker {
 
+/**
+ * Internal details namespace for the Broker class, not intended for external use (move elsewhere and refactor as
+ * as necessary if functionality is needed)
+ */
 namespace detail {
 std::string StringToPSQLTimestamp(const std::string& str)
 {
     return DatabaseClient::StringToPSQLTimestamp(str);
 }
 
+/**
+ * Class that enforces pairing rules for SQL conditional filtering clauses
+ * TODO: Enforce this pairing through an actual object representation of each "pair" (include condition?)
+ */
 class ConditionPairList {
 private:
     std::vector<std::string> cols_;
     std::vector<std::string> vals_;
 
 public:
+    /**
+     * Associate the given table column name and value to be used in a conditional comparison at some point
+     * @param col_name The name of the column for a particular table
+     * @param val The value to be associated with the column
+     */
     void addPair(const std::string& col_name, const std::string& val)
     {
         cols_.emplace_back(col_name);
@@ -31,13 +44,27 @@ public:
     [[nodiscard]] const std::vector<std::string>& getValues() const { return vals_; }
 };
 
+/**
+ * Convenience builder class to make the construction of ConditionPairLists more ergonomic
+ */
 class ConditionPairBuilder {
 private:
     ConditionPairList pair_list_;
     ConditionPairBuilder() = default;
 
 public:
+    /**
+     * Start building a ConditionPairList
+     * @return A ConditionPairBuilder
+     */
     static ConditionPairBuilder createConditionPairs() { return ConditionPairBuilder(); }
+
+    /**
+     * Associates one or more values with the provided column name (condition not specified)
+     * @param col_name The column name within the table to be queried
+     * @param values One or more stringed representations of the values to be checked against
+     * @return A reference to the ConditionPairBuilder so that the API usage continues to flow nicely
+     */
     ConditionPairBuilder& add(const std::string& col_name, const std::vector<std::string>& values)
     {
         for(const auto& val : values) {
@@ -45,6 +72,12 @@ public:
         }
         return *this;
     }
+    /**
+     * Associates one or more values with the provided column name (condition not specified)
+     * @param col_name The column name within the table to be queried
+     * @param values One or more Protobuf representations of the values to be checked against
+     * @return A reference to the ConditionPairBuilder so that the API usage continues to flow nicely
+     */
     ConditionPairBuilder&
     add(const std::string& col_name, const google::protobuf::RepeatedPtrField<std::string>& values)
     {
@@ -53,39 +86,22 @@ public:
         }
         return *this;
     }
+    /**
+     * Finalise the building process by obtaining the ConditionPairList
+     * @return The constructed ConditionPairList
+     */
     ConditionPairList finish() { return pair_list_; }
 };
 } // namespace detail
 using namespace detail;
+
+// Still in use as code moves out if the legacy AggServer namespace
 using namespace AggServer;
 
 AggregationReplier::AggregationReplier(std::shared_ptr<DatabaseClient> database) :
     database_(std::move(database))
 {
     RegisterCallbacks();
-    // const auto&& res = database_->GetPortLifecycleEventInfo(
-    //     "1970-01-01T00:00:00.000000Z",
-    //     "1970-01-01T9:10:23.924073Z",
-    //     {"Port.Path"},
-    //     {"ComponentAssembly.0//SubscriberPort"}
-    // );
-    /*const auto&& res = database_->GetWorkloadEventInfo(
-        "1970-01-01T00:00:00.000000Z",
-        "2020-01-01T9:10:23.924073Z",
-        {"WorkerInstance.Path"},
-        {"TestAssembly.1/ReceiverInstance/Utility_Worker"}
-    );
-    std::cout << "num affected rows" << res.size() << std::endl;
-    */
-
-    /*
-    MarkerRequest request;
-    request.set_experiment_run_id(25);
-    std::cout << "About to process request..." << std::endl;
-    const auto& response = ProcessMarkerRequest(request);
-    std::cout << "Response info:" << std::endl;
-    std::cout << response->DebugString() << std::endl;
-    */
 }
 
 void AggregationReplier::RegisterCallbacks()
@@ -122,12 +138,11 @@ void AggregationReplier::RegisterCallbacks()
 std::unique_ptr<ExperimentRunResponse>
 AggregationReplier::ProcessExperimentRunRequest(const ExperimentRunRequest& message)
 {
-    // REVIEW(Mitch): Investigate new cpp feature "auto".
-    std::unique_ptr<ExperimentRunResponse> response(new ExperimentRunResponse());
+    auto response = std::make_unique<ExperimentRunResponse>();
 
+    // Generate a list of Experiment name + ID pairs
     const std::string& exp_name = message.experiment_name();
     std::vector<std::pair<std::string, int>> exp_name_id_pairs;
-
     if(exp_name.empty()) {
         // If no name is provided ask the database for the list of all names and ExperimentIDs
         const auto& results = database_->GetValues("Experiment", {"Name", "ExperimentID"});
@@ -137,11 +152,7 @@ AggregationReplier::ProcessExperimentRunRequest(const ExperimentRunRequest& mess
             exp_name_id_pairs.emplace_back(std::make_pair(name, id));
         }
     } else {
-        /*int id = database_->GetID(
-            "Experiment",
-            "Name LIKE " + database_->EscapeString("%"+exp_name+"%")
-        );
-        exp_name_id_pairs.emplace_back(std::make_pair(exp_name, id));*/
+        // Otherwise, get the names and IDs of any experiments who's name contains the provided exp_name string
         const auto& results = database_->GetValues("Experiment", {"Name", "ExperimentID"},
                                                    "Name LIKE "
                                                        + database_->quote("%" + exp_name + "%"));
@@ -152,12 +163,14 @@ AggregationReplier::ProcessExperimentRunRequest(const ExperimentRunRequest& mess
         }
     }
 
+    // Use the name + ID pairs to determine which Experiments we need to make Protobuf representations of
     for(const auto& pair : exp_name_id_pairs) {
         const auto& name = pair.first;
         const auto& id = pair.second;
         auto exp_info = response->add_experiments();
         exp_info->set_name(name);
 
+        // Get the details of each identified experiment
         const auto& results = database_->GetValues(
             "ExperimentRun",
             {"ExperimentRunID", "JobNum", StringToPSQLTimestamp("StartTime") + " AS StartTime",
@@ -492,7 +505,6 @@ AggregationReplier::ProcessWorkloadEventRequest(const WorkloadRequest& message)
                 }
             }
             event->set_type(type);
-            // event->set_type((WorkloadEvent::WorkloadEventType)type_int);
             auto&& timestamp_str = row["SampleTime"].as<std::string>();
             bool did_parse = TimeUtil::FromString(timestamp_str, event->mutable_time());
             if(!did_parse) {
@@ -532,7 +544,6 @@ AggregationReplier::ProcessMarkerRequest(const MarkerRequest& message)
         start = TimeUtil::ToString(message.time_interval()[0]);
     } else {
         start = "";
-        // start = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
     }
 
     // End time defaults to 0 if not specified
@@ -540,7 +551,6 @@ AggregationReplier::ProcessMarkerRequest(const MarkerRequest& message)
         end = TimeUtil::ToString(message.time_interval()[1]);
     } else {
         end = "";
-        // end = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
     }
 
     // Get filter conditions
@@ -763,26 +773,6 @@ AggregationReplier::ProcessNetworkUtilisationRequest(const NetworkUtilisationReq
     auto time_interval = re::types::proto::FromProto(message.time_interval());
 
     std::cout << "Network request for experiment ID : " << message.experiment_run_id() << std::endl;
-
-    /*auto time_interval = re::types::UnboundedTimeRange<google::protobuf::Timestamp>(
-        message.time_interval()[0], message.time_interval()[1]);*/
-
-    // std::string start = re::types::TimepointToString(time_interval.Start().value_or(0));
-    /*std::string start, end;
-
-    // Start time defaults to 0 if not specified
-    if(message.time_interval_size() >= 1) {
-        start = TimeUtil::ToString(message.time_interval()[0]);
-    } else {
-        start = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
-    }
-
-    // End time defaults to 0 if not specified
-    if(message.time_interval_size() >= 2) {
-        end = TimeUtil::ToString(message.time_interval()[1]);
-    } else {
-        end = TimeUtil::ToString(TimeUtil::SecondsToTimestamp(0));
-    }*/
 
     // Get filter conditions
     std::vector<std::string> condition_cols;
