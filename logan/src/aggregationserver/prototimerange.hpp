@@ -24,12 +24,10 @@ FromProto(const google::protobuf::RepeatedPtrField<Timestamp>& timerange)
     std::optional<time_point> start_time, end_time;
     if(timerange.size() >= 1) {
         start_time.emplace(clock::from_time_t(proto::util::TimeUtil::TimestampToTimeT(timerange[0])));
-        //start_time = clock::from_time_t(proto_time::TimestampToTimeT(*start));
     }
 
     if(timerange.size() == 2) {
         end_time.emplace(clock::from_time_t(proto::util::TimeUtil::TimestampToTimeT(timerange[1])));
-        //end_time = clock::from_time_t(proto_time::TimestampToTimeT(*end));
     }
 
     return UnboundedTimeRange<time_point >(start_time, end_time);

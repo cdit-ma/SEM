@@ -64,7 +64,6 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/experimentruninfo.h
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/sqlstrings.h.in
-	${CMAKE_CURRENT_SOURCE_DIR}/experimentruninfo.h
 	${CMAKE_CURRENT_SOURCE_DIR}/unboundedtimerange.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/prototimerange.hpp
 

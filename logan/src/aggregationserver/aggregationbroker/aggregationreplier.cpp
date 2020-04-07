@@ -815,8 +815,6 @@ AggregationReplier::ProcessNetworkUtilisationRequest(const NetworkUtilisationReq
                 current_node_event_group->mutable_node_info()->set_hostname(hostname);
                 current_node_event_group->mutable_node_info()->set_ip(
                     row["NodeIP"].as<std::string>());
-                /*FillNodeState(*current_node_event_group->mutable_node_info(), row,
-                              message.experiment_run_id());*/
             }
 
             // Check if we need to create a new Interface grouping due to encountering a new MAC
@@ -824,8 +822,6 @@ AggregationReplier::ProcessNetworkUtilisationRequest(const NetworkUtilisationReq
             if(current_interface_mac != interface_mac) {
                 current_interface_mac = interface_mac;
                 current_interface_event_group = current_node_event_group->add_events();
-                /*FillNodeState(*current_node_event_group->mutable_node_info(), row,
-                              message.experiment_run_id());*/
                 current_interface_event_group->set_interface_mac_addr(interface_mac);
             }
             auto interface_event = current_interface_event_group->add_events();
