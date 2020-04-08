@@ -65,9 +65,9 @@ void DataTableWidget::activeItem_IconChanged()
 
 void DataTableWidget::activeItem_LabelChanged()
 {
-    if(activeItem){
-        entity_button->setText(activeItem->getData("label").toString());
-    }else{
+    if (activeItem) {
+        entity_button->setText(activeItem->getData(KeyName::Label).toString());
+    } else {
         entity_button->setText("");
     }
 }

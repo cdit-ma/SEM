@@ -16,10 +16,10 @@ void QOSProfileModel::viewItem_Constructed(ViewItem* viewItem)
     if (viewItem && viewItem->isNode()) {
         auto item = qobject_cast<NodeViewItem*>(viewItem);
         if (item->getViewAspect() == VIEW_ASPECT::ASSEMBLIES) {
-        
-            QString nodeKind = viewItem->getData("kind").toString();
+
+            QString nodeKind = viewItem->getData(KeyName::Kind).toString();
             QStandardItem* parentItem = nullptr;
-        
+
             if (nodeKind.endsWith("QOSProfile")) {
                 parentItem = invisibleRootItem();
             } else {
@@ -38,10 +38,10 @@ void QOSProfileModel::viewItem_Constructed(ViewItem* viewItem)
 void QOSProfileModel::viewItem_Destructed(int ID, ViewItem *)
 {
     if (modelItems.contains(ID)) {
-    
+
         QOSModelItem* modelItem = modelItems.take(ID);
         QStandardItem* parentItem = ((QStandardItem*)modelItem)->parent();
-    
+
         //Remove the row
         if (parentItem) {
             removeRow(modelItem->row(), parentItem->index());
@@ -168,8 +168,8 @@ void QOSModelItem::setData(const QVariant &value, int role)
     //  of setData() is not being called. This will ensure that views using the model are notified of the changes.
     //  At the moment, we call emitDataChanged when the nodeViewItem (associated with this model item)'s data has changed
     if (role == Qt::EditRole) {
-        if (nodeViewItem_ && !nodeViewItem_->isDataProtected("label")) {
-            emit nodeViewItem_->getTableModel()->req_dataChanged(ID, "label", value);
+        if(item && !item->isDataProtected(KeyName::Label)){
+            emit item->getTableModel()->req_dataChanged(ID, KeyName::Label, value);
         }
     }
 }

@@ -5,8 +5,8 @@
 
 #include <QQueue>
 
-const QSet<QString> ViewItem::permanent_protected_keys({"ID"});
-const QSet<QString> ViewItem::permanent_editable_keys({"column_count"});
+const QSet<QString> ViewItem::permanent_protected_keys({KeyName::ID});
+const QSet<QString> ViewItem::permanent_editable_keys({KeyName::ColumnCount});
 
 bool ViewItem::SortByLabel(const ViewItem *a, const ViewItem *b)
 {
@@ -38,8 +38,8 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
     this->controller = controller;
     this->ID = ID;
     this->entityKind = entity_kind;
-    
-    changeData("ID", ID);
+
+    changeData(KeyName::ID, ID);
     
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
 }
@@ -310,14 +310,14 @@ void ViewItem::addNotification(QSharedPointer<NotificationObject> notification)
 {
     notifications_.insert(notification);
     connect(notification.data(), &NotificationObject::notificationChanged, this, &ViewItem::notificationsChanged);
-    
+
     // NOTE (SEM-96): Changed connect notation to the one above
     //  Revert/investigate if there are any issues regarding notification objects/changes
     /*connect(notification.data(), &NotificationObject::notificationChanged, [=](const QSharedPointer<NotificationObject>&)
     {
         emit notificationsChanged();
     });*/
-    
+
     emit notificationsChanged();
 }
 

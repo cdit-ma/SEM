@@ -23,6 +23,6 @@ DDS_WriterDataLifecycleQosPolicy::DDS_WriterDataLifecycleQosPolicy(EntityFactory
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "writer_data_lifecycle");
-    broker.AttachData(this, "qos_dds_autodispose_unregistered_instances", QVariant::Bool, ProtectedState::UNPROTECTED, true);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "writer_data_lifecycle");
+    broker.AttachData(this, KeyName::QosDdsAutoDisposeUnregisteredInstances, QVariant::Bool, ProtectedState::UNPROTECTED, true);
 }

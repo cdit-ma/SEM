@@ -23,9 +23,9 @@ AttributeImpl::AttributeImpl(EntityFactoryBroker& broker, bool is_temp) : DataNo
     }
 
     //Setup Data
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 0);
 }
 
 bool AttributeImpl::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)

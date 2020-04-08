@@ -29,13 +29,13 @@ MEDEA::ServerInterface::ServerInterface(::EntityFactoryBroker& broker, bool is_t
     auto input_params = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER_GROUP);
     auto return_params = broker.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER_GROUP);
 
-    broker.AttachData(this, "namespace", QVariant::String, ProtectedState::PROTECTED);
-    auto data_function_name = broker.AttachData(this, "function_name", QVariant::String, ProtectedState::UNPROTECTED, "send");
-    auto data_interface_name = broker.AttachData(this, "interface_name", QVariant::String, ProtectedState::UNPROTECTED, "");
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(input_params, "label", QVariant::String, ProtectedState::PROTECTED, "Request Type");
-    broker.AttachData(return_params, "label", QVariant::String, ProtectedState::PROTECTED, "Reply Type");
+    broker.AttachData(this, KeyName::Namespace, QVariant::String, ProtectedState::PROTECTED);
+    auto data_function_name = broker.AttachData(this, KeyName::FunctionName, QVariant::String, ProtectedState::UNPROTECTED, "send");
+    auto data_interface_name = broker.AttachData(this, KeyName::InterfaceName, QVariant::String, ProtectedState::UNPROTECTED, "");
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(input_params, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Request Type");
+    broker.AttachData(return_params, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Reply Type");
     TypeKey::BindNamespaceAndLabelToType(this, true);
 
     connect(data_function_name, &Data::dataChanged, this, &MEDEA::ServerInterface::updateLabel);
@@ -61,14 +61,16 @@ bool MEDEA::ServerInterface::canAdoptChild(Node* child)
 }
 
 
-void MEDEA::ServerInterface::updateLabel(){
+void MEDEA::ServerInterface::updateLabel()
+{
     QString new_label;
-    auto interface_name = getDataValue("interface_name").toString();
-    auto function_name = getDataValue("function_name").toString();
+    auto interface_name = getDataValue(KeyName::InterfaceName).toString();
+    auto function_name = getDataValue(KeyName::FunctionName).toString();
 
-    if(interface_name.size()){
+    if (interface_name.size()) {
         new_label += interface_name + "_";
     }
+    
     new_label += function_name;
-    setDataValue("label", new_label);
+    setDataValue(KeyName::Label, new_label);
 }

@@ -198,7 +198,7 @@ bool GraphmlPrinter::ExportKey(const Key& key){
 }
 
 bool GraphmlPrinter::IsKeyVisual(const QString& key_name){
-    static const QSet<QString> visual_key_names({"x", "y", "width", "height", "isExpanded"});
+    static const QSet<QString> visual_key_names({KeyName::X, KeyName::Y, KeyName::Width, KeyName::Height, KeyName::IsExpanded});
     return visual_key_names.contains(key_name);
 }
 
@@ -212,21 +212,18 @@ void GraphmlPrinter::ToGraphmlStream(const Key& key, QTextStream& stream, int in
     }
 }
 
-void GraphmlPrinter::ToGraphmlStream(const Data& data, QTextStream& stream, int indent_depth){
-    const static QString process_key("processes_to_log");
-    
+void GraphmlPrinter::ToGraphmlStream(const Data& data, QTextStream& stream, int indent_depth)
+{
     const auto& key = *(data.getKey());
 
-    if(ExportKey(key)){
+    if (ExportKey(key)) {
         auto data_string = helper::SanitizeString(data.getValue().toString());
-
-        if(key.getName() == process_key){
+        if (key.getName() == KeyName::ProcessesToLog) {
             const static QString search_str("\n");
             const static QString replace_str(",");
             //Replace all new lines with comma's
             data_string.replace(search_str, replace_str);
         }
-
         stream << QString("\t").repeated(indent_depth);
         stream << "<data key=\"" << GetKeyID(key) << "\">";
         stream << data_string;

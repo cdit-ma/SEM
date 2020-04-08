@@ -24,10 +24,10 @@ OpenCLDevice::OpenCLDevice(EntityFactoryBroker& broker, bool is_temp) : Node(bro
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "is_available", QVariant::Bool, ProtectedState::PROTECTED, false);
-    broker.AttachData(this, "memory_size", QVariant::Int, ProtectedState::PROTECTED, -1);
-    broker.AttachData(this, "clock_freq", QVariant::Int, ProtectedState::PROTECTED, -1);
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "version", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IsAvailable, QVariant::Bool, ProtectedState::PROTECTED, false);
+    broker.AttachData(this, KeyName::MemorySize, QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(this, KeyName::ClockFrequency, QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Version, QVariant::String, ProtectedState::PROTECTED);
 }

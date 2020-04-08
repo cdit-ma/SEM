@@ -14,7 +14,7 @@ Edge::Edge(EntityFactoryBroker& broker, Node *source, Node *destination, EDGE_KI
     this->destination = destination;
 
     //Attach default data
-    broker.AttachData(this, "kind", QVariant::String, ProtectedState::PROTECTED, broker.GetEdgeKindString(edge_kind));
+    broker.AttachData(this, KeyName::Kind, QVariant::String, ProtectedState::PROTECTED, broker.GetEdgeKindString(edge_kind));
 
     //Attach the Edge to its source/Destination
     if(source && destination){

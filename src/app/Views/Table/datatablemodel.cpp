@@ -2,9 +2,11 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../theme.h"
 
-const static QSet<QString> multiline_keys({"processes_to_log","code"});
-const static QSet<QString> icon_keys({"icon", "icon_prefix"});
-const static QSet<QString> ignoredKeys({"x", "y", "width", "height", "readOnly", "isExpanded"});
+#include <keynames.h>
+
+const static QSet<QString> multiline_keys({KeyName::ProcessesToLog, KeyName::Code});
+const static QSet<QString> icon_keys({KeyName::Icon, KeyName::IconPrefix});
+const static QSet<QString> ignoredKeys({KeyName::X, KeyName::Y, KeyName::Width, KeyName::Height, KeyName::ReadOnly, KeyName::IsExpanded});
 
 //TODO: FIX ME
 /**
@@ -288,7 +290,7 @@ void DataTableModel::sort(int, Qt::SortOrder order)
 
     QModelIndex indexA = index(0, 0, QModelIndex());
     QModelIndex indexB = index(columnCount(QModelIndex()), rowCount(indexA), QModelIndex());
-    
+
     //Do some sorting!
     emit dataChanged(indexA, indexB);
 }

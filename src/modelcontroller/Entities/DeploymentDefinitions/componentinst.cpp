@@ -33,8 +33,8 @@ ComponentInst::ComponentInst(EntityFactoryBroker& broker, bool is_temp) : Node(b
     }
     
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Comment, QVariant::String, ProtectedState::UNPROTECTED);
 }
 
 QSet<Node*> ComponentInst::getListOfValidAncestorsForChildrenDefinitions(){

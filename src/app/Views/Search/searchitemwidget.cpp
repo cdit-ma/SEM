@@ -1,6 +1,7 @@
 #include "searchitemwidget.h"
 
 #include <QMouseEvent>
+#include <keynames.h>
 
 /**
  * @brief SearchItemWidget::SearchItemWidget
@@ -190,7 +191,7 @@ void SearchItemWidget::updateDataIcon(const QString &key)
  */
 void SearchItemWidget::updateLabel()
 {
-    auto key_name = view_item->isNode() ? "label" : "kind";
+    auto key_name = view_item->isNode() ? KeyName::Label : KeyName::Kind;
     auto label = view_item->getData(key_name).toString();
     label_text->setText(label);
 }

@@ -26,9 +26,9 @@ Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) 
     }
 
     //Attach default data
-    broker.AttachData(this, "kind", QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::UNPROTECTED, broker.GetNodeKindString(node_kind));
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED, -1);
+    broker.AttachData(this, KeyName::Kind, QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::UNPROTECTED, broker.GetNodeKindString(node_kind));
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED, -1);
 
     connect(this, &Node::acceptedEdgeKindsChanged, [=](Node* node){
         getFactoryBroker().AcceptedEdgeKindsChanged(node);
@@ -794,7 +794,7 @@ void Node::removeEdge(Edge *edge)
 }
 void Node::AddUUID(){
     if(parent_node_){
-        auto parent_uuid = parent_node_->getData("uuid");
+        auto parent_uuid = parent_node_->getData(KeyName::UUID);
         if(parent_uuid){
             auto uuid_key = parent_uuid->getKey();
             if(!gotData(uuid_key)){
@@ -837,7 +837,7 @@ void Node::setParentNode(Node *parent, int branch)
 QList<Node *> Node::getOrderedChildNodes() const
 {
     auto child_list = new_nodes_.toList();
-    auto index_key = getKey("index");
+    auto index_key = getKey(KeyName::Index);
     std::sort(child_list.begin(), child_list.end(), [index_key](const Node* a, const Node* b){
         auto a_ind = a->getDataValue(index_key).toInt();
         auto b_ind = b->getDataValue(index_key).toInt();

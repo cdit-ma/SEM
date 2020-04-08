@@ -26,14 +26,12 @@ MEDEA::ClassInst::ClassInst(::EntityFactoryBroker& broker, bool is_temp) : Node(
     }
 
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
-
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 2);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 2);
     broker.AttachData(this, KeyName::IsWorker, QVariant::Bool, ProtectedState::PROTECTED);
 };
 

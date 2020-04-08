@@ -29,10 +29,10 @@ MEDEA::CallbackFunction::CallbackFunction(::EntityFactoryBroker& broker, bool is
     setLabelFunctional(false);
 
     //Setup Data
-    broker.AttachData(this, "class", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "operation", QVariant::String, ProtectedState::UNPROTECTED, "Function");
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Class, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Operation, QVariant::String, ProtectedState::UNPROTECTED, "Function");
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::UNPROTECTED);
 }
 
 
@@ -71,8 +71,8 @@ QSet<Node*> MEDEA::CallbackFunction::getDependants() const{
 
 void MEDEA::CallbackFunction::parentSet(Node* parent){
 
-    auto src_data = parent->getData("label");
-    auto dst_data = getData("class");
+    auto src_data = parent->getData(KeyName::Label);
+    auto dst_data = getData(KeyName::Class);
     if(src_data && dst_data){
         src_data->linkData(dst_data, true);
     }

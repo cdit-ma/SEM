@@ -11,6 +11,7 @@
 #include "../../Utils/rootaction.h"
 #include "../../Utils/actiongroup.h"
 #include "../../theme.h"
+#include "../../../modelcontroller/keynames.h"
 
 class ViewController;
 class ActionController : public QObject
@@ -20,7 +21,7 @@ class ActionController : public QObject
 private:
     bool gotRegenAndJava();
     RootAction* createRootAction(const QString& category, const QString& name, const QString& actionHash, const QString& iconPath = "", const QString& aliasPath = "");
-    
+
     void createRecentProjectAction(const QString& fileName);
     void recentProjectsChanged();
     void setupActions();
@@ -61,19 +62,19 @@ public:
     // TODO: Remove enum???
     enum ACTION{};
     explicit ActionController(ViewController* vc);
-    
+
     void connectSelectionController();
     void connectViewController(ViewController* controller);
-    
+
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
-    
+
     QList<RootAction*> getRecentProjectActions();
     QList<QAction*> getAllActions();
     QList<QAction*> getNodeViewActions();
 
     SelectionController* selectionController = nullptr;
     ViewController* viewController = nullptr;
-    
+
     QList<RootAction*> allActions;
     QHash<QString, RootAction*> actionHash;
     QMultiMap<QString, RootAction*> actionCategoryMap;
@@ -121,7 +122,7 @@ public:
     RootAction* edit_delete = nullptr;
     RootAction* edit_search = nullptr;
     RootAction* edit_goto = nullptr;
-    
+
     RootAction* edit_clearSelection = nullptr;
     RootAction* edit_selectAll = nullptr;
     RootAction* edit_alignHorizontal = nullptr;

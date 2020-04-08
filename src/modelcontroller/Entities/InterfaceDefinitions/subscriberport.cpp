@@ -21,6 +21,6 @@ SubscriberPort::SubscriberPort(EntityFactoryBroker& broker, bool is_temp) : Even
         return;
     }
     
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
 }

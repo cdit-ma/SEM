@@ -39,11 +39,11 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     if(getParent()){
         parent->addChildEdge(this);
     }
-    
+
     QPen pen(Qt::black);
     pen.setWidthF(.5);
     pen.setCapStyle(Qt::FlatCap);
-    
+
     kind = edgeViewItem->getEdgeKind();
     switch (kind) {
         case EDGE_KIND::DATA:
@@ -69,14 +69,14 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     connect(this, &EntityItem::positionChanged, this, &EdgeItem::updateEdge);
 
     //Listen to the X/Y data
-    addRequiredData("x");
-    addRequiredData("y");
+    addRequiredData(KeyName::X);
+    addRequiredData(KeyName::Y);
     reloadRequiredData();
 
     addHoverFunction(EntityRect::MOVE, std::bind(&EdgeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::SECONDARY_ICON, std::bind(&EdgeItem::sourceIconHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::TERTIARY_ICON, std::bind(&EdgeItem::targetIconHover, this, std::placeholders::_1, std::placeholders::_2));
-    
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &EdgeItem::updateEdgeOpacity);
     updateEdgeOpacity();
 }
@@ -162,13 +162,13 @@ QRectF EdgeItem::currentRect() const
 void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(widget);
-    
+
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
-    
+
     bool full_render = vSrc->isHovered() || vDst->isHovered() || isSelected() || isHovered();
     full_render |= vSrc->isSelected() || vDst->isSelected();
-    
+
     painter->setClipRect(option->exposedRect);
     painter->setOpacity(full_render ? 1 : inactive_opacity_);
     painter->setBrush(Qt::blue);
@@ -186,7 +186,7 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         auto inactive_pen = pen;
         inactive_pen.setWidthF(pen.widthF() / 4.0);
-        
+
         auto src_pen = (full_render) ? pen : inactive_pen;
         auto dst_pen = (full_render) ? pen : inactive_pen;
 
@@ -299,8 +299,8 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void EdgeItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
             setCentered(false);
         }
         EntityItem::dataChanged(key_name, data);
@@ -309,10 +309,10 @@ void EdgeItem::dataChanged(const QString& key_name, const QVariant& data)
 
 void EdgeItem::dataRemoved(const QString& key_name)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
-            auto has_x_and_y = hasData("x") && hasData("y");
-            if(!has_x_and_y){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
+            auto has_x_and_y = hasData(KeyName::X) && hasData(KeyName::Y);
+            if (!has_x_and_y) {
                 setCentered(true);
             }
         }
@@ -330,11 +330,11 @@ QPainterPath EdgeItem::calculateArrowHead(const QPointF& endPoint, bool pointLef
     int x = pointLeft ? -ARROW_SIZE: ARROW_SIZE;
     // |=>
     // <=|
-    
+
     QPointF startPoint = endPoint - QPointF(x, 0);
     QPointF topPoint = startPoint + QPointF(x, -ARROW_SIZE / 2);
     QPointF bottomPoint = startPoint + QPointF(x, ARROW_SIZE / 2);
-    
+
     QPainterPath path(startPoint);
     path.lineTo(topPoint);
     path.lineTo(bottomPoint);
@@ -569,7 +569,7 @@ QPainterPath EdgeItem::calculateBezierCurve(QPointF P1, QPointF P2, bool P1_Left
         ctrlP1.rx() = ((P1.x() + P2.x()) / 2);
         ctrlP2.rx() = ctrlP1.x();
     }
-    
+
     // Create a path starting at the first point
     QPainterPath curve(mapFromScene(P1));
     //Setup our cubic bezier curve.
@@ -647,7 +647,7 @@ void EdgeItem::updateEdge()
     //Allow for the Arrow head at the ends of the source/destination.
     dP2.rx() -= ARROW_SIZE;
     sP2.rx() += useOption1 ? -ARROW_SIZE : ARROW_SIZE;
-    
+
     //Update the curves
     updateSrcCurve(sP1, sP2, false, useOption1);
     //Flipping the locations of dP1/dP2 will mean the line will start being drawn at then termination points, which will make the line look more uniform with the source.
@@ -670,8 +670,8 @@ void EdgeItem::resetCenter()
 
         if(!_isCentered){
             emit req_triggerAction("Resetting Edge Position");
-            removeData("x");
-            removeData("y");
+            removeData(KeyName::X);
+            removeData(KeyName::Y);
         }
     }
 }
