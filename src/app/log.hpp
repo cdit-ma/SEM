@@ -3,10 +3,11 @@
 
 #include <iostream>
 
-namespace cdit{
+namespace cdit {
+
     enum class Verbosity{DEBUG, INFO, WARNING, ERROR, FATAL};
     
-    class Logger{
+    class Logger {
         public:
             static Logger& logger();
             std::ostream& GetStream(Verbosity verbosity);
@@ -25,6 +26,7 @@ namespace cdit{
             
             cdit::Verbosity verbosity_level = Verbosity::DEBUG;
     };
+
     static bool ParseCommandLineFlags(int *argc, char*** argv);
 
     static std::ostream& Log(const Verbosity verbosity);
@@ -32,27 +34,34 @@ namespace cdit{
 
 cdit::Logger cdit::Logger::log_singleton = Logger();
 
-cdit::Logger::Logger(){
+cdit::Logger::Logger()
+{
     null_stream = new std::ostream(0);
     actual_output = &std::cout;
 };
-cdit::Logger::~Logger(){
+
+cdit::Logger::~Logger()
+{
     delete null_stream;
 };
 
-cdit::Logger& cdit::Logger::logger(){
+cdit::Logger& cdit::Logger::logger()
+{
     return log_singleton;
 }
 
-bool cdit::ParseCommandLineFlags(int *argc, char*** argv){
-     return true;
- }
+bool cdit::ParseCommandLineFlags(int *argc, char*** argv)
+{
+    // TODO: Ask Jackson what this function is being used for and why it's always returning true
+    return true;
+}
 
-std::ostream& cdit::Logger::Logger::GetStream(Verbosity verbosity){
-    if(VerbosityLevel(verbosity) < VerbosityLevel(verbosity_level)){
-        if(!first_log){
+std::ostream& cdit::Logger::Logger::GetStream(Verbosity verbosity)
+{
+    if (VerbosityLevel(verbosity) < VerbosityLevel(verbosity_level)) {
+        if (!first_log) {
             *actual_output << std::endl;
-        }else{
+        } else {
             first_log = false; 
         }
         *actual_output << VerbosityString(verbosity);
@@ -61,13 +70,14 @@ std::ostream& cdit::Logger::Logger::GetStream(Verbosity verbosity){
     return *null_stream;
 }
 
-std::ostream& cdit::Log(cdit::Verbosity verbosity){
+std::ostream& cdit::Log(cdit::Verbosity verbosity)
+{
     return cdit::Logger::logger().GetStream(verbosity);
 };
 
-
-int cdit::Logger::VerbosityLevel(const cdit::Verbosity verbosity){
-    switch(verbosity){
+int cdit::Logger::VerbosityLevel(const cdit::Verbosity verbosity)
+{
+    switch (verbosity) {
         case cdit::Verbosity::DEBUG:
             return 5;
         case cdit::Verbosity::INFO:
@@ -81,8 +91,9 @@ int cdit::Logger::VerbosityLevel(const cdit::Verbosity verbosity){
     }
 };
 
-std::string cdit::Logger::VerbosityString(const cdit::Verbosity verbosity){
-    switch(verbosity){
+std::string cdit::Logger::VerbosityString(const cdit::Verbosity verbosity)
+{
+    switch (verbosity) {
         case cdit::Verbosity::DEBUG:
             return "[DEBUG] ";
         case cdit::Verbosity::INFO:
@@ -120,8 +131,7 @@ void QtMessageLogger(QtMsgType type, const QMessageLogContext &context, const QS
         verbosity = Verbosity::FATAL;
         break;
     }
-    Log(verbosity) << localMsg.constData(); //" (" << context.file << ":" << context.line << ", " << context.function << ")";
+    Log(verbosity) << localMsg.constData();
 }
-
 
 #endif // CDITMA_LOG_H

@@ -24,7 +24,6 @@ DefaultDockType DefaultDockWidget::getDefaultDockType()
 
 void DefaultDockWidget::themeChanged()
 {
-    qDebug() << "DefaultDockWidget::themeChanged";
     setStyleSheet(Theme::theme()->getViewDockWidgetStyleSheet(isActive()));
     BaseDockWidget::themeChanged();
 }
