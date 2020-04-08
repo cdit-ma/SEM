@@ -39,7 +39,7 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
                                                               exp_run.job_num,
                                                               exp_run.start_time,
                                                               exp_run.end_time,
-                                                              exp_run.last_updated_time));
+                                                              exp_run.last_updated_time);
 
     // TODO: We should figure out what the emplace/insert functions actually do
     experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));

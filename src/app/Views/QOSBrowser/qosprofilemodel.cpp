@@ -168,8 +168,8 @@ void QOSModelItem::setData(const QVariant &value, int role)
     //  of setData() is not being called. This will ensure that views using the model are notified of the changes.
     //  At the moment, we call emitDataChanged when the nodeViewItem (associated with this model item)'s data has changed
     if (role == Qt::EditRole) {
-        if(item && !item->isDataProtected(KeyName::Label)){
-            emit item->getTableModel()->req_dataChanged(ID, KeyName::Label, value);
+        if(nodeViewItem_ && !nodeViewItem_->isDataProtected(KeyName::Label)){
+            emit nodeViewItem_->getTableModel()->req_dataChanged(ID, KeyName::Label, value);
         }
     }
 }
