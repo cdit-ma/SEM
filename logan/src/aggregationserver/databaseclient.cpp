@@ -7,7 +7,10 @@
 
 #include <chrono>
 
+#include "prototimerange.hpp"
 #include "utils.h"
+
+using namespace re::types;
 
 DatabaseClient::DatabaseClient(const std::string& connection_details) :
     connection_(connection_details),
@@ -767,6 +770,61 @@ pqxx::result DatabaseClient::GetMemUtilInfo(int experiment_run_id,
         return pg_result;
     } catch(const std::exception& e) {
         std::cerr << "An exception occurred while querying MemUtilisation info: " << e.what()
+                  << std::endl;
+        throw;
+    }
+}
+
+pqxx::result
+DatabaseClient::GetNetworkUtilInfo(int experiment_run_id,
+                                   const re::types::UnboundedTimeRange<time_point>& time_range,
+                                   const std::vector<std::string>& condition_columns,
+                                   const std::vector<std::string>& condition_values)
+{
+    std::stringstream query_stream;
+
+    query_stream << "SELECT Hardware.InterfaceStatus.BytesReceived AS BytesReceived, "
+                 << "Hardware.InterfaceStatus.BytesTransmitted AS BytesSent, "
+                 << "Hardware.InterfaceStatus.PacketsReceived AS BytesReceived, "
+                 << "Hardware.InterfaceStatus.PacketsTransmitted AS PacketsSent, "
+                 << StringToPSQLTimestamp("SampleTime") << " AS SampleTime,\n";
+    query_stream << "   Interface.Name AS InterfaceName, Interface.MAC AS MAC, "
+                 << "Interface.ipv4 AS IPv4,\n";
+    query_stream << "   Node.Hostname AS NodeHostname, Node.IP AS NodeIP, Node.GraphmlID AS "
+                    "NodeGraphmlID, Node.ExperimentRunID AS RunID\n";
+    query_stream << "FROM Hardware.InterfaceStatus INNER JOIN Hardware.Interface ON "
+                    "Hardware.InterfaceStatus.InterfaceID = Hardware.Interface.InterfaceID\n";
+    query_stream << "   INNER JOIN Node ON Hardware.Interface.NodeID = Node.NodeID\n";
+
+    if(!condition_columns.empty()) {
+        query_stream << BuildWhereLikeClause(condition_columns, condition_values) << " AND ";
+    } else {
+        query_stream << " WHERE ";
+    }
+    query_stream << "Node.ExperimentRunID = " << experiment_run_id;
+
+    if(time_range.Start().has_value()) {
+        query_stream << " AND Hardware.InterfaceStatus.SampleTime >= '"
+                     << re::types::StringFromTimepoint(*time_range.Start()) << "'";
+    }
+
+    if(time_range.End().has_value()) {
+        query_stream << " AND Hardware.InterfaceStatus.SampleTime <= '"
+                     << re::types::StringFromTimepoint(*time_range.End()) << "'";
+    }
+
+    query_stream << " ORDER BY Node.HostName, Hardware.InterfaceStatus.SampleTime ASC" << std::endl;
+
+    std::lock_guard<std::mutex> conn_guard(conn_mutex_);
+
+    try {
+        pqxx::work transaction(connection_, "GetNetworkUtilisationTransaction");
+        const auto& pg_result = transaction.exec(query_stream.str());
+        transaction.commit();
+
+        return pg_result;
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while querying NetworkUtilisation info: " << e.what()
                   << std::endl;
         throw;
     }
