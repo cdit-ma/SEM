@@ -8,9 +8,12 @@ namespace re::types::proto {
 namespace proto = google::protobuf;
 using Timestamp = google::protobuf::Timestamp;
 
-/// Convert a protobuf timestamp list to an unbounded timerange
-/// \param timerange A protobuf array of timestamps, should not contain any more than 2 timestamps as this has no meaning
-/// \return The representative UnboundedTimeRange
+/**
+ * Convert a protobuf timestamp list to an unbounded timerange
+ * @param timerange A protobuf array of timestamps, should not contain any more than 2 timestamps as this has no meaning
+ * @return The representative UnboundedTimeRange
+ * @throws std::invalid_argument - If the provided array contains more than 2 elements
+ */
 static UnboundedTimeRange<time_point>
 FromProto(const google::protobuf::RepeatedPtrField<Timestamp>& timerange)
 {

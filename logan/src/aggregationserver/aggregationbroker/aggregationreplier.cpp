@@ -95,7 +95,7 @@ public:
 } // namespace detail
 using namespace detail;
 
-// Still in use as code moves out if the legacy AggServer namespace
+// Still in use as some code is yet to move out of the legacy AggServer namespace
 using namespace AggServer;
 
 AggregationReplier::AggregationReplier(std::shared_ptr<DatabaseClient> database) :
@@ -210,7 +210,7 @@ AggregationReplier::ProcessExperimentRunRequest(const ExperimentRunRequest& mess
 std::unique_ptr<ExperimentStateResponse>
 AggregationReplier::ProcessExperimentStateRequest(const ExperimentStateRequest& message)
 {
-    std::unique_ptr<ExperimentStateResponse> response(new ExperimentStateResponse());
+    auto response = std::make_unique<ExperimentStateResponse>();
 
     const int run_id = message.experiment_run_id();
 
@@ -630,7 +630,7 @@ AggregationReplier::ProcessMarkerRequest(const MarkerRequest& message)
 std::unique_ptr<CPUUtilisationResponse>
 AggregationReplier::ProcessCPUUtilisationRequest(const CPUUtilisationRequest& message)
 {
-    std::unique_ptr<CPUUtilisationResponse> response(new CPUUtilisationResponse());
+    auto response = std::make_unique<CPUUtilisationResponse>();
 
     std::string start, end;
 
@@ -699,7 +699,7 @@ AggregationReplier::ProcessCPUUtilisationRequest(const CPUUtilisationRequest& me
 std::unique_ptr<MemoryUtilisationResponse>
 AggregationReplier::ProcessMemoryUtilisationRequest(const MemoryUtilisationRequest& message)
 {
-    std::unique_ptr<MemoryUtilisationResponse> response(new MemoryUtilisationResponse());
+    auto response = std::make_unique<MemoryUtilisationResponse>();
 
     std::string start, end;
 
@@ -768,11 +768,9 @@ AggregationReplier::ProcessMemoryUtilisationRequest(const MemoryUtilisationReque
 std::unique_ptr<NetworkUtilisationResponse>
 AggregationReplier::ProcessNetworkUtilisationRequest(const NetworkUtilisationRequest& message)
 {
-    std::unique_ptr<NetworkUtilisationResponse> response(new NetworkUtilisationResponse());
+    auto response = std::make_unique<NetworkUtilisationResponse>();
 
     auto time_interval = re::types::proto::FromProto(message.time_interval());
-
-    std::cout << "Network request for experiment ID : " << message.experiment_run_id() << std::endl;
 
     // Get filter conditions
     std::vector<std::string> condition_cols;

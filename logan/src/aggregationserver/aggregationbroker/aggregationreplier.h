@@ -11,6 +11,8 @@ namespace re::logging::aggregation::broker {
 /**
  * An AggregationReplier will listen for incoming Aggregation proto message requests and respond accordingly the
  * requested information from the DatabaseClient.
+ * @exceptsafe none - calls to self, DatabaseClient and ProtoReplier offer no guarantees apart from where explicitly
+ * stated. Direct throws are listed as they are present in the
  */
 class AggregationReplier : public zmq::ProtoReplier {
 public:
@@ -27,6 +29,7 @@ public:
      * Queries the database client in order to produce the required response to an ExperimentRun query
      * @param message The filtering details for the ExperimentRunRequest
      * @return The list of ExperimentRuns
+     * @throws std::runtime_error: May fail to parse DB time strings
      */
     std::unique_ptr<AggServer::ExperimentRunResponse>
     ProcessExperimentRunRequest(const AggServer::ExperimentRunRequest& message);
@@ -35,6 +38,8 @@ public:
      * Queries the database client in order to produce the required response to an ExperimentState query
      * @param message The filtering details for the ExperimentStateRequest
      * @return The structure of the requested experiment
+     * @throws std::runtime_error - multiple entries received for a query of a single experiment
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::ExperimentStateResponse>
     ProcessExperimentStateRequest(const AggServer::ExperimentStateRequest& message);
@@ -43,6 +48,8 @@ public:
      * Queries the database client in order to produce the required response to an PortLifecycle query
      * @param message The filtering details for the PortLifecycleRequest
      * @return The filtered PortLifecycle events
+     * @throws std::runtime_error - failure to parse database stringed representation of enumerated types & times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::PortLifecycleResponse>
     ProcessPortLifecycleRequest(const AggServer::PortLifecycleRequest& message);
@@ -51,6 +58,8 @@ public:
      * Queries the database client in order to produce the required response to an PortEvent query
      * @param message The filtering details for the PortRequest
      * @return The filtered Port events
+     * @throws std::runtime_error - failure to parse database stringed representation of enumerated types & times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::PortEventResponse>
     ProcessPortEventRequest(const AggServer::PortEventRequest& message);
@@ -59,6 +68,8 @@ public:
      * Queries the database client in order to produce the required response to an Workload query
      * @param message The filtering details for the WorkloadRequest
      * @return The filtered Workload events
+     * @throws std::runtime_error - failure to parse database stringed representation of enumerated types & times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::WorkloadResponse>
     ProcessWorkloadEventRequest(const AggServer::WorkloadRequest& message);
@@ -67,6 +78,8 @@ public:
      * Queries the database client in order to produce the required response to an Marker query
      * @param message The filtering details for the MarkerRequest
      * @return The filtered Marker events
+     * @throws std::runtime_error - failure to parse database stringed representation of times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::MarkerResponse>
     ProcessMarkerRequest(const AggServer::MarkerRequest& message);
@@ -75,6 +88,8 @@ public:
      * Queries the database client in order to produce the required response to an CPUUtilisation query
      * @param message The filtering details for the CPUUtilisationRequest
      * @return The filtered CPUUtilisation events
+     * @throws std::runtime_error - failure to parse database stringed representation of times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::CPUUtilisationResponse>
     ProcessCPUUtilisationRequest(const AggServer::CPUUtilisationRequest& message);
@@ -83,6 +98,8 @@ public:
      * Queries the database client in order to produce the required response to an MemoryUtilisation query
      * @param message The filtering details for the MemoryUtilisationRequest
      * @return The filtered MemoryUtilisation events
+     * @throws std::runtime_error - failure to parse database stringed representation of times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::MemoryUtilisationResponse>
     ProcessMemoryUtilisationRequest(const AggServer::MemoryUtilisationRequest& message);
@@ -91,6 +108,8 @@ public:
      * Queries the database client in order to produce the required response to an NetworkUtilisation query
      * @param message The filtering details for the NetworkUtilisationRequest
      * @return The filtered NetworkUtilisation events
+     * @throws std::runtime_error - failure to parse database stringed representation of times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
      */
     std::unique_ptr<AggServer::NetworkUtilisationResponse>
     ProcessNetworkUtilisationRequest(const AggServer::NetworkUtilisationRequest& message);
