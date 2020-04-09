@@ -26,7 +26,7 @@ set(HEADERS
 # Construct an aggregation_server binary
 add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
-if (APPLE)
+if (CMAKE_CXX_COMPILER_ID MATCHES "[cC][lL][aA][nN][gG]") #Case insensitive match
 	target_compile_options(${PROJECT_NAME} PRIVATE -Wdocumentation )
 endif()
 
