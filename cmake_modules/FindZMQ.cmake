@@ -25,7 +25,7 @@ find_package(ZeroMQ)
 if (ZeroMQ_FOUND)
     message("ZeroMQ found, using the configurations to override those previously populated by FindZMQ.cmake")
 
-    set(ZMQ_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIRS})
+    set(ZMQ_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
 
     set(ZMQ_LIBRARIES
             ${ZeroMQ_LIBRARY}
