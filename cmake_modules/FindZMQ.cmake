@@ -27,7 +27,7 @@ if (ZeroMQ_FOUND)
 
     set(ZMQ_INCLUDE_DIR ${ZeroMQ_INCLUDE_DIR})
 
-    set(ZMQ_LIBRARIES ${ZeroMQ_LIBRARY})
+    set(ZMQ_LIBRARIES ${ZeroMQ_LIBRARY_STATIC})
 
 else()
     message(WARNING "Use of find_package(ZMQ) is deprecated, recommend replacing with find_package(ZeroMQ)")
