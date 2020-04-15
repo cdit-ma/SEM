@@ -19,6 +19,7 @@ public:
     NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* parent = nullptr);
 
     ComponentInstanceGraphicsItem* addComponentInstanceItem(ComponentInstanceData& comp_inst_data);
+    const std::vector<ComponentInstanceGraphicsItem*>& getComponentInstanceItems() const;
 
 signals:
     void updateConnectionPos();
@@ -36,6 +37,8 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
     
 private:
+    void constructChildrenItems();
+
     void validateChildMove(ComponentInstanceGraphicsItem* child, QPointF pos);
     void toggleExpanded();
     void updateOnGeometryChange();
