@@ -19,7 +19,7 @@ HoverPopup::HoverPopup(QWidget* parent)
 
 /**
  * @brief HoverPopup::setBorderColor
- * @param colorn
+ * @param color
  */
 void HoverPopup::setBorderColor(QColor color)
 {
