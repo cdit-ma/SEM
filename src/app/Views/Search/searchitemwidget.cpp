@@ -351,7 +351,7 @@ void SearchItemWidget::setupLayout()
  */
 void SearchItemWidget::setupDataKey(const QString &key)
 {
-    auto data = data_key_hash.value(key, 0);
+    auto data = data_key_hash.value(key, nullptr);
     if (!data) {
         data = new DataItem();
         data->item = new QWidget(this);
