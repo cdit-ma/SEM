@@ -67,15 +67,16 @@ for(n in medea_nodes){
                     //If windows search for exe only
                     glob_str += ".exe"
                 }
+                def test_dir = pwd()
                 def tests_list = findFiles glob: glob_str
                 dir("results"){
                     for(f in tests_list){
-                        def file_path = f.name
-                        def file_name = utils.trimExtension(file_path)
+                        def file_path = test_dir + "/" + f.name
+                        def file_name = utils.trimExtension(f.name)
                         def test_output = "${file_name}_${node_name}.xml"
-                        print("Running Test: ${file_path}")
+                        print("Running Test: ${file_name}")
 
-                        if(utils.runScript("../${file_path} -xunitxml -o ${test_output}") != 0){
+                        if(utils.runScript("${file_path} -xunitxml -o ${test_output}") != 0){
                             error("Running Test: ${file_path} Failed!")
                         }
                     }
