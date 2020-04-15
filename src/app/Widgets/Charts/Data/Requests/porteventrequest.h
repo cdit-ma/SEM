@@ -4,8 +4,9 @@
 #include "eventrequest.h"
 
 class PortEventRequest : public EventRequest {
+
 public:
-    explicit PortEventRequest();
+    explicit PortEventRequest() = default;
 
     void setPortIDs(const QVector<QString>& port_ids);
     void setPortPaths(const QVector<QString>& port_paths);

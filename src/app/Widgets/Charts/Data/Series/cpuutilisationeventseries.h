@@ -14,12 +14,9 @@ public:
 
     void addEvent(MEDEA::Event* event);
 
-    double getMaxUtilisation() const;
-
 private:
     double minUtilisation_ = DBL_MAX;
-    double maxUtilisation_ = DBL_MIN;
-
+    double maxUtilisation_ = 0.0;
 };
 
 #endif // CPUUTILISATIONEVENTSERIES_H

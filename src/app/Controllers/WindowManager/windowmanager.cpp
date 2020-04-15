@@ -189,7 +189,6 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     addDockWidget(dockWidget);
 
     // Add actions to the dock widget's title bar for changing the playback speed and displaying live mode status
-
     Theme* theme = Theme::theme();
     QIcon live_icon = theme->getImage("Icons", "circleRadio", QSize(), Qt::red);
     live_icon.addPixmap(theme->getImage("Icons", "circleRadio", QSize(), Qt::red), QIcon::Disabled);
