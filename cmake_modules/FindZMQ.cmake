@@ -22,12 +22,15 @@
 
 find_package(ZeroMQ)
 
+set(ZMQ_FOUND ${ZeroMQ_FOUND})
+
 if (ZeroMQ_FOUND)
     message("ZeroMQ found, using the configurations to override those previously populated by FindZMQ.cmake")
 
-    set(ZMQ_INCLUDE_DIR ${ZeroMQ_INCLUDE_DIR})
+    set(ZMQ_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
 
-    set(ZMQ_LIBRARIES ${ZeroMQ_LIBRARY})
+    set(ZMQ_LIBRARIES
+            libzmq)
 
 else()
     message(WARNING "Use of find_package(ZMQ) is deprecated, recommend replacing with find_package(ZeroMQ)")
