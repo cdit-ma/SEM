@@ -132,6 +132,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/networkutilisationevent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/porteventseries.cpp
@@ -139,6 +140,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/networkutilisationeventseries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.cpp
@@ -181,6 +183,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/aggregationproxy.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/dummyresponsebuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
@@ -289,6 +292,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/networkutilisationevent.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/porteventseries.h
@@ -296,6 +300,7 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/networkutilisationeventseries.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.h

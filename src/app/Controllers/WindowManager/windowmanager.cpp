@@ -189,7 +189,6 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     addDockWidget(dockWidget);
 
     // Add actions to the dock widget's title bar for changing the playback speed and displaying live mode status
-
     Theme* theme = Theme::theme();
     QIcon live_icon = theme->getImage("Icons", "circleRadio", QSize(), Qt::red);
     live_icon.addPixmap(theme->getImage("Icons", "circleRadio", QSize(), Qt::red), QIcon::Disabled);
@@ -210,9 +209,6 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     playback_speed_spinbox->setSuffix("x");
     playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
     connect(playback_speed_spinbox, SIGNAL(valueChanged(double)), dialog, SLOT(playbackSpeedChanged(double)));
-    connect(theme, &Theme::theme_Changed, [playback_speed_spinbox, theme]() {
-        playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
-    });
 
     QWidgetAction* widget_action = new QWidgetAction(dialog);
     widget_action->setDefaultWidget(playback_speed_spinbox);
@@ -220,6 +216,12 @@ DefaultDockWidget* WindowManager::constructPulseDockWidget(QString title, Datafl
     QAction* speed_settings_action = dockWidget->addAction("Change Playback Speed", "Icons", "speed", Qt::AlignCenter);
     speed_settings_action->setMenu(new QMenu(dialog));
     speed_settings_action->menu()->addAction(widget_action);
+
+    // Connect the theme_Changed signal to the actions
+    connect(theme, &Theme::theme_Changed, [speed_settings_action, playback_speed_spinbox, theme]() {
+        speed_settings_action->menu()->setStyleSheet(theme->getMenuBarStyleSheet());
+        playback_speed_spinbox->setStyleSheet(theme->getSpinBoxStyleSheet("QDoubleSpinBox"));
+    });
 
     const auto& titlebar = dockWidget->getTitleBar();
     auto tool_button = qobject_cast<QToolButton*>(titlebar->widgetForAction(speed_settings_action));
