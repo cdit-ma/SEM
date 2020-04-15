@@ -24,21 +24,19 @@ AttributeInst::AttributeInst(EntityFactoryBroker& broker, bool is_temp) : DataNo
     }
     
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "value", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 1);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 0);
-
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Value, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
 }
 
-void AttributeInst::parentSet(Node* parent){
-    if(getViewAspect() == VIEW_ASPECT::ASSEMBLIES){
-        
+void AttributeInst::parentSet(Node* parent) {
+    if (getViewAspect() == VIEW_ASPECT::ASSEMBLIES) {
         setDataReceiver(true);
-    }else if(getViewAspect() == VIEW_ASPECT::BEHAVIOUR){
+    } else if (getViewAspect() == VIEW_ASPECT::BEHAVIOUR) {
         //Remove the value data
-        getFactoryBroker().RemoveData(this, "value");
+        getFactoryBroker().RemoveData(this, KeyName::Value);
         setDataProducer(true);
     }
     DataNode::parentSet(parent);

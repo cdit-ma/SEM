@@ -63,7 +63,6 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     //Set the Pen.
     setDefaultPen(pen);
 
-
     srcAncestorVisibilityChanged();
     dstAncestorVisibilityChanged();
 
@@ -74,9 +73,8 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     connect(this, &EntityItem::positionChanged, this, &EdgeItem::updateEdge);
 
     //Listen to the X/Y data
-    addRequiredData("x");
-    addRequiredData("y");
-
+    addRequiredData(KeyName::X);
+    addRequiredData(KeyName::Y);
     reloadRequiredData();
 
     addHoverFunction(EntityRect::MOVE, std::bind(&EdgeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
@@ -322,8 +320,8 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void EdgeItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
             setCentered(false);
         }
         EntityItem::dataChanged(key_name, data);
@@ -332,11 +330,10 @@ void EdgeItem::dataChanged(const QString& key_name, const QVariant& data)
 
 void EdgeItem::dataRemoved(const QString& key_name)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
-            auto has_x_and_y = hasData("x") && hasData("y");
-
-            if(!has_x_and_y){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
+            auto has_x_and_y = hasData(KeyName::X) && hasData(KeyName::Y);
+            if (!has_x_and_y) {
                 setCentered(true);
             }
         }
@@ -713,8 +710,8 @@ void EdgeItem::resetCenter()
 
         if(!_isCentered){
             emit req_triggerAction("Resetting Edge Position");
-            removeData("x");
-            removeData("y");
+            removeData(KeyName::X);
+            removeData(KeyName::Y);
         }
     }
 }

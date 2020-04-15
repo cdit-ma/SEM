@@ -35,13 +35,3 @@ void MemoryUtilisationEventSeries::addEvent(MEDEA::Event* event)
         addEventToList(*event);
     }
 }
-
-
-/**
- * @brief MemoryUtilisationEventSeries::getMaxUtilisation
- * @return
- */
-double MemoryUtilisationEventSeries::getMaxUtilisation() const
-{
-    return maxUtilisation_;
-}

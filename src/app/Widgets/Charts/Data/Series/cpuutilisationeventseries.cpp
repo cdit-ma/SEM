@@ -35,13 +35,3 @@ void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
         addEventToList(*event);
     }
 }
-
-
-/**
- * @brief CPUUtilisationEventSeries::getMaxUtilisation
- * @return
- */
-double CPUUtilisationEventSeries::getMaxUtilisation() const
-{
-    return maxUtilisation_;
-}

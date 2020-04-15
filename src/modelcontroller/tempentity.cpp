@@ -40,9 +40,10 @@ int TempEntity::getLineNumber()
     return line_number;
 }
 
-NODE_KIND TempEntity::getNodeKind(){
-    if(isNode() && node_kind == NODE_KIND::NONE){
-        auto data = getDataValue("kind").toString();
+NODE_KIND TempEntity::getNodeKind()
+{
+    if (isNode() && node_kind == NODE_KIND::NONE) {
+        auto data = getDataValue(KeyName::Kind).toString();
         node_kind = EntityFactory::getNodeKind(data);
     }
     return node_kind;
@@ -198,9 +199,10 @@ bool TempEntity::gotData(const QString& key_name){
     return data.contains(key_name);
 }
 
-void TempEntity::addData(const QString& key_name, QVariant value){
+void TempEntity::addData(const QString& key_name, QVariant value)
+{
     data[key_name] = value;
-    if(key_name == "kind"){
+    if (key_name == KeyName::Kind) {
         kind_str = value.toString();
     }
 }

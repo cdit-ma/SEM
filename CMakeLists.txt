@@ -1,10 +1,11 @@
 cmake_minimum_required (VERSION 3.0)
+
 project(MEDEA_PROJECT
-        VERSION 3.3.9
+        VERSION 3.4.0
         LANGUAGES CXX)
 
 #Set CMake Options
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -40,8 +41,8 @@ endif()
 
 #Set MEDEA Options
 #VERSION in form X.Y.Z(-P?)
-SET(VERSION_NO "3.3.9")
-SET(VERSION "${VERSION_NO}-VIS-1")
+SET(VERSION_NO ${PROJECT_VERSION})
+SET(VERSION "${VERSION_NO}")
 SET(URL "https://github.com/cdit-ma/MEDEA")
 SET(VERSION_NAME "MEDEAv${VERSION}")
 
@@ -68,6 +69,9 @@ if(BUILD_APP)
     message(STATUS "Building MEDEA App")
     
     set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
+    if (NOT CMAKE_MODULE_PATH)
+        set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re/cmake_modules")
+    endif()
 
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re/re_common")

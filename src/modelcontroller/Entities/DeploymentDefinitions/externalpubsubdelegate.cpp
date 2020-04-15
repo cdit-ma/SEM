@@ -26,12 +26,12 @@ MEDEA::ExternalPubSubDelegate::ExternalPubSubDelegate(EntityFactoryBroker& broke
     }
 
     //Setup Data
-    broker.AttachData(this, "comment", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, "ExternalAssembly");
+    broker.AttachData(this, KeyName::Comment, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "ExternalAssembly");
 
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
-    auto data_external = broker.AttachData(this, "blackbox", QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    auto data_middleware = broker.AttachData(this, KeyName::Middleware, QVariant::String, ProtectedState::UNPROTECTED);
+    auto data_external = broker.AttachData(this, KeyName::BlackBox, QVariant::Bool, ProtectedState::UNPROTECTED, false);
     data_middleware->addValidValues({"ZMQ", "RTI", "OSPL", "QPID"});
 
     in_ = broker.ConstructChildNode(*this, NODE_KIND::PORT_PUBSUB_DELEGATE);
@@ -40,31 +40,29 @@ MEDEA::ExternalPubSubDelegate::ExternalPubSubDelegate(EntityFactoryBroker& broke
     broker.SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::SOURCE, false);
     broker.SetAcceptsEdgeKind(in_, EDGE_KIND::ASSEMBLY, EDGE_DIRECTION::TARGET, false);
 
-    broker.AttachData(in_, "label", QVariant::String, ProtectedState::PROTECTED, "Events");
-    broker.AttachData(in_, "middleware", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(in_, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Events");
+    broker.AttachData(in_, KeyName::Middleware, QVariant::String, ProtectedState::PROTECTED);
 
-    Data::LinkData(this, "middleware", in_, "middleware", true);
+    Data::LinkData(this, KeyName::Middleware, in_, KeyName::Middleware, true);
 
     QSet<Node*> elements = {this, in_};
     for(auto node : elements){
-        broker.AttachData(node, "dds_domain_id", QVariant::Int, ProtectedState::PROTECTED, 0);
-        broker.AttachData(node, "zmq_publisher_address", QVariant::String, ProtectedState::PROTECTED, "IP:PORT");
-        broker.AttachData(node, "qpid_broker_address", QVariant::String, ProtectedState::PROTECTED, "tcp://IP:PORT");
-        broker.AttachData(node, "topic_name", QVariant::String, ProtectedState::PROTECTED);
+        broker.AttachData(node, KeyName::DdsDomainID, QVariant::Int, ProtectedState::PROTECTED, 0);
+        broker.AttachData(node, KeyName::ZmqPublisherAddress, QVariant::String, ProtectedState::PROTECTED, "IP:PORT");
+        broker.AttachData(node, KeyName::QpidBrokerAddress, QVariant::String, ProtectedState::PROTECTED, "tcp://IP:PORT");
+        broker.AttachData(node, KeyName::TopicName, QVariant::String, ProtectedState::PROTECTED);
     }
 
-    Data::LinkData(this, "dds_domain_id", in_, "dds_domain_id", true);
-    Data::LinkData(this, "zmq_publisher_address", in_, "zmq_publisher_address", true);
-    Data::LinkData(this, "qpid_broker_address", in_, "qpid_broker_address", true);
-    Data::LinkData(this, "topic_name", in_, "topic_name", true);
-
+    Data::LinkData(this, KeyName::DdsDomainID, in_, KeyName::DdsDomainID, true);
+    Data::LinkData(this, KeyName::ZmqPublisherAddress, in_, KeyName::ZmqPublisherAddress, true);
+    Data::LinkData(this, KeyName::QpidBrokerAddress, in_, KeyName::QpidBrokerAddress, true);
+    Data::LinkData(this, KeyName::TopicName, in_, KeyName::TopicName, true);
 
     connect(data_middleware, &Data::dataChanged, this, &MEDEA::ExternalPubSubDelegate::MiddlewareUpdated);
     connect(data_external, &Data::dataChanged, this, &MEDEA::ExternalPubSubDelegate::MiddlewareUpdated);
     
     MiddlewareUpdated();
 }
-
 
 bool MEDEA::ExternalPubSubDelegate::canAdoptChild(Node *node)
 {
@@ -80,7 +78,6 @@ bool MEDEA::ExternalPubSubDelegate::canAcceptEdge(EDGE_KIND edge_kind, Node *dst
     if(canCurrentlyAcceptEdgeKind(edge_kind, dst) == false){
         return false;
     }
-
     
     switch(edge_kind){
     case EDGE_KIND::AGGREGATE:{
@@ -105,9 +102,10 @@ bool MEDEA::ExternalPubSubDelegate::canAcceptEdge(EDGE_KIND edge_kind, Node *dst
     return EventPortAssembly::canAcceptEdge(edge_kind, dst);;
 }
 
-void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated(){
-    const auto& middleware = getDataValue("middleware").toString();
-    const auto& external = getDataValue("blackbox").toBool();
+void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated()
+{
+    const auto& middleware = getDataValue(KeyName::Middleware).toString();
+    const auto& external = getDataValue(KeyName::BlackBox).toBool();
 
     static const QSet<QString> topic_middlewares{"RTI", "OSPL", "QPID"};
 
@@ -116,18 +114,15 @@ void MEDEA::ExternalPubSubDelegate::MiddlewareUpdated(){
     const auto qpid_options_state =  (external && middleware == "QPID") ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
     const auto topic_options_state = topic_middlewares.contains(middleware) ? ProtectedState::UNPROTECTED : ProtectedState::PROTECTED;
 
-    getFactoryBroker().AttachData(this, "dds_domain_id", QVariant::Int, dds_options_state);
-    getFactoryBroker().AttachData(this, "zmq_publisher_address", QVariant::String, zmq_options_state);
-    getFactoryBroker().AttachData(this, "qpid_broker_address", QVariant::String, qpid_options_state);
-    getFactoryBroker().AttachData(this, "topic_name", QVariant::String, topic_options_state);
-
-
-    getFactoryBroker().AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, (external ? "ManagementComponent" : "ExternalAssembly"));
-    getFactoryBroker().AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
-
+    getFactoryBroker().AttachData(this, KeyName::DdsDomainID, QVariant::Int, dds_options_state);
+    getFactoryBroker().AttachData(this, KeyName::ZmqPublisherAddress, QVariant::String, zmq_options_state);
+    getFactoryBroker().AttachData(this, KeyName::QpidBrokerAddress, QVariant::String, qpid_options_state);
+    getFactoryBroker().AttachData(this, KeyName::TopicName, QVariant::String, topic_options_state);
+    getFactoryBroker().AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, (external ? "ManagementComponent" : "ExternalAssembly"));
+    getFactoryBroker().AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "EntityIcons");
 
     bool allow_inputs = true;
-    if(external && middleware == "ZMQ"){
+    if (external && middleware == "ZMQ") {
         allow_inputs = false;
     }
 

@@ -1335,6 +1335,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "CPUUtilisation", "Icons", "cpu", "Icons", "cpu");
     setIconToggledImage("ToggleIcons", "MemoryUtilisation", "Icons", "memoryCard", "Icons", "memoryCard");
     setIconToggledImage("ToggleIcons", "Marker", "Icons", "bookmark", "Icons", "bookmark");
+    setIconToggledImage("ToggleIcons", "NetworkUtilisation", "Icons", "waveEmit", "Icons", "waveEmit");
 
     setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
@@ -1344,19 +1345,22 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "cpuTwoTone", "Icons", "cpuTwoTone");
     setIconToggledImage("ToggleIcons", "memoryHover", "Icons", "memoryCardTwoTone", "Icons", "memoryCardTwoTone");
     setIconToggledImage("ToggleIcons", "markerHover", "Icons", "bookmarkTwoTone", "Icons", "bookmarkTwoTone");
+    setIconToggledImage("ToggleIcons", "networkHover", "Icons", "waveEmit", "Icons", "waveEmit");
 
     setIconToggledImage("ToggleIcons", "axisTimeToggle", "Icons", "clock", "Icons", "timeElapsed");
 }
 
-void Theme::setupAliasIcons(){
+void Theme::setupAliasIcons()
+{
     setIconAlias("EntityIcons", "WorkerDefinitions", "EntityIcons", "Workload");
-    setIconAlias("Data", "label", "Icons", "label");
-    setIconAlias("Data", "description", "Icons", "speechBubbleFilled");
-    setIconAlias("Data", "kind", "Icons", "tiles");
-    setIconAlias("Data", "namespace", "Icons", "letterA");
-    setIconAlias("Data", "value", "Icons", "pencil");
-    setIconAlias("Data", "type", "Icons", "gearDark");
-    setIconAlias("Data", "ID", "Icons", "numberOne");
+    
+    setIconAlias("Data", KeyName::Label, "Icons", "label");
+    setIconAlias("Data", KeyName::Description, "Icons", "speechBubbleFilled");
+    setIconAlias("Data", KeyName::Kind, "Icons", "tiles");
+    setIconAlias("Data", KeyName::Namespace, "Icons", "letterA");
+    setIconAlias("Data", KeyName::Value, "Icons", "pencil");
+    setIconAlias("Data", KeyName::Type, "Icons", "gearDark");
+    setIconAlias("Data", KeyName::ID, "Icons", "numberOne");
 
     setIconAlias("Data", "SRC ID", "Icons", "planeLaunch");
     setIconAlias("Data", "DST ID", "Icons", "planeLand");

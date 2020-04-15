@@ -152,7 +152,7 @@ void ExecutionManager::GenerateCodeForWorkload(QString document_path, ViewItem* 
 {
     auto id = item->getID();
 
-    auto file_path = item->getData("label").toString() + "_" + QString::number(id) + ".cpp";
+    auto file_path = item->getData(KeyName::Label).toString() + "_" + QString::number(id) + ".cpp";
     //Get Temp Path
     auto path = FileHandler::getTempFileName("/");
     auto code = GenerateWorkload(document_path, path, id);

@@ -23,7 +23,7 @@ DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy(EntityFactoryBroker& brok
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "latency_budget");
-    broker.AttachData(this, "qos_dds_duration_sec", QVariant::String, ProtectedState::UNPROTECTED, "0");
-    broker.AttachData(this, "qos_dds_duration_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "0");
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "latency_budget");
+    broker.AttachData(this, KeyName::QosDdsDurationSec, QVariant::String, ProtectedState::UNPROTECTED, "0");
+    broker.AttachData(this, KeyName::QosDdsDurationNanoSec, QVariant::String, ProtectedState::UNPROTECTED, "0");
 }

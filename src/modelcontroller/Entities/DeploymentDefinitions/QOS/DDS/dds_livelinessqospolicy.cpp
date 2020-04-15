@@ -23,9 +23,10 @@ DDS_LivelinessQosPolicy::DDS_LivelinessQosPolicy(EntityFactoryBroker& broker, bo
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "liveliness");
-    broker.AttachData(this, "qos_dds_lease_duration_sec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
-    broker.AttachData(this, "qos_dds_lease_duration_nanosec", QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
-    auto dds_kind_data = broker.AttachData(this, "qos_dds_kind", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "liveliness");
+    broker.AttachData(this, KeyName::QosDdsLeaseDurationSec, QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_SEC");
+    broker.AttachData(this, KeyName::QosDdsLeaseDurationNanoSec, QVariant::String, ProtectedState::UNPROTECTED, "DURATION_INFINITE_NSEC");
+    
+    auto dds_kind_data = broker.AttachData(this, KeyName::QosDdsKind, QVariant::String, ProtectedState::UNPROTECTED);
     dds_kind_data->addValidValues({"AUTOMATIC_LIVELINESS_QOS", "MANUAL_BY_PARTICIPANT_LIVELINESS_QOS", "MANUAL_BY_TOPIC_LIVELINESS_QOS"});
 }

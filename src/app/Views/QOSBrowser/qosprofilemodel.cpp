@@ -1,6 +1,7 @@
 #include "qosprofilemodel.h"
 
 #include <QDebug>
+#include <keynames.h>
 
 #include "../../theme.h"
 
@@ -20,7 +21,7 @@ void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
 
         VIEW_ASPECT aspect = item->getViewAspect();
         if(aspect == VIEW_ASPECT::ASSEMBLIES){
-            QString nodeKind = viewItem->getData("kind").toString();
+            QString nodeKind = viewItem->getData(KeyName::Kind).toString();
             int parentID = item->getParentID();
 
             QStandardItem* parentItem = 0;
@@ -140,7 +141,7 @@ QVariant QOSModelItem::data(int role) const
 {
     if(item){
         if(role == Qt::DisplayRole|| role == Qt::EditRole || role == Qt::ToolTipRole){
-            return item->getData("label");
+            return item->getData(KeyName::Label);
         }
     }
     if(role == QOSProfileModel::ID_ROLE){
@@ -155,7 +156,7 @@ QVariant QOSModelItem::data(int role) const
     }
     if(role == QOSProfileModel::EDITABLELABEL_ROLE){
         if(item){
-            return !item->isDataProtected("label");
+            return !item->isDataProtected(KeyName::Label);
         }else{
             return false;
         }
@@ -166,8 +167,8 @@ QVariant QOSModelItem::data(int role) const
 void QOSModelItem::setData(const QVariant &value, int role)
 {
     if (role == Qt::EditRole) {
-        if(item && !item->isDataProtected("label")){
-            emit item->getTableModel()->req_dataChanged(ID, "label", value);
+        if(item && !item->isDataProtected(KeyName::Label)){
+            emit item->getTableModel()->req_dataChanged(ID, KeyName::Label, value);
         }
     }
 }
