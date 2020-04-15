@@ -91,11 +91,6 @@ private:
 
     void setupLayout();
 
-    bool rangeSet = false;
-    bool scrollbarVisible = false;
-    bool showHoverLine = false;
-    double verticalScrollValue = 0.0;
-
     QLabel* emptyLabel_ = nullptr;
     QWidget* mainWidget_ = nullptr;
 

@@ -16,7 +16,7 @@ class OptionGroupBox : public CustomGroupBox
     Q_OBJECT
 
 public:
-    explicit OptionGroupBox(QString title, SortOrder sort_order = SortOrder::INSERTION, QWidget* parent = 0);
+    explicit OptionGroupBox(const QString& title, SortOrder sort_order = SortOrder::INSERTION, QWidget* parent = nullptr);
 
     template<class T> QList<T> getOptions()
     {
@@ -48,7 +48,7 @@ public:
     void removeOptions();
 
     void setExclusive(bool exclusive);
-    void setTitle(QString title);
+    void setTitle(const QString& title);
 
     void setResetButtonVisible(bool visible);
     void setResetButtonIcon(QString path, QString name);
@@ -67,11 +67,10 @@ private slots:
     void optionToggled();
     
 private:
-    void resetOptions();
-
     QAction* getNewOptionAction(QAction* put_below = 0);
 
     void uncheckOptions();
+    void resetOptions();
     void clearFilters();
 
     void updateTitleCount();
@@ -82,8 +81,8 @@ private:
     
     bool showResetButton = true;
     bool exclusive = false;
-    QString title;
 
+    QString title;
     SortOrder sort_order;
     
     QHash<QVariant, QAction*> actions_lookup;

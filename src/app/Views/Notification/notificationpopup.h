@@ -21,10 +21,10 @@ private:
     bool eventFilter(QObject* object, QEvent* event);
 
     QSharedPointer<NotificationObject> current_notification;
-    QLabel* icon = 0;
-    QLabel* label = 0;
-    QTimer* timer = 0;
-    QWidget* widget = 0;
+    QLabel* icon = nullptr;
+    QLabel* label = nullptr;
+    QTimer* timer = nullptr;
+    QWidget* widget = nullptr;
 };
 
 #endif //NOTIFICATIONPOPUP_H

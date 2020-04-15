@@ -1,32 +1,36 @@
 #include "notificationpopup.h"
 #include "../../theme.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationobject.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include <QHBoxLayout>
 
-NotificationPopup::NotificationPopup():PopupWidget(PopupWidget::TYPE::SPLASH, 0) {
+NotificationPopup::NotificationPopup()
+    : PopupWidget(PopupWidget::TYPE::SPLASH, nullptr)
+{
     setupLayout();
+
     timer = new QTimer(this);
     timer->setInterval(5000);
+
+    // Hide the notification popup on timeout
+    connect(timer, &QTimer::timeout, this, &NotificationPopup::Hide);
 
     installEventFilter(this);
     setAttribute(Qt::WA_ShowWithoutActivating);
 
-    //Hide the notification popup on timeout
-    connect(timer, &QTimer::timeout, this, &NotificationPopup::Hide);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationPopup::themeChanged);
-
     themeChanged();
 }
 
-void NotificationPopup::Hide(){
+void NotificationPopup::Hide()
+{
     hide();
     timer->stop();
     current_notification.reset();
 }
 
-void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> notification){
+void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> notification)
+{
     current_notification = notification;
 
     auto font_metrics = label->fontMetrics();
@@ -58,36 +62,37 @@ void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> n
     timer->start();
 }
 
-void NotificationPopup::themeChanged(){
+void NotificationPopup::themeChanged()
+{
     auto theme = Theme::theme();
-    setStyleSheet("QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";}");
-    label->setFont(theme->getLargeFont());
     icon->setFixedSize(theme->getLargeIconSize());
+    label->setFont(theme->getLargeFont());
+    label->setStyleSheet(theme->getLabelStyleSheet());
+
 }
 
-void NotificationPopup::setupLayout(){
-    widget = new QWidget(this);
-    
+void NotificationPopup::setupLayout()
+{
     icon = new QLabel(this);
     icon->setScaledContents(true);
     icon->setAlignment(Qt::AlignCenter);
-    
-    
+
     label = new QLabel(this);
-    
-    
-    widget->setContentsMargins(5, 2, 5, 2);
-    
-    auto layout = new QHBoxLayout(widget);
+
+    auto layout = new QHBoxLayout;
     layout->setMargin(0);
     layout->setSpacing(5);
     layout->addWidget(icon);
     layout->addWidget(label);
-    
+
+    widget = new QWidget(this);
+    widget->setContentsMargins(5, 2, 5, 2);
+    widget->setLayout(layout);
     setWidget(widget);
 }
 
-bool NotificationPopup::eventFilter(QObject* object, QEvent* event){
+bool NotificationPopup::eventFilter(QObject* object, QEvent* event)
+{
     if(event->type() == QEvent::MouseButtonPress){
         Hide();
     }

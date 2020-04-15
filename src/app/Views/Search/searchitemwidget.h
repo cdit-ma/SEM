@@ -13,10 +13,10 @@
 #include <QVBoxLayout>
 
 struct DataItem {
-    QWidget* item = 0;
-    QLabel* label_icon = 0;
-    QLabel* label_value = 0;
-    QLabel* label_key = 0;
+    QWidget* item = nullptr;
+    QLabel* label_icon = nullptr;
+    QLabel* label_value = nullptr;
+    QLabel* label_key = nullptr;
     bool in_layout = false;
 };
 
@@ -25,7 +25,7 @@ class SearchItemWidget : public QFrame
     Q_OBJECT
 
 public:
-    explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
+    explicit SearchItemWidget(ViewItem* item, QWidget *parent = nullptr);
     ~SearchItemWidget();
 
     void addMatchedKeys(const QSet<QString>& keys);
@@ -53,7 +53,7 @@ protected:
 
 private:
     void updateData(const QString& data);
-    void updateDataIcon(const QString& key);
+    void updateDataStyleSheet(const QString& key);
     void updateIcon();
     void updateLabel();
 
@@ -66,27 +66,24 @@ private:
     void updateDataKey(const QString& key, const QVariant& data);
     void removeDataKey(const QString& key);
     
-    ViewItem* view_item = 0;
+    ViewItem* view_item = nullptr;
     VIEW_ASPECT view_aspect = VIEW_ASPECT::NONE;
     int ID = -1;
     
-    QLabel* label_text = 0;
-    QLabel* label_icon = 0;
-    QToolButton* button_expand = 0;
-    QWidget* data_widget = 0;
+    QLabel* label_text = nullptr;
+    QLabel* label_icon = nullptr;
+    QToolButton* button_expand = nullptr;
+    QWidget* data_widget = nullptr;
 
     QSize icon_size = QSize(24, 24);
     QSize small_icon_size = QSize(16, 16);
-    
+
     QSet<QString> matched_keys;
     QSet<QString> persistent_keys;
     QHash<QString, DataItem*> data_key_hash;
 
-    bool data_layout_setup = false;
-
     bool viewItemSelected_ = false;
     bool selected_ = false;
-    bool visible_ = false;
 };
 
 #endif // SEARCHITEMWIDGET_H

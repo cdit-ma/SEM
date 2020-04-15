@@ -226,7 +226,6 @@ void TimelineChartView::clearChartList()
     longestExperimentRunDuration_ = {0, INT64_MIN};
     experimentRunTimeRange_.clear();
     experimentRunSeriesCount_.clear();
-    rangeSet = false;
 }
 
 
@@ -265,7 +264,17 @@ void TimelineChartView::themeChanged()
     handleColor.setAlphaF(1 - OPACITY);
     highlightColor.setAlphaF(handleColor.alphaF());
 
-    setStyleSheet(theme->getScrollBarStyleSheet());
+    auto sb_bgcolor = theme->getDisabledBackgroundColorHex();
+    if (theme->getTextColor() == theme->black()) {
+        sb_bgcolor = Theme::QColorToHex(theme->white());
+    } else {
+        sb_bgcolor = Theme::QColorToHex(theme->black());
+    }
+
+    // The scrollbar stylesheet needs to be applied directly to the scrollbar
+    // Otherwise, it will only apply the stylesheet on the first theme change
+    scrollArea_->setStyleSheet("QScrollArea{ background:" + theme->getBackgroundColorHex() + ";}");
+    scrollArea_->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 
     legendToolbar_->setFixedHeight(theme->getLargeIconSize().height());
     legendToolbar_->setStyleSheet(theme->getToolTipStyleSheet() +
@@ -273,11 +282,6 @@ void TimelineChartView::themeChanged()
                                   "QToolButton{ border: 0px; color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
                                   "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
                                   "QToolButton:!hover{ background: rgba(0,0,0,0); }");
-
-    for (auto action : legendToolbar_->actions()) {
-        auto widget = legendToolbar_->widgetForAction(action);
-        widget->setMinimumSize(theme->getLargeIconSize());
-    }
 
     for (auto kind : MEDEA::Event::GetChartDataKinds()) {
         QIcon buttonIcon;
@@ -310,9 +314,12 @@ void TimelineChartView::themeChanged()
         auto button = hoverDisplayButtons_.value(kind, nullptr);
         if (button) {
             button->setIcon(buttonIcon);
+            button->setStyleSheet("color:" + theme->getTextColorHex());
         }
         auto action = legendActions_.value(kind, nullptr);
         if (action) {
+            auto widget = legendToolbar_->widgetForAction(action);
+            widget->setMinimumSize(theme->getLargeIconSize());
             action->setIcon(theme->getIcon("ToggleIcons", MEDEA::Event::GetChartDataKindString(kind)));
         }
     }
@@ -368,17 +375,16 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
  */
 void TimelineChartView::chartLabelListSizeChanged(QSizeF size)
 {
-    qreal chartHeight = height() - timelineAxis_->height() - legendToolbar_->height() - SPACING * 3;
+    qreal charts_height = height() - timelineAxis_->height() - legendToolbar_->height() - SPACING * 3;
+    auto filler_width = size.width();
 
-    if (size.height() > chartHeight) {
-        size.setWidth(size.width() + SCROLLBAR_WIDTH);
+    // If the scrollbar is visible, adjust the width to include the scrollbar width
+    if (size.height() > charts_height) {
+        filler_width = size.width() + SCROLLBAR_WIDTH - SPACING - AXIS_LINE_WIDTH / 2.0;
     }
 
-    topFillerWidget_->setFixedWidth(size.width());
-    bottomFillerWidget_->setFixedWidth(size.width());
-
-    //auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
-    //setMinimumWidth(size.width() + minTimeAxisWidth + SPACING * 2);
+    topFillerWidget_->setFixedWidth(filler_width);
+    bottomFillerWidget_->setFixedWidth(filler_width);
 }
 
 
@@ -1039,7 +1045,6 @@ void TimelineChartView::setupLayout()
         action->setToolTip("Show/Hide " + action->text() + " Series");
         action->setCheckable(true);
         action->setChecked(true);
-        //action->setVisible(false);
         action->setProperty(CHART_DATA_KIND, (uint)kind);
         connect(action, &QAction::toggled, this, &TimelineChartView::toggledSeriesLegend);
 
@@ -1049,7 +1054,7 @@ void TimelineChartView::setupLayout()
 
         // construct hover display widgets
         QPushButton* button = new QPushButton(this);
-        button->setStyleSheet("QPushButton{ text-align: left; }");
+        button->setStyleSheet("QPushButton{ text-align: left; background: rgba(0,0,0,0); }");
         hoverLayout->addWidget(button);
         hoverDisplayButtons_[kind] = button;
     }
@@ -1070,9 +1075,9 @@ void TimelineChartView::setupLayout()
     scrollArea_->setWidget(scrollWidget);
     scrollArea_->setWidgetResizable(true);
     scrollArea_->setLayoutDirection(Qt::RightToLeft);
-    //scrollArea_->setStyleSheet("background: rgba(0,0,0,0);");
     scrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea_->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
+    scrollArea_->verticalScrollBar()->setTracking(true);
 
     /*
      * BOTTOM (TIME AXIS) LAYOUT
@@ -1112,11 +1117,6 @@ void TimelineChartView::setupLayout()
     layout->setContentsMargins(0,0,0,0);
     layout->addWidget(mainWidget_);
     layout->addWidget(emptyLabel_);
-
-    scrollArea_->verticalScrollBar()->setTracking(true);
-    connect(scrollArea_->verticalScrollBar(), &QScrollBar::valueChanged, [=]() {
-        verticalScrollValue = scrollArea_->verticalScrollBar()->value();
-    });
 
     auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
     setMinimumWidth(chartLabelList_->minimumWidth() + minTimeAxisWidth + SPACING * 2);

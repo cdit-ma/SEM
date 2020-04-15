@@ -11,7 +11,7 @@
  * @param title
  * @param parent
  */
-OptionGroupBox::OptionGroupBox(QString title, SortOrder sort_order, QWidget* parent) : CustomGroupBox(title, parent)
+OptionGroupBox::OptionGroupBox(const QString& title, SortOrder sort_order, QWidget* parent) : CustomGroupBox(title, parent)
 {
     this->sort_order = sort_order;
     setupResetAction();
@@ -193,7 +193,7 @@ void OptionGroupBox::resetOptions()
  * @brief OptionGroupBox::setTitle
  * @param title
  */
-void OptionGroupBox::setTitle(QString title)
+void OptionGroupBox::setTitle(const QString& title)
 {
     this->title = title;
     updateTitleCount();

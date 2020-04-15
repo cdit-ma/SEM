@@ -10,31 +10,26 @@
  * @param title
  * @param parent
  */
-CustomGroupBox::CustomGroupBox(QString title, QWidget* parent)
+CustomGroupBox::CustomGroupBox(const QString& title, QWidget* parent)
     : QFrame(parent)
 {
-    groupTitleButton = 0;
-    widgetsToolbar = 0;
-
     setupLayout();
     setTitle(title);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &CustomGroupBox::themeChanged);
-    
     themeChanged();
 }
 
 
 /**
- * @brief CustomGroupBox::setTitlte
+ * @brief CustomGroupBox::setTitle
  * @param title
  */
-void CustomGroupBox::setTitle(QString title)
+void CustomGroupBox::setTitle(const QString& title)
 {
     if (groupTitleButton) {
         groupTitleButton->setText(title);
     }
-    groupTitle = title;
 }
 
 
@@ -44,7 +39,10 @@ void CustomGroupBox::setTitle(QString title)
  */
 QString CustomGroupBox::getTitle()
 {
-    return groupTitle;
+    if (groupTitleButton) {
+        return groupTitleButton->text();
+    }
+    return "";
 }
 
 
@@ -100,7 +98,7 @@ QAction* CustomGroupBox::addWidget(QWidget* widget)
     if (widgetsToolbar) {
         return widgetsToolbar->addWidget(widget);
     }
-    return 0;
+    return nullptr;
 }
 
 
@@ -115,7 +113,7 @@ QAction* CustomGroupBox::insertWidget(QAction* beforeAction, QWidget *widget)
     if (widgetsToolbar) {
         return widgetsToolbar->insertWidget(beforeAction, widget);
     }
-    return 0;
+    return nullptr;
 }
 
 
@@ -125,12 +123,13 @@ QAction* CustomGroupBox::insertWidget(QAction* beforeAction, QWidget *widget)
 void CustomGroupBox::themeChanged()
 {
     Theme* theme = Theme::theme();
+    auto frame_color = theme->getAltTextColor();
+    frame_color.setAlphaF(0.5);
+
     setStyleSheet("QFrame {"
-                  "color:" + theme->getAltBackgroundColorHex() + ";"
+                  "color:" + Theme::QColorToHex(frame_color) + ";"
                   "background: rgba(0,0,0,0);"
-                  "}"
-                  + theme->getToolBarStyleSheet() +
-                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
+                  "}");
 
     if (groupTitleButton) {
         QString checkableStyle = "";
@@ -148,17 +147,16 @@ void CustomGroupBox::themeChanged()
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px 1px 1px 0px;"
                                         "border: none;"
-                                        //"border: 1px solid blue;"
-                                        //"margin: 0px;"
-                                        // "padding: 0px;"
                                         "color:" + theme->getTextColorHex() + ";"
                                         "background: rgba(0,0,0,0);"
                                         "}"
                                         + checkableStyle);
     }
 
-    widgetsToolbar->setIconSize(theme->getIconSize());
     topToolbar->setIconSize(theme->getIconSize());
+    widgetsToolbar->setIconSize(theme->getIconSize());
+    widgetsToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 }
 
 
@@ -172,7 +170,6 @@ void CustomGroupBox::setupLayout()
     widgetsToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     groupTitleButton = new QToolButton();
-    groupTitleButton->setText(groupTitle);
     groupTitleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     groupTitleButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     groupTitleButton->setCheckable(true);
@@ -190,7 +187,6 @@ void CustomGroupBox::setupLayout()
 
     topToolbar = new QToolBar(this);
     topToolbar->addWidget(groupTitleButton);
-    //topToolbar->setLayoutDirection(Qt::RightToLeft);
     topToolbar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
     QHBoxLayout* topLayout = new QHBoxLayout();
