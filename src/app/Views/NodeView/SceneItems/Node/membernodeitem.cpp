@@ -3,7 +3,7 @@
 MemberNodeItem::MemberNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
 	: BasicNodeItem(viewItem, parentItem)
 {
-    addRequiredData("key");
+    addRequiredData(KeyName::Key);
     reloadRequiredData();
 
     setIcon(EntityRect::MAIN_ICON_OVERLAY, {"Icons", "key"});
@@ -12,7 +12,7 @@ MemberNodeItem::MemberNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
 void MemberNodeItem::dataChanged(const QString& key_name, const QVariant& data)
 {
     if (isDataRequired(key_name)) {
-        if (key_name == "key") {
+        if (key_name == KeyName::Key) {
             bool is_key = data.toBool();
             setIconVisible(EntityRect::MAIN_ICON_OVERLAY, is_key);
         }

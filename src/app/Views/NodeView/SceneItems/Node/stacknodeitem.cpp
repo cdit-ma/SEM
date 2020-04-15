@@ -5,9 +5,10 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
 	: BasicNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
-    addRequiredData("column_count");
+    addRequiredData(KeyName::ColumnCount);
+
     reloadRequiredData();
-    
+
     this->orientation = orientation;
 
     disconnect(this, &NodeItem::childSizeChanged, this, &NodeItem::childPosChanged);
@@ -25,8 +26,8 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
 
 void StackNodeItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "column_count"){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::ColumnCount) {
             SetColumnCount(data.toInt());
         }
     }
@@ -447,7 +448,7 @@ void StackNodeItem::updateCells()
                         cell_cr += QMarginsF(0, 0, current_cell_spacing, alt_offset);
                     }
                 }
-            
+
                 if(cell_cr.width() < cell_info.minimum_width){
                     cell_cr.setWidth(cell_info.minimum_width);
                 }
@@ -597,7 +598,7 @@ void StackNodeItem::updateCells()
                 }
             }
         }
-        
+
         sub_areas_dirty = false;
         if(cell_rect != overall_rect){
             cell_rect = overall_rect;
@@ -777,12 +778,12 @@ QRectF StackNodeItem::GetGapIconRect(const CellIndex& index, int child_index, co
     const auto& cell_orientation = getCellOrientation(index);
     const auto& column_count = getCellColumnCount(index);
     auto sibling_count = cells.contains(index) ? cells[index].children.size() : 0;
-    
+
     bool use_vertical_layout = false;
     if(column_count > 0 && (child_index % column_count == 0 || child_index == sibling_count)){
         use_vertical_layout = true;
     }
-    
+
     QRectF gap_rect;
     if(cell_orientation == Qt::Vertical || use_vertical_layout){
         gap_rect.setTopLeft(prev_rect.bottomLeft());

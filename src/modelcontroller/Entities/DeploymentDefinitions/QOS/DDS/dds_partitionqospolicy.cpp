@@ -23,6 +23,6 @@ DDS_PartitionQosPolicy::DDS_PartitionQosPolicy(EntityFactoryBroker& broker, bool
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "partition");
-    broker.AttachData(this, "qos_dds_name", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "partition");
+    broker.AttachData(this, KeyName::QosDdsName, QVariant::String, ProtectedState::UNPROTECTED);
 }

@@ -364,7 +364,6 @@ if(WIN32)
     target_link_libraries(${PROJ_NAME} PRIVATE Qt5::WinMain)
 endif()
 
-
 target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../re_common/")
 target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../../re_common/")
 

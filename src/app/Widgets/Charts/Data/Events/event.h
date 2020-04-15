@@ -49,11 +49,11 @@ private:
 	qint64 time_;
 	QString series_name_;
 };
-	
-	inline uint qHash(ChartDataKind key, uint seed)
-	{
-		return ::qHash(static_cast<uint>(key), seed);
-	}
+
+inline uint qHash(ChartDataKind key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 }
 
 Q_DECLARE_METATYPE(MEDEA::ChartDataKind)

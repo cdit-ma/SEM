@@ -5,7 +5,6 @@
 #include "Controllers/ViewController/viewcontroller.h"
 #include "Controllers/WindowManager/windowmanager.h"
 #include "Widgets/Windows/mainwindow.h"
-#include "Controllers/SettingsController/settingscontroller.h"
 #include "../modelcontroller/version.h"
 
 #include <iostream>
@@ -13,7 +12,8 @@
 #include <windows.h>
 #endif
 
-int launchMEDEA(int argc, char *argv[]){
+int launchMEDEA(int argc, char *argv[])
+{
     // If we are on windows and openend through a console pipe stdout and stderr for debugging
     #ifdef _WIN32
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
@@ -25,9 +25,8 @@ int launchMEDEA(int argc, char *argv[]){
 
     QScopedPointer<ViewController> view_controller;
 
-
     int result = 0;
-    try{
+    try {
         //Construct a QApplication
         QApplication a(argc, argv);
 
@@ -53,11 +52,9 @@ int launchMEDEA(int argc, char *argv[]){
 
         auto project_paths = parser.positionalArguments();
 
-
         //Initialize images
         Q_INIT_RESOURCE(images);
         Q_INIT_RESOURCE(workers);
-
 
         //Initialize important singletons
         Theme::theme();
@@ -72,10 +69,12 @@ int launchMEDEA(int argc, char *argv[]){
         a.setActiveWindow(window);
 
         result = a.exec();
-    }catch(const std::exception& ex){
+
+    } catch (const std::exception& ex) {
         std::cerr << "MEDEA Exception: " << ex.what() << std::endl;
         result  = 1;
     }
+
     return result;
 }
 

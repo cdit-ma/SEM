@@ -9,16 +9,16 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
 {
     node_view_item = viewItem;
 
-    addRequiredData("index");
-    addRequiredData("row");
-    addRequiredData("column");
+    addRequiredData(KeyName::Index);
+    addRequiredData(KeyName::Row);
+    addRequiredData(KeyName::Column);
 
     setMoveEnabled(true);
     setExpandEnabled(true);
-    
+
     // TODO: Call reloadRequiredData? - It seems to be called in other places where required data has been added/removed
     reloadRequiredData();
-    
+
     const auto& grid_size = getGridSize();
     auto margins = QMarginsF(grid_size, grid_size, grid_size, grid_size);
     
@@ -45,7 +45,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
         parentItem->addChildNode(this);
-      
+
         // Set the initial position to be the top-left corner of the parent item's grid - the margin
         auto&& margin_top_left = QPointF(margin.left(), margin.top());
         auto&& init_pos = parentItem->gridRect().topLeft() - margin_top_left;
@@ -130,7 +130,7 @@ void NodeItem::updateNotifications()
 NodeItem::~NodeItem()
 {
     disconnect(this);
-    
+
     //Unset
     if (getParentNodeItem()) {
         getParentNodeItem()->removeChildNode(this);
@@ -142,7 +142,7 @@ NodeItem::~NodeItem()
         node->unsetParent();
         child_nodes.remove(node);
     }
-    
+
     while (!child_edges.isEmpty()) {
         auto edge = *child_edges.begin();
         removeChildEdge(edge);
@@ -180,7 +180,7 @@ void NodeItem::addChildNode(NodeItem *nodeItem)
         connect(nodeItem, &EntityItem::sizeChanged, [=](){childSizeChanged(nodeItem);});
         connect(nodeItem, &EntityItem::positionChanged, [=](){childPositionChanged(nodeItem);});
         connect(nodeItem, &NodeItem::indexChanged, [=](){childIndexChanged(nodeItem);});
-        
+
         nodeItem->setBaseBodyColor(getBaseBodyColor());
         nodeItem->setVisible(isExpanded());
 
@@ -430,7 +430,7 @@ QMarginsF NodeItem::getBodyPadding() const
 void NodeItem::setExpanded(bool expand)
 {
     if (isExpanded() != expand) {
-    
+
         //Call the base class
         EntityItem::setExpanded(expand);
 
@@ -527,31 +527,31 @@ QString NodeItem::getTertiaryText() const
 void NodeItem::dataChanged(const QString& key_name, const QVariant& data)
 {
     if(isDataRequired(key_name)){
-        if(key_name == "isExpanded"){
+        if(key_name == KeyName::IsExpanded){
             bool boolData = data.toBool();
             setExpanded(boolData);
-        }else if(key_name == "readOnly"){
+        } else if (key_name == KeyName::ReadOnly) {
             update();
-        }else if(key_name == "index"){
+        } else if (key_name == KeyName::Index) {
             auto index = data.toInt();
-            if(index_ != index){
+            if (index_ != index) {
                 index_ = index;
                 emit indexChanged();
             }
-        }else if(key_name == "row"){
+        } else if (key_name == KeyName::Row) {
             auto row = data.toInt();
-            if(row_ != row){
+            if (row_ != row) {
                 row_ = row;
                 emit indexChanged();
             }
-        }else if(key_name == "column"){
+        } else if (key_name == KeyName::Column) {
             auto row = data.toInt();
-            if(column_ != row){
+            if (column_ != row) {
                 column_ = row;
                 emit indexChanged();
             }
         }
-        if(key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey){
+        if (key_name == primaryTextKey || key_name == secondaryTextKey || key_name == tertiaryTextKey) {
             update();
         }
     }
@@ -608,14 +608,14 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
-    
+
     //Clip yo!
     painter->setClipRect(option->exposedRect);
 
     EntityItem::paint(painter, option, widget);
     {
         painter->save();
-        
+
         if (gotPrimaryTextKey()) {
             auto is_protected = isDataProtected(getPrimaryTextKey());
             if (state >= RENDER_STATE::REDUCED) {
@@ -658,7 +658,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             painter->setPen(getTextColor());
             renderText(painter, lod, EntityRect::TERTIARY_TEXT, getTertiaryText());
         }
-        
+
         painter->restore();
     }
 
@@ -676,45 +676,45 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 void NodeItem::paintEdgeKnobs(QPainter* painter, qreal level_of_detail)
 {
     painter->save();
-  
+
     const auto& my_edges = getVisualEdgeKinds();
     const auto& edges = getCurrentVisualEdgeKinds();
-    
+
     for (auto edge_direction : edges.keys()) {
         for (const auto& edge_kind : edges.value(edge_direction)) {
-            
+
             const auto& icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
             bool is_hovered = IsEdgeKnobHovered({edge_direction, edge_kind});
-            
+
             if (is_hovered) {
                 painter->setBrush(getPen().color());
             } else {
                 painter->setBrush(getHeaderColor());
             }
             painter->drawEllipse(icon_rect);
-            
+
             auto inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
             painter->setBrush(getBodyColor());
             painter->drawEllipse(inner_rect);
-            
+
             bool got_edge = attached_edges.contains({edge_direction, edge_kind});
             if (got_edge || is_hovered) {
                 painter->setOpacity(1);
             } else {
                 painter->setOpacity(.60);
             }
-            
+
             bool my_edge = my_edges[edge_direction].contains(edge_kind);
             if (!my_edge) {
                 paintPixmap(painter, level_of_detail, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind) + "_Gray");
             } else {
                 paintPixmap(painter, level_of_detail, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
             }
-            
+
             painter->setOpacity(1);
         }
     }
-    
+
     painter->restore();
 }
 
@@ -726,23 +726,23 @@ void NodeItem::paintEdgeKnobs(QPainter* painter, qreal level_of_detail)
 void NodeItem::paintNotifications(QPainter* painter, qreal level_of_detail)
 {
     painter->save();
-    
+
     for (auto severity : Notification::getSortedSeverities()) {
         if (notification_counts_.contains(severity)) {
-        
+
             const auto& rect = getNotificationRect(severity);
             bool is_hovered = hovered_notifications_.contains(severity);
-    
+
             painter->setPen(Qt::NoPen);
             painter->setBrush(is_hovered ? getHighlightColor() : getHeaderColor());
             painter->drawEllipse(rect);
-    
+
             const auto icon_color = is_hovered ? getHighlightTextColor() : Theme::theme()->getSeverityColor(severity);
             const auto& severity_str = Notification::getSeverityString(severity);
-            
+
             auto count = notification_counts_[severity];
             auto inner_rect = rect.adjusted(.5,.5,-.5,-.5);
-            
+
             if (is_hovered) {
                 QString icon_path = "number9+";
                 if (count < 10) {
@@ -763,7 +763,7 @@ void NodeItem::paintNotifications(QPainter* painter, qreal level_of_detail)
         painter->drawEllipse(rect);
         paintPixmap(painter, level_of_detail, rect, "Icons", icon_path, icon_color);
     }
-    
+
     painter->restore();
 }
 
@@ -771,7 +771,7 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
 {
     switch (rect) {
         case EntityRect::SHAPE: {
-        
+
             QPainterPath path = EntityItem::getElementPath(EntityRect::SHAPE);
             path.setFillRule(Qt::WindingFill);
 
@@ -784,7 +784,7 @@ QPainterPath NodeItem::getElementPath(EntityRect rect) const
                     }
                 }
             }
-            
+
             //Add Severity Knobs
             for (auto severity : notification_counts_.uniqueKeys()) {
                 path.addEllipse(getNotificationRect(severity));
@@ -801,14 +801,14 @@ QRectF NodeItem::getEdgeConnectIconRect(EDGE_DIRECTION direction, EDGE_KIND kind
 {
     auto rect = getEdgeConnectRect(direction, kind);
     auto center = rect.center();
-    
+
     //Squarify
     if (rect.height() > rect.width()) {
         rect.setHeight(rect.width());
     } else if (rect.width() > rect.height()) {
         rect.setWidth(rect.height());
     }
-    
+
     rect.moveCenter(center);
     return rect;
 }
@@ -854,7 +854,7 @@ QRectF NodeItem::getEdgeConnectRect(EDGE_DIRECTION direction, EDGE_KIND kind) co
         top_left.ry() += (pos * item_height);
         rect.moveTopLeft(top_left);
     }
-    
+
     return rect;
 }
 
@@ -887,7 +887,7 @@ QRectF NodeItem::getExpandStateRect() const
     const auto& icon = getElementRect(EntityRect::MAIN_ICON);
     auto icon_size = icon.size() / 4.0;
     const auto& minimum_size = smallIconSize() / 3;
-    
+
     if (icon_size.width() < minimum_size.width()) {
         icon_size = minimum_size;
     }
@@ -901,23 +901,23 @@ QRectF NodeItem::getNotificationRect(Notification::Severity severity) const
 {
     int offset = 2;
     int last_used = 0;
-    
+
     for (auto sev : Notification::getSortedSeverities()) {
         if (notification_counts_.contains(sev)) {
             if (severity == sev) {
                 auto rect = getNotificationRect();
                 auto item_width = rect.height();
-                
+
                 auto top_left = rect.topLeft();
                 top_left.rx() += offset + (last_used * (item_width + 2));
-              
+
                 auto&& icon_rect = QRectF(top_left, QSizeF(item_width, item_width));
                 return icon_rect;
             }
             last_used++;
         }
     }
-    
+
     return {};
 }
 
@@ -1052,7 +1052,7 @@ QRectF NodeItem::getElementRect(EntityItem::EntityRect rect) const
 void NodeItem::paintBackground(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(widget);
-    
+
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 

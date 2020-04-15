@@ -24,7 +24,6 @@
         <file alias="DDS_QOSProfile">Resources/EntityIcons/DDS_QOSProfile.png</file>
         <file alias="DeploymentContainer">Resources/EntityIcons/DeploymentContainer.png</file>
         <file alias="Edge_Aggregate_Gray">Resources/EntityIcons/Edge_Aggregate_Gray.png</file>
-        <file alias="Edge_Aggregate_Gray">Resources/EntityIcons/Edge_Aggregate_Gray.png</file>
         <file alias="Edge_Aggregate">Resources/EntityIcons/Edge_Aggregate.png</file>
         <file alias="Edge_Assembly_Gray">Resources/EntityIcons/Edge_Assembly_Gray.png</file>
         <file alias="Edge_Assembly">Resources/EntityIcons/Edge_Assembly.png</file>
@@ -32,14 +31,10 @@
         <file alias="Edge_Data">Resources/EntityIcons/Edge_Data.png</file>
         <file alias="Edge_Definition_Gray">Resources/EntityIcons/Edge_Definition_Gray.png</file>
         <file alias="Edge_Definition">Resources/EntityIcons/Edge_Definition.png</file>
-        <file alias="Edge_Definition">Resources/EntityIcons/Edge_Definition.png</file>
         <file alias="Edge_Deployment_Gray">Resources/EntityIcons/Edge_Deployment_Gray.png</file>
-        <file alias="Edge_Deployment">Resources/EntityIcons/Edge_Deployment.png</file>
         <file alias="Edge_Deployment">Resources/EntityIcons/Edge_Deployment.png</file>
         <file alias="Edge_Qos_Gray">Resources/EntityIcons/Edge_Qos_Gray.png</file>
         <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
-        <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
-        <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
         <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
         <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>
@@ -99,6 +94,7 @@
         <file alias="alignHorizontal">Resources/Icons/alignHorizontal.png</file>
         <file alias="alignVertical">Resources/Icons/alignVertical.png</file>
         <file alias="amd">Resources/Icons/amd.png</file>
+        <file alias="arrowBottomRight">Resources/Icons/arrowBottomRight.png</file>
         <file alias="arrowCombo">Resources/Icons/arrowCombo.png</file>
         <file alias="arrowDown">Resources/Icons/arrowDown.png</file>
         <file alias="arrowDownRightLong">Resources/Icons/arrowDownRightLong.png</file>
@@ -123,6 +119,7 @@
         <file alias="arrowsUpDown">Resources/Icons/arrowsUpDown.png</file>
         <file alias="arrowsUpDownDark">Resources/Icons/arrowsUpDownDark.png</file>
         <file alias="arrowToLineRight">Resources/Icons/arrowToLineRight.png</file>
+        <file alias="arrowTopRight">Resources/Icons/arrowTopRight.png</file>
         <file alias="arrowUndo">Resources/Icons/arrowUndo.png</file>
         <file alias="arrowUp">Resources/Icons/arrowUp.png</file>
         <file alias="arrowUpDown">Resources/Icons/arrowUpDown.png</file>
@@ -140,6 +137,7 @@
         <file alias="blank">Resources/Icons/blank.png</file>
         <file alias="book">Resources/Icons/book.png</file>
         <file alias="bookmark">Resources/Icons/bookmark.png</file>
+        <file alias="bookmarkTwoTone">Resources/Icons/bookmarkTwoTone.png</file>
         <file alias="bracketsAngled">Resources/Icons/bracketsAngled.png</file>
         <file alias="bracketsCurly">Resources/Icons/bracketsCurly.png</file>
         <file alias="briefcase">Resources/Icons/briefcase.png</file>
@@ -230,10 +228,13 @@
         <file alias="drop">Resources/Icons/drop.png</file>
         <file alias="dropPin">Resources/Icons/dropPin.png</file>
         <file alias="ear">Resources/Icons/ear.png</file>
+        <file alias="envelopeTwoTone">Resources/Icons/envelopeTwoTone.png</file>
         <file alias="exclamation">Resources/Icons/exclamation.png</file>
         <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>
         <file alias="eye">Resources/Icons/eye.png</file>
         <file alias="eyeStriked">Resources/Icons/eyeStriked.png</file>
+        <file alias="fastForward">Resources/Icons/fastForward.png</file>
+        <file alias="fastRewind">Resources/Icons/fastRewind.png</file>
         <file alias="file">Resources/Icons/file.png</file>
         <file alias="fileDown">Resources/Icons/fileDown.png</file>
         <file alias="fileUp">Resources/Icons/fileUp.png</file>
@@ -358,6 +359,8 @@
         <file alias="shieldTick">Resources/Icons/shieldTick.png</file>
         <file alias="ship">Resources/Icons/ship.png</file>
         <file alias="sigma">Resources/Icons/sigma.png</file>
+        <file alias="skipNext">Resources/Icons/skipNext.png</file>
+        <file alias="skipPrevious">Resources/Icons/skipPrevious.png</file>
         <file alias="sliders">Resources/Icons/sliders.png</file>
         <file alias="spanner">Resources/Icons/spanner.png</file>
         <file alias="spannerTwoTone">Resources/Icons/spannerTwoTone.png</file>
@@ -415,13 +418,5 @@
         <file alias="zoomInPage">Resources/Icons/zoomInPage.png</file>
         <file alias="zoomOut">Resources/Icons/zoomOut.png</file>
         <file alias="zoomRefresh">Resources/Icons/zoomRefresh.png</file>
-        <file alias="bookmarkTwoTone">Resources/Icons/bookmarkTwoTone.png</file>
-        <file alias="envelopeTwoTone">Resources/Icons/envelopeTwoTone.png</file>
-        <file alias="arrowBottomRight">Resources/Icons/arrowBottomRight.png</file>
-        <file alias="arrowTopRight">Resources/Icons/arrowTopRight.png</file>
-        <file alias="fastForward">Resources/Icons/fastForward.png</file>
-        <file alias="fastRewind">Resources/Icons/fastRewind.png</file>
-        <file alias="skipNext">Resources/Icons/skipNext.png</file>
-        <file alias="skipPrevious">Resources/Icons/skipPrevious.png</file>
     </qresource>
 </RCC>

@@ -23,7 +23,7 @@ DeploymentDefinitions::DeploymentDefinitions(EntityFactoryBroker& broker, bool i
     }
     
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "DEPLOYMENT");
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "DEPLOYMENT");
 
     //Attach Children
     broker.ConstructChildNode(*this, NODE_KIND::ASSEMBLY_DEFINITIONS);
