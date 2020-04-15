@@ -52,7 +52,6 @@ DataflowDialog::DataflowDialog(QWidget *parent)
 void DataflowDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
-    //setStyleSheet(theme->getScrollBarStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
 }

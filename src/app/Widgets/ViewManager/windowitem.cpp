@@ -31,7 +31,6 @@ void WindowItem::themeChanged()
 
     windowToolbar->setIconSize(theme->getIconSize());
     windowToolbar->setStyleSheet(theme->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR") +
-    //"#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background: rgba(0,0,0,0); }"
                                  "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background:" + Theme::theme()->getDisabledBackgroundColorHex() + "; }"
                                  "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 

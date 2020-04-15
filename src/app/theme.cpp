@@ -770,7 +770,6 @@ QString Theme::getMenuStyleSheet(int icon_size_int)
            "border: none;"
            "}"
            "QMenu::item:disabled {"
-           //"color:" % getAltTextColorHex() % ";"
            "color:" % getTextColorHex(ColorRole::DISABLED) % ";"
            "}"
            "QMenu::item:selected:!disabled {"

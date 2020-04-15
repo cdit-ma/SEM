@@ -62,13 +62,6 @@ void FilterWidget::setupLayout()
 
     line_edit->setFocusPolicy(Qt::StrongFocus);
     line_edit->setFocus();
-/*
-    auto line_edit_palette = line_edit->palette();
-    line_edit_palette.setColor(QPalette::Text, Qt::gray);
-    line_edit_palette.setColor(QPalette::Inactive, QPalette::PlaceholderText, Qt::gray);
-    line_edit_palette.setColor(QPalette::Active, QPalette::PlaceholderText, Qt::gray);
-    line_edit->setPalette(line_edit_palette);
-*/
     layout->addWidget(line_edit);
 }
 

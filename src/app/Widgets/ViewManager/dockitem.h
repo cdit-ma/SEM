@@ -10,7 +10,7 @@
 #include <QWidget>
 #include <QVBoxLayout>
 
-class DockItem: public QToolBar
+class DockItem : public QToolBar
 {
     Q_OBJECT
 
