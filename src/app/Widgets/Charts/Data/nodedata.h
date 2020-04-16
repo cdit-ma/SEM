@@ -4,8 +4,7 @@
 #include "protomessagestructs.h"
 #include "containerinstancedata.h"
 
-#include "Requests/cpuutilisationrequest.h"
-#include "Requests/memoryutilisationrequest.h"
+#include "Requests/utilisationrequest.h"
 
 #include "Events/cpuutilisationevent.h"
 #include "Events/memoryutilisationevent.h"
@@ -24,8 +23,8 @@ public:
 
     QList<ContainerInstanceData*> getContainerInstanceData() const;
 
-    const CPUUtilisationRequest& getCPUUtilisationRequest() const;
-    const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
+    const UtilisationRequest& getCPUUtilisationRequest() const;
+    const UtilisationRequest& getMemoryUtilisationRequest() const;
 
     void addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events);
     const CPUUtilisationEventSeries& getCPUUtilisationSeries() const;
@@ -49,8 +48,8 @@ private:
 
     QHash<QString, ContainerInstanceData*> container_inst_data_hash_;
 
-    CPUUtilisationRequest cpu_utilisation_request_;
-    MemoryUtilisationRequest memory_utilisation_request_;
+    UtilisationRequest cpu_utilisation_request_;
+    UtilisationRequest memory_utilisation_request_;
 
     CPUUtilisationEventSeries* cpu_utilisation_series_ = nullptr;
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;

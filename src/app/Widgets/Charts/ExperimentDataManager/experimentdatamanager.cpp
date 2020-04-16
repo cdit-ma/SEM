@@ -96,17 +96,17 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 				break;
 			}
 			case ExperimentDataRequestType::CPUUtilisationEvent: {
-				valid = request_param.canConvert<CPUUtilisationRequest>();
+				valid = request_param.canConvert<UtilisationRequest>();
 				if (valid) {
-					auto request = request_param.value<CPUUtilisationRequest>();
+					auto request = request_param.value<UtilisationRequest>();
 					requestCPUUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
 				}
 				break;
 			}
 			case ExperimentDataRequestType::MemoryUtilisationEvent: {
-				valid = request_param.canConvert<MemoryUtilisationRequest>();
+				valid = request_param.canConvert<UtilisationRequest>();
 				if (valid) {
-					auto request = request_param.value<MemoryUtilisationRequest>();
+					auto request = request_param.value<UtilisationRequest>();
 					requestMemoryUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
 				}
 				break;
@@ -228,13 +228,13 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
 		qInfo(ex.what());
     }
     try {
-        auto&& request_param = QVariant::fromValue<CPUUtilisationRequest>(builder.getCPUUtilisationRequest());
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getCPUUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, request_param);
 	} catch (const std::exception& ex) {
 		qInfo(ex.what());
 	}
     try {
-        auto&& request_param = QVariant::fromValue<MemoryUtilisationRequest>(builder.getMemoryUtilisationRequest());
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getMemoryUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, request_param);
 	} catch (const std::exception& ex) {
 		qInfo(ex.what());
@@ -316,7 +316,7 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
  * @param experimentRun
  * @param node_data_requester
  */
-void ExperimentDataManager::requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
 {
     auto future = aggregationProxy().RequestCPUUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
@@ -343,7 +343,7 @@ void ExperimentDataManager::requestCPUUtilisationEvents(const CPUUtilisationRequ
  * @param experimentRun
  * @param node_data_requester
  */
-void ExperimentDataManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestMemoryUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
 {
     auto future = aggregationProxy().RequestMemoryUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
