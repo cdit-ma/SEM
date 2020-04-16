@@ -7,7 +7,7 @@
 class NodeItem;
 class EdgeItem : public EntityItem
 {
-Q_OBJECT
+    Q_OBJECT
 
 public:
     EdgeItem(EdgeViewItem* edgeViewItem, NodeItem* parent, NodeItem* source, NodeItem* destination);

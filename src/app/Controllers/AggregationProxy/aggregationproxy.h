@@ -63,8 +63,8 @@ public:
 
     QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(const PortLifecycleRequest &request) const;
     QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(const WorkloadRequest& request) const;
-    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const CPUUtilisationRequest& request) const;
-    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
+    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const UtilisationRequest& request) const;
+    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const UtilisationRequest& request) const;
     QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request) const;
     QFuture<QVector<PortEvent*>> RequestPortEvents(const PortEventRequest& request) const;
     QFuture<QVector<NetworkUtilisationEvent*>> RequestNetworkUtilisationEvents(const UtilisationRequest& request) const;
@@ -80,8 +80,8 @@ private:
 
     QVector<PortLifecycleEvent*> GetPortLifecycleEvents(const PortLifecycleRequest& request) const;
     QVector<WorkloadEvent*> GetWorkloadEvents(const WorkloadRequest& request) const;
-    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const CPUUtilisationRequest& request) const;
-    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const;
+    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const UtilisationRequest& request) const;
+    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const UtilisationRequest& request) const;
     QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request) const;
     QVector<PortEvent*> GetPortEvents(const PortEventRequest& request) const;
     QVector<NetworkUtilisationEvent*> GetNetworkUtilisationEvents(const UtilisationRequest& request) const;

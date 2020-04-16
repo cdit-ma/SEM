@@ -24,10 +24,10 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
             workloadRequest_ = std::make_unique<WorkloadRequest>(WorkloadRequest());
             break;
         case MEDEA::ChartDataKind::CPU_UTILISATION:
-            cpuUtilisationRequest_ = std::make_unique<CPUUtilisationRequest>(CPUUtilisationRequest());
+            cpuUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = std::make_unique<MemoryUtilisationRequest>(MemoryUtilisationRequest());
+            memoryUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MARKER:
             markerRequest_ = std::make_unique<MarkerRequest>(MarkerRequest());
@@ -283,7 +283,7 @@ const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
  * @throws std::invalid_argument
  * @return
  */
-const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
+const UtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
 {
     if (!cpuUtilisationRequest_) {
         throw std::invalid_argument("There is no built CPUUtilisationRequest");
@@ -296,7 +296,7 @@ const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
  * @throws std::invalid_argument
  * @return
  */
-const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
+const UtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
 {
     if (!memoryUtilisationRequest_) {
         throw std::invalid_argument("There is no built MemoryUtilisationRequest");

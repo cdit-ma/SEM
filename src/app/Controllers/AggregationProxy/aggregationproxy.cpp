@@ -88,7 +88,7 @@ QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const
  * @param request
  * @return
  */
-QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const CPUUtilisationRequest& request) const
+QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const UtilisationRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, request);
 }
@@ -99,7 +99,7 @@ QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisation
  * @param request
  * @return
  */
-QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const
+QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const UtilisationRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, request);
 }
@@ -347,7 +347,7 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadReques
  * @throws RequestException
  * @return
  */
-QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CPUUtilisationRequest &request) const
+QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const UtilisationRequest &request) const
 {
     CheckRequester();
 
@@ -387,7 +387,7 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CP
  * @throws RequestException
  * @return
  */
-QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const MemoryUtilisationRequest &request) const
+QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const UtilisationRequest &request) const
 {
     CheckRequester();
 
