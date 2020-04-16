@@ -44,4 +44,4 @@ private:
     ViewController* viewController = nullptr;
 };
 
-#endif // NOTIFICATIONMANAGER_H
+#endif // SEARCHMANAGER_H

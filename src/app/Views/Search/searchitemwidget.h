@@ -74,8 +74,7 @@ private:
     QToolButton* button_expand = nullptr;
     QWidget* data_widget = nullptr;
 
-    QSize icon_size = QSize(24, 24);
-    QSize small_icon_size = QSize(16, 16);
+    QSize data_icon_size = QSize(24, 24);
 
     QSet<QString> matched_keys;
     QSet<QString> persistent_keys;

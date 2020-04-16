@@ -81,7 +81,7 @@ void DockItem::setupLayout()
     button->setObjectName("WINDOW_ICON");
     button->setAutoRaise(false);
 
-    labelAction = addWidget(labelWidget);
+    addWidget(labelWidget);
 
     if (titleBar) {
         addActions(titleBar->getToolActions());

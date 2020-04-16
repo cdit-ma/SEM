@@ -130,6 +130,5 @@ Q_DECLARE_METATYPE(WorkloadRequest);
 Q_DECLARE_METATYPE(UtilisationRequest);
 Q_DECLARE_METATYPE(MarkerRequest);
 Q_DECLARE_METATYPE(PortEventRequest);
-Q_DECLARE_METATYPE(UtilisationRequest);
 
 #endif // EXPERIMENTDATAMANAGER_H

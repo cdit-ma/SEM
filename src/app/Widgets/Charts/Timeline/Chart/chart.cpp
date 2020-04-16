@@ -85,7 +85,7 @@ const QHash<ChartDataKind, EventSeries*>& Chart::getSeries() const
  * @brief Chart::getHoveredSeriesKinds
  * @return
  */
-const QList<ChartDataKind> Chart::getHoveredSeriesKinds() const
+QList<ChartDataKind> Chart::getHoveredSeriesKinds() const
 {
 	return hoveredSeriesTimeRange_.keys();
 }

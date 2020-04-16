@@ -101,6 +101,8 @@ private:
     int current_visible_notifications = 0;
 
     QHash<int, NotificationItem*> notification_items;
+    QSet<QSharedPointer<NotificationObject>> filtered_notifications;
+
     NotificationItem* selected_notification = nullptr;
     ViewController* viewController = nullptr;
 };

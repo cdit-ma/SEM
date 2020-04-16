@@ -142,9 +142,9 @@ void CustomGroupBox::themeChanged()
         }
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px 1px 1px 0px;"
-                                        "border: none;"
+                                        "border: 0px;"
                                         "color:" + theme->getTextColorHex() + ";"
-                                        "background: rgba(0,0,0,0);"
+                                        "background:" + theme->getBackgroundColorHex() + ";"
                                         "}"
                                         + checkableStyle);
     }

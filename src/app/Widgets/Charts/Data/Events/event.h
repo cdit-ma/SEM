@@ -13,7 +13,8 @@ enum class ChartDataKind {
 	CPU_UTILISATION,
 	MEMORY_UTILISATION,
 	MARKER,
-	PORT_EVENT
+	PORT_EVENT,
+	NETWORK_UTILISATION
 };
 
 class Event : public QObject
