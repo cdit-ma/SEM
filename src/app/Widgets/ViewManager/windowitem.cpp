@@ -25,6 +25,8 @@ void WindowItem::themeChanged()
                                  "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 
     closeAction->setIcon(theme->getIcon("Icons", "cross"));
+
+    label->setStyleSheet(theme->getLabelStyleSheet());
 }
 
 void WindowItem::titleChanged(const QString&)

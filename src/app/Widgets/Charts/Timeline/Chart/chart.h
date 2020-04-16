@@ -25,9 +25,9 @@ class Chart : public QWidget
 
 public:
     explicit Chart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent = nullptr);
-	
+
     quint32 getExperimentRunID() const;
-	
+
 	bool isHovered();
 
     void addSeries(EventSeries *series);
@@ -67,9 +67,13 @@ private:
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
-    void paintMemoryUtilisationEventSeries(QPainter &painter);
-    void paintMarkerEventSeries(QPainter &painter);
-    void paintPortEventSeries(QPainter &painter);
+    void paintMemoryUtilisationEventSeries(QPainter& painter);
+    void paintMarkerEventSeries(QPainter& painter);
+    void paintPortEventSeries(QPainter& painter);
+    void paintNetworkUtilisationEventSeries(QPainter& painter);
+
+    void drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, QColor color, ChartDataKind series_kind);
+    void drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QColor color, double opacity, ChartDataKind series_kind);
 
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
@@ -78,12 +82,12 @@ private:
     void updateSeriesPixmaps();
 
     int getBinIndexForTime(double time);
-	
+
 	QVector<QList<Event*>>& getBinnedData(ChartDataKind kind);
     qint64 mapPixelToTime(double x);
-	
+
 	double mapTimeToPixel(double time);
-	
+
 	static QColor getContrastingColor(const QColor& color);
 
     quint32 experimentRunID_;
@@ -108,6 +112,7 @@ private:
 
     QRectF hoveredRect_;
 
+    QPen defaultTextPen_;
     QPen defaultRectPen_;
     QPen defaultEllipsePen_;
     QPen highlightPen_;
@@ -129,6 +134,9 @@ private:
     QColor defaultMarkerColor_ = Qt::gray;
     QColor defaultPortEventColor_ = Qt::gray;
 
+    QColor defaultNetworkColor_sent_ = Qt::lightGray;
+    QColor defaultNetworkColor_received_ = Qt::lightGray;
+
     QColor portLifecycleColor_ = defaultUtilisationColor_;
     QColor workloadColor_ = defaultWorkloadColor_;
     QColor utilisationColor_ = defaultUtilisationColor_;
@@ -136,12 +144,17 @@ private:
     QColor markerColor_ = defaultMarkerColor_;
     QColor portEventColor_ = defaultPortEventColor_;
 
+    QColor networkColor_sent_ = defaultNetworkColor_sent_;
+    QColor networkColor_received_ = defaultNetworkColor_received_;
+    QColor networkColor_combined_ = Qt::blue;
+
     double portLifecycleSeriesOpacity_ = 1.0;
     double workloadSeriesOpacity_ = 1.0;
     double cpuSeriesOpacity_ = 1.0;
     double memorySeriesOpacity_ = 1.0;
     double markerSeriesOpacity_ = 1.0;
     double portEventSeriesOpacity_ = 1.0;
+    double networkSeriesOpacity_ = 1.0;
 
     QHash<ChartDataKind, bool> seriesKindVisible_;
     QHash<ChartDataKind, EventSeries*> seriesList_;
@@ -152,6 +165,7 @@ private:
     QVector<QList<Event*>> memoryUtilisationBinnedData_;
     QVector<QList<Event*>> markerBinnedData_;
     QVector<QList<Event*>> portEventBinnedData_;
+    QVector<QList<Event*>> networkUtilisationBinnedData_;
     QVector<QList<Event*>> emptyBinnedData_;
 
     QHash<ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;

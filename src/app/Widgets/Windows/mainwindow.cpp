@@ -79,7 +79,7 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent)
 
     setModelTitle();
     themeChanged();
-    
+
     toggleWelcomeScreen(true);
     activateWindow();
     show();

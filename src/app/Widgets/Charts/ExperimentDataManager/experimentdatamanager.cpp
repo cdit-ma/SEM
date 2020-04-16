@@ -16,7 +16,7 @@ ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
 {
     chartDialog_ = new ChartDialog();
     dataflowDialog_ = new DataflowDialog();
-    
+
     live_exp_run_id_ = invalid_experiment_id;
 
     connect(&vc, &ViewController::modelClosed, this, &ExperimentDataManager::clear);
@@ -57,90 +57,98 @@ TimelineChartView& ExperimentDataManager::timelineChartView()
  */
 void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* sender_obj)
 {
-	if (request_param.isNull() || !request_param.isValid()) {
-		throw std::invalid_argument("ExperimentDataManager::requestExperimentData - Provided request parameter is invalid.");
-	}
-	
-	try {
-		
-		bool valid = true;
-		
-		switch (request_type) {
-			case ExperimentDataRequestType::ExperimentRun: {
-				const auto& exp_name = request_param.toString();
-				requestExperimentRuns(exp_name, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
-				break;
-			}
-			case ExperimentDataRequestType::ExperimentState: {
-				valid = request_param.canConvert<quint32>();
-				if (valid) {
-					quint32 exp_run_id = request_param.toUInt();
-					requestExperimentState(exp_run_id, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
-				}
-				break;
-			}
-			case ExperimentDataRequestType::PortLifecycleEvent: {
-				valid = request_param.canConvert<PortLifecycleRequest>();
-				if (valid) {
-					auto request = request_param.value<PortLifecycleRequest>();
-					requestPortLifecycleEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
-				}
-				break;
-			}
-			case ExperimentDataRequestType::WorkloadEvent: {
-				valid = request_param.canConvert<WorkloadRequest>();
-				if (valid) {
-					auto request = request_param.value<WorkloadRequest>();
-					requestWorkloadEvents(request, selectedExperimentRun_, qobject_cast<WorkerInstanceData*>(sender_obj));
-				}
-				break;
-			}
-			case ExperimentDataRequestType::CPUUtilisationEvent: {
-				valid = request_param.canConvert<CPUUtilisationRequest>();
-				if (valid) {
-					auto request = request_param.value<CPUUtilisationRequest>();
-					requestCPUUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
-				}
-				break;
-			}
-			case ExperimentDataRequestType::MemoryUtilisationEvent: {
-				valid = request_param.canConvert<MemoryUtilisationRequest>();
-				if (valid) {
-					auto request = request_param.value<MemoryUtilisationRequest>();
-					requestMemoryUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
-				}
-				break;
-			}
-			case ExperimentDataRequestType::MarkerEvent: {
-				valid = request_param.canConvert<MarkerRequest>();
-				if (valid) {
-					auto request = request_param.value<MarkerRequest>();
-					requestMarkerEvents(request, selectedExperimentRun_, qobject_cast<MarkerSetData*>(sender_obj));
-				}
-				break;
-			}
-			case ExperimentDataRequestType::PortEvent: {
-				valid = request_param.canConvert<PortEventRequest>();
-				if (valid) {
-					auto request = request_param.value<PortEventRequest>();
-					requestPortEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
-				}
-				break;
-			}
-		}
-		
-		if (!valid) {
-			auto&& request_str = QString::number(static_cast<int>(request_type)).toStdString() + request_param.toString().toStdString();
-			throw std::invalid_argument("Failed to request data (" + request_str + ") - Invalid request parameter.");
-		}
-		
-	} catch (const NoRequesterException& ex) {
-		toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.What(), "chart", Notification::Severity::ERROR);
-	} catch (const RequestException& ex) {
-		toastNotification("ExperimentDataManager::requestExperimentData - Failed to request experiment data: " + ex.What(), "chart", Notification::Severity::ERROR);
-	} catch (const std::exception& ex) {
-		toastNotification("ExperimentDataManager::requestExperimentData: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
-	}
+    if (request_param.isNull() || !request_param.isValid()) {
+        throw std::invalid_argument("ExperimentDataManager::requestExperimentData - Provided request parameter is invalid.");
+    }
+
+    try {
+
+        bool valid = true;
+
+        switch (request_type) {
+            case ExperimentDataRequestType::ExperimentRun: {
+                const auto& exp_name = request_param.toString();
+                requestExperimentRuns(exp_name, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
+                break;
+            }
+            case ExperimentDataRequestType::ExperimentState: {
+                valid = request_param.canConvert<quint32>();
+                if (valid) {
+                    quint32 exp_run_id = request_param.toUInt();
+                    requestExperimentState(exp_run_id, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
+                }
+                break;
+            }
+            case ExperimentDataRequestType::PortLifecycleEvent: {
+                valid = request_param.canConvert<PortLifecycleRequest>();
+                if (valid) {
+                    auto request = request_param.value<PortLifecycleRequest>();
+                    requestPortLifecycleEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
+                }
+                break;
+            }
+            case ExperimentDataRequestType::WorkloadEvent: {
+                valid = request_param.canConvert<WorkloadRequest>();
+                if (valid) {
+                    auto request = request_param.value<WorkloadRequest>();
+                    requestWorkloadEvents(request, selectedExperimentRun_, qobject_cast<WorkerInstanceData*>(sender_obj));
+                }
+                break;
+            }
+            case ExperimentDataRequestType::CPUUtilisationEvent: {
+                valid = request_param.canConvert<CPUUtilisationRequest>();
+                if (valid) {
+                    auto request = request_param.value<CPUUtilisationRequest>();
+                    requestCPUUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+                }
+                break;
+            }
+            case ExperimentDataRequestType::MemoryUtilisationEvent: {
+                valid = request_param.canConvert<MemoryUtilisationRequest>();
+                if (valid) {
+                    auto request = request_param.value<MemoryUtilisationRequest>();
+                    requestMemoryUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+                }
+                break;
+            }
+            case ExperimentDataRequestType::MarkerEvent: {
+                valid = request_param.canConvert<MarkerRequest>();
+                if (valid) {
+                    auto request = request_param.value<MarkerRequest>();
+                    requestMarkerEvents(request, selectedExperimentRun_, qobject_cast<MarkerSetData*>(sender_obj));
+                }
+                break;
+            }
+            case ExperimentDataRequestType::PortEvent: {
+                valid = request_param.canConvert<PortEventRequest>();
+                if (valid) {
+                    auto request = request_param.value<PortEventRequest>();
+                    requestPortEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
+                }
+                break;
+            }
+            case ExperimentDataRequestType::NetworkUtilisationEvent: {
+                valid = request_param.canConvert<UtilisationRequest>();
+                if (valid) {
+                    auto request = request_param.value<UtilisationRequest>();
+                    requestNetworkUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+                }
+                break;
+            }
+        }
+
+        if (!valid) {
+            auto&& request_str = QString::number(static_cast<int>(request_type)).toStdString() + request_param.toString().toStdString();
+            throw std::invalid_argument("Failed to request data (" + request_str + ") - Invalid request parameter.");
+        }
+
+    } catch (const NoRequesterException& ex) {
+        toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.What(), "chart", Notification::Severity::ERROR);
+    } catch (const RequestException& ex) {
+        toastNotification("ExperimentDataManager::requestExperimentData - Failed to request experiment data: " + ex.What(), "chart", Notification::Severity::ERROR);
+    } catch (const std::exception& ex) {
+        toastNotification("ExperimentDataManager::requestExperimentData: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
+    }
 }
 
 /**
@@ -248,9 +256,15 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
     try {
         auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
-	} catch (const std::exception& ex) {
-		qInfo(ex.what());
-	}
+    } catch (const std::exception&) {
+        qInfo("No PortEventRequest");
+    }
+    try {
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
+        requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
+    } catch (const std::exception&) {
+        qInfo("No NetworkUtilisationRequest");
+    }
 
     // Reset the selected experiment run
     selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
@@ -417,6 +431,35 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
 
     futureWatcher->setFuture(future);
 }
+
+
+/**
+ * @brief ExperimentDataManager::requestNetworkUtilisationEvents
+ * @param request
+ * @param experimentRun
+ * @param node_data_requester
+ */
+void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+{
+    auto future = aggregationProxy().RequestNetworkUtilisationEvents(request);
+    auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);
+
+    connect(futureWatcher, &QFutureWatcher<QVector<NetworkUtilisationEvent*>>::finished, [this, futureWatcher, experimentRun, node_data_requester]() {
+        try {
+            auto&& events = futureWatcher->result();
+            if (node_data_requester != nullptr) {
+                node_data_requester->addNetworkUtilisationEvents(events);
+            } else {
+                processNetworkUtilisationEvents(experimentRun, events);
+            }
+        } catch (const std::exception& ex) {
+            toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);
+        }
+    });
+
+    futureWatcher->setFuture(future);
+}
+
 
 /**
  * @brief ExperimentDataManager::processExperimentRuns
@@ -593,6 +636,25 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
         }
     }
 }
+
+
+/**
+ * @brief ExperimentDataManager::processNetworkUtilisationEvents
+ * @param exp_run
+ * @param events
+ */
+void ExperimentDataManager::processNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<NetworkUtilisationEvent*>& events)
+{
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
+            toastNotification("No network utilisation events received for selection", "waveEmit");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addNetworkUtilisationEvents(exp_run, events);
+        }
+    }
+}
+
 
 /**
  * @brief ExperimentDataManager::constructExperimentData
@@ -794,6 +856,7 @@ void ExperimentDataManager::requestNodeEvents(NodeData& node)
 {
     requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, QVariant::fromValue(node.getCPUUtilisationRequest()), &node);
     requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, QVariant::fromValue(node.getMemoryUtilisationRequest()), &node);
+    requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, QVariant::fromValue(node.getNetworkUtilisationRequest()), &node);
 }
 
 /**
@@ -871,28 +934,28 @@ void ExperimentDataManager::setupRequestsForExperimentRun(const quint32 experime
 		selectedDataKinds_ = MEDEA::Event::GetChartDataKinds();
 		selectedDataKinds_.removeAll(MEDEA::ChartDataKind::DATA);
 	}
-	
+
 	auto builder = RequestBuilder::build();
 	builder.buildRequests(selectedDataKinds_);
 	builder.setExperimentRunID(experimentRunID);
-	
+
 	if (!selectedViewItems_.isEmpty()) {
-		
+
 		QVector<QString> compNames;
 		QVector<QString> compInstPaths;
 		QVector<QString> portPaths;
 		QVector<QString> workerInstPaths;
 		QVector<QString> nodeHostnames;
-		
+
 		for (auto item : selectedViewItems_) {
-			
+
 			if (!item || !item->isNode()) {
 				continue;
 			}
-			
+
 			auto nodeItem = qobject_cast<NodeViewItem*>(item);
 			auto label = getItemLabel(nodeItem);
-			
+
 			switch (nodeItem->getNodeKind()) {
 				case NODE_KIND::COMPONENT:
 				case NODE_KIND::COMPONENT_IMPL:
@@ -967,14 +1030,14 @@ void ExperimentDataManager::setupRequestsForExperimentRun(const quint32 experime
 					break;
 			}
 		}
-		
+
 		builder.setComponentNames(compNames);
 		builder.setComponentInstancePaths(compInstPaths);
 		builder.setPortPaths(portPaths);
 		builder.setWorkerInstancePaths(workerInstPaths);
 		builder.setNodeHostnames(nodeHostnames);
 	}
-	
+
 	requestEvents(builder);
 	selectedDataKinds_.clear();
 	selectedViewItems_.clear();

@@ -64,7 +64,8 @@ const QList<MEDEA::ChartDataKind>& MEDEA::Event::GetChartDataKinds()
                 ChartDataKind::CPU_UTILISATION,
                 ChartDataKind::MEMORY_UTILISATION,
                 ChartDataKind::MARKER,
-                ChartDataKind::PORT_EVENT
+                ChartDataKind::PORT_EVENT,
+                ChartDataKind::NETWORK_UTILISATION
     };
     return kinds;
 }
@@ -76,36 +77,40 @@ const QList<MEDEA::ChartDataKind>& MEDEA::Event::GetChartDataKinds()
  */
 const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
 {
-	switch (kind) {
-		case ChartDataKind::PORT_LIFECYCLE: {
-			static const QString portLifecycleStr = "PortLifecycle";
-			return portLifecycleStr;
-		}
-		case ChartDataKind::WORKLOAD: {
-			static const QString workloadStr = "Workload";
-			return workloadStr;
-		}
-		case ChartDataKind::CPU_UTILISATION: {
-			static const QString cpuStr = "CPUUtilisation";
-			return cpuStr;
-		}
-		case ChartDataKind::MEMORY_UTILISATION: {
-			static const QString memoryStr = "MemoryUtilisation";
-			return memoryStr;
-		}
-		case ChartDataKind::MARKER: {
-			static const QString markerStr = "Marker";
-			return markerStr;
-		}
-		case ChartDataKind::PORT_EVENT: {
-			static const QString portEventStr = "PortEvent";
-			return portEventStr;
-		}
-		default: {
-			static const QString defaultStr = "Data";
-			return defaultStr;
-		}
-	}
+    switch (kind) {
+        case ChartDataKind::PORT_LIFECYCLE: {
+            static const QString portLifecycleStr = "PortLifecycle";
+            return portLifecycleStr;
+        }
+        case ChartDataKind::WORKLOAD: {
+            static const QString workloadStr = "Workload";
+            return workloadStr;
+        }
+        case ChartDataKind::CPU_UTILISATION: {
+            static const QString cpuStr = "CPUUtilisation";
+            return cpuStr;
+        }
+        case ChartDataKind::MEMORY_UTILISATION: {
+            static const QString memoryStr = "MemoryUtilisation";
+            return memoryStr;
+        }
+        case ChartDataKind::MARKER: {
+            static const QString markerStr = "Marker";
+            return markerStr;
+        }
+        case ChartDataKind::PORT_EVENT: {
+            static const QString portEventStr = "PortEvent";
+            return portEventStr;
+        }
+        case ChartDataKind::NETWORK_UTILISATION: {
+            static const QString networkStr = "NetworkUtilisation";
+            return networkStr;
+        }
+        default: {
+            static const QString defaultStr = "Data";
+            return defaultStr;
+        }
+    }
 }
 
 /**
@@ -115,22 +120,26 @@ const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
  */
 const QString& MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind kind)
 {
-	switch (kind) {
-		case ChartDataKind::PORT_LIFECYCLE: {
-			static const QString lifecycleSuffix = "_lifecycle";
-			return lifecycleSuffix;
-		}
-		case ChartDataKind::CPU_UTILISATION: {
-			static const QString cpuSuffix = "_cpu";
-			return cpuSuffix;
-		}
-		case ChartDataKind::MEMORY_UTILISATION: {
-			static const QString memorySuffix = "_mem";
-			return memorySuffix;
-		}
-		default: {
-			static const QString defaultSuffix = "";
-			return defaultSuffix;
-		}
-	}
+    switch (kind) {
+        case ChartDataKind::PORT_LIFECYCLE: {
+            static const QString lifecycleSuffix = "_lifecycle";
+            return lifecycleSuffix;
+        }
+        case ChartDataKind::CPU_UTILISATION: {
+            static const QString cpuSuffix = "_cpu";
+            return cpuSuffix;
+        }
+        case ChartDataKind::MEMORY_UTILISATION: {
+            static const QString memorySuffix = "_mem";
+            return memorySuffix;
+        }
+        case ChartDataKind::NETWORK_UTILISATION: {
+            static const QString networkSuffix = "_net";
+            return networkSuffix;
+        }
+        default: {
+            static const QString defaultSuffix = "";
+            return defaultSuffix;
+        }
+    }
 }

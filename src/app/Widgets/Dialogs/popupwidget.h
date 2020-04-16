@@ -13,7 +13,7 @@ public:
 
     QWidget* getWidget();
     void setWidget(QWidget* widget);
-    void setBackgroundOpacity(qreal opactiy);
+    void setBackgroundOpacity(qreal opacity);
 
 protected:
     Q_INVOKABLE void adjustSize();

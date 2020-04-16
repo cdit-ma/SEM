@@ -13,13 +13,13 @@ NotificationPopup::NotificationPopup()
     timer = new QTimer(this);
     timer->setInterval(5000);
 
+    // Hide the notification popup on timeout
+    connect(timer, &QTimer::timeout, this, &NotificationPopup::Hide);
+
     installEventFilter(this);
     setAttribute(Qt::WA_ShowWithoutActivating);
 
-    //Hide the notification popup on timeout
-    connect(timer, &QTimer::timeout, this, &NotificationPopup::Hide);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationPopup::themeChanged);
-
     themeChanged();
 }
 
@@ -63,9 +63,9 @@ void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> n
 void NotificationPopup::themeChanged()
 {
     auto theme = Theme::theme();
-    setStyleSheet("QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";}");
-    label->setFont(theme->getLargeFont());
     icon->setFixedSize(theme->getLargeIconSize());
+    label->setFont(theme->getLargeFont());
+    label->setStyleSheet(theme->getLabelStyleSheet());
 }
 
 void NotificationPopup::setupLayout()
@@ -73,7 +73,7 @@ void NotificationPopup::setupLayout()
     icon = new QLabel(this);
     icon->setScaledContents(true);
     icon->setAlignment(Qt::AlignCenter);
-    
+
     label = new QLabel(this);
     
     widget = new QWidget(this);
@@ -84,7 +84,10 @@ void NotificationPopup::setupLayout()
     layout->setSpacing(5);
     layout->addWidget(icon);
     layout->addWidget(label);
-    
+
+    widget = new QWidget(this);
+    widget->setContentsMargins(5, 2, 5, 2);
+    widget->setLayout(layout);
     setWidget(widget);
 }
 

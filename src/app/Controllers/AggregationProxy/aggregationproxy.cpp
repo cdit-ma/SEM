@@ -1,6 +1,8 @@
 #include "aggregationproxy.h"
 #include "../SettingsController/settingscontroller.h"
 
+#include "dummyresponsebuilder.h"
+
 #include <QDateTime>
 #include <iostream>
 
@@ -122,6 +124,17 @@ QFuture< QVector<MarkerEvent*> > AggregationProxy::RequestMarkerEvents(const Mar
 QFuture<QVector<PortEvent*> > AggregationProxy::RequestPortEvents(const PortEventRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetPortEvents, request);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestNetworkUtilisationEvents
+ * @param request
+ * @return
+ */
+QFuture<QVector<NetworkUtilisationEvent*> > AggregationProxy::RequestNetworkUtilisationEvents(const UtilisationRequest& request) const
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetNetworkUtilisationEvents, request);
 }
 
 
@@ -465,7 +478,7 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
  * @param request
  * @return
  */
-QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &request) const
+QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest& request) const
 {
     CheckRequester();
 
@@ -500,6 +513,53 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest &requ
             events.append(new PortEvent(port, seqNum, type, message, time.toMSecsSinceEpoch()));
         }
 
+        return events;
+
+    } catch (const std::exception &ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+
+/**
+ * @brief AggregationProxy::GetNetworkUtilisation
+ * @param request
+ * @return
+ */
+QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(const UtilisationRequest& request) const
+{
+    CheckRequester();
+
+    try {
+        QVector<NetworkUtilisationEvent*> events;
+        AggServer::NetworkUtilisationRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
+
+        for (const auto& id : request.node_ids()) {
+            agg_request.add_node_ids(id.toStdString());
+        }
+        for (const auto& name : request.node_hostnames()) {
+            agg_request.add_node_hostnames(name.toStdString());
+        }
+
+        //auto results = DummyResponseBuilder::getMultiEventsResponse();
+        const auto& results = requester_->GetNetworkUtilisation(agg_request);
+        
+        for (const auto& node_network_event : results->node_network_events()) {
+            const auto& hostname = ConstructQString(node_network_event.node_info().hostname());
+            for (const auto& interface_network_event : node_network_event.events()) {
+                const auto& interface_mac_addr = ConstructQString(interface_network_event. interface_mac_addr());
+                for (const auto& event : interface_network_event.events()) {
+                    const auto& packets_sent = event.packets_sent();
+                    const auto& packets_received = event.packets_received();
+                    const auto& bytes_sent = event.bytes_sent();
+                    const auto& bytes_received = event.bytes_received();
+                    const auto& time = ConstructQDateTime(event.time());
+                    events.append(new NetworkUtilisationEvent(hostname, interface_mac_addr, packets_sent, packets_received, bytes_sent, bytes_received, time.toMSecsSinceEpoch()));
+                }
+            }
+        }
+        
         return events;
 
     } catch (const std::exception& ex) {

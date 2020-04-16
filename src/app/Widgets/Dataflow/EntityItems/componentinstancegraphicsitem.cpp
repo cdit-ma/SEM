@@ -27,6 +27,8 @@ ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInst
     connect(this, &ComponentInstanceGraphicsItem::geometryChanged, this, &ComponentInstanceGraphicsItem::updateConnectionPos);
     connect(Theme::theme(), &Theme::theme_Changed, this, &ComponentInstanceGraphicsItem::themeChanged);
     themeChanged();
+
+    constructChildrenItems();
 }
 
 /**
@@ -58,6 +60,16 @@ PortInstanceGraphicsItem* ComponentInstanceGraphicsItem::addPortInstanceItem(Por
 
     return port_inst_item;
 }
+
+/**
+ * @brief ComponentInstanceGraphicsItem::getPortInstanceItems
+ * @return
+ */
+const std::vector<PortInstanceGraphicsItem*>& ComponentInstanceGraphicsItem::getPortInstanceItems() const
+{
+   return port_inst_items_;
+}
+
 
 /**
  * @brief ComponentInstanceGraphicsItem::boundingRect
@@ -165,6 +177,21 @@ void ComponentInstanceGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEve
     }
     QGraphicsWidget::mouseDoubleClickEvent(event);
 }
+
+/**
+ * @brief ComponentInstanceGraphicsItem::constructChildrenItems
+ * @throws std::invalid_argument
+ */
+void ComponentInstanceGraphicsItem::constructChildrenItems()
+{
+    for (const auto& port_data : comp_inst_data_.getPortInstanceData()) {
+        if (port_data == nullptr) {
+            throw std::invalid_argument("ComponentInstanceGraphicsItem::constructChildrenItems - PortInstanceData is null.");
+        }
+        addPortInstanceItem(*port_data);
+    }
+}
+
 
 /**
  * @brief ComponentInstanceGraphicsItem::toggleExpanded

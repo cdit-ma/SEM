@@ -21,7 +21,7 @@ AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWi
 {
 	orientation_ = orientation;
 	alignment_ = alignment;
-	
+
 	if (orientation == Qt::Horizontal) {
 		minSlider_ = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
 		maxSlider_ = QRectF(QPointF(0, 0), QSizeF(SLIDER_THICKNESS, AXIS_THICKNESS));
@@ -31,15 +31,15 @@ AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWi
 		minSlider_ = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
 		maxSlider_ = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
 	}
-	
+
 	minRatio_ = 0;
 	maxRatio_ = 1;
-	
+
 	setMouseTracking(true);
-	
+
 	// This function initialises the following variables: sliderMin_, sliderMax_, sliderRange_, actualMin_ & actualMax_
 	updateSlidersOnSizeChange();
-	
+
 	connect(Theme::theme(), &Theme::theme_Changed, this, &AxisSlider::themeChanged);
 	themeChanged();
 }
@@ -135,7 +135,7 @@ void AxisSlider::zoom(double factor)
 			// TODO - If the zoom isn't going to move the slider, allow it
 			return;
 	}*/
-	
+
 	double delta = (actualMax_ - actualMin_) * (1 - factor);
 	double scaledMin = qMax(0.0, actualMin_ + delta);
 	double scaledMax = qMin(sliderRange_, actualMax_ - delta);
@@ -163,21 +163,21 @@ void AxisSlider::pan(double dx, double dy)
  */
 void AxisSlider::themeChanged()
 {
-	Theme* theme = Theme::theme();
-	
-	axisPen_ = QPen(theme->getDisabledBackgroundColor(), AXIS_PEN_WIDTH, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-	
-	axisColor_ = theme->getAltBackgroundColor();
-	axisColor_.setAlphaF(0.2);
-	sliderColor_ = theme->getTextColor();
-	
-	QColor midBarColor = theme->getAltBackgroundColor();
-	midBarColor.setAlphaF(0.8);
-	
-	middleBrush_ = QBrush(midBarColor);
-	highlightBrush_ = QBrush(theme->getHighlightColor());
-	
-	update();
+    Theme* theme = Theme::theme();
+
+    axisPen_ = QPen(theme->getDisabledBackgroundColor(), AXIS_PEN_WIDTH, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+
+    axisColor_ = theme->getAltBackgroundColor();
+    axisColor_.setAlphaF(0.3);
+    sliderColor_ = theme->getTextColor();
+
+    QColor midBarColor = theme->getAltBackgroundColor();
+    midBarColor.setAlphaF(0.7);
+
+    middleBrush_ = QBrush(midBarColor);
+    highlightBrush_ = QBrush(theme->getHighlightColor());
+
+    update();
 }
 
 /**
@@ -218,7 +218,7 @@ void AxisSlider::mouseReleaseEvent(QMouseEvent* event)
 		}
 		prevClickedRect_ = sliderHitRect_;
 	}
-	
+
 	dragMode_ = NO_DRAG_MODE;
 	sliderHitRect_ = HIT_RECT::NO_SLIDER;
 	QWidget::mouseReleaseEvent(event);
@@ -250,10 +250,10 @@ void AxisSlider::mouseDoubleClickEvent(QMouseEvent* event)
 void AxisSlider::mouseMoveEvent(QMouseEvent* event)
 {
 	cursorPoint_ = event->pos();
-	
+
 	QPointF deltaPoint = cursorPoint_ - sliderOrigin_;
 	double delta = orientation_ == Qt::Horizontal ? deltaPoint.x() : deltaPoint.y();
-	
+
 	switch (sliderHitRect_) {
 		case HIT_RECT::MIN_SLIDER: {
 			double min = qMin(sliderMin_ + delta, sliderMax_ - SLIDER_THICKNESS);
@@ -272,9 +272,9 @@ void AxisSlider::mouseMoveEvent(QMouseEvent* event)
 			update();
 			break;
 	}
-	
+
 	sliderOrigin_ = cursorPoint_;
-	
+
 	if (dragMode_ == PAN_READY_MODE) {
 		dragMode_ = PAN_MODE;
 	}
@@ -323,25 +323,25 @@ void AxisSlider::resizeEvent(QResizeEvent* event)
 void AxisSlider::paintEvent(QPaintEvent* event)
 {
 	Q_UNUSED(event);
-	
+
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing, true);
-	
+
 	double roundness = SLIDER_ROUNDNESS;
 	double offset = AXIS_PEN_WIDTH;
 	double midSliderThickness = midSlider_.width();
 	QRectF minRect = minSlider_.adjusted(offset, offset, -offset, -offset);
 	QRectF maxRect = maxSlider_.adjusted(offset, offset, -offset, -offset);
 	QRectF midRect = QRectF(0, 0, SLIDER_THICKNESS, midSlider_.height());
-	
+
 	if (orientation_ == Qt::Vertical) {
 		midSliderThickness = midSlider_.height();
 		midRect = QRectF(0, 0, midSlider_.width(), SLIDER_THICKNESS);
 	}
-	
+
 	painter.setPen(Qt::NoPen);
 	painter.setBrush(sliderColor_);
-	
+
 	if (midSliderThickness >= -SLIDER_THICKNESS + offset) {
 		painter.fillRect(midSlider_.adjusted(-offset, -offset, offset, offset), middleBrush_);
 		painter.drawRoundedRect(minRect, roundness, roundness);
@@ -352,12 +352,12 @@ void AxisSlider::paintEvent(QPaintEvent* event)
 		midRect.adjust(offset, offset, -offset, -offset);
 		painter.drawRoundedRect(midRect, roundness, roundness);
 	}
-	
+
 	// this keeps the selected slider highlighted when it's being moved even if the cursor is elsewhere
 	HIT_RECT hitRect = sliderHitRect_ == HIT_RECT::NO_SLIDER ? getCursorHitRect(cursorPoint_) : sliderHitRect_;
 	QRectF highlightRect;
 	bool highlightMidRect = isPanning_;
-	
+
 	switch (hitRect) {
 		case HIT_RECT::MIN_SLIDER:
 			highlightRect = minRect;
@@ -371,7 +371,7 @@ void AxisSlider::paintEvent(QPaintEvent* event)
 		default:
 			break;
 	}
-	
+
 	if (highlightMidRect) {
 		if (minSlider_ == maxSlider_) {
 			highlightRect = midRect;
@@ -379,12 +379,12 @@ void AxisSlider::paintEvent(QPaintEvent* event)
 			highlightRect = QRectF(minRect.topLeft(), maxRect.bottomRight());
 		}
 	}
-	
+
 	if (!highlightRect.isNull()) {
 		painter.setBrush(highlightBrush_);
 		painter.drawRoundedRect(highlightRect, roundness, roundness);
 	}
-	
+
 	double axisOffset = AXIS_PEN_WIDTH / 2.0;
 	QRectF mainRect = rect().adjusted(axisOffset, axisOffset, -axisOffset, -axisOffset);
 	painter.setPen(axisPen_);
@@ -440,10 +440,10 @@ void AxisSlider::minSliderMoved(double min)
 	if (min == actualMin_) {
 		return;
 	}
-	
+
 	actualMin_ = min;
 	minRatio_ = min / sliderRange_;
-	
+
 	if (orientation_ == Qt::Horizontal) {
 		emit minRatioChanged(minRatio_);
 	} else {
@@ -463,10 +463,10 @@ void AxisSlider::maxSliderMoved(double max)
 	if (max == actualMax_) {
 		return;
 	}
-	
+
 	actualMax_ = max;
 	maxRatio_ = max / sliderRange_;
-	
+
 	if (orientation_ == Qt::Horizontal) {
 		emit maxRatioChanged(maxRatio_);
 	} else {
@@ -486,7 +486,7 @@ void AxisSlider::moveSliderRects(double min, double max)
 	// cap min/max so that they stay within the bounds
 	min = qMax(0.0, min);
 	max = qMin(sliderRange_, max);
-	
+
 	// adjust the min/max so that the sliders don't surpass each other
 	auto delta = max - min;
 	if (delta < SLIDER_THICKNESS) {
@@ -498,7 +498,7 @@ void AxisSlider::moveSliderRects(double min, double max)
 		}
 		min = max - SLIDER_THICKNESS;
 	}
-	
+
 	if (orientation_ == Qt::Horizontal) {
 		minSlider_.moveLeft(min);
 		maxSlider_.moveRight(max);
@@ -510,7 +510,7 @@ void AxisSlider::moveSliderRects(double min, double max)
 		maxSlider_.moveBottom(max);
 		midSlider_ = QRectF(minSlider_.bottomLeft(), maxSlider_.topRight());
 	}
-	
+
 	sliderMin_ = min;
 	sliderMax_ = max;
 	update();
@@ -526,7 +526,7 @@ void AxisSlider::updateSlidersOnSizeChange()
 	auto displayRangeRatio = (actualMax_ - actualMin_) / (sliderMax_ - sliderMin_);
 	sliderRange_ = orientation_ == Qt::Horizontal ? width() : height();
 	moveSliderRects(minRatio_ * sliderRange_, maxRatio_ * sliderRange_);
-	
+
 	// adjust the actual min/max based on the new sliders' positions
 	auto range = sliderMax_ - sliderMin_;
 	auto displayRange = range * displayRangeRatio;

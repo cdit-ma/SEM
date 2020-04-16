@@ -13,6 +13,7 @@
 #include "../../Data/Events/memoryutilisationevent.h"
 #include "../../Data/Events/markerevent.h"
 #include "../../Data/Events/portevent.h"
+#include "../../Data/Events/networkutilisationevent.h"
 
 #include <QWidget>
 #include <QToolBar>
@@ -33,12 +34,13 @@ public:
 
     bool eventFilter(QObject *watched, QEvent* event) override;
 
-    void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent *>& events);
-    void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent *>& events);
-    void addCPUUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent *>& events);
-    void addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent *>& events);
-    void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent *>& events);
-    void addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent *>& events);
+    void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent*>& events);
+    void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent*>& events);
+    void addCPUUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent*>& events);
+    void addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent*>& events);
+    void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent*>& events);
+    void addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent*>& events);
+    void addNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<NetworkUtilisationEvent*>& events);
 
     void updateExperimentRunLastUpdatedTime(quint32 experimentRunID, qint64 time);
 

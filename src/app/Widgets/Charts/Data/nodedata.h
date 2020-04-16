@@ -9,8 +9,10 @@
 
 #include "Events/cpuutilisationevent.h"
 #include "Events/memoryutilisationevent.h"
+#include "Events/networkutilisationevent.h"
 #include "Series/cpuutilisationeventseries.h"
 #include "Series/memoryutilisationeventseries.h"
+#include "Series/networkutilisationeventseries.h"
 
 class NodeData : public QObject
 {
@@ -26,12 +28,16 @@ public:
 
     const CPUUtilisationRequest& getCPUUtilisationRequest() const;
     const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
+    const UtilisationRequest& getNetworkUtilisationRequest() const;
 
     void addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events);
     const CPUUtilisationEventSeries& getCPUUtilisationSeries() const;
 
     void addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events);
     const MemoryUtilisationEventSeries& getMemoryUtilisationSeries() const;
+
+    void addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events);
+    NetworkUtilisationEventSeries* getNetworkUtilisationSeries() const;
 
     void updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time);
 
@@ -51,9 +57,11 @@ private:
 
     CPUUtilisationRequest cpu_utilisation_request_;
     MemoryUtilisationRequest memory_utilisation_request_;
+    UtilisationRequest network_utilisation_request_;
 
     CPUUtilisationEventSeries* cpu_utilisation_series_ = nullptr;
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;
+    NetworkUtilisationEventSeries* network_utilisation_series_ = nullptr;
 };
 
 #endif // NODEDATA_H

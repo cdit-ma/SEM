@@ -11,13 +11,13 @@
 class SearchPopup : public PopupWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit SearchPopup();
-    
+
     void updateSearchSuggestions(const QStringList& suggestions);
     void takeFocus();
-    
+
 private:
     void SearchRequested();
     void themeChanged();

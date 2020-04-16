@@ -38,6 +38,7 @@ public:
     const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
     const MarkerRequest& getMarkerRequest() const;
     const PortEventRequest& getPortEventRequest() const;
+    const UtilisationRequest& getNetworkUtilisationRequest() const;
 
 private:
     std::unique_ptr<PortLifecycleRequest> portLifecycleRequest_;
@@ -46,6 +47,7 @@ private:
     std::unique_ptr<MemoryUtilisationRequest> memoryUtilisationRequest_;
     std::unique_ptr<MarkerRequest> markerRequest_;
     std::unique_ptr<PortEventRequest> portEventRequest_;
+    std::unique_ptr<UtilisationRequest> networkUtilisationRequest_;
 };
 
 #endif // REQUESTBUILDER_H

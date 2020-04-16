@@ -40,7 +40,7 @@ private slots:
     void flashEntity(int ID);
     void selectAndCenterEntity(int ID);
     void clearFilteredNotifications();
-    
+
 protected:
     void enterEvent(QEvent* event) override;
 
@@ -69,7 +69,7 @@ private:
     QWidget* filters_widget = nullptr;
     QWidget* notifications_widget = nullptr;
     QWidget* notifications_status_widget = nullptr;
-    
+
     QVBoxLayout* notifications_layout = nullptr;
     QVBoxLayout* filters_layout = nullptr;
 
@@ -99,10 +99,8 @@ private:
     int total_notifications = 0;
     int current_matched_notifications = 0;
     int current_visible_notifications = 0;
-    
-    QSet<QSharedPointer<NotificationObject> > filtered_notifications;
+
     QHash<int, NotificationItem*> notification_items;
-    
     NotificationItem* selected_notification = nullptr;
     ViewController* viewController = nullptr;
 };

@@ -35,7 +35,7 @@ public:
         }
         return options;
     }
-    
+
     bool isResetChecked();
     int getOptionCount();
     
@@ -78,10 +78,10 @@ private:
 
     QAction* reset_action = nullptr;
     QSize icon_size = QSize(10,10);
-    
-    bool exclusive = false;
-    QString title;
 
+    bool exclusive = false;
+
+    QString title;
     SortOrder sort_order;
     
     QHash<QVariant, QAction*> actions_lookup;
