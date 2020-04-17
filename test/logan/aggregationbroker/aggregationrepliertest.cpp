@@ -13,7 +13,7 @@ using namespace re::logging::aggregation::broker;
 TEST(Re_Logan_Aggregation, AggregationReplier_Construct)
 {
     std::shared_ptr<DatabaseClient> db_client;
-    std::string db_string("dbname = postgres user = postgres password = ***REMOVED*** "
+    std::string db_string("dbname = postgres user = postgres password = agg_test_pass "
     "hostaddr = 192.168.111.249 port = 5432");
 
     // Create database client -- replace with mock version!
