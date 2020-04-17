@@ -7,6 +7,32 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
 
+find_package(ZMQ REQUIRED)
+if (MSVC)
+    find_package(Protobuf CONFIG REQUIRED)
+else()
+    find_package(Protobuf REQUIRED)
+endif()
+
+# from https://stackoverflow.com/questions/44650008/cmake-install-third-party-dll-dependency
+MACRO(INSTALL_ADD_IMPORTED_DLLS target_list target_component destination_folder)
+  foreach(one_trg ${target_list})
+    get_target_property(one_trg_type ${one_trg} TYPE)
+    message("Checking target for imported dll to INSTALL based on type, which is: ${one_trg_type}")
+    if (NOT one_trg_type STREQUAL "INTERFACE_LIBRARY")
+       get_target_property(one_trg_dll_location ${one_trg} IMPORTED_LOCATION_RELEASE)
+        message("Imported target location: ${one_trg_dll_location}")
+       if( one_trg_dll_location MATCHES ".dll$")
+          install(FILES ${one_trg_dll_location} DESTINATION ${destination_folder} CONFIGURATIONS Release COMPONENT ${target_component})
+       endif()
+       get_target_property(one_trg_dll_location ${one_trg} IMPORTED_LOCATION_DEBUG)
+       if( one_trg_dll_location MATCHES ".dll$")
+          install(FILES ${one_trg_dll_location} DESTINATION ${destination_folder} CONFIGURATIONS Debug COMPONENT ${target_component})
+       endif()
+    endif()
+  endforeach()
+ENDMACRO()
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ExecutionManager/executionmanager.cpp
@@ -387,7 +413,16 @@ target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Concurrent)
 # Install should copy the MEDEA app into the bin folder
 INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
 
+set(THIRDPARTY_TARGETS
+    libzmq
+    protobuf::libprotobuf
+    protobuf::libprotobuf-lite
+    protobuf::libprotoc
+    )
+
 if(WIN32)
+     INSTALL_ADD_IMPORTED_DLLS("${THIRDPARTY_TARGETS}" ${PROJ_NAME} "./")
+
 	# Copy Resources as part of install for windows
     INSTALL(DIRECTORY ${REGEN_SRC_DIR} DESTINATION "./Resources" COMPONENT RE_GEN)
     INSTALL(DIRECTORY ${SCRIPTS_SRC_DIR} DESTINATION "./Resources" COMPONENT SCRIPTS)
