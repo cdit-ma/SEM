@@ -3,13 +3,14 @@
 
 #include <mutex>
 #include <optional>
-#include <string>
 #include <string_view>
 #include <vector>
 
 #include <pqxx/pqxx>
 
 #include <iostream>
+
+#include "unboundedtimerange.hpp"
 
 // Hack for backwards compatibility with pqxx 4.0 and earlier where row was named tuple
 #ifndef PQXX_H_ROW
@@ -95,6 +96,11 @@ public:
                                       const std::string& end_time,
                                       const std::vector<std::string>& condition_columns,
                                       const std::vector<std::string>& condition_values);
+
+    pqxx::result GetNetworkUtilInfo(int experiment_run_id,
+                                    const re::types::UnboundedTimeRange<re::types::time_point>& time_range,
+                                    const std::vector<std::string>& condition_columns,
+                                    const std::vector<std::string>& condition_values);
 
     std::vector<port_graphml_pair> GetPubSubConnectionIDs(int experiment_run_id);
     std::vector<port_graphml_pair> GetReqRepConnectionIDs(int experiment_run_id);

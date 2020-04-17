@@ -7,17 +7,15 @@
 #include "../databaseclient.h"
 #include "aggregationreplier.h"
 
-namespace AggServer {
+namespace re::logging::aggregation::broker {
 
 class AggregationBroker {
 public:
     AggregationBroker(const std::string& receiver_ip,
         const std::string& database_ip,
         const std::string& password);
-
         
 private:
-    
     std::unique_ptr<AggregationReplier> replier;
 };
 

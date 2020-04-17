@@ -186,13 +186,14 @@ message NodeNetworkEvents {
 message InterfaceNetworkEvents{
     string interface_mac_addr = 1;
     repeated NetworkUtilisationEvent events = 2;
+    NetworkInterface interface_info = 3;
 }
 
 message NetworkUtilisationEvent {
-    int64 delta_packets_sent = 1;
-    int64 delta_packets_received = 2;
-    int64 delta_bytes_sent = 3;
-    int64 delta_bytes_received = 4;
+    int64 packets_sent = 1;
+    int64 packets_received = 2;
+    int64 bytes_sent = 3;
+    int64 bytes_received = 4;
     google.protobuf.Timestamp time = 5;
 }
 
