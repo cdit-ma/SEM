@@ -27,6 +27,8 @@ NodeGraphicsItem::NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* par
     connect(this, &NodeGraphicsItem::geometryChanged, this, &NodeGraphicsItem::updateConnectionPos);
     connect(Theme::theme(), &Theme::theme_Changed, this, &NodeGraphicsItem::themeChanged);
     themeChanged();
+
+    constructChildrenItems();
 }
 
 
@@ -52,6 +54,16 @@ ComponentInstanceGraphicsItem* NodeGraphicsItem::addComponentInstanceItem(Compon
 
     updateOnGeometryChange();
     return comp_inst_item;
+}
+
+
+/**
+ * @brief NodeGraphicsItem::getComponentInstanceItems
+ * @return
+ */
+const std::vector<ComponentInstanceGraphicsItem*>& NodeGraphicsItem::getComponentInstanceItems() const
+{
+    return comp_inst_items_;
 }
 
 
@@ -181,6 +193,23 @@ void NodeGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
         toggleExpanded();
     }
     QGraphicsWidget::mouseDoubleClickEvent(event);
+}
+
+
+/**
+ * @brief NodeGraphicsItem::constructChildrenItems
+ * @throws std::invalid_argument
+ */
+void NodeGraphicsItem::constructChildrenItems()
+{
+    for (const auto& container_data : node_data_.getContainerInstanceData()) {
+        for (const auto& comp_inst_data : container_data->getComponentInstanceData()) {
+            if (comp_inst_data == nullptr) {
+                throw std::invalid_argument("NodeGraphicsItem::constructChildrenItems - ComponentInstanceData is null.");
+            }
+            addComponentInstanceItem(*comp_inst_data);
+        }
+    }
 }
 
 

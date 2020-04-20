@@ -23,14 +23,17 @@ NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidg
 
     setupLayout();
 
-    connect(notification.data(), &NotificationObject::progressStateChanged, this, &NotificationItem::updateIcon);
     connect(notification.data(), &NotificationObject::notificationChanged, this, &NotificationItem::timeChanged);
     connect(notification.data(), &NotificationObject::descriptionChanged, this, &NotificationItem::descriptionChanged);
     connect(notification.data(), &NotificationObject::titleChanged, this, &NotificationItem::titleChanged);
 
+    connect(notification.data(), &NotificationObject::progressStateChanged, this, &NotificationItem::updateIcon);
     connect(notification.data(), &NotificationObject::severityChanged, this, &NotificationItem::updateIcon);
     connect(notification.data(), &NotificationObject::iconChanged, this, &NotificationItem::updateIcon);
-    
+
+    connect(notification.data(), &NotificationObject::progressStateChanged, this, &NotificationItem::updateActionDeleteEnabled);
+    connect(notification.data(), &NotificationObject::severityChanged, this, &NotificationItem::updateActionDeleteEnabled);
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
 
@@ -74,10 +77,12 @@ void NotificationItem::setupLayout()
 
     label_text = new QLabel(this);
     label_text->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+
     label_time = new QLabel(this);
 
     toolbar = new QToolBar(this);
     action_delete = toolbar->addAction("Delete Notification");
+    updateActionDeleteEnabled();
 
     layout->addWidget(label_icon);
     layout->addWidget(label_text, 1);
@@ -140,12 +145,14 @@ void NotificationItem::setSelected(bool selected)
 void NotificationItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-    if (action_delete) {
-        action_delete->setIcon(theme->getIcon("Icons", "cross"));
-    }
-    if (toolbar){
-        toolbar->setIconSize(theme->getIconSize());
-    }
+
+    toolbar->setIconSize(theme->getIconSize());
+    label_icon->setFixedSize(theme->getLargeIconSize());
+    action_delete->setIcon(theme->getIcon("Icons", "cross"));
+
+    auto delete_button = toolbar->widgetForAction(action_delete);
+    delete_button->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }");
+
     updateStyleSheet();
     updateIcon();
 }
@@ -197,8 +204,6 @@ void NotificationItem::updateIcon()
     auto is_running = severity == Notification::Severity::RUNNING;
     auto icon_size = theme->getLargeIconSize();
 
-    label_icon->setFixedSize(icon_size);
-
     if (is_running) {
         //Use a GIF if we are loading
         auto movie = theme->getGif("Icons", "loading");
@@ -214,9 +219,16 @@ void NotificationItem::updateIcon()
         auto pixmap = theme->getImage(icon.first, icon.second, icon_size, icon_color);
         label_icon->setPixmap(pixmap);
     }
+}
 
-    //Can only delete finished notifications
-    action_delete->setEnabled(!is_running);
+
+/**
+ * @brief NotificationItem::updateActionDeleteEnabled
+ */
+void NotificationItem::updateActionDeleteEnabled()
+{
+    // Can only delete finished notifications
+    action_delete->setEnabled(notification->getSeverity() != Notification::Severity::RUNNING);
 }
 
 
@@ -299,8 +311,6 @@ void NotificationItem::updateStyleSheet()
                   "}"
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  "QLabel#DESCRIPTION{padding-left: 5px; color: " + theme->getAltTextColorHex() + ";font-style: italic;}"
-                  + theme->getToolBarStyleSheet()
-                  + "QToolButton{ background: rgba(0,0,0,0); border: 0px; }"
+                  "QLabel#DESCRIPTION{ padding-left: 5px; color: " + theme->getAltTextColorHex() + ";font-style: italic; }"
     );
 }

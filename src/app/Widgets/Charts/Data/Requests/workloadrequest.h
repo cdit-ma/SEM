@@ -6,7 +6,7 @@
 class WorkloadRequest : public EventRequest {
 
 public:
-    explicit WorkloadRequest();
+    explicit WorkloadRequest() = default;
 
     void setWorkerInstanceIDs(const QVector<QString>& worker_instance_ids);
     void setWorkerInstancePaths(const QVector<QString>& worker_instance_paths);
@@ -17,7 +17,6 @@ public:
 private:
     QVector<QString> workerInstanceIDs_;
     QVector<QString> workerInstancePaths_;
-
 };
 
 #endif // WORKLOADREQUEST_H

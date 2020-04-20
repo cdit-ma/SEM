@@ -31,7 +31,6 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
         connect(view_item, &ViewItem::labelChanged, this, &SearchItemWidget::updateLabel);
         connect(view_item, &ViewItem::iconChanged, this, &SearchItemWidget::updateIcon);
         connect(view_item, &ViewItem::dataChanged, this, &SearchItemWidget::updateData);
-        //connect(view_item, &ViewItem::)
     }
 
     setupLayout();
@@ -178,21 +177,26 @@ void SearchItemWidget::updateIcon()
 
 
 /**
- * @brief SearchItemWidget::updateDataIcon
+ * @brief SearchItemWidget::updateDataStyleSheet
  * @param key
  */
-void SearchItemWidget::updateDataIcon(const QString &key)
+void SearchItemWidget::updateDataStyleSheet(const QString &key)
 {
-    auto theme = Theme::theme();
-    auto data = data_key_hash.value(key, 0);
-    auto tint = theme->getMenuIconColor();
+    auto data = data_key_hash.value(key, nullptr);
     if (data) {
+        auto theme = Theme::theme();
+        auto tint = theme->getMenuIconColor();
         auto pixmap = theme->getImage("Data", key, theme->getIconSize(), tint);
         if (pixmap.isNull()) {
             pixmap = theme->getImage("Icons", "circleHalo", theme->getIconSize(), tint);
         }
         data->label_icon->setFixedSize(theme->getIconSize());
         data->label_icon->setPixmap(pixmap);
+
+        auto label_style = "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() +  ";}";
+        data->label_icon->setStyleSheet(label_style);
+        data->label_key->setStyleSheet(label_style + "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}");
+        data->label_value->setStyleSheet(label_style);
     }
 }
 
@@ -230,7 +234,7 @@ void SearchItemWidget::themeChanged()
     updateIcon();
 
     for (auto key : data_key_hash.keys()) {
-        updateDataIcon(key);
+        updateDataStyleSheet(key);
     }
 
     if (button_expand) {
@@ -304,7 +308,6 @@ void SearchItemWidget::updateStyleSheet()
                   "}"
                   "QFrame:hover { background:" + theme->getAltBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() +  ";}"
-                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
                   + theme->getToolBarStyleSheet());
 }
 
@@ -348,7 +351,7 @@ void SearchItemWidget::setupLayout()
  */
 void SearchItemWidget::setupDataKey(const QString &key)
 {
-    auto data = data_key_hash.value(key, 0);
+    auto data = data_key_hash.value(key, nullptr);
     if (!data) {
         data = new DataItem();
         data->item = new QWidget(this);
@@ -371,7 +374,7 @@ void SearchItemWidget::setupDataKey(const QString &key)
 
         data_key_hash[key] = data;
         updateDataKey(key, view_item->getData(key));
-        updateDataIcon(key);
+        updateDataStyleSheet(key);
     }
     if ((data->in_layout == false) && data_widget) {
         data_widget->layout()->addWidget(data->item);

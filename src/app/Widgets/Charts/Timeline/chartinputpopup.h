@@ -9,6 +9,7 @@
 
 #include <QVBoxLayout>
 #include <QGroupBox>
+#include <QScrollArea>
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QToolBar>
@@ -77,7 +78,7 @@ private:
     QVBoxLayout* constructVBoxLayout(QWidget* widget, int spacing = 0, int margin = 0);
 
     QLineEdit* experimentNameLineEdit_ = nullptr;
-    QWidget* experimentRunsScrollWidget_ = nullptr;
+    QScrollArea* experimentRunsScrollArea_ = nullptr;
 
     QGroupBox* experimentNameGroupBox_ = nullptr;
     QGroupBox* experimentRunsGroupBox_ = nullptr;
@@ -113,7 +114,7 @@ private:
     QStringList workers_;
 
     QString typedExperimentName_;
-    QCompleter* experimentsCompleter_;
+    QCompleter* experimentsCompleter_ = nullptr;
     QStringListModel* experimentsModel_ = nullptr;
     QMultiHash<QString, AggServerResponse::ExperimentRun> experimentRuns_;
 

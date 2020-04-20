@@ -24,22 +24,25 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
     for (auto kind : requestKinds) {
         switch (kind) {
         case MEDEA::ChartDataKind::PORT_LIFECYCLE:
-            portLifecycleRequest_ = std::unique_ptr<PortLifecycleRequest>(new PortLifecycleRequest());
+            portLifecycleRequest_ = std::make_unique<PortLifecycleRequest>(PortLifecycleRequest());
             break;
         case MEDEA::ChartDataKind::WORKLOAD:
-            workloadRequest_ = std::unique_ptr<WorkloadRequest>(new WorkloadRequest());
+            workloadRequest_ = std::make_unique<WorkloadRequest>(WorkloadRequest());
             break;
         case MEDEA::ChartDataKind::CPU_UTILISATION:
-            cpuUtilisationRequest_ = std::unique_ptr<CPUUtilisationRequest>(new CPUUtilisationRequest());
+            cpuUtilisationRequest_ = std::make_unique<CPUUtilisationRequest>(CPUUtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = std::unique_ptr<MemoryUtilisationRequest>(new MemoryUtilisationRequest());
+            memoryUtilisationRequest_ = std::make_unique<MemoryUtilisationRequest>(MemoryUtilisationRequest());
             break;
         case MEDEA::ChartDataKind::MARKER:
-            markerRequest_ = std::unique_ptr<MarkerRequest>(new MarkerRequest());
+            markerRequest_ = std::make_unique<MarkerRequest>(MarkerRequest());
             break;
         case MEDEA::ChartDataKind::PORT_EVENT:
-            portEventRequest_ = std::unique_ptr<PortEventRequest>(new PortEventRequest());
+            portEventRequest_ = std::make_unique<PortEventRequest>(PortEventRequest());
+            break;
+        case MEDEA::ChartDataKind::NETWORK_UTILISATION:
+            networkUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
             break;
         default:
             qWarning("RequestBuilder::buildRequests - Unknown chart data kind");
@@ -73,6 +76,9 @@ void RequestBuilder::setExperimentRunID(const quint32 experiment_run_id)
     if (portEventRequest_) {
         portEventRequest_->setExperimentRunID(experiment_run_id);
     }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setExperimentRunID(experiment_run_id);
+    }
 }
 
 
@@ -99,6 +105,9 @@ void RequestBuilder::setTimeInterval(const QVector<qint64> &time_interval)
     }
     if (portEventRequest_) {
         portEventRequest_->setTimeInterval(time_interval);
+    }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setTimeInterval(time_interval);
     }
 }
 
@@ -238,6 +247,9 @@ void RequestBuilder::setNodeIDs(const QVector<QString> &node_ids)
     if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setNodeIDs(node_ids);
     }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setNodeIDs(node_ids);
+    }
 }
 
 
@@ -252,6 +264,9 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
     }
     if (memoryUtilisationRequest_) {
         memoryUtilisationRequest_->setNodeHostnames(node_hostnames);
+    }
+    if (networkUtilisationRequest_) {
+        networkUtilisationRequest_->setNodeHostnames(node_hostnames);
     }
 }
 
@@ -337,4 +352,18 @@ const PortEventRequest& RequestBuilder::getPortEventRequest() const
         throw std::invalid_argument("No PortEventRequest");
     }
     return *portEventRequest_;
+}
+
+
+/**
+ * @brief RequestBuilder::getNetworkUtilisationRequest
+ * @throws std::invalid_argument
+ * @return
+ */
+const UtilisationRequest& RequestBuilder::getNetworkUtilisationRequest() const
+{
+    if (!networkUtilisationRequest_) {
+        throw std::invalid_argument("No NetworkUtilisationRequest");
+    }
+    return *networkUtilisationRequest_;
 }

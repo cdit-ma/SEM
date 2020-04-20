@@ -29,10 +29,10 @@ private slots:
 
 private:
     void setupLayout();
-    QScrollArea* scrollArea;
-    QWidget* windowArea;
-    QVBoxLayout* scrollLayout;
 
+    QScrollArea* scrollArea = nullptr;
+    QWidget* windowArea = nullptr;
+    QVBoxLayout* scrollLayout = nullptr;
 
     QHash<int, WindowItem*> windowItems;
     QHash<int, DockItem*> dockItems;

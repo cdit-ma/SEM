@@ -10,23 +10,24 @@
 #include <QWidget>
 #include <QVBoxLayout>
 
-
-class DockItem: public QToolBar{
+class DockItem : public QToolBar
+{
     Q_OBJECT
+
 public:
     DockItem(ViewManagerWidget* manager, BaseDockWidget* dockWidget);
+
 private:
     void updateIcon();
     void themeChanged();
     void titleChanged();
     void setupLayout();
 
-    QLabel* label;
+    QLabel* label = nullptr;
 
-    QAction* iconAction;
-    QAction* labelAction;
-    ViewManagerWidget* manager;
-    BaseDockWidget* dockWidget;
+    QAction* iconAction = nullptr;
+    ViewManagerWidget* manager = nullptr;
+    BaseDockWidget* dockWidget = nullptr;
 
     bool isNodeViewDockWidget;
 };

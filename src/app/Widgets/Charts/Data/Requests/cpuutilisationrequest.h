@@ -6,7 +6,7 @@
 class CPUUtilisationRequest : public UtilisationRequest {
 
 public:
-    explicit CPUUtilisationRequest();
+    explicit CPUUtilisationRequest() = default;
 };
 
 #endif // CPUUTILISATIONREQUEST_H

@@ -128,6 +128,14 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
             }
             break;
         }
+        case ExperimentDataRequestType::NetworkUtilisationEvent: {
+            valid = request_param.canConvert<UtilisationRequest>();
+            if (valid) {
+                auto request = request_param.value<UtilisationRequest>();
+                requestNetworkUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+            }
+            break;
+        }
         }
 
         if (!valid) {
@@ -254,6 +262,12 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
     } catch (const std::exception&) {
         qInfo("No PortEventRequest");
+    }
+    try {
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
+        requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
+    } catch (const std::exception&) {
+        qInfo("No NetworkUtilisationRequest");
     }
 
     // Reset the selected experiment run
@@ -422,6 +436,34 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
+        }
+    });
+
+    futureWatcher->setFuture(future);
+}
+
+
+/**
+ * @brief ExperimentDataManager::requestNetworkUtilisationEvents
+ * @param request
+ * @param experimentRun
+ * @param node_data_requester
+ */
+void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+{
+    auto future = aggregationProxy().RequestNetworkUtilisationEvents(request);
+    auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);
+
+    connect(futureWatcher, &QFutureWatcher<QVector<NetworkUtilisationEvent*>>::finished, [this, futureWatcher, experimentRun, node_data_requester]() {
+        try {
+            auto&& events = futureWatcher->result();
+            if (node_data_requester != nullptr) {
+                node_data_requester->addNetworkUtilisationEvents(events);
+            } else {
+                processNetworkUtilisationEvents(experimentRun, events);
+            }
+        } catch (const std::exception& ex) {
+            toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);
         }
     });
 
@@ -605,6 +647,24 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
         } else {
             emit showChartsPanel();
             timelineChartView().addPortEvents(exp_run, events);
+        }
+    }
+}
+
+
+/**
+ * @brief ExperimentDataManager::processNetworkUtilisationEvents
+ * @param exp_run
+ * @param events
+ */
+void ExperimentDataManager::processNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<NetworkUtilisationEvent*>& events)
+{
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
+            toastNotification("No network utilisation events received for selection", "waveEmit");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addNetworkUtilisationEvents(exp_run, events);
         }
     }
 }
@@ -828,6 +888,7 @@ void ExperimentDataManager::requestNodeEvents(NodeData& node)
 {
     requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, QVariant::fromValue(node.getCPUUtilisationRequest()), &node);
     requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, QVariant::fromValue(node.getMemoryUtilisationRequest()), &node);
+    requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, QVariant::fromValue(node.getNetworkUtilisationRequest()), &node);
 }
 
 

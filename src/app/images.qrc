@@ -421,5 +421,7 @@
         <file alias="fastRewind">Resources/Icons/fastRewind.png</file>
         <file alias="skipNext">Resources/Icons/skipNext.png</file>
         <file alias="skipPrevious">Resources/Icons/skipPrevious.png</file>
+        <file alias="playbackSpeed">Resources/Icons/playbackSpeed.png</file>
+        <file alias="speed">Resources/Icons/speed.png</file>
     </qresource>
 </RCC>
