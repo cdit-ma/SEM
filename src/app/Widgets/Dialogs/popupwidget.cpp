@@ -57,7 +57,7 @@ void PopupWidget::setWidget(QWidget* widget)
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setSpacing(0);
-    layout->setMargin(5);
+    layout->setMargin(7);
     layout->addWidget(widget);
     widget_ = widget;
 }
@@ -65,13 +65,13 @@ void PopupWidget::setWidget(QWidget* widget)
 
 /**
  * @brief PopupWidget::setBackgroundOpacity
- * @param opactiy
+ * @param opacity
  */
-void PopupWidget::setBackgroundOpacity(qreal opactiy)
+void PopupWidget::setBackgroundOpacity(qreal opacity)
 {
-    this->opacity = opactiy;
-    background_color.setAlphaF(opactiy);
-    border_color.setAlphaF(opactiy);
+    this->opacity = opacity;
+    background_color.setAlphaF(opacity);
+    border_color.setAlphaF(opacity);
     update();
 }
 

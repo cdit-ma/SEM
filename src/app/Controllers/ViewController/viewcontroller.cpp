@@ -149,7 +149,7 @@ void ViewController::ListJenkinsJobs()
 {
     auto request = jenkins_manager->GetJenkinsConfiguration();
     auto list_jobs_future = new QFutureWatcher<QJsonDocument>(this);
-    
+
     connect(list_jobs_future, &QFutureWatcher<QJsonDocument>::finished, [=](){
         auto json = list_jobs_future->result();
         QList<QString> jobs;
@@ -349,7 +349,7 @@ QMultiMap<EDGE_DIRECTION, ViewItem*> ViewController::getExistingEndPointsOfSelec
 
 QStringList getSearchableKeys()
 {
-    return {"label", "description", "kind", "namespace", "type", "value", "ID"};
+    return {KeyName::Label, KeyName::Description, KeyName::Kind, KeyName::Namespace, KeyName::Type, KeyName::Value, KeyName::ID};
 };
 
 QList<ViewItem*> ViewController::getSearchableEntities()
@@ -412,7 +412,7 @@ QHash<QString, ViewItem *> ViewController::getSearchResults(const QString& query
             }
         }
     }
-    
+
     return results;
 }
 
@@ -534,7 +534,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             if (!validChartNodeKinds.contains(nodeKind)) {
                 return validDataKinds;
             }
-            if ((nodeKind == NODE_KIND::CLASS_INST) && !nodeItem->getData("is_worker").toBool()) {
+            if ((nodeKind == NODE_KIND::CLASS_INST) && !nodeItem->getData(KeyName::IsWorker).toBool()) {
                 return validDataKinds;
             }
             selectedKinds.insert(nodeKind);
@@ -551,6 +551,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::COMPONENT_IMPL:
             case NODE_KIND::COMPONENT_INST: {
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
+                validDataKinds.insert(MEDEA::ChartDataKind::PORT_EVENT);
                 validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);
                 break;
             }
@@ -569,6 +570,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::PORT_SUBSCRIBER_IMPL:
             case NODE_KIND::PORT_SUBSCRIBER_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
+                validDataKinds.insert(MEDEA::ChartDataKind::PORT_EVENT);
                 break;
             case NODE_KIND::CLASS_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);
@@ -577,6 +579,7 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::HARDWARE_NODE: {
                 validDataKinds.insert(MEDEA::ChartDataKind::CPU_UTILISATION);
                 validDataKinds.insert(MEDEA::ChartDataKind::MEMORY_UTILISATION);
+                validDataKinds.insert(MEDEA::ChartDataKind::NETWORK_UTILISATION);
                 break;
             }
             default:
@@ -600,26 +603,26 @@ QList<QVariant> ViewController::getValidValuesForKey(int ID, const QString& keyN
 void ViewController::SetDefaultIcon(ViewItem& view_item)
 {
     QString default_icon_prefix = "EntityIcons";
-    QString default_icon_name = view_item.getData("kind").toString();
+    QString default_icon_name = view_item.getData(KeyName::Kind).toString();
     
-    QString custom_icon_prefix = view_item.getData("icon_prefix").toString();
-    QString custom_icon_name = view_item.getData("icon").toString();
+    QString custom_icon_prefix = view_item.getData(KeyName::IconPrefix).toString();
+    QString custom_icon_name = view_item.getData(KeyName::Icon).toString();
         
     if(view_item.isNode()){
-    
+
         auto& node_item = (NodeViewItem&)view_item;
         const auto& node_kind = node_item.getNodeKind();
 
         switch(node_kind){
         case NODE_KIND::HARDWARE_NODE:{
-            auto os = view_item.getData("os").toString();
-            auto arch = view_item.getData("architecture").toString();
+            auto os = view_item.getData(KeyName::OS).toString();
+            auto arch = view_item.getData(KeyName::Architecture).toString();
             custom_icon_prefix = "EntityIcons";
             custom_icon_name = (os % "_" % arch);
             break;
         }
         case NODE_KIND::OPENCL_PLATFORM:{
-            auto vendor = view_item.getData("vendor").toString();
+            auto vendor = view_item.getData(KeyName::Vendor).toString();
             custom_icon_prefix = "Icons";
             if(vendor == "Advanced Micro Devices, Inc."){
                 custom_icon_name = "amd";
@@ -631,7 +634,7 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             break;
         }
         case NODE_KIND::OPENCL_DEVICE:{
-            auto type = view_item.getData("type").toString();
+            auto type = view_item.getData(KeyName::Type).toString();
             custom_icon_prefix = "Icons";
             if(type == "CL_DEVICE_TYPE_CPU"){
                 custom_icon_name = "cpu";
@@ -970,7 +973,7 @@ void ViewController::_showWiki(ViewItem *item)
     }
 
     if(item){
-        QString kind = item->getData("kind").toString();
+        QString kind = item->getData(KeyName::Kind).toString();
         if(isGitWiki){
             //GIT USES FLAT STRUCTURE
             url += "/ModelEntities-" + kind;
@@ -1001,7 +1004,7 @@ void ViewController::spawnSubView(ViewItem * item)
         if(dockWidget){
             dockWidget->setVisible(true);
         }else{
-            auto label = item->getData("label").toString();
+            auto label = item->getData(KeyName::Label).toString();
             auto parent = window_manager->getMainWindow();
             dockWidget = constructViewDockWidget(label, parent);
             dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
@@ -1220,7 +1223,7 @@ void ViewController::expandSelection()
     if(!selection.isEmpty()){
         emit TriggerAction("Expand Selection");
         for(auto id : selection){
-            emit SetData(id, "isExpanded", true);
+            emit SetData(id, KeyName::IsExpanded, true);
         }
     }
 }
@@ -1231,7 +1234,7 @@ void ViewController::contractSelection()
     if(!selection.isEmpty()){
         emit TriggerAction("Expand Selection");
         for(auto id : selection){
-            emit SetData(id, "isExpanded", false);
+            emit SetData(id, KeyName::IsExpanded, false);
         }
     }
 }
@@ -1240,7 +1243,7 @@ void ViewController::editLabel()
 {
     ViewItem* item = getActiveSelectedItem();
     if(item){
-        emit vc_editTableCell(item->getID(), "label");
+        emit vc_editTableCell(item->getID(), KeyName::Label);
     }
 }
 
@@ -1248,7 +1251,7 @@ void ViewController::editReplicationCount()
 {
     ViewItem* item = getActiveSelectedItem();
     if(item){
-        emit vc_editTableCell(item->getID(), "replicate_count");
+        emit vc_editTableCell(item->getID(), KeyName::ReplicateValue);
     }
 }
 
@@ -1400,12 +1403,12 @@ bool ViewController::_closeProject(bool show_welcome)
             }
         }
     }
-    
+
     // This should be true if the closeProject was triggered by the user from the "File" menu
     if (show_welcome) {
         emit vc_showWelcomeScreen(true);
     }
-    
+
     // If saveProject was successful or the user has clicked "Ignore", close the project
     TeardownController();
     return true;

@@ -16,7 +16,8 @@ public:
 
 private:
     double minUtilisation_ = DBL_MAX;
-    double maxUtilisation_ = DBL_MIN;
+    double maxUtilisation_ = 0.0;
+
 };
 
 #endif // MEMORYUTILISATIONEVENTSERIES_H

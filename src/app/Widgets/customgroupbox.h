@@ -27,7 +27,7 @@ public slots:
 
 private:
     void setupLayout();
-    
+
     QToolButton* groupTitleButton = nullptr;
     QToolBar* widgetsToolbar = nullptr;
     QToolBar* topToolbar = nullptr;

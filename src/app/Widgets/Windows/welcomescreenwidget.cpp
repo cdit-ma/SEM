@@ -123,20 +123,28 @@ void WelcomeScreenWidget::themeChanged()
     setStyleSheet("QToolButton{border: 0px;}"
                     "QToolButton:!hover{background: rgba(0,0,0,0); }");
 
-    recent_project_label->setIcon(theme->getIcon("Icons", "clock"));
-    recent_project_toolbar->setStyleSheet("QToolBar {"
-                                         "background:" +theme->getAltBackgroundColorHex() + ";"
-                                         "spacing: 0px;"
-                                         "}"
-                                         "QToolButton {"
-                                         "border-radius: " + theme->getSharpCornerRadius() + ";"
-                                         "border: 0px; }");
-    
     auto icon_size = theme->getLargeIconSize();
-    left_toolbar->setIconSize(icon_size);
-    bottom_toolbar->setIconSize(icon_size);
     recent_project_toolbar->setIconSize(icon_size);
+    recent_project_toolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                                          "QToolBar {"
+                                          "background:" + theme->getAltBackgroundColorHex() + ";"
+                                          "}"
+                                          "QToolButton {"
+                                          "border-radius: " + theme->getSharpCornerRadius() + ";"
+                                          "border: 0px; }");
+    
+    const auto& toolbar_style = "QToolButton{ border: 0px; }"
+                                "QToolButton:!hover{ background: rgba(0,0,0,0); }";
+
+    left_toolbar->setIconSize(icon_size);
+    left_toolbar->setStyleSheet(theme->getToolBarStyleSheet() + toolbar_style);
+
+    bottom_toolbar->setIconSize(icon_size);
+    bottom_toolbar->setStyleSheet(theme->getToolBarStyleSheet() + toolbar_style);
+
     recent_project_label->setIconSize(icon_size);
+    recent_project_label->setIcon(theme->getIcon("Icons", "clock"));
+    recent_project_label->setStyleSheet("color:" + theme->getTextColorHex() + ";");
 
     medea_icon->setPixmap(theme->getImage("Icons", "medeaLogo", icon_size * 4));
 

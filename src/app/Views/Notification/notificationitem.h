@@ -33,7 +33,9 @@ private slots:
     void descriptionChanged();
     void titleChanged();
     void timeChanged();
+
     void updateIcon();
+    void updateActionDeleteEnabled();
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event) override;

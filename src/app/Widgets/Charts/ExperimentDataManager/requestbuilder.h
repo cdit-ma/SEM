@@ -3,8 +3,7 @@
 
 #include "../Data/Requests/portlifecyclerequest.h"
 #include "../Data/Requests/workloadrequest.h"
-#include "../Data/Requests/cpuutilisationrequest.h"
-#include "../Data/Requests/memoryutilisationrequest.h"
+#include "../Data/Requests/utilisationrequest.h"
 #include "../Data/Requests/markerrequest.h"
 #include "../Data/Requests/porteventrequest.h"
 
@@ -34,18 +33,20 @@ public:
 
     const PortLifecycleRequest& getPortLifecycleRequest() const;
     const WorkloadRequest& getWorkloadRequest() const;
-    const CPUUtilisationRequest& getCPUUtilisationRequest() const;
-    const MemoryUtilisationRequest& getMemoryUtilisationRequest() const;
+    const UtilisationRequest& getCPUUtilisationRequest() const;
+    const UtilisationRequest& getMemoryUtilisationRequest() const;
     const MarkerRequest& getMarkerRequest() const;
     const PortEventRequest& getPortEventRequest() const;
+    const UtilisationRequest& getNetworkUtilisationRequest() const;
 
 private:
     std::unique_ptr<PortLifecycleRequest> portLifecycleRequest_;
     std::unique_ptr<WorkloadRequest> workloadRequest_;
-    std::unique_ptr<CPUUtilisationRequest> cpuUtilisationRequest_;
-    std::unique_ptr<MemoryUtilisationRequest> memoryUtilisationRequest_;
+    std::unique_ptr<UtilisationRequest> cpuUtilisationRequest_;
+    std::unique_ptr<UtilisationRequest> memoryUtilisationRequest_;
     std::unique_ptr<MarkerRequest> markerRequest_;
     std::unique_ptr<PortEventRequest> portEventRequest_;
+    std::unique_ptr<UtilisationRequest> networkUtilisationRequest_;
 };
 
 #endif // REQUESTBUILDER_H

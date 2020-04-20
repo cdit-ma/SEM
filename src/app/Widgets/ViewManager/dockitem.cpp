@@ -45,6 +45,7 @@ void DockItem::themeChanged()
                       "DockItem QToolButton::hover{ background:" + theme->getHighlightColorHex() + "}"
                       "DockItem QToolButton::!hover{ background: rgba(0,0,0,0); }");
     }
+    label->setStyleSheet(theme->getLabelStyleSheet());
     setIconSize(theme->getIconSize());
 }
 
@@ -67,6 +68,7 @@ void DockItem::setupLayout()
     labelWidgetLayout->addWidget(label);
     labelWidgetLayout->addStretch();
 
+    // TODO - Why is the iconAction checkable???
     iconAction = addAction("");
 
     // TODO: Figure out how/why we're using the checked state to simply display an icon on the toolbar
@@ -79,7 +81,7 @@ void DockItem::setupLayout()
     button->setObjectName("WINDOW_ICON");
     button->setAutoRaise(false);
 
-    labelAction = addWidget(labelWidget);
+    addWidget(labelWidget);
 
     if (titleBar) {
         addActions(titleBar->getToolActions());

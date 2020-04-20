@@ -21,13 +21,13 @@ ChartList::ChartList(QWidget* parent)
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
-	
+
 	layout_ = new QVBoxLayout(this);
 	layout_->setMargin(0);
 	layout_->setSpacing(0);
-	
+
 	hoverLineRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
-	
+
 	connect(Theme::theme(), &Theme::theme_Changed, this, &ChartList::themeChanged);
 	themeChanged();
 }
@@ -130,10 +130,10 @@ void ChartList::themeChanged()
 {
 	Theme* theme = Theme::theme();
 	highlightColor_ = theme->getHighlightColor();
-	
+
 	backgroundColor_ = theme->getAltBackgroundColor();
 	backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
-	
+
 	axisLinePen_ = QPen(theme->getAltTextColor(), axisWidth_);
 	hoverLinePen_ = QPen(theme->getTextColor(), HOVER_LINE_WIDTH, Qt::PenStyle::DotLine);
 }
@@ -203,10 +203,10 @@ void ChartList::mouseReleaseEvent(QMouseEvent* event)
 		// send a signal to update the axis' displayed range
 		emit rubberbandUsed(rubberBandRect_.left(), rubberBandRect_.right());
 	}
-	
+
 	// NOTE: This is only here to demo that the hover axis display's position can be set manually
 	//emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
-	
+
 	emit panning(false);
 	clearDragMode();
 	QWidget::mouseReleaseEvent(event);
@@ -222,7 +222,7 @@ void ChartList::mouseMoveEvent(QMouseEvent *event)
 	cursorPoint_ = mapFromGlobal(cursor().pos());
 	hoverLineRect_.moveCenter(cursorPoint_);
 	hoverRectUpdated(true);
-	
+
 	switch (dragMode_) {
 		case PAN: {
 			QPointF delta = cursorPoint_ - panOrigin_;
@@ -273,7 +273,7 @@ void ChartList::enterEvent(QEvent *event)
 	QWidget::enterEvent(event);
 	setCursor(Qt::BlankCursor);
 	hovered_ = true;
-	
+
 	hoverLineRect_ = visibleRegion().boundingRect();
 	hoverLineRect_.setWidth(HOVER_LINE_WIDTH);
 	hoverRectUpdated();
@@ -299,13 +299,13 @@ void ChartList::leaveEvent(QEvent *event)
 void ChartList::paintEvent(QPaintEvent *event)
 {
 	Q_UNUSED(event);
-	
+
 	QPainter painter(this);
 	QRect visibleRect = visibleRegion().boundingRect();
 	painter.fillRect(visibleRect, backgroundColor_);
-	
+
 	visibleRect = visibleRect.adjusted(axisWidth_ / 2.0, 0, 0, 0);
-	
+
 	painter.setPen(axisLinePen_);
 	if (axisXVisible_) {
 		QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
@@ -315,7 +315,7 @@ void ChartList::paintEvent(QPaintEvent *event)
 		QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
 		painter.drawLine(axisY);
 	}
-	
+
 	if (dragMode_ == RUBBERBAND) {
 		painter.setOpacity(0.25);
 		painter.setPen(QPen(highlightColor_.darker(), 2));
@@ -349,7 +349,7 @@ void ChartList::hoverRectUpdated(bool repaintRequired)
 			}
 		}
 	}
-	
+
 	if (repaintRequired) {
 		// this repaint is required instead of an update whenever there's a moveEvent
 		// the hovered series ranges are being calculated in the children charts' paint event
@@ -358,7 +358,7 @@ void ChartList::hoverRectUpdated(bool repaintRequired)
 	} else {
 		update();
 	}
-	
+
 	emit hoverLineUpdated(hoverLineRect_.isValid(), mapToGlobal(hoverLineRect_.center().toPoint()));
 }
 

@@ -53,7 +53,7 @@ protected:
 
 private:
     void updateData(const QString& data);
-    void updateDataIcon(const QString& key);
+    void updateDataStyleSheet(const QString& key);
     void updateIcon();
     void updateLabel();
     void updateStyleSheet();
@@ -75,7 +75,7 @@ private:
     QWidget* data_widget = nullptr;
 
     QSize data_icon_size = QSize(24, 24);
-    
+
     QSet<QString> matched_keys;
     QSet<QString> persistent_keys;
     QHash<QString, DataItem*> data_key_hash;

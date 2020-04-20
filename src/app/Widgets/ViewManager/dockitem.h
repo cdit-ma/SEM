@@ -24,10 +24,7 @@ private:
     void setupLayout();
 
     QLabel* label = nullptr;
-
     QAction* iconAction = nullptr;
-    QAction* labelAction = nullptr;
-
     ViewManagerWidget* manager = nullptr;
     BaseDockWidget* dockWidget = nullptr;
 

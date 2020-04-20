@@ -13,7 +13,8 @@ enum class ChartDataKind {
 	CPU_UTILISATION,
 	MEMORY_UTILISATION,
 	MARKER,
-	PORT_EVENT
+	PORT_EVENT,
+	NETWORK_UTILISATION
 };
 
 class Event : public QObject
@@ -49,11 +50,11 @@ private:
 	qint64 time_;
 	QString series_name_;
 };
-	
-	inline uint qHash(ChartDataKind key, uint seed)
-	{
-		return ::qHash(static_cast<uint>(key), seed);
-	}
+
+inline uint qHash(ChartDataKind key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
 }
 
 Q_DECLARE_METATYPE(MEDEA::ChartDataKind)

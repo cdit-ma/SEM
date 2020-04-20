@@ -5,10 +5,9 @@
 
 class UtilisationRequest : public Request {
 
-protected:
+public:
     explicit UtilisationRequest() = default;
 
-public:
     void setNodeIDs(const QVector<QString>& node_ids);
     void setNodeHostnames(const QVector<QString>& node_hostnames);
 

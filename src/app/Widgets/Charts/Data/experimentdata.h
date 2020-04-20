@@ -4,8 +4,10 @@
 #include "experimentrundata.h"
 #include "protomessagestructs.h"
 
-#include <QObject>
 #include <unordered_map>
+#include <memory>
+
+#include <QObject>
 
 namespace MEDEA {
 

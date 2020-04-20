@@ -22,6 +22,7 @@ public:
     explicit ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, NodeGraphicsItem* parent = nullptr);
 
     PortInstanceGraphicsItem* addPortInstanceItem(PortInstanceData& port_data);
+    const std::vector<PortInstanceGraphicsItem*>& getPortInstanceItems() const;
 
     void moveTo(int x, int y);
 
@@ -44,6 +45,8 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
+    void constructChildrenItems();
+
     void toggleExpanded();
 
     qreal getWidth() const;

@@ -7,6 +7,7 @@
 #include "../../Data/Series/memoryutilisationeventseries.h"
 #include "../../Data/Series/markereventseries.h"
 #include "../../Data/Series/porteventseries.h"
+#include "../../Data/Series/networkutilisationeventseries.h"
 
 #include <QScrollBar>
 #include <QVBoxLayout>
@@ -35,10 +36,10 @@ TimelineChartView::TimelineChartView(QWidget* parent)
 	: QWidget(parent)
 {
 	setupLayout();
-	
+
 	connect(Theme::theme(), &Theme::theme_Changed, this, &TimelineChartView::themeChanged);
 	themeChanged();
-	
+
 	// initialise stored ranges
 	longestExperimentRunDuration_ = {0, INT64_MIN};
 	totalTimeRange_ = {INT64_MAX, INT64_MIN};
@@ -71,6 +72,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
  * @brief TimelineChartView::addPortLifecycleEvents
  * @param experimentRun
  * @param events
+ * @throws std::invalid_argument
  */
 void TimelineChartView::addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent*>& events)
 {
@@ -84,19 +86,21 @@ void TimelineChartView::addPortLifecycleEvents(const AggServerResponse::Experime
  * @brief TimelineChartView::addWorkloadEvents
  * @param experimentRun
  * @param events
+ * @throws std::invalid_argument
  */
 void TimelineChartView::addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent*>& events)
 {
-	for (const auto& event : events) {
-		addEvent(MEDEA::ChartDataKind::WORKLOAD, experimentRun, event);
-	}
-	addedEvents(experimentRun);
+    for (const auto& event : events) {
+        addEvent(MEDEA::ChartDataKind::WORKLOAD, experimentRun, event);
+    }
+    addedEvents(experimentRun);
 }
 
 /**
  * @brief TimelineChartView::addCPUUtilisationEvents
  * @param experimentRun
  * @param events
+ * @throws std::invalid_argument
  */
 void TimelineChartView::addCPUUtilisationEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<CPUUtilisationEvent *> &events)
 {
@@ -110,6 +114,7 @@ void TimelineChartView::addCPUUtilisationEvents(const AggServerResponse::Experim
  * @brief TimelineChartView::addMemoryUtilisationEvents
  * @param experimentRun
  * @param events
+ * @throws std::invalid_argument
  */
 void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun &experimentRun, const QVector<MemoryUtilisationEvent *> &events)
 {
@@ -123,6 +128,7 @@ void TimelineChartView::addMemoryUtilisationEvents(const AggServerResponse::Expe
  * @brief TimelineChartView::addMarkerEvents
  * @param experimentRun
  * @param events
+ * @throws std::invalid_argument
  */
 void TimelineChartView::addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent*>& events)
 {
@@ -145,6 +151,22 @@ void TimelineChartView::addPortEvents(const AggServerResponse::ExperimentRun& ex
 	}
 	addedEvents(experimentRun);
 }
+
+
+/**
+ * @brief TimelineChartView::addNetworkUtilisationEvents
+ * @param experimentRun
+ * @param events
+ * @throws std::invalid_argument
+ */
+void TimelineChartView::addNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<NetworkUtilisationEvent*>& events)
+{
+    for (const auto& event : events) {
+        addEvent(MEDEA::ChartDataKind::NETWORK_UTILISATION, experimentRun, event);
+    }
+    addedEvents(experimentRun);
+}
+
 
 /**
  * @brief TimelineChartView::updateExperimentRunLastUpdatedTime
@@ -170,11 +192,11 @@ void TimelineChartView::clearChartList()
 		removeChart(chartID, true);
 		chartItr = charts_.erase(chartItr);
 	}
-	
+
 	// show empty label
 	mainWidget_->hide();
 	emptyLabel_->show();
-	
+
 	// clear stored ranges
 	totalTimeRange_ = {INT64_MAX, INT64_MIN};
 	longestExperimentRunDuration_ = {0, INT64_MIN};
@@ -206,59 +228,73 @@ void TimelineChartView::themeChanged()
 	bgColor.setAlphaF(OPACITY);
 	handleColor.setAlphaF(1 - OPACITY);
 	highlightColor.setAlphaF(handleColor.alphaF());
-	
-	setStyleSheet(theme->getScrollBarStyleSheet());
-	
+
+    auto sb_bgcolor = theme->getDisabledBackgroundColorHex();
+    if (theme->getTextColor() == theme->black()) {
+        sb_bgcolor = Theme::QColorToHex(theme->white());
+    } else {
+        sb_bgcolor = Theme::QColorToHex(theme->black());
+    }
+
+    // The scrollbar stylesheet needs to be applied directly to the scrollbar
+    // Otherwise, it will only apply the stylesheet on the first theme change
+    scrollArea_->setStyleSheet("QScrollArea{ background:" + theme->getBackgroundColorHex() + ";}");
+    scrollArea_->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+
 	legendToolbar_->setFixedHeight(theme->getLargeIconSize().height());
 	legendToolbar_->setStyleSheet(theme->getToolTipStyleSheet() +
 								  theme->getToolBarStyleSheet() +
 								  "QToolButton{ border: 0px; color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
 																													 "QToolButton::checked:!hover{ color:" + theme->getTextColorHex() + ";}"
 																																														"QToolButton:!hover{ background: rgba(0,0,0,0); }");
-	
-	for (auto action : legendToolbar_->actions()) {
-		auto widget = legendToolbar_->widgetForAction(action);
-		widget->setMinimumSize(theme->getLargeIconSize());
-	}
-	
-	for (auto kind : MEDEA::Event::GetChartDataKinds()) {
-		QIcon buttonIcon;
-		switch (kind) {
-			case MEDEA::ChartDataKind::PORT_EVENT:
-			case MEDEA::ChartDataKind::PORT_LIFECYCLE:
-				buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
-				break;
-			case MEDEA::ChartDataKind::WORKLOAD:
-				buttonIcon = theme->getIcon("ToggleIcons", "workloadHover");
-				break;
-			case MEDEA::ChartDataKind::CPU_UTILISATION:
-				buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
-				break;
-			case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-				buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
-				break;
-			case MEDEA::ChartDataKind::MARKER:
-				buttonIcon = theme->getIcon("ToggleIcons", "markerHover");
-				break;
-			default:
-				continue;
-		}
-		auto button = hoverDisplayButtons_.value(kind, nullptr);
-		if (button) {
-			button->setIcon(buttonIcon);
-		}
-		auto action = legendActions_.value(kind, nullptr);
-		if (action) {
-			action->setIcon(theme->getIcon("ToggleIcons", MEDEA::Event::GetChartDataKindString(kind)));
-		}
-	}
-	
+
+    for (auto kind : MEDEA::Event::GetChartDataKinds()) {
+        QIcon buttonIcon;
+        switch (kind) {
+            case MEDEA::ChartDataKind::PORT_EVENT:
+            case MEDEA::ChartDataKind::PORT_LIFECYCLE:
+                buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
+                break;
+            case MEDEA::ChartDataKind::WORKLOAD:
+                buttonIcon = theme->getIcon("ToggleIcons", "workloadHover");
+                break;
+            case MEDEA::ChartDataKind::CPU_UTILISATION:
+                buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
+                break;
+            case MEDEA::ChartDataKind::MEMORY_UTILISATION:
+                buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
+                break;
+            case MEDEA::ChartDataKind::MARKER:
+                buttonIcon = theme->getIcon("ToggleIcons", "markerHover");
+                break;
+            case MEDEA::ChartDataKind::NETWORK_UTILISATION:
+                buttonIcon = theme->getIcon("ToggleIcons", "networkHover");
+                break;
+            default:
+                if (kind != MEDEA::ChartDataKind::DATA) {
+                    qWarning("TimelineChartView::themeChanged - May be missing an icon for a ChartDataKind.");
+                }
+                continue;
+        }
+        auto button = hoverDisplayButtons_.value(kind, nullptr);
+        if (button) {
+            button->setIcon(buttonIcon);
+            button->setStyleSheet("color:" + theme->getTextColorHex());
+        }
+        auto action = legendActions_.value(kind, nullptr);
+        if (action) {
+            auto widget = legendToolbar_->widgetForAction(action);
+            widget->setMinimumSize(theme->getLargeIconSize());
+            action->setIcon(theme->getIcon("ToggleIcons", MEDEA::Event::GetChartDataKindString(kind)));
+        }
+    }
+
 	emptyLabel_->setFont(QFont(theme->getFont().family(), 12));
 	emptyLabel_->setStyleSheet("QLabel {"
 							   "background:" + theme->getBackgroundColorHex() + ";"
 							   "color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";"
 								"border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}");
-	
+
 	mainWidget_->setStyleSheet("QWidget #MAIN_WIDGET {"
 							   "background:" + theme->getBackgroundColorHex() + ";"
 							   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}");
@@ -274,7 +310,7 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
 {
 	if (!sender())
 		return;
-	
+
 	auto kind = (MEDEA::ChartDataKind) sender()->property(CHART_DATA_KIND).toUInt();
 	for (auto series : seriesList_) {
 		if (series->getKind() == kind) {
@@ -289,7 +325,7 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
 			}
 		}
 	}
-	
+
 	sender()->setProperty("checked", checked);
 	emit seriesLegendHovered(checked ? kind : MEDEA::ChartDataKind::DATA);
 }
@@ -320,7 +356,7 @@ void TimelineChartView::chartHovered(Chart* chart, bool hovered)
 {
 	if (!chart)
 		return;
-	
+
 	const auto& path = charts_.key(chart, "");
 	MEDEA::ChartLabel* chartLabel = chartLabels_.value(path, nullptr);
 	if (chartLabel)
@@ -347,12 +383,12 @@ void TimelineChartView::chartClosed()
 void TimelineChartView::updateHoverDisplay()
 {
 	hoverDisplay_->hide();
-	
+
 	if (chartList_->isPanning())
 		return;
-	
+
 	QHash<MEDEA::ChartDataKind, QString> hoveredData;
-	
+
 	for (auto entityChart : chartList_->getCharts()) {
 		if (!entityChart || !entityChart->isHovered()) {
 			continue;
@@ -378,10 +414,10 @@ void TimelineChartView::updateHoverDisplay()
 			}
 		}
 	}
-	
+
 	if (hoveredData.isEmpty())
 		return;
-	
+
 	for (auto kind : hoverDisplayButtons_.keys()) {
 		auto button = hoverDisplayButtons_.value(kind, nullptr);
 		if (!button) {
@@ -394,14 +430,14 @@ void TimelineChartView::updateHoverDisplay()
 			button->setText(data.trimmed());
 		}
 	}
-	
+
 	// adjust the hover's size before calculating its position
 	hoverDisplay_->adjustChildrenSize();
-	
+
 	auto globalPos = mapToGlobal(pos());
 	auto hoverPos = mapTo(this, cursor().pos()) - QPoint(0, hoverDisplay_->height() / 2.0);
 	auto bottom = globalPos.y() + height() - timelineAxis_->height();
-	
+
 	// adjust the hover display's position to make sure that it is fully visible
 	if (hoverPos.x() >= (globalPos.x() + width() / 2.0)) {
 		hoverPos.setX(hoverPos.x() - hoverDisplay_->width() - 25);
@@ -413,7 +449,7 @@ void TimelineChartView::updateHoverDisplay()
 	} else if (hoverPos.y() < globalPos.y()){
 		hoverPos.setY(globalPos.y());
 	}
-	
+
 	hoverDisplay_->move(hoverPos);
 	hoverDisplay_->show();
 }
@@ -478,12 +514,12 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
 		right = left;
 		left = temp;
 	}
-	
+
 	// keep min/max within the bounds
 	auto timelineWidth = (double)chartList_->width();
 	left = qMax(left, 0.0);
 	right = qMin(right, timelineWidth);
-	
+
 	// set the new display min/max
 	auto minRatio = left / timelineWidth;
 	auto maxRatio = right / timelineWidth;
@@ -492,7 +528,7 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
 	auto min = displayDist * minRatio + displayRange.first;
 	auto max = displayDist * maxRatio + displayRange.first;
 	timelineAxis_->setDisplayRange(min, max);
-	
+
 	// update the entity charts' display range
 	auto actualRange = timelineAxis_->getRange();
 	auto actualDist = actualRange.second - actualRange.first;
@@ -534,9 +570,9 @@ void TimelineChartView::addedEvents(const AggServerResponse::ExperimentRun& expe
 	auto experimentInfo = "Experiment name:\t" + experimentRun.experiment_name +
 						  "\nJob number#:\t" + QString::number(experimentRun.job_num) +
 						  "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(experimentRun.start_time).toString(DATE_TIME_FORMAT);
-	
+
 	updateRangeForExperimentRun(experimentRunID, experimentRunStartTime, experimentRun.last_updated_time);
-	
+
 	// Set the experiment info as the chart's tooltip
 	for (const auto& chart : charts_) {
 		if (chart->getExperimentRunID() == experimentRunID) {
@@ -584,51 +620,54 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(MEDEA::ChartD
 	if (series != nullptr) {
 		return series;
 	}
-	
+
 	auto experimentRunID = experimentRun.experiment_run_id;
 	auto seriesID = eventSeriesID + QString::number(experimentRunID);
 	auto seriesLabel = label;
-	
-	switch (kind) {
-		case MEDEA::ChartDataKind::PORT_LIFECYCLE: {
-			auto strList = seriesID.split("_");
-			seriesLabel += "_" + strList.first();
-			series = new PortLifecycleEventSeries(seriesID, this);
-			break;
-		}
-		case MEDEA::ChartDataKind::WORKLOAD: {
-			auto strList = seriesID.split("_");
-			seriesLabel += "_" + strList.first();
-			series = new WorkloadEventSeries(seriesID, this);
-			break;
-		}
-		case MEDEA::ChartDataKind::CPU_UTILISATION:
-			series = new CPUUtilisationEventSeries(seriesID, this);
-			break;
-		case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-			series = new MemoryUtilisationEventSeries(seriesID, this);
-			break;
-		case MEDEA::ChartDataKind::MARKER:
-			series = new MarkerEventSeries(seriesID, this);
-			break;
-		case MEDEA::ChartDataKind::PORT_EVENT: {
-			auto strList = seriesID.split("_");
-			seriesLabel += "_" + strList.first();
-			series = new PortEventSeries(seriesID, this);
-			break;
-		}
-		default:
-			qWarning("TimelineChartView::constructSeriesForEventKind - Series kind not handled");
-			return nullptr;
-	}
-	
+
+    switch (kind) {
+        case MEDEA::ChartDataKind::PORT_LIFECYCLE: {
+            auto strList = seriesID.split("_");
+            seriesLabel += "_" + strList.first();
+            series = new PortLifecycleEventSeries(seriesID, this);
+            break;
+        }
+        case MEDEA::ChartDataKind::WORKLOAD: {
+            auto strList = seriesID.split("_");
+            seriesLabel += "_" + strList.first();
+            series = new WorkloadEventSeries(seriesID, this);
+            break;
+        }
+        case MEDEA::ChartDataKind::CPU_UTILISATION:
+            series = new CPUUtilisationEventSeries(seriesID, this);
+            break;
+        case MEDEA::ChartDataKind::MEMORY_UTILISATION:
+            series = new MemoryUtilisationEventSeries(seriesID, this);
+            break;
+        case MEDEA::ChartDataKind::MARKER:
+            series = new MarkerEventSeries(seriesID, this);
+            break;
+        case MEDEA::ChartDataKind::PORT_EVENT: {
+            auto strList = seriesID.split("_");
+            seriesLabel += "_" + strList.first();
+            series = new PortEventSeries(seriesID, this);
+            break;
+        }
+        case MEDEA::ChartDataKind::NETWORK_UTILISATION:
+            series = new NetworkUtilisationEventSeries(seriesID, this);
+            break;
+        default:
+            qWarning("TimelineChartView::constructSeriesForEventKind - Series kind not handled");
+            return nullptr;
+    }
+
 	// NOTE: This needs to be set before the chart is constructed
 	series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
 	series->setProperty(EXPERIMENT_RUN_START_TIME, experimentRun.start_time);
 	constructChartForSeries(series, seriesID, seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
 	seriesList_.insert(seriesID, series);
 	experimentRunSeriesCount_[experimentRunID]++;
-	
+
 	return series;
 }
 
@@ -643,38 +682,38 @@ Chart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, co
 {
 	if (!series)
 		return nullptr;
-	
+
 	// NOTE: At the moment, a new entity chart is constructed per series
 	//  Uncomment this and comment out the line below if we want to paint multiple series with that share an ID on the same chart
 	/*if (eventEntityCharts.contains(ID)) {
 		eventEntityCharts.value(ID)->addEventSeries(series);
 		return eventEntityCharts.value(ID);
 	}*/
-	
+
 	// can't use event series ID as the chart ID because multiple event series can share the same ID
 	auto seriesID = series->getEventSeriesID();
 	auto experimentRunID = series->property(EXPERIMENT_RUN_ID).toUInt();
 	auto experimentRunStartTime = (qint64) series->property(EXPERIMENT_RUN_START_TIME).toLongLong();
 	auto seriesLabel = "[" + QString::number(experimentRunID) + "] " + label;
-	
+
 	auto chart = new Chart(experimentRunID, experimentRunStartTime, this);
 	chart->addSeries(series);
 	chartList_->addChart(chart);
 	charts_[seriesID] = chart;
-	
+
 	auto chartLabel = new ChartLabel(seriesLabel, this);
 	chartLabel->setMinimumHeight(MIN_ENTITY_HEIGHT);
 	chartLabel->themeChanged(Theme::theme());
 	chartLabelList_->appendChartLabel(chartLabel);
 	chartLabels_[seriesID] = chartLabel;
-	
+
 	connect(this, &TimelineChartView::seriesLegendHovered, chart, &Chart::seriesKindHovered);
 	connect(chartLabel, &ChartLabel::visibilityChanged, chart, &Chart::setVisible);
 	connect(chartLabel, &ChartLabel::closeChart, this, &TimelineChartView::chartClosed);
 	connect(chartLabel, &ChartLabel::hovered, [=] (bool hovered) {
 		chartList_->setChartHovered(chart, hovered);
 	});
-	
+
 	// set the initial visibility state of the chart/chart label
 	for (auto& action : legendActions_.values()) {
 		auto kind = legendActions_.key(action, MEDEA::ChartDataKind::DATA);
@@ -684,12 +723,12 @@ Chart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, co
 			chartLabel->setVisible(action->isChecked());
 		}
 	}
-	
+
 	if (mainWidget_->isHidden()) {
 		mainWidget_->show();
 		emptyLabel_->hide();
 	}
-	
+
 	return chart;
 }
 
@@ -705,7 +744,7 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
 	// TODO: This needs to change if multiple series are allowed to be displayed in one entity chart
 	// NOTE: At the moment there should be a chart per series; hence a chart should only have one series
 	//  ID is the chart's key, which is also the event series ID of the series it contains
-	
+
 	// remove chart series
 	for (auto series : seriesList_) {
 		if (series->getEventSeriesID() == ID) {
@@ -715,7 +754,7 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
 			break;
 		}
 	}
-	
+
 	// remove chart
 	auto chart = charts_.value(ID, nullptr);
 	if (chart) {
@@ -725,7 +764,7 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
 			charts_.remove(ID);
 		}
 	}
-	
+
 	// remove chart label
 	auto label = chartLabels_.value(ID, nullptr);
 	if (label) {
@@ -742,7 +781,7 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
 		chartLabels_.remove(ID);
 		label->deleteLater();
 	}
-	
+
 	if (chart && !clearing) {
 		// check if the timeline range needs updating
 		auto expRunID = chart->getExperimentRunID();
@@ -756,7 +795,7 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
 			emptyLabel_->show();
 		}
 	}
-	
+
 	// clear the timeline chart's hovered rect
 	chartList_->setChartHovered(nullptr, false);
 }
@@ -772,12 +811,12 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
 void TimelineChartView::updateRangeForExperimentRun(const quint32 experimentRunID, const qint64 startTime, const qint64 lastUpdatedTime)
 {
 	experimentRunTimeRange_[experimentRunID] = {startTime, lastUpdatedTime};
-	
+
 	auto duration = lastUpdatedTime - startTime;
 	if (duration > longestExperimentRunDuration_.second) {
 		longestExperimentRunDuration_= {experimentRunID, duration};
 	}
-	
+
 	totalTimeRange_ = {qMin(startTime, totalTimeRange_.first), qMax(lastUpdatedTime, totalTimeRange_.second)};
 	updateTimelineRange(); // TODO - only update the range when it's been changed
 }
@@ -790,35 +829,35 @@ void TimelineChartView::updateRangeForExperimentRun(const quint32 experimentRunI
  */
 void TimelineChartView::removedDataFromExperimentRun(const quint32 experimentRunID)
 {
-	auto seriesCount =  experimentRunSeriesCount_.value(experimentRunID, 0);
-	if (seriesCount > 0)
-		return;
-	
-	experimentRunSeriesCount_.remove(experimentRunID);
-	experimentRunTimeRange_.remove(experimentRunID);
-	
-	// recalculate the longest experiment run duration and the total range
-	auto min = INT64_MAX;
-	auto max = INT64_MIN;
-	bool updateLongestDuration = (experimentRunID == longestExperimentRunDuration_.first);
-	if (updateLongestDuration) {
-		longestExperimentRunDuration_.second = INT64_MIN;
-	}
-	
-	for (auto id : experimentRunTimeRange_.keys()) {
-		auto val = experimentRunTimeRange_.value(id);
-		min = qMin(min, val.first);
-		max = qMax(max, val.second);
-		if (updateLongestDuration) {
-			auto range = val.second - val.first;
-			if (range > longestExperimentRunDuration_.second) {
-				longestExperimentRunDuration_ = {id, range};
-			}
-		}
-	}
-	
-	totalTimeRange_ = {min, max};
-	updateTimelineRange();
+    auto seriesCount =  experimentRunSeriesCount_.value(experimentRunID, 0);
+    if (seriesCount > 0)
+        return;
+
+    experimentRunSeriesCount_.remove(experimentRunID);
+    experimentRunTimeRange_.remove(experimentRunID);
+
+    // recalculate the longest experiment run duration and the total range
+    auto min = INT64_MAX;
+    auto max = INT64_MIN;
+    bool updateLongestDuration = (experimentRunID == longestExperimentRunDuration_.first);
+    if (updateLongestDuration) {
+        longestExperimentRunDuration_.second = INT64_MIN;
+    }
+
+    for (auto id : experimentRunTimeRange_.keys()) {
+        auto val = experimentRunTimeRange_.value(id);
+        min = qMin(static_cast<long long>(min), val.first);
+        max = qMax(static_cast<long long>(max), val.second);
+        if (updateLongestDuration) {
+            auto range = val.second - val.first;
+            if (range > longestExperimentRunDuration_.second) {
+                longestExperimentRunDuration_ = {id, range};
+            }
+        }
+    }
+
+    totalTimeRange_ = {min, max};
+    updateTimelineRange();
 }
 
 /**
@@ -833,7 +872,7 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
 	 */
 	auto startTime = totalTimeRange_.first;
 	auto duration = totalTimeRange_.second - totalTimeRange_.first;
-	
+
 	switch (timeDisplayFormat_) {
 		case TIME_DISPLAY_FORMAT::ELAPSED_TIME: {
 			startTime = 0.0;
@@ -843,11 +882,11 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
 		default:
 			break;
 	}
-	
+
 	for (auto chart : charts_) {
 		chart->updateRange(startTime, duration);
 	}
-	
+
 	timelineAxis_->setRange(startTime, startTime + duration, updateDisplayRange);
 }
 
@@ -858,13 +897,14 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
  */
 const QString &TimelineChartView::getDateTimeDisplayFormat(const MEDEA::ChartDataKind &kind) const
 {
-	switch (kind) {
-		case MEDEA::ChartDataKind::CPU_UTILISATION:
-		case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-			return TIME_FORMAT;
-		default:
-			return DATE_TIME_FORMAT;
-	}
+    switch (kind) {
+        case MEDEA::ChartDataKind::CPU_UTILISATION:
+        case MEDEA::ChartDataKind::MEMORY_UTILISATION:
+        case MEDEA::ChartDataKind::NETWORK_UTILISATION:
+            return TIME_FORMAT;
+        default:
+            return DATE_TIME_FORMAT;
+    }
 }
 
 /**
@@ -879,20 +919,20 @@ void TimelineChartView::setupLayout()
 	chartLabelList_ = new ChartLabelList(this);
 	chartLabelList_->setAxisLineVisible(false);
 	connect(chartLabelList_, &ChartLabelList::sizeChanged, this, &TimelineChartView::chartLabelListSizeChanged);
-	
+
 	timelineAxis_ = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, VALUE_TYPE::DATE_TIME, this);
 	timelineAxis_->setZoomFactor(ZOOM_FACTOR);
-	
+
 	connect(timelineAxis_, &AxisWidget::minRatioChanged, this, &TimelineChartView::minSliderMoved);
 	connect(timelineAxis_, &AxisWidget::maxRatioChanged, this, &TimelineChartView::maxSliderMoved);
-	
+
 	chartList_ = new MEDEA::ChartList(this);
 	chartList_->setAxisWidth(AXIS_LINE_WIDTH);
 	chartList_->setAxisYVisible(true);
-	
+
 	connect(chartList_, &MEDEA::ChartList::panning, timelineAxis_, &AxisWidget::setPanning);
 	connect(chartList_, &MEDEA::ChartList::hoverLineUpdated, timelineAxis_, &AxisWidget::hoverLineUpdated);
-	
+
 	connect(chartList_, &MEDEA::ChartList::zoomed, this, &TimelineChartView::timelineZoomed);
 	connect(chartList_, &MEDEA::ChartList::panned, this, &TimelineChartView::timelinePanned);
 	connect(chartList_, &MEDEA::ChartList::rubberbandUsed, this, &TimelineChartView::timelineRubberbandUsed);
@@ -900,107 +940,106 @@ void TimelineChartView::setupLayout()
 	if (HOVER_DISPLAY_ON) {
 		connect(chartList_, &MEDEA::ChartList::hoverLineUpdated, this, &TimelineChartView::updateHoverDisplay);
 	}
-	
+
 	/*
 	 *  TOP (LEGEND) LAYOUT
 	 */
 	topFillerWidget_ = new QWidget(this);
 	topFillerWidget_->setStyleSheet("background: rgba(0,0,0,0);");
-	
+
 	legendToolbar_ = new QToolBar(this);
 	legendToolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	
+
 	auto topLayout = new QHBoxLayout();
 	topLayout->setMargin(0);
 	topLayout->setSpacing(0);
 	topLayout->addWidget(topFillerWidget_);
 	topLayout->addWidget(legendToolbar_, 1, Qt::AlignCenter);
-	
+
 	/*
 	 * HOVER LAYOUT
 	 */
 	hoverWidget_ = new QWidget(this);
 	hoverWidget_->setStyleSheet("background: rgba(0,0,0,0);");
-	
+
 	auto hoverLayout = new QVBoxLayout(hoverWidget_);
 	hoverLayout->setSpacing(SPACING * 2);
 	hoverLayout->setMargin(SPACING);
-	
+
 	hoverDisplay_ = new HoverPopup(this);
 	hoverDisplay_->setWidget(hoverWidget_);
-	
+
 	/*
 	 * HOVER AND LEGEND CHART DATA KIND WIDGETS
 	 */
 	for (auto kind : MEDEA::Event::GetChartDataKinds()) {
 		if (kind == MEDEA::ChartDataKind::DATA)
 			continue;
-		
-		// construct legend widgets
-		QAction* action = legendToolbar_->addAction(MEDEA::Event::GetChartDataKindString(kind));
-		legendActions_[kind] = action;
-		action->setToolTip("Show/Hide " + action->text() + " Series");
-		action->setCheckable(true);
-		action->setChecked(true);
-		//action->setVisible(false);
-		action->setProperty(CHART_DATA_KIND, (uint)kind);
-		connect(action, &QAction::toggled, this, &TimelineChartView::toggledSeriesLegend);
-		
+
+        // construct legend widgets
+        QAction* action = legendToolbar_->addAction(MEDEA::Event::GetChartDataKindString(kind));
+        legendActions_[kind] = action;
+        action->setToolTip("Show/Hide " + action->text() + " Series");
+        action->setCheckable(true);
+        action->setChecked(true);
+        action->setProperty(CHART_DATA_KIND, (uint)kind);
+        connect(action, &QAction::toggled, this, &TimelineChartView::toggledSeriesLegend);
+
 		QWidget* actionWidget = legendToolbar_->widgetForAction(action);
 		actionWidget->setProperty(CHART_DATA_KIND, (uint)kind);
 		actionWidget->installEventFilter(this);
-		
-		// construct hover display widgets
-		auto button = new QPushButton(this);
-		button->setStyleSheet("QPushButton{ text-align: left; }");
-		hoverLayout->addWidget(button);
-		hoverDisplayButtons_[kind] = button;
-	}
-	
+
+        // construct hover display widgets
+        QPushButton* button = new QPushButton(this);
+        button->setStyleSheet("QPushButton{ text-align: left; background: rgba(0,0,0,0); }");
+        hoverLayout->addWidget(button);
+        hoverDisplayButtons_[kind] = button;
+    }
+
 	/*
 	 * MID (SCROLL AREA) LAYOUT
 	 */
 	auto scrollWidget = new QWidget(this);
 	scrollWidget->setStyleSheet("background: rgba(0,0,0,0);");
-	
+
 	auto scrollLayout = new QHBoxLayout(scrollWidget);
 	scrollLayout->setMargin(0);
 	scrollLayout->setSpacing(0);
 	scrollLayout->addWidget(chartList_, 1);
 	scrollLayout->addWidget(chartLabelList_);
-	
-	scrollArea_ = new QScrollArea(this);
-	scrollArea_->setWidget(scrollWidget);
-	scrollArea_->setWidgetResizable(true);
-	scrollArea_->setLayoutDirection(Qt::RightToLeft);
-	//scrollArea_->setStyleSheet("background: rgba(0,0,0,0);");
-	scrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	scrollArea_->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
-	
+
+    scrollArea_ = new QScrollArea(this);
+    scrollArea_->setWidget(scrollWidget);
+    scrollArea_->setWidgetResizable(true);
+    scrollArea_->setLayoutDirection(Qt::RightToLeft);
+    scrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea_->verticalScrollBar()->setFixedWidth(SCROLLBAR_WIDTH);
+    scrollArea_->verticalScrollBar()->setTracking(true);
+
 	/*
 	 * BOTTOM (TIME AXIS) LAYOUT
 	 */
 	bottomFillerWidget_ = new QWidget(this);
 	bottomFillerWidget_->setStyleSheet("background: rgba(0,0,0,0);");
-	
+
 	auto bottomLayout = new QHBoxLayout();
 	bottomLayout->setMargin(0);
 	bottomLayout->setSpacing(0);
 	bottomLayout->addWidget(bottomFillerWidget_);
 	bottomLayout->addWidget(timelineAxis_, 1);
-	
+
 	/*
 	 * MAIN LAYOUT
 	 */
 	emptyLabel_ = new QLabel("No Charts To Display", this);
 	emptyLabel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	emptyLabel_->setAlignment(Qt::AlignCenter);
-	
+
 	mainWidget_ = new QWidget(this);
 	mainWidget_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	mainWidget_->setVisible(false);
 	mainWidget_->setObjectName("MAIN_WIDGET");
-	
+
 	auto mainLayout = new QVBoxLayout(mainWidget_);
 	mainLayout->setMargin(0);
 	mainLayout->setSpacing(0);
@@ -1009,14 +1048,12 @@ void TimelineChartView::setupLayout()
 	mainLayout->addSpacerItem(new QSpacerItem(0, SPACING));
 	mainLayout->addWidget(scrollArea_, 1);
 	mainLayout->addLayout(bottomLayout);
-	
+
 	auto layout = new QVBoxLayout(this);
 	layout->setContentsMargins(0,0,0,0);
 	layout->addWidget(mainWidget_);
 	layout->addWidget(emptyLabel_);
-	
-	scrollArea_->verticalScrollBar()->setTracking(true);
 
-	auto minTimeAxisWidth = fontMetrics().horizontalAdvance(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
-	setMinimumWidth(chartLabelList_->minimumWidth() + minTimeAxisWidth + SPACING * 2);
+    auto minTimeAxisWidth = fontMetrics().width(QDateTime::fromMSecsSinceEpoch(0).toString(TIME_FORMAT));
+    setMinimumWidth(chartLabelList_->minimumWidth() + minTimeAxisWidth + SPACING * 2);
 }

@@ -2,9 +2,10 @@
 #include "../../Views/ContextMenu/contextmenu.h"
 
 #include <QToolBar>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QTimer>
-#include <QToolButton>
+#include <QScrollBar>
 
 /**
  * @brief DockTabWidget::DockTabWidget
@@ -41,15 +42,15 @@ DockTabWidget::DockTabWidget(ViewController* vc, QWidget* parent)
 void DockTabWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-
     auto icon_size = theme->getLargeIconSize();
     auto menu_style = new CustomMenuStyle(icon_size.width());
 
     toolbar->setIconSize(icon_size);
-    add_part_menu->setStyle(menu_style);
-    deploy_menu->setStyle(menu_style);
 
+    add_part_menu->setStyle(menu_style);
     add_part_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
+
+    deploy_menu->setStyle(menu_style);
     deploy_menu->setStyleSheet(theme->getMenuStyleSheet(icon_size.width()) + " QMenu#TOP_LEVEL{background:transparent;} QLabel{color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";} QMenu::item{background:transparent;}");
 
     QIcon partIcon;
@@ -57,31 +58,34 @@ void DockTabWidget::themeChanged()
     partIcon.addPixmap(theme->getImage("Icons", "circlePlusTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
     partIcon.addPixmap(theme->getImage("Icons", "circlePlusDark", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
     partIcon.addPixmap(theme->getImage("Icons", "circlePlusTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active, QIcon::On);
+    parts_action->setIcon(partIcon);
 
     QIcon hardwareIcon;
     hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()));
     hardwareIcon.addPixmap(theme->getImage("Icons", "screenTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active);
     hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
     hardwareIcon.addPixmap(theme->getImage("Icons", "screenTwoTone", QSize(), theme->getMenuIconColor(ColorRole::SELECTED)), QIcon::Active, QIcon::On);
-
-    parts_action->setIcon(partIcon);
     deploy_action->setIcon(hardwareIcon);
 
-    // setting it individually because adding the stylesheet to the QStackedWidget doesn't work
-    parts_dock->setStyleSheet(theme->getScrollAreaStyleSheet());
-    deploy_dock->setStyleSheet(theme->getScrollAreaStyleSheet());
+    auto top_button_style =  "QToolButton {"
+                             "border-radius: " + theme->getCornerRadius() + ";"
+                             "border-bottom-left-radius: 0px;"
+                             "border-bottom-right-radius: 0px;"
+                             "}"
+                             "QToolButton::checked:!hover {"
+                             "background:" + theme->getActiveWidgetBorderColorHex() + ";"
+                             "border-color:" + theme->getDisabledBackgroundColorHex() + ";}";
 
-    setStyleSheet(theme->getToolBarStyleSheet() +
-                "QToolButton {"
-                "border-radius: " + theme->getCornerRadius() + ";"
-                "border-bottom-left-radius: 0px;"
-                "border-bottom-right-radius: 0px;"
-                "}"
-                "QToolButton::checked:!hover {"
-                "background:" + theme->getActiveWidgetBorderColorHex() + ";"
-                "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
-                "}"
-    );
+    toolbar->widgetForAction(parts_action)->setStyleSheet(top_button_style);
+    toolbar->widgetForAction(deploy_action)->setStyleSheet(top_button_style);
+
+    parts_dock->setStyleSheet(theme->getScrollAreaStyleSheet());
+    parts_dock->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+    parts_dock->horizontalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+
+    deploy_dock->setStyleSheet(theme->getScrollAreaStyleSheet());
+    deploy_dock->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+    deploy_dock->horizontalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 }
 
 /**

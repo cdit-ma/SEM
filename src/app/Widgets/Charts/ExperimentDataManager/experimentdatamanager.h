@@ -12,8 +12,6 @@
 
 #include "../Data/Requests/portlifecyclerequest.h"
 #include "../Data/Requests/workloadrequest.h"
-#include "../Data/Requests/cpuutilisationrequest.h"
-#include "../Data/Requests/memoryutilisationrequest.h"
 #include "../Data/Requests/markerrequest.h"
 #include "../Data/Requests/porteventrequest.h"
 
@@ -26,7 +24,8 @@ enum class ExperimentDataRequestType
     CPUUtilisationEvent,
     MemoryUtilisationEvent,
     MarkerEvent,
-    PortEvent
+    PortEvent,
+    NetworkUtilisationEvent
 };
 
 class RequestBuilder;
@@ -85,10 +84,11 @@ private:
     void requestEvents(const RequestBuilder &builder);
     void requestPortLifecycleEvents(const PortLifecycleRequest& request, const AggServerResponse::ExperimentRun& experimentRun, PortInstanceData* port_data_requester = nullptr);
     void requestWorkloadEvents(const WorkloadRequest& request, const AggServerResponse::ExperimentRun& experimentRun, WorkerInstanceData* worker_inst_data_requester = nullptr);
-    void requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
-    void requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
+    void requestCPUUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
+    void requestMemoryUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
     void requestMarkerEvents(const MarkerRequest& request, const AggServerResponse::ExperimentRun& experimentRun, MarkerSetData* marker_data_requester = nullptr);
     void requestPortEvents(const PortEventRequest& request, const AggServerResponse::ExperimentRun& experimentRun, PortInstanceData* port_data_requester = nullptr);
+    void requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
 
     void processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs);
     void processExperimentState(const QString &experiment_name, quint32 experiment_run_id, const AggServerResponse::ExperimentState& experiment_state);
@@ -98,6 +98,7 @@ private:
     void processMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MemoryUtilisationEvent*>& events);
     void processMarkerEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MarkerEvent*>& events);
     void processPortEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortEvent*>& events);
+    void processNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<NetworkUtilisationEvent*>& events);
 
     MEDEA::ExperimentData* constructExperimentData(const QString& experiment_name);
     MEDEA::ExperimentData* getExperimentData(quint32 exp_run_id) const;
@@ -126,8 +127,7 @@ private:
 
 Q_DECLARE_METATYPE(PortLifecycleRequest);
 Q_DECLARE_METATYPE(WorkloadRequest);
-Q_DECLARE_METATYPE(CPUUtilisationRequest);
-Q_DECLARE_METATYPE(MemoryUtilisationRequest);
+Q_DECLARE_METATYPE(UtilisationRequest);
 Q_DECLARE_METATYPE(MarkerRequest);
 Q_DECLARE_METATYPE(PortEventRequest);
 

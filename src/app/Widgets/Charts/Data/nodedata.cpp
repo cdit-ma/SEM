@@ -26,12 +26,18 @@ NodeData::NodeData(quint32 exp_run_id, const AggServerResponse::Node& node, QObj
     memory_utilisation_request_.setExperimentRunID(exp_run_id);
     memory_utilisation_request_.setNodeHostnames({hostname_});
 
+    network_utilisation_request_.setExperimentRunID(exp_run_id);
+    network_utilisation_request_.setNodeHostnames({hostname_});
+
     // Setup event series
     cpu_utilisation_series_ = new CPUUtilisationEventSeries(hostname_);
     cpu_utilisation_series_->setLabel(hostname_ + "_cpu");
 
     memory_utilisation_series_ = new MemoryUtilisationEventSeries(hostname_);
     memory_utilisation_series_->setLabel(hostname_ + "_mem");
+
+    network_utilisation_series_ = new NetworkUtilisationEventSeries(hostname_);
+    network_utilisation_series_->setLabel(hostname_ + "_net");
 
     connect(this, &NodeData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestNodeEvents);
     emit requestData(*this);
@@ -83,7 +89,7 @@ QList<ContainerInstanceData*> NodeData::getContainerInstanceData() const
  * @brief NodeData::getCPUUtilisationRequest
  * @return
  */
-const CPUUtilisationRequest &NodeData::getCPUUtilisationRequest() const
+const UtilisationRequest &NodeData::getCPUUtilisationRequest() const
 {
     return cpu_utilisation_request_;
 }
@@ -92,10 +98,20 @@ const CPUUtilisationRequest &NodeData::getCPUUtilisationRequest() const
  * @brief NodeData::getMemoryUtilisationRequest
  * @return
  */
-const MemoryUtilisationRequest &NodeData::getMemoryUtilisationRequest() const
+const UtilisationRequest &NodeData::getMemoryUtilisationRequest() const
 {
     return memory_utilisation_request_;
 }
+
+/**
+ * @brief NodeData::getNetworkUtilisationRequest
+ * @return
+ */
+const UtilisationRequest& NodeData::getNetworkUtilisationRequest() const
+{
+    return network_utilisation_request_;
+}
+
 
 /**
  * @brief NodeData::addCPUUtilisationEvents
@@ -142,6 +158,26 @@ const MemoryUtilisationEventSeries& NodeData::getMemoryUtilisationSeries() const
 }
 
 /**
+ * @brief NodeData::addNetworkUtilisationEvents
+ * @param events
+ */
+void NodeData::addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events)
+{
+    network_utilisation_series_->addEvents(events);
+}
+
+
+/**
+ * @brief NodeData::getNetworkUtilisationSeries
+ * @return
+ */
+NetworkUtilisationEventSeries* NodeData::getNetworkUtilisationSeries() const
+{
+    return network_utilisation_series_;
+}
+
+
+/**
  * @brief NodeData::updateData
  * This is called when the ExperimentRunData's last updated time has changed
  * It updates the container data and sets the new time interval for the particular event requests
@@ -154,6 +190,7 @@ void NodeData::updateData(const AggServerResponse::Node& node, qint64 new_last_u
     // Setup/update the requests before sending the signal
     cpu_utilisation_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
     memory_utilisation_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
+    network_utilisation_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
     emit requestData(*this);
 
     // NOTE: Update last_updated_time_ before calling addContainerInstanceData

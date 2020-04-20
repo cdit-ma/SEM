@@ -15,17 +15,17 @@ CustomGroupBox::CustomGroupBox(const QString& title, QWidget* parent)
     : QFrame(parent)
 {
     setupLayout();
-	
+
 	if (groupTitleButton) {
 		groupTitleButton->setText(title);
 	}
-    
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &CustomGroupBox::themeChanged);
     themeChanged();
 }
 
 /**
- * @brief CustomGroupBox::setTitlte
+ * @brief CustomGroupBox::setTitle
  * @param title
  */
 void CustomGroupBox::setTitle(const QString& title)
@@ -41,10 +41,10 @@ void CustomGroupBox::setTitle(const QString& title)
  */
 QString CustomGroupBox::getTitle()
 {
-	if (groupTitleButton) {
-		return groupTitleButton->text();
-	}
-	return "";
+    if (groupTitleButton) {
+        return groupTitleButton->text();
+    }
+    return "";
 }
 
 /**
@@ -119,12 +119,13 @@ QAction* CustomGroupBox::insertWidget(QAction* beforeAction, QWidget *widget)
 void CustomGroupBox::themeChanged()
 {
     Theme* theme = Theme::theme();
+    auto frame_color = theme->getAltTextColor();
+    frame_color.setAlphaF(0.5);
+
     setStyleSheet("QFrame {"
-                  "color:" + theme->getAltBackgroundColorHex() + ";"
+                  "color:" + Theme::QColorToHex(frame_color) + ";"
                   "background: rgba(0,0,0,0);"
-                  "}"
-                  + theme->getToolBarStyleSheet() +
-                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
+                  "}");
 
     if (groupTitleButton) {
         QString checkableStyle = "";
@@ -141,15 +142,17 @@ void CustomGroupBox::themeChanged()
         }
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px 1px 1px 0px;"
-                                        "border: none;"
+                                        "border: 0px;"
                                         "color:" + theme->getTextColorHex() + ";"
-                                        "background: rgba(0,0,0,0);"
+                                        "background:" + theme->getBackgroundColorHex() + ";"
                                         "}"
                                         + checkableStyle);
     }
 
-    widgetsToolbar->setIconSize(theme->getIconSize());
     topToolbar->setIconSize(theme->getIconSize());
+    widgetsToolbar->setIconSize(theme->getIconSize());
+    widgetsToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                                  "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 }
 
 /**
@@ -171,7 +174,7 @@ void CustomGroupBox::setupLayout()
     auto leftTitleFrame = new QFrame(this);
     leftTitleFrame->setFrameShape(QFrame::HLine);
     leftTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
-	
+
 	auto rightTitleFrame = new QFrame(this);
     rightTitleFrame->setFrameShape(QFrame::HLine);
     rightTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
@@ -179,7 +182,7 @@ void CustomGroupBox::setupLayout()
     topToolbar = new QToolBar(this);
     topToolbar->addWidget(groupTitleButton);
     topToolbar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-	
+
 	auto topLayout = new QHBoxLayout();
     topLayout->setMargin(0);
     topLayout->addWidget(leftTitleFrame, 1);

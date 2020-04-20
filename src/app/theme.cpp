@@ -532,16 +532,22 @@ QString Theme::getScrollBarStyleSheet()
     QString margin = QString::number(marginSize) % "px";
     QString size = QString::number(scrollSize) % "px";
     QString button = QString::number(buttonSize) % "px";
+    QColor handleColor = getAltTextColor();
+    handleColor.setAlphaF(0.4);
 
     return "QScrollBar {"
-           "background: " % getDisabledBackgroundColorHex() % ";"
+           "background:"  % getDisabledBackgroundColorHex() % ";"
            "border: 0px;"
            "margin: 0px;"
            "}"
-           "QScrollBar:vertical{width:" % size % "; padding-left: 1px;}"
-           "QScrollBar:horizontal{height:" % size % "; padding-top: 1px;}"
-           "QScrollBar::handle{background: " % getAltBackgroundColorHex() % " ; margin:" % margin % ";}"
-           "QScrollBar::handle:active{background: " % getHighlightColorHex() % ";}"
+           "QScrollBar:vertical{ width:" % size % ";}"
+           "QScrollBar:horizontal{ height:" % size % ";}"
+           "QScrollBar::handle{"
+           "background: " % QColorToHex(handleColor) % ";"
+           "margin:" % margin % ";"
+           "border-radius: 1px;"
+           "padding: 1px;}"
+           "QScrollBar::handle:active{ background: " % getHighlightColorHex() % ";}"
            "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
            "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
            ;
@@ -750,7 +756,7 @@ QString Theme::getMenuStyleSheet(int icon_size_int)
            "border: none;"
            "}"
            "QMenu::item:disabled {"
-           "color:" % getAltTextColorHex() % ";"
+           "color:" % getTextColorHex(ColorRole::DISABLED) % ";"
            "}"
            "QMenu::item:selected:!disabled {"
            "color:" % getTextColorHex(ColorRole::SELECTED) % ";"
@@ -980,7 +986,7 @@ QString Theme::getProgressBarStyleSheet()
 
 QString Theme::getLabelStyleSheet()
 {
-    return "QLabel{ background: rgba(0,250,0,0); color:" % getTextColorHex() % ";}";
+    return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}";
 }
 
 QString Theme::getToolTipStyleSheet()
@@ -1243,6 +1249,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "CPUUtilisation", "Icons", "cpu", "Icons", "cpu");
     setIconToggledImage("ToggleIcons", "MemoryUtilisation", "Icons", "memoryCard", "Icons", "memoryCard");
     setIconToggledImage("ToggleIcons", "Marker", "Icons", "bookmark", "Icons", "bookmark");
+    setIconToggledImage("ToggleIcons", "NetworkUtilisation", "Icons", "waveEmit", "Icons", "waveEmit");
 
     setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
@@ -1252,6 +1259,7 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "utilisationHover", "Icons", "cpuTwoTone", "Icons", "cpuTwoTone");
     setIconToggledImage("ToggleIcons", "memoryHover", "Icons", "memoryCardTwoTone", "Icons", "memoryCardTwoTone");
     setIconToggledImage("ToggleIcons", "markerHover", "Icons", "bookmarkTwoTone", "Icons", "bookmarkTwoTone");
+    setIconToggledImage("ToggleIcons", "networkHover", "Icons", "waveEmit", "Icons", "waveEmit");
 
     setIconToggledImage("ToggleIcons", "axisTimeToggle", "Icons", "clock", "Icons", "timeElapsed");
 }
@@ -1313,7 +1321,7 @@ void Theme::resetTheme(ThemePreset themePreset)
             emit changeSetting(SETTINGS::THEME_TEXT_COLOR, white());
             emit changeSetting(SETTINGS::THEME_ICON_COLOR, white());
             emit changeSetting(SETTINGS::THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
-            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+            emit changeSetting(SETTINGS::THEME_TEXT_DISABLED_COLOR, QColor(150,150,150));
             emit changeSetting(SETTINGS::THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
             emit changeSetting(SETTINGS::THEME_BG_SELECTED_COLOR, QColor(255,165,70));
             emit changeSetting(SETTINGS::THEME_TEXT_SELECTED_COLOR, black());

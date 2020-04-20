@@ -24,22 +24,22 @@ const int frame_rate_ms = 33;
 DataflowDialog::DataflowDialog(QWidget *parent)
     : QFrame(parent),
       view_(new DataflowGraphicsView(this)),
-      playback_controls(this),
+      playback_controls_(this),
       playback_interval_(default_playback_interval_ms)
 {
     auto mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(0);
     mainLayout->setMargin(0);
     mainLayout->addWidget(view_);
-    mainLayout->addWidget(&playback_controls);
+    mainLayout->addWidget(&playback_controls_);
 
-    connect(&playback_controls, &PlaybackControlsWidget::play, this, &DataflowDialog::playback);
-    connect(&playback_controls, &PlaybackControlsWidget::pause, this, &DataflowDialog::pausePlayback);
-    connect(&playback_controls, &PlaybackControlsWidget::jumpToStart, this, &DataflowDialog::jumpToStart);
-    connect(&playback_controls, &PlaybackControlsWidget::jumpToEnd, this, &DataflowDialog::jumpToEnd);
-    connect(&playback_controls, &PlaybackControlsWidget::jumpToPreviousActivity, this, &DataflowDialog::jumpToPreviousActivity);
-    connect(&playback_controls, &PlaybackControlsWidget::jumpToNextActivity, this, &DataflowDialog::jumpToNextActivity);
-    connect(this, &DataflowDialog::playbackActivated, &playback_controls, &PlaybackControlsWidget::setPlayPauseCheckedState);
+    connect(&playback_controls_, &PlaybackControlsWidget::play, this, &DataflowDialog::playback);
+    connect(&playback_controls_, &PlaybackControlsWidget::pause, this, &DataflowDialog::pausePlayback);
+    connect(&playback_controls_, &PlaybackControlsWidget::jumpToStart, this, &DataflowDialog::jumpToStart);
+    connect(&playback_controls_, &PlaybackControlsWidget::jumpToEnd, this, &DataflowDialog::jumpToEnd);
+    connect(&playback_controls_, &PlaybackControlsWidget::jumpToPreviousActivity, this, &DataflowDialog::jumpToPreviousActivity);
+    connect(&playback_controls_, &PlaybackControlsWidget::jumpToNextActivity, this, &DataflowDialog::jumpToNextActivity);
+    connect(this, &DataflowDialog::playbackActivated, &playback_controls_, &PlaybackControlsWidget::setPlayPauseCheckedState);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &DataflowDialog::themeChanged);
     themeChanged();
@@ -51,7 +51,6 @@ DataflowDialog::DataflowDialog(QWidget *parent)
 void DataflowDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet(theme->getScrollBarStyleSheet());
     view_->setStyleSheet("padding: 0px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";");
     view_->setBackgroundBrush(theme->getBackgroundColor());
 }
@@ -83,7 +82,7 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
     // This sets the experiment info displays on the title bar of the panel
     setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
     setPlaybackTimeRange(exp_run_data.start_time(), exp_run_data.end_time());
-    playback_controls.setControlsEnabled(true);
+    playback_controls_.setControlsEnabled(true);
 
     // Connect the experiment run's signals
     connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, this, &DataflowDialog::playbackEndTimeChanged);
@@ -96,28 +95,15 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_n
         emit updateLiveStatus(live_mode_);
     }
 
-    // REVIEW (Jackson): The nesting here is getting pretty deep - the inner functionality can be
-    //  fairly safely moved to the classes you're iterating over
     for (const auto& node_data : exp_run_data.getNodeData()) {
 
         auto node_item = new NodeGraphicsItem(*node_data);
         addItemToScene(node_item);
 
-        for (const auto& container_data : node_data->getContainerInstanceData()) {
-            for (const auto& comp_inst_data : container_data->getComponentInstanceData()) {
-                if (comp_inst_data == nullptr) {
-                    throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - ComponentInstanceData is null.");
-                }
-
-                auto comp_inst_item = node_item->addComponentInstanceItem(*comp_inst_data);
-                comp_inst_items_.insert(comp_inst_data->getGraphmlID(), comp_inst_item);
-                for (const auto& port_data : comp_inst_data->getPortInstanceData()) {
-                    if (port_data == nullptr) {
-                        throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - PortInstanceData is null.");
-                    }
-                    auto port_inst_item = comp_inst_item->addPortInstanceItem(*port_data);
-                    port_items_.insert(port_data->getGraphmlID(), port_inst_item);
-                }
+        for (const auto& comp_inst_item : node_item->getComponentInstanceItems()) {
+            for (const auto& port_inst_item : comp_inst_item->getPortInstanceItems()) {
+                const auto& port_id = port_inst_item->getGraphmlID();
+                port_items_.insert(port_id, port_inst_item);
             }
         }
     }
@@ -137,7 +123,7 @@ void DataflowDialog::clear()
     turnOffLiveStatus();
     stopPlaybackTimer();
     setPlaybackTimeRange(0, 0);
-    playback_controls.setControlsEnabled(false);
+    playback_controls_.setControlsEnabled(false);
 
     // Replace the scene with a new one instead of just clearing it to centralise on the items by default
     view_->scene()->deleteLater();
@@ -190,7 +176,7 @@ void DataflowDialog::jumpToPreviousActivity()
     }
     if (prev_time < playback_current_time_) {
         playback_current_time_ = prev_time;
-        playback_controls.setCurrentTime(prev_time);
+        playback_controls_.setCurrentTime(prev_time);
     }
 }
 
@@ -206,7 +192,7 @@ void DataflowDialog::jumpToNextActivity()
     }
     if (next_time > playback_current_time_) {
         playback_current_time_ = next_time;
-        playback_controls.setCurrentTime(next_time);
+        playback_controls_.setCurrentTime(next_time);
     }
 }
 
@@ -216,7 +202,7 @@ void DataflowDialog::jumpToNextActivity()
 void DataflowDialog::jumpToStart()
 {
     playback_current_time_ = exp_run_start_time_;
-    playback_controls.setCurrentTime(playback_current_time_);
+    playback_controls_.setCurrentTime(playback_current_time_);
 }
 
 /**
@@ -225,7 +211,7 @@ void DataflowDialog::jumpToStart()
 void DataflowDialog::jumpToEnd()
 {
     playback_current_time_ = exp_run_end_time_;
-    playback_controls.setCurrentTime(playback_current_time_);
+    playback_controls_.setCurrentTime(playback_current_time_);
 }
 
 /**
@@ -246,7 +232,7 @@ void DataflowDialog::turnOffLiveStatus()
 void DataflowDialog::playbackEndTimeChanged(qint64 exp_run_last_updated_time)
 {
     exp_run_end_time_ = exp_run_last_updated_time;
-    playback_controls.updateEndTime(exp_run_last_updated_time);
+    playback_controls_.updateEndTime(exp_run_last_updated_time);
 }
 
 /**
@@ -302,7 +288,7 @@ void DataflowDialog::setPlaybackTimeRange(qint64 start_time, qint64 end_time)
     exp_run_start_time_ = start_time;
     exp_run_end_time_ = end_time;
     playback_current_time_ = start_time;
-    playback_controls.setTimeRange(start_time, end_time);
+    playback_controls_.setTimeRange(start_time, end_time);
 }
 
 /**
@@ -311,7 +297,7 @@ void DataflowDialog::setPlaybackTimeRange(qint64 start_time, qint64 end_time)
 void DataflowDialog::resetPlayback()
 {
     stopPlaybackTimer();
-    playback_controls.resetTimeProgress();
+    playback_controls_.resetTimeProgress();
     playback_current_time_ = exp_run_start_time_;
 }
 
@@ -337,7 +323,7 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
 
     } else {
 
-        playback_controls.incrementCurrentTime(playback_interval_);
+        playback_controls_.incrementCurrentTime(playback_interval_);
         playback_current_time_ += playback_interval_;
 
         for (const auto& port_item : port_items_) {

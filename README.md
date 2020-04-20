@@ -4,8 +4,10 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 
 ## Minimum software requirements:
 * [CMake 3.0](https://cmake.org/)
-* [Qt 5.7.0](https://www.qt.io/)
+* [Qt 5.11.0](https://www.qt.io/)
 * C++11 Compiler
+* ZeroMQ (see [RE installation instructions](https://www.github.com/cdit-ma/re))
+* ProtoBuf (see [RE installation instructions](https://www.github.com/cdit-ma/re))
 
 ## Optional software requirements:
 * [Qt Installer Framework 2.0](http://doc.qt.io/qtinstallerframework/)
@@ -13,7 +15,7 @@ MEDEA is a tool that can be used to design and analyse performance of Distribute
 
 
 # Building MEDEA binary from source
-* Set environment variable Qt5_DIR to point the installation of QT5.7 (ie /opt/Qt5.7.0/5.7/gcc_64)
+* Set environment variable Qt5_DIR to point the installation of QT5.11 (ie /opt/Qt5.11.0/5.11.0/gcc_64)
 * Replace the -G flag with a suitable generator for your operating system, "Unix Makefiles" for Unix
 > ```
 > git clone https://github.com/cdit-ma/MEDEA --recursive

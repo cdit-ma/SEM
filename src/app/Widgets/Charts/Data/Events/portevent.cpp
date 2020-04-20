@@ -29,8 +29,8 @@ PortEvent::PortEvent(const AggServerResponse::Port& port,
  */
 QString PortEvent::toString(const QString& dateTimeFormat) const
 {
-    return getTypeString(type_) + " - " + getDateTimeString(dateTimeFormat) + "\n"
-		   + "Message: " + message_ + "\n";
+    return getTypeString(type_) + " - " + getDateTimeString(dateTimeFormat) + "\n";
+            //+ "Message: " + message_ + "\n";
 }
 
 /**

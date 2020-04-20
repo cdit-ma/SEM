@@ -1,6 +1,5 @@
 #include "experimentdatamanager.h"
 #include "../../../Controllers/WindowManager/windowmanager.h"
-#include "../../../../modelcontroller/keynames.h"
 
 #include <QFutureWatcher>
 
@@ -17,7 +16,7 @@ ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
 {
     chartDialog_ = new ChartDialog();
     dataflowDialog_ = new DataflowDialog();
-    
+
     live_exp_run_id_ = invalid_experiment_id;
 
     connect(&vc, &ViewController::modelClosed, this, &ExperimentDataManager::clear);
@@ -97,17 +96,17 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 				break;
 			}
 			case ExperimentDataRequestType::CPUUtilisationEvent: {
-				valid = request_param.canConvert<CPUUtilisationRequest>();
+				valid = request_param.canConvert<UtilisationRequest>();
 				if (valid) {
-					auto request = request_param.value<CPUUtilisationRequest>();
+					auto request = request_param.value<UtilisationRequest>();
 					requestCPUUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
 				}
 				break;
 			}
 			case ExperimentDataRequestType::MemoryUtilisationEvent: {
-				valid = request_param.canConvert<MemoryUtilisationRequest>();
+				valid = request_param.canConvert<UtilisationRequest>();
 				if (valid) {
-					auto request = request_param.value<MemoryUtilisationRequest>();
+					auto request = request_param.value<UtilisationRequest>();
 					requestMemoryUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
 				}
 				break;
@@ -220,38 +219,44 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
         auto&& request_param = QVariant::fromValue<PortLifecycleRequest>(builder.getPortLifecycleRequest());
         requestExperimentData(ExperimentDataRequestType::PortLifecycleEvent, request_param);
     } catch (const std::exception& ex) {
-        qInfo() << ex.what();
+        qInfo(ex.what());
     }
     try {
         auto&& request_param = QVariant::fromValue<WorkloadRequest>(builder.getWorkloadRequest());
         requestExperimentData(ExperimentDataRequestType::WorkloadEvent, request_param);
     } catch (const std::exception& ex) {
-        qInfo() << ex.what();
+		qInfo(ex.what());
     }
     try {
-        auto&& request_param = QVariant::fromValue<CPUUtilisationRequest>(builder.getCPUUtilisationRequest());
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getCPUUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, request_param);
 	} catch (const std::exception& ex) {
-        qInfo() << ex.what();
+		qInfo(ex.what());
 	}
     try {
-        auto&& request_param = QVariant::fromValue<MemoryUtilisationRequest>(builder.getMemoryUtilisationRequest());
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getMemoryUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, request_param);
 	} catch (const std::exception& ex) {
-        qInfo() << ex.what();
+		qInfo(ex.what());
 	}
     try {
         auto&& request_param = QVariant::fromValue<MarkerRequest>(builder.getMarkerRequest());
         requestExperimentData(ExperimentDataRequestType::MarkerEvent, request_param);
 	} catch (const std::exception& ex) {
-        qInfo() << ex.what();
+		qInfo(ex.what());
 	}
     try {
         auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
-	} catch (const std::exception& ex) {
-        qInfo() << ex.what();
-	}
+    } catch (const std::exception&) {
+        qInfo("No PortEventRequest");
+    }
+    try {
+        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
+        requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
+    } catch (const std::exception&) {
+        qInfo("No NetworkUtilisationRequest");
+    }
 
     // Reset the selected experiment run
     selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
@@ -317,7 +322,7 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
  * @param experimentRun
  * @param node_data_requester
  */
-void ExperimentDataManager::requestCPUUtilisationEvents(const CPUUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
 {
     auto future = aggregationProxy().RequestCPUUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
@@ -344,7 +349,7 @@ void ExperimentDataManager::requestCPUUtilisationEvents(const CPUUtilisationRequ
  * @param experimentRun
  * @param node_data_requester
  */
-void ExperimentDataManager::requestMemoryUtilisationEvents(const MemoryUtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestMemoryUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
 {
     auto future = aggregationProxy().RequestMemoryUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
@@ -418,6 +423,35 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
 
     futureWatcher->setFuture(future);
 }
+
+
+/**
+ * @brief ExperimentDataManager::requestNetworkUtilisationEvents
+ * @param request
+ * @param experimentRun
+ * @param node_data_requester
+ */
+void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+{
+    auto future = aggregationProxy().RequestNetworkUtilisationEvents(request);
+    auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);
+
+    connect(futureWatcher, &QFutureWatcher<QVector<NetworkUtilisationEvent*>>::finished, [this, futureWatcher, experimentRun, node_data_requester]() {
+        try {
+            auto&& events = futureWatcher->result();
+            if (node_data_requester != nullptr) {
+                node_data_requester->addNetworkUtilisationEvents(events);
+            } else {
+                processNetworkUtilisationEvents(experimentRun, events);
+            }
+        } catch (const std::exception& ex) {
+            toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);
+        }
+    });
+
+    futureWatcher->setFuture(future);
+}
+
 
 /**
  * @brief ExperimentDataManager::processExperimentRuns
@@ -594,6 +628,25 @@ void ExperimentDataManager::processPortEvents(const AggServerResponse::Experimen
         }
     }
 }
+
+
+/**
+ * @brief ExperimentDataManager::processNetworkUtilisationEvents
+ * @param exp_run
+ * @param events
+ */
+void ExperimentDataManager::processNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<NetworkUtilisationEvent*>& events)
+{
+    if (show_in_charts_) {
+        if (events.isEmpty()) {
+            toastNotification("No network utilisation events received for selection", "waveEmit");
+        } else {
+            emit showChartsPanel();
+            timelineChartView().addNetworkUtilisationEvents(exp_run, events);
+        }
+    }
+}
+
 
 /**
  * @brief ExperimentDataManager::constructExperimentData
@@ -795,6 +848,7 @@ void ExperimentDataManager::requestNodeEvents(NodeData& node)
 {
     requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, QVariant::fromValue(node.getCPUUtilisationRequest()), &node);
     requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, QVariant::fromValue(node.getMemoryUtilisationRequest()), &node);
+    requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, QVariant::fromValue(node.getNetworkUtilisationRequest()), &node);
 }
 
 /**
@@ -872,28 +926,28 @@ void ExperimentDataManager::setupRequestsForExperimentRun(const quint32 experime
 		selectedDataKinds_ = MEDEA::Event::GetChartDataKinds();
 		selectedDataKinds_.removeAll(MEDEA::ChartDataKind::DATA);
 	}
-	
+
 	auto builder = RequestBuilder::build();
 	builder.buildRequests(selectedDataKinds_);
 	builder.setExperimentRunID(experimentRunID);
-	
+
 	if (!selectedViewItems_.isEmpty()) {
-		
+
 		QVector<QString> compNames;
 		QVector<QString> compInstPaths;
 		QVector<QString> portPaths;
 		QVector<QString> workerInstPaths;
 		QVector<QString> nodeHostnames;
-		
+
 		for (auto item : selectedViewItems_) {
-			
+
 			if (!item || !item->isNode()) {
 				continue;
 			}
-			
+
 			auto nodeItem = qobject_cast<NodeViewItem*>(item);
 			auto label = getItemLabel(nodeItem);
-			
+
 			switch (nodeItem->getNodeKind()) {
 				case NODE_KIND::COMPONENT:
 				case NODE_KIND::COMPONENT_IMPL:
@@ -968,14 +1022,14 @@ void ExperimentDataManager::setupRequestsForExperimentRun(const quint32 experime
 					break;
 			}
 		}
-		
+
 		builder.setComponentNames(compNames);
 		builder.setComponentInstancePaths(compInstPaths);
 		builder.setPortPaths(portPaths);
 		builder.setWorkerInstancePaths(workerInstPaths);
 		builder.setNodeHostnames(nodeHostnames);
 	}
-	
+
 	requestEvents(builder);
 	selectedDataKinds_.clear();
 	selectedViewItems_.clear();

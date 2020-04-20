@@ -15,12 +15,12 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
 	if (item == nullptr) {
 		throw std::invalid_argument("SearchItemWidget::SearchItemWidget - view item cannot be null.");
 	}
-	
+
     view_item = item;
 	view_item->registerObject(this);
-	
+
 	ID = view_item->getID();
-	
+
 	if (view_item->isNode()) {
 		auto node_view_item = (NodeViewItem*) view_item;
 		view_aspect = node_view_item->getViewAspect();
@@ -31,7 +31,7 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
 		updateDataKey("SRC ID", edge_item->getSourceID());
 		updateDataKey("DST ID", edge_item->getDestinationID());
 	}
-	
+
 	connect(view_item, &ViewItem::labelChanged, this, &SearchItemWidget::updateLabel);
 	connect(view_item, &ViewItem::iconChanged, this, &SearchItemWidget::updateIcon);
 	connect(view_item, &ViewItem::dataChanged, this, &SearchItemWidget::updateData);
@@ -168,21 +168,26 @@ void SearchItemWidget::updateIcon()
 }
 
 /**
- * @brief SearchItemWidget::updateDataIcon
+ * @brief SearchItemWidget::updateDataStyleSheet
  * @param key
  */
-void SearchItemWidget::updateDataIcon(const QString &key)
+void SearchItemWidget::updateDataStyleSheet(const QString &key)
 {
-	auto data = data_key_hash.value(key, nullptr);
-	if (data) {
-		auto theme = Theme::theme();
-		auto tint = theme->getMenuIconColor();
-		auto pixmap = theme->getImage("Data", key, theme->getIconSize(), tint);
+    auto data = data_key_hash.value(key, nullptr);
+    if (data) {
+        auto theme = Theme::theme();
+        auto tint = theme->getMenuIconColor();
+        auto pixmap = theme->getImage("Data", key, theme->getIconSize(), tint);
         if (pixmap.isNull()) {
             pixmap = theme->getImage("Icons", "circleHalo", theme->getIconSize(), tint);
         }
         data->label_icon->setFixedSize(theme->getIconSize());
         data->label_icon->setPixmap(pixmap);
+
+        auto label_style = "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() +  ";}";
+        data->label_icon->setStyleSheet(label_style);
+        data->label_key->setStyleSheet(label_style + "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}");
+        data->label_value->setStyleSheet(label_style);
     }
 }
 
@@ -213,15 +218,15 @@ void SearchItemWidget::updateData(const QString &data)
 void SearchItemWidget::themeChanged()
 {
     updateStyleSheet();
-	updateIcon();
-	
-	for (const auto& key : data_key_hash.keys()) {
-		updateDataIcon(key);
-	}
-	
-	if (button_expand) {
-		Theme* theme = Theme::theme();
-		button_expand->setIconSize(theme->getIconSize());
+    updateIcon();
+
+    for (auto key : data_key_hash.keys()) {
+        updateDataStyleSheet(key);
+    }
+
+    if (button_expand) {
+        Theme* theme = Theme::theme();
+        button_expand->setIconSize(theme->getIconSize());
         button_expand->setIcon(theme->getIcon("ToggleIcons", "arrowVertical"));
         button_expand->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border: 0px; }");
     }
@@ -288,7 +293,6 @@ void SearchItemWidget::updateStyleSheet()
                   "}"
                   "QFrame:hover { background:" + theme->getAltBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() +  ";}"
-                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
                   + theme->getToolBarStyleSheet());
 }
 
@@ -353,7 +357,7 @@ void SearchItemWidget::setupDataKey(const QString &key)
 
         data_key_hash[key] = data;
         updateDataKey(key, view_item->getData(key));
-        updateDataIcon(key);
+        updateDataStyleSheet(key);
     }
     if (!data->in_layout && data_widget) {
         data_widget->layout()->addWidget(data->item);

@@ -136,7 +136,7 @@ void ExecutionManager::ValidateModel_(const QString& model_path)
         auto failed_string = (failed_count > 0) ? ("Failed: " + QString::number(failed_count) + " Tests. ") : "";
         validation_noti->setTitle("Validation: " + passed_string + warning_string + failed_string);
         validation_noti->setSeverity(test_count == (passed_count + warnings_count) ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-        
+
     } else {
         ///Update the original notification
         validation_noti->setTitle("Model validation failed to execute");
@@ -148,8 +148,8 @@ void ExecutionManager::ValidateModel_(const QString& model_path)
 void ExecutionManager::GenerateCodeForWorkload(const QString& document_path, ViewItem* item)
 {
     auto id = item->getID();
-    auto file_path = item->getData("label").toString() + "_" + QString::number(id) + ".cpp";
-    
+    auto file_path = item->getData(KeyName::Label).toString() + "_" + QString::number(id) + ".cpp";
+
     //Get Temp Path
     auto path = FileHandler::getTempFileName("/");
     auto code = GenerateWorkload(document_path, path, id);
@@ -259,7 +259,7 @@ QString ExecutionManager::GenerateWorkload(const QString& document_path, const Q
     }else{
         notification->setTitle("Successfully generated workload C++");
     }
-    
+
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     return results.standard_output.join("\n");
 }
@@ -377,7 +377,7 @@ void ExecutionManager::CheckForRe_(const QString& re_configure_path)
     QString status;
     QProcessEnvironment re_env;
     if(FileHandler::isFileReadable(re_configure_path)){
-    
+
         ProcessRunner runner;
         re_env = runner.RunEnvVarScript(re_configure_path);
         
@@ -411,16 +411,16 @@ ProcessResult ExecutionManager::RunSaxonTransform(const QString& transform_path,
 {
 	// TODO: Do we need to do something if this function returns false???
 	FileHandler::ensureDirectory(output_directory);
-	
+
 	QString&& program = "java";
-	
+
 	QStringList args;
 	args << "-jar";
 	args << GetSaxonPath();
 	args << "-xsl:" + transform_path;
 	args << "-s:" + document;
 	args << arguments;
-	
+
 	ProcessRunner runner;
     return runner.RunProcess(program, args, output_directory);
 }

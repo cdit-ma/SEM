@@ -20,7 +20,7 @@ EntityItem::EntityItem(ViewItem *view_item, EntityItem* parent_item, KIND kind)
     //setup the lock state
     setIconVisible(EntityRect::LOCKED_STATE_ICON, {"Icons", "lockClosed"}, false);
 
-    addRequiredData("readOnly");
+    addRequiredData(KeyName::ReadOnly);
     addHoverFunction(EntityRect::SHAPE, std::bind(&NodeItem::shapeHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
@@ -285,12 +285,12 @@ QPainterPath EntityItem::shape() const
 void EntityItem::setIgnorePosition(bool ignore)
 {
     is_ignoring_positon = ignore;
-    if(ignore){
-        removeRequiredData("x");
-        removeRequiredData("y");
-    }else{
-        addRequiredData("x");
-        addRequiredData("y");
+    if (ignore) {
+        removeRequiredData(KeyName::X);
+        removeRequiredData(KeyName::Y);
+    } else {
+        addRequiredData(KeyName::X);
+        addRequiredData(KeyName::Y);
     }
 }
 
@@ -301,23 +301,21 @@ bool EntityItem::isIgnoringPosition()
 
 void EntityItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
             qreal realData = data.toReal();
             QPointF oldPos = getPos();
             QPointF newPos = oldPos;
-
-            if(key_name == "x"){
+            if (key_name == KeyName::X) {
                 newPos.setX(realData);
-            }else if(key_name == "y"){
+            } else if (key_name == KeyName::Y) {
                 newPos.setY(realData);
             }
-
-            if(newPos != oldPos){
+            if (newPos != oldPos) {
                 setPos(newPos);
                 setPos(getNearestGridPoint(QPointF()));
             }
-        }else if(key_name == "readOnly"){
+        } else if (key_name == KeyName::ReadOnly) {
             bool isReadOnly = data.toBool();
             setIconVisible(EntityRect::LOCKED_STATE_ICON, isReadOnly);
         }
@@ -459,7 +457,7 @@ void EntityItem::connectViewItem(ViewItem* item)
 {
     view_item = item;
     item->registerObject(this);
-    
+
     connect(item, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
     connect(item, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
     connect(item, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
@@ -474,7 +472,7 @@ void EntityItem::disconnectViewItem()
         disconnect(view_item, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
         disconnect(view_item, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
         disconnect(view_item, &ViewItem::iconChanged, this, &EntityItem::updateIcon);
-        
+
         view_item->unregisterObject(this);
         view_item = nullptr;
         updateIcon();
@@ -626,7 +624,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     if (isIconVisible(ICON)) {
         paintPixmap(painter, lod, ICON, getIcon(ICON));
     }
-    
+
     if (state == RENDER_STATE::BLOCK) {
         QBrush brush(Qt::SolidPattern);
         painter->setPen(Qt::NoPen);
@@ -638,12 +636,12 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             brush.setColor(getBodyColor());
         }
     } else if (state > RENDER_STATE::BLOCK) {
-    
+
         //Paint the Outline path.
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
         painter->drawRect(getElementRect(EntityRect::SHAPE));
-    
+
         //Paint extra icons
         ICON = EntityRect::MAIN_ICON_OVERLAY;
         if (isIconVisible(ICON)) {
@@ -691,7 +689,7 @@ QPen EntityItem::getPen()
             penColor = penColor.lighter(140);
         }
     }
-    
+
     pen.setColor(penColor);
     return pen;
 }
@@ -727,14 +725,14 @@ QPointF EntityItem::getNearestGridPoint(QPointF newPos)
     if (newPos.isNull()) {
         newPos = getPos();
     }
-    
+
     QPointF point = mapToScene(mapFromParent(newPos));
     qreal gridSize = getGridSize();
-    
+
     qreal closestX = qRound(point.x() / gridSize) * gridSize;
     qreal closestY = qRound(point.y() / gridSize) * gridSize;
     QPointF delta = QPointF(closestX, closestY) - point;
-    
+
     return newPos + delta;
 }
 
@@ -912,9 +910,9 @@ void EntityItem::setExpandEnabled(bool enabled)
 {
     if(is_expand_enabled != enabled){
         if(enabled){
-            addRequiredData("isExpanded");
+            addRequiredData(KeyName::IsExpanded);
         }else{
-            removeRequiredData("isExpanded");
+            removeRequiredData(KeyName::IsExpanded);
             setExpanded(false);
         }
         is_expand_enabled = enabled;
