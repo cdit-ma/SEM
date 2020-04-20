@@ -56,6 +56,7 @@ void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> n
         }
     }
 
+    // TODO: Investigate why adjustSize() is not being called directly
     QMetaObject::invokeMethod(this, "adjustSize", Qt::QueuedConnection);
     timer->start();
 }
