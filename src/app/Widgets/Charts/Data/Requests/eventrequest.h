@@ -6,7 +6,7 @@
 class EventRequest : public Request {
 
 protected:
-    explicit EventRequest(MEDEA::ChartDataKind kind);
+    explicit EventRequest() = default;
 
 public:
     void setComponentNames(const QVector<QString>& component_names);
@@ -22,7 +22,5 @@ private:
     QVector<QString> componentInstanceIDs_;
     QVector<QString> componentInstancePaths_;
 };
-
-//Q_DECLARE_METATYPE(EventRequest);
 
 #endif // EVENTREQUEST_H

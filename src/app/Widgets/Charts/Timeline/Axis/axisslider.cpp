@@ -198,11 +198,11 @@ void AxisSlider::themeChanged()
     axisPen_ = QPen(theme->getDisabledBackgroundColor(), AXIS_PEN_WIDTH, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 
     axisColor_ = theme->getAltBackgroundColor();
-    axisColor_.setAlphaF(0.2);
+    axisColor_.setAlphaF(0.3);
     sliderColor_ = theme->getTextColor();
 
     QColor midBarColor = theme->getAltBackgroundColor();
-    midBarColor.setAlphaF(0.8);
+    midBarColor.setAlphaF(0.7);
 
     middleBrush_ = QBrush(midBarColor);
     highlightBrush_ = QBrush(theme->getHighlightColor());

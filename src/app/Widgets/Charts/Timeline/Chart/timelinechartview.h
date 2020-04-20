@@ -13,6 +13,7 @@
 #include "../../Data/Events/memoryutilisationevent.h"
 #include "../../Data/Events/markerevent.h"
 #include "../../Data/Events/portevent.h"
+#include "../../Data/Events/networkutilisationevent.h"
 
 #include <QWidget>
 #include <QToolBar>
@@ -35,12 +36,13 @@ public:
 
     bool eventFilter(QObject *watched, QEvent* event);
 
-    void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent *>& events);
-    void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent *>& events);
-    void addCPUUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent *>& events);
-    void addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent *>& events);
-    void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent *>& events);
-    void addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent *>& events);
+    void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent*>& events);
+    void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent*>& events);
+    void addCPUUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent*>& events);
+    void addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent*>& events);
+    void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent*>& events);
+    void addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent*>& events);
+    void addNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<NetworkUtilisationEvent*>& events);
 
     void updateExperimentRunLastUpdatedTime(const quint32 experimentRunID, const qint64 time);
 
@@ -88,11 +90,6 @@ private:
     const QString& getDateTimeDisplayFormat(const MEDEA::ChartDataKind& kind) const;
 
     void setupLayout();
-
-    bool rangeSet = false;
-    bool scrollbarVisible = false;
-    bool showHoverLine = false;
-    double verticalScrollValue = 0.0;
 
     QLabel* emptyLabel_ = nullptr;
     QWidget* mainWidget_ = nullptr;

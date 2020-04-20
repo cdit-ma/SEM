@@ -92,19 +92,32 @@ void SearchDialog::themeChanged()
     results_widget->setStyleSheet("background: rgba(0,0,0,0);");
     filters_widget->setStyleSheet("background: rgba(0,0,0,0);");
 
+    // TODO - Add a change in border colour when the widget layout has been re-aligned
+    results_scroll->setStyleSheet(theme->getScrollAreaStyleSheet());
+    results_scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+
+    filters_scroll->setStyleSheet(theme->getScrollAreaStyleSheet());
+    filters_scroll->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+    filters_scroll->horizontalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
+
     center_action->setIcon(theme->getIcon("Icons", "crosshair"));
     popup_action->setIcon(theme->getIcon("Icons", "popOut"));
     search_action->setIcon(theme->getIcon("Icons", "zoom"));
     refresh_action->setIcon(theme->getIcon("Icons", "zoomRefresh"));
     reset_filters_action->setIcon(theme->getIcon("Icons", "cross"));
 
-    query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
-
     info_label->setFont(QFont(theme->getFont().family(), 12));
     info_label->setStyleSheet("background: rgba(0,0,0,0); color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
 
+    search_label->setStyleSheet("color:" + theme->getTextColorHex() + ";");
+    query_label->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+    status_label->setStyleSheet("color:" + theme->getAltTextColorHex() + ";");
+
     top_toolbar->setIconSize(theme->getIconSize());
+    top_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
+
     bottom_toolbar->setIconSize(theme->getIconSize());
+    bottom_toolbar->setStyleSheet(theme->getToolBarStyleSheet());
 }
 
 
@@ -326,8 +339,6 @@ void SearchDialog::setupLayout()
             status_layout->setContentsMargins(0, 0, 0, 0);
             status_layout->addWidget(status_label, 1);
             status_layout->addWidget(bottom_toolbar);
-            
-
         }
 
         v_layout->addLayout(top_layout);

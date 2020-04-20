@@ -6,22 +6,18 @@
 class Request {
 
 protected:
-    explicit Request(MEDEA::ChartDataKind kind = MEDEA::ChartDataKind::DATA);
+    explicit Request() = default;
 
 public:
-    void setExperimentRunID(const quint32 experiment_run_id);
+    void setExperimentRunID(quint32 experiment_run_id);
     void setTimeInterval(const QVector<qint64>& time_interval);
 
     quint32 experiment_run_id() const;
     const QVector<qint64>& time_interval() const;
 
-    MEDEA::ChartDataKind getDataKind() const;
-
 private:
-    quint32 experimentRunID_;
+    quint32 experimentRunID_ = 0;
     QVector<qint64> timeInterval_;
-
-    MEDEA::ChartDataKind kind_;
 };
 
 #endif // REQUEST_H

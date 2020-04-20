@@ -86,6 +86,7 @@ public:
     QPixmap getImage(const QString& prefix, const QString& alias, QSize size = QSize(), QColor tintColor = QColor());
 
     QString getPixmapResourceName(QString resource_name, QSize size, QColor tintColor);
+
     QColor getAltTextColor();
     QString getAltTextColorHex();
     void setAltTextColor(QColor color);

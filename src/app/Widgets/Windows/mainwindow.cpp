@@ -45,7 +45,6 @@
  */
 MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-    
     initializeApplication();
     setViewController(view_controller);
     
@@ -58,8 +57,6 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
         welcomeScreen = new WelcomeScreenWidget(view_controller->getActionController(), this);
         swapCentralWidget(welcomeScreen);
     }
-    
-    
 
     setupTools();
     setupInnerWindow();
@@ -69,7 +66,6 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
     addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Right);
 
     setupDockIcons();
-    
    
     connect(Theme::theme(), &Theme::theme_Changed, this, &MainWindow::themeChanged);
     connect(this, &MainWindow::welcomeScreenToggled, view_controller, &ViewController::welcomeScreenToggled);
@@ -98,7 +94,7 @@ MainWindow::MainWindow(ViewController* view_controller, QWidget* parent):BaseWin
 
     setModelTitle();
     themeChanged();
-    
+
     toggleWelcomeScreen(true);
     activateWindow();
     show();

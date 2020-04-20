@@ -69,7 +69,8 @@ const QList<MEDEA::ChartDataKind> &MEDEA::Event::GetChartDataKinds()
                 ChartDataKind::CPU_UTILISATION,
                 ChartDataKind::MEMORY_UTILISATION,
                 ChartDataKind::MARKER,
-                ChartDataKind::PORT_EVENT
+                ChartDataKind::PORT_EVENT,
+                ChartDataKind::NETWORK_UTILISATION
     };
     return kinds;
 }
@@ -107,6 +108,10 @@ const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
         static const QString portEventStr = "PortEvent";
         return portEventStr;
     }
+    case ChartDataKind::NETWORK_UTILISATION: {
+        static const QString networkStr = "NetworkUtilisation";
+        return networkStr;
+    }
     default: {
         static const QString defaultStr = "Data";
         return defaultStr;
@@ -134,6 +139,10 @@ const QString &MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind k
     case ChartDataKind::MEMORY_UTILISATION: {
         static const QString memorySuffix = "_mem";
         return memorySuffix;
+    }
+    case ChartDataKind::NETWORK_UTILISATION: {
+        static const QString networkSuffix = "_net";
+        return networkSuffix;
     }
     default: {
         static const QString defaultSuffix = "";
