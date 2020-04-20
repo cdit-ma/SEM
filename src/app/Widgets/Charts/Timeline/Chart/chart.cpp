@@ -399,6 +399,7 @@ void Chart::themeChanged()
     highlightColor_ = theme->getHighlightColor();
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
+    defaultTextPen_ = QPen(textColor_, 2.0);
 	defaultRectPen_ = QPen(gridColor_, 0.5);
 	defaultEllipsePen_ = QPen(gridColor_, 2.0);
 	highlightPen_ = QPen(highlightColor_, 2.0);

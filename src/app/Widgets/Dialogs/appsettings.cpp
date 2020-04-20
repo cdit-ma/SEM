@@ -8,37 +8,29 @@
 #include <QScrollBar>
 
 AppSettings::AppSettings(QWidget* parent)
-        : QDialog(parent)
+    : QDialog(parent)
 {
     setMinimumSize(600, 400);
-
-    QString title = "Settings";
-    setWindowTitle(title);
+    setWindowTitle("Settings");
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
     setModal(true);
 
     setupLayout();
-
     ensurePolished();
+
     themeChanged();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-}
-
-
-AppSettings::~AppSettings()
-{
 }
 
 void AppSettings::settingChanged(SETTINGS key, const QVariant& data)
 {
     DataEditWidget* widget = getDataWidget(key);
-    if(widget){
-        if(widget->getType() != SETTING_TYPE::BUTTON){
+    if (widget) {
+        if (widget->getType() != SETTING_TYPE::BUTTON) {
             widget->setValue(data);
         }
     }
 }
-
 
 void AppSettings::themeChanged()
 {
@@ -74,23 +66,21 @@ void AppSettings::dataValueChanged(const QVariant& data)
 {
     //Get the sender
     auto widget = qobject_cast<DataEditWidget*>(sender());
-    
-    if(widget){
-        SETTINGS key = widget->property("SETTINGS_KEY").value<SETTINGS>();
+    if (widget) {
+        auto key = widget->property("SETTINGS_KEY").value<SETTINGS>();
         //Apply directly.
-        if(widget->getType() == SETTING_TYPE::BUTTON){
+        if (widget->getType() == SETTING_TYPE::BUTTON) {
             emit setSetting(key, true);
             //APPLY THEME
-            if(SettingsController::settings()->isThemeSetting(key)){
+            if (SettingsController::settings()->isThemeSetting(key)) {
                 emit setSetting(SETTINGS::THEME_APPLY, true);
             }
-        }else{
+        } else {
             QVariant currentValue = SettingsController::settings()->getSetting(key);
-
-            if(currentValue != data){
+            if (currentValue != data) {
                 changedSettings[key] = data;
                 widget->setHighlighted(true);
-            }else{
+            } else {
                 changedSettings.remove(key);
                 widget->setHighlighted(false);
             }
@@ -103,28 +93,26 @@ void AppSettings::applySettings()
 {
     bool themeChanged = false;
     bool settingsChanged = false;
-    foreach(SETTINGS key, changedSettings.keys()){
-        if(!themeChanged && SettingsController::settings()->isThemeSetting(key)){
+    for (const auto& key : changedSettings.keys()) {
+        if (!themeChanged && SettingsController::settings()->isThemeSetting(key)) {
             themeChanged = true;
         }
         emit setSetting(key, changedSettings[key]);
         settingsChanged = true;
     }
-
-    if(themeChanged){
+    if (themeChanged) {
         emit setSetting(SETTINGS::THEME_APPLY, true);
     }
-
-    if(settingsChanged){
+    if (settingsChanged) {
         emit settingsApplied();
     }
 }
 
 void AppSettings::clearSettings()
 {
-    foreach(SETTINGS key, changedSettings.keys()){
+    for (const auto& key : changedSettings.keys()) {
         DataEditWidget* widget = getDataWidget(key);
-        if(widget){
+        if (widget) {
             widget->setValue(SettingsController::settings()->getSetting(key));
         }
     }
@@ -133,12 +121,11 @@ void AppSettings::clearSettings()
 void AppSettings::updateButtons()
 {
     int count = changedSettings.size();
-
     applySettingsAction->setEnabled(count > 0);
     clearSettingsAction->setEnabled(count > 0);
 
     QString prefix = "";
-    if(count > 0){
+    if (count > 0) {
         prefix += " [" + QString::number(count) % "]";
     }
 
@@ -152,36 +139,39 @@ DataEditWidget* AppSettings::getDataWidget(SETTINGS key)
     return dataEditWidgets.value(key, nullptr);
 }
 
-QString AppSettings::settingKey(Setting* setting){
+QString AppSettings::settingKey(Setting* setting)
+{
     return settingKey(setting->getCategory(), setting->getSection());
 }
 
-QString AppSettings::settingKey(const QString& category, const QString& section){
-    return  category + "_" + section;
-}   
-void AppSettings::updateLabels(){
-    auto settings = SettingsController::settings();
+QString AppSettings::settingKey(const QString& category, const QString& section)
+{
+    return category + "_" + section;
+}
 
+void AppSettings::updateLabels()
+{
+    auto settings = SettingsController::settings();
     QHash<QString, DataEditWidget*> section_lookups;
     QHash<QString, int> max_sizes;
-    for(auto setting : settings->getSettings()){
-        auto setting_id = setting->getID();
 
+    for (const auto& setting : settings->getSettings()) {
+        auto setting_id = setting->getID();
         auto edit_widget = dataEditWidgets.value(setting_id, nullptr);
-        if(edit_widget){
+        if (edit_widget) {
             auto section_key = settingKey(setting);
             auto current_size = max_sizes[section_key];
             auto required_size = edit_widget->getMinimumLabelWidth();
-            if(required_size > current_size){
+            if (required_size > current_size) {
                 max_sizes[section_key] = required_size;
             }
             section_lookups.insertMulti(section_key, edit_widget);
         }
     }
 
-    for(auto key : section_lookups.uniqueKeys()){
+    for (const auto& key : section_lookups.uniqueKeys()) {
         auto size = max_sizes[key];
-        for(auto widgets : section_lookups.values(key)){
+        for (const auto& widgets : section_lookups.values(key)) {
             widgets->setLabelWidth(size);
         }
     }
@@ -189,7 +179,7 @@ void AppSettings::updateLabels(){
 
 void AppSettings::setupLayout()
 {
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto layout = new QVBoxLayout(this);
     layout->setSpacing(0);
     layout->setMargin(5);
 
@@ -215,34 +205,29 @@ void AppSettings::setupLayout()
     updateButtons();
 }
 
-
 void AppSettings::setupSettingsLayouts()
 {
-    for(auto setting : SettingsController::settings()->getSettings()){
+    for (auto setting : SettingsController::settings()->getSettings()) {
         //Ignore invisible settings.
-        if(setting->getType() == SETTING_TYPE::NONE || setting->getType() == SETTING_TYPE::STRINGLIST || setting->getType() == SETTING_TYPE::BYTEARRAY){
+        if (setting->getType() == SETTING_TYPE::NONE || setting->getType() == SETTING_TYPE::STRINGLIST || setting->getType() == SETTING_TYPE::BYTEARRAY) {
             continue;
         }
         auto key = setting->getID();
         auto box = getSectionBox(setting->getCategory(), setting->getSection());
-        
-
-        if(!dataEditWidgets.contains(key)){
-            DataEditWidget* widget = new DataEditWidget(setting->getName(), setting->getType(), setting->getValue(), this);
+        if (!dataEditWidgets.contains(key)) {
+            auto widget = new DataEditWidget(setting->getName(), setting->getType(), setting->getValue(), this);
             widget->setProperty("SETTINGS_KEY", (uint)key);
             box->addWidget(widget);
-
-            if(setting->gotIcon()){
+            if (setting->gotIcon()) {
                 auto icon = setting->getIcon();
                 widget->setIcon(icon.first, icon.second);
             }
-
             connect(widget, &DataEditWidget::valueChanged, this, &AppSettings::dataValueChanged);
             dataEditWidgets[key] = widget;
         }
     }
 
-    foreach(QString category, categoryLayouts.keys()){
+    for (const QString& category : categoryLayouts.keys()) {
         getCategoryLayout(category)->addStretch(1);
     }
 }
@@ -251,17 +236,17 @@ QVBoxLayout* AppSettings::getCategoryLayout(const QString& category)
 {
     QVBoxLayout* layout = nullptr;
 
-    if(categoryLayouts.contains(category)){
+    if (categoryLayouts.contains(category)) {
         layout = categoryLayouts[category];
-    }else{
-        QWidget* widget = new QWidget();
+    } else {
+        auto widget = new QWidget();
         widget->setStyleSheet("background: transparent;");
 
         layout = new QVBoxLayout(widget);
         layout->setSpacing(0);
         layout->setContentsMargins(10,10,10,10);
 
-        QScrollArea* area = new QScrollArea(tabWidget);
+        auto area = new QScrollArea(tabWidget);
         area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         area->setWidgetResizable(true);
@@ -273,12 +258,11 @@ QVBoxLayout* AppSettings::getCategoryLayout(const QString& category)
     return layout;
 }
 
-
-CustomGroupBox* AppSettings::getSectionBox(const QString& category, const QString& section){
-
+CustomGroupBox* AppSettings::getSectionBox(const QString& category, const QString& section)
+{
     auto key = settingKey(category, section);
-    CustomGroupBox* box = sectionBoxes.value(key, nullptr);
-    if(!box){
+    auto box = sectionBoxes.value(key, nullptr);
+    if (!box) {
         auto category_layout = getCategoryLayout(category);
         box = new CustomGroupBox(section, category_layout->parentWidget());
         box->setCheckable(false);
