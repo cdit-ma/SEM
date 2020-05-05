@@ -15,6 +15,15 @@
 #include "../../Data/Events/portevent.h"
 #include "../../Data/Events/networkutilisationevent.h"
 
+//#include "../../Data/experimentdata.h"
+#include "../../Data/Series/portlifecycleeventseries.h"
+#include "../../Data/Series/workloadeventseries.h"
+#include "../../Data/Series/cpuutilisationeventseries.h"
+#include "../../Data/Series/memoryutilisationeventseries.h"
+#include "../../Data/Series/markereventseries.h"
+#include "../../Data/Series/porteventseries.h"
+#include "../../Data/Series/networkutilisationeventseries.h"
+
 #include <QWidget>
 #include <QToolBar>
 #include <QPushButton>
@@ -35,6 +44,21 @@ public:
     explicit TimelineChartView(QWidget* parent = nullptr);
 
     bool eventFilter(QObject *watched, QEvent* event);
+
+    /*
+    void addPortInstanceDataCharts(const PortInstanceData& port_inst_data);
+    void addNodeInstanceDataCharts(const NodeData& node_data);
+    void addWorkerInstanceDataChart(const WorkerInstanceData& worker_inst_data);
+    void addMarkerSetDataChart(const MarkerSetData& marker_set_data);
+    */
+
+    void addPortLifecycleChart(PortLifecycleEventSeries* series, const AggServerResponse::ExperimentRun& experiment_run);
+    void addPortEventsChart(PortEventSeries* series);
+    void addWorkloadEventsChart(WorkloadEventSeries* series);
+    void addCPUUtilisationChart(CPUUtilisationEventSeries* series);
+    void addMemoryUtilisationChart(MemoryUtilisationEventSeries* series);
+    void addNetworkUtilisationChart(NetworkUtilisationEventSeries* series);
+    void addMarkerSetChart(MarkerEventSeries* series);
 
     void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent*>& events);
     void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent*>& events);

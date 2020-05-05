@@ -28,11 +28,11 @@ class EntityItem: public QGraphicsObject
     Q_OBJECT
 
 public:
-    enum KIND{
+    enum KIND {
         EDGE,
         NODE,
     };
-    enum class EntityRect{
+    enum class EntityRect {
         SHAPE,
         MOVE,
         EXPAND_CONTRACT,

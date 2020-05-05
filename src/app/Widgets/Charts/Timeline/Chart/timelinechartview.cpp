@@ -4,6 +4,7 @@
 #include "../Axis/axiswidget.h"
 #include "../../../../theme.h"
 
+/*
 #include "../../Data/Series/portlifecycleeventseries.h"
 #include "../../Data/Series/workloadeventseries.h"
 #include "../../Data/Series/cpuutilisationeventseries.h"
@@ -11,6 +12,7 @@
 #include "../../Data/Series/markereventseries.h"
 #include "../../Data/Series/porteventseries.h"
 #include "../../Data/Series/networkutilisationeventseries.h"
+*/
 
 #include <QScrollBar>
 #include <QHBoxLayout>
@@ -73,6 +75,69 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
     }
     return QWidget::eventFilter(watched, event);
 }
+
+
+void TimelineChartView::addPortLifecycleChart(PortLifecycleEventSeries* series, const AggServerResponse::ExperimentRun& experiment_run)
+{
+    /*for (const auto& event : events) {
+        addEvent(MEDEA::ChartDataKind::PORT_LIFECYCLE, experimentRun, event);
+    }
+    addedEvents(experimentRun);*/
+
+    /*
+    // addEvent()
+    if (event != nullptr) {
+        const auto& series_id = event->getSeriesID();
+        auto series = getSeriesForEventKind(kind, experimentRun, series_id);
+        if (series == nullptr) {
+            const auto& series_name = event->getSeriesName();
+            series = constructSeriesForEventKind(kind, experimentRun, series_id, series_name);
+        }
+        series->addEvent(event);
+    }
+     */
+
+    // port instance data series name == port.name + "_" + port.graphml_id
+
+    // NOTE: Need experiment run info for the tooltip and the last_updated_time for the chart's range
+    if (series == nullptr) {
+        throw std::invalid_argument("TimelineChartView::addPortLifecycleChart - series is null.");
+    }
+
+    const auto& series_id = series->getID();
+    const auto& series_label = series->getLabel();
+
+
+    /*
+    // addedEvents()
+    auto experimentRunID = static_cast<quint32>(experimentRun.experiment_run_id);
+    auto experimentRunStartTime = experimentRun.start_time;
+    auto experimentInfo = "Experiment name:\t" + experimentRun.experiment_name +
+                          "\nJob number#:\t" + QString::number(experimentRun.job_num) +
+                          "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(experimentRun.start_time).toString(DATE_TIME_FORMAT);
+
+    updateRangeForExperimentRun(experimentRunID, experimentRunStartTime, experimentRun.last_updated_time);
+
+    // Set the experiment info as the chart's tooltip
+    for (const auto& chart : charts_) {
+        if (chart->getExperimentRunID() == experimentRunID) {
+            const auto& chart_id = charts_.key(chart);
+            auto chart_label = chartLabels_.value(chart_id, nullptr);
+            if (chart_label != nullptr) {
+                chart_label->setToolTip(experimentInfo);
+            }
+        }
+    }
+     */
+}
+
+void TimelineChartView::addPortEventsChart(PortEventSeries* series){};
+void TimelineChartView::addWorkloadEventsChart(WorkloadEventSeries* series){};
+void TimelineChartView::addCPUUtilisationChart(CPUUtilisationEventSeries* series){};
+void TimelineChartView::addMemoryUtilisationChart(MemoryUtilisationEventSeries* series){};
+void TimelineChartView::addNetworkUtilisationChart(NetworkUtilisationEventSeries* series){};
+void TimelineChartView::addMarkerSetChart(MarkerEventSeries* series){};
+
 
 
 /**

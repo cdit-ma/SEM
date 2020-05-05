@@ -369,6 +369,7 @@ bool MEDEA::EventSeries::contains(MEDEA::Event* event) const
  */
 void MEDEA::EventSeries::addEventToList(MEDEA::Event& event)
 {
+
     auto&& new_event = &event;
     if (contains(new_event)) {
         throw std::invalid_argument("MEDEA::EventSeries::addEventToList - Cannot add an already existing event");
