@@ -80,7 +80,7 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem):EntityItem(view
     addHoverFunction(EntityRect::LOCKED_STATE_ICON, std::bind(&NodeItem::lockHover, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-const QList<EDGE_KIND> sorted_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA};
+const QList<EDGE_KIND> sorted_edge_kinds = {EDGE_KIND::DEPLOYMENT, EDGE_KIND::QOS, EDGE_KIND::ASSEMBLY, EDGE_KIND::DATA, EDGE_KIND::TRIGGER};
 
 void NodeItem::updateVisualEdgeKinds(){
     /*
@@ -640,6 +640,7 @@ void NodeItem::edgeAdded(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID)
     switch(edge_kind){
         case EDGE_KIND::DEPLOYMENT:
         case EDGE_KIND::QOS:
+        case EDGE_KIND::TRIGGER:
             update();
             break;
     default:
@@ -654,6 +655,7 @@ void NodeItem::edgeRemoved(EDGE_DIRECTION direction, EDGE_KIND edge_kind, int ID
     switch(edge_kind){
         case EDGE_KIND::DEPLOYMENT:
         case EDGE_KIND::QOS:
+        case EDGE_KIND::TRIGGER:
             update();
             break;
 default:
@@ -742,51 +744,56 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
     }
 
-    if(state >= RENDER_STATE::REDUCED){
-        painter->save();
-        const auto& my_edges = getVisualEdgeKinds();
 
+    /*
+     * PAINT THE EDGE KNOBS
+     */
+    if (state >= RENDER_STATE::REDUCED) {
+    
+        // Need to unset the pen here because if the cell.use_alt_color is set in any of the previous painting,
+        // the pen uses the wrong color for the ellipse containing the edge knobs
+        painter->save();
+        painter->setPen(Qt::NoPen);
+        
+        const auto& my_edges = getVisualEdgeKinds();
         const auto& edges = getCurrentVisualEdgeKinds();
         
-        for(auto edge_direction : edges.keys()){
-            for(auto edge_kind : edges.value(edge_direction)){
-                auto icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
-                auto inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
+        for (auto edge_direction : edges.keys()) {
+            for (auto edge_kind : edges.value(edge_direction)) {
+                const auto& icon_rect = getEdgeConnectIconRect(edge_direction, edge_kind);
+                const auto& inner_rect = icon_rect.adjusted(.75,.75,-.75,-.75);
                 bool is_hovered = IsEdgeKnobHovered({edge_direction, edge_kind});
                 bool got_edge = attached_edges.contains({edge_direction, edge_kind});
                 bool my_edge = my_edges[edge_direction].contains(edge_kind);
                 
-                QColor brush_color;
-                if(is_hovered){
-                    brush_color = getPen().color();
-                }else{
-                    brush_color = getHeaderColor();
+                // Paint the outer ellipse
+                if (is_hovered) {
+                    painter->setBrush(getPen().color());
+                } else {
+                    painter->setBrush(getHeaderColor());
                 }
-
-                painter->setBrush(brush_color);
                 painter->drawEllipse(icon_rect);
-
+    
+                // Paint the inner ellipse; this sets the colour underneath the icon when it's disabled or not connected
                 painter->setBrush(getBodyColor());
                 painter->drawEllipse(inner_rect);
 
-                if(got_edge || is_hovered){
+                // This gives the highlighting effect of the edge icon when it's hovered over or connected
+                if (got_edge || is_hovered) {
                     painter->setOpacity(1);
-                }else{
+                } else {
                     painter->setOpacity(.60);   
                 }
-
                 
-                if(!my_edge){
+                // Use the grayed-out version of the edge icons if it's not our direct edge (i.e. if it's disabled)
+                if (!my_edge) {
                     paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind) + "_Gray");
-
-                }else{
+                } else {
                     paintPixmap(painter, lod, icon_rect, "EntityIcons", EntityFactory::getEdgeKindString(edge_kind));
                 }
                 painter->setOpacity(1);
             }
         }
-
-        
         painter->restore();
     }
 

@@ -2,72 +2,93 @@
 // Created by Cathlyn on 4/02/2020.
 //
 
+#include <keynames.h>
 #include "triggeritemmodel.h"
+#include "../../../modelcontroller/Entities/TriggerDefinitions/trigger.h"
 
 /**
  * @brief TriggerItemModel::TriggerItemModel
  * @param parent
  */
 TriggerItemModel::TriggerItemModel(QObject* parent)
-        : QStandardItemModel(parent)
+        : QStandardItemModel(parent) {}
+
+
+/**
+ * @brief TriggerItemModel::addItemForTriggerDefinition
+ * This constructs a model item connected to the given trigger_node_item and adds it to this model.
+ * @param trigger_node_item
+ * @return
+ */
+QModelIndex TriggerItemModel::addItemForTriggerDefinition(NodeViewItem& trigger_node_item)
 {
-    connect(this, &QStandardItemModel::rowsInserted, this, &TriggerItemModel::insertedRows);
-    connect(this, &QStandardItemModel::rowsRemoved, this, &TriggerItemModel::removedRows);
+    if (trigger_node_item.getNodeKind() == NODE_KIND::TRIGGER_DEFN) {
+    
+        // Remove data-fields that don't need to be shown in the data table for a Trigger definition
+        auto item_data_model = trigger_node_item.getTableModel();
+        item_data_model->removedData(KeyName::Kind);
+        item_data_model->removedData(KeyName::Label);
+        item_data_model->removedData(KeyName::Index);
+        
+        // Set custom data to link the trigger_node_item and to allow easy retrieval of the single-activation field
+        auto model_item = new QStandardItem(trigger_node_item.getData(KeyName::Label).toString());
+        model_item->setData(trigger_node_item.getID(), IDRole);
+        model_item->setData(QVariant::fromValue(item_data_model), DataTableRole);
+    
+        int wait_period_row = item_data_model->getIndex(KeyName::WaitPeriod);
+        model_item->setData(wait_period_row, WaitPeriodRowRole);
+        appendRow(model_item);
+    
+        // Connect the view item's dataChanged signal to the model item so that it can update its corresponding data accordingly
+        connect(&trigger_node_item, &ViewItem::dataChanged, [model_item](const QString& key_name, const QVariant& data) {
+            if (key_name == KeyName::Label) {
+                auto&& view_item_txt = data.toString();
+                auto&& model_item_txt = model_item->text();
+                // Only update the label if it has actually been changed
+                if (model_item_txt != view_item_txt) {
+                    model_item->setText(view_item_txt);
+                }
+            } else if (key_name == KeyName::SingleActivation) {
+                // SingleActivationRole is used to tell the trigger browser whether to show/hide the wait period row
+                model_item->setData(data.toBool(), SingleActivationRole);
+            }
+        });
+    
+        return model_item->index();
+    }
+    return QModelIndex();
+}
+
+
+/**
+ * @brief TriggerItemModel::removeItemForTriggerDefinition
+ * This searches for a model item whose IDRole data value matches trigger_definition_id and removes it from this model.
+ * @param trigger_definition_id
+ * @return
+ */
+bool TriggerItemModel::removeItemForTriggerDefinition(int trigger_definition_id)
+{
+    for (int i = 0; i < rowCount(); i++) {
+        auto&& trigger_item = item(i);
+        auto&& item_id = trigger_item->data(IDRole).toInt();
+        if (item_id == trigger_definition_id) {
+            return removeRow(i);
+        }
+    }
+    return false;
 }
 
 
 /**
  * @brief TriggerItemModel::getTableModel
- * This returns the provided model index's corresponding TriggerTableModel object.
+ * This returns the given model index's corresponding DataTableModel object.
  * @param index
  * @return
  */
-TriggerTableModel* TriggerItemModel::getTableModel(const QModelIndex& index) const
+DataTableModel* TriggerItemModel::getTableModel(const QModelIndex& index) const
 {
     if (index.isValid()) {
-        auto&& row = index.row();
-        if (row >= 0 && row < table_models_.size()) {
-            return table_models_.at(row);
-        }
+        return index.data(DataTableRole).value<DataTableModel*>();
     }
     return nullptr;
-}
-
-
-/**
- * @brief TriggerItemModel::insertedRows
- * This slot is called when rows have been inserted into this model i.e. when the rowsInserted signal has been emitted.
- * It constructs and stores a TriggerTableModel object for each inserted row.
- * @param parent
- * @param first
- * @param last
- */
-void TriggerItemModel::insertedRows(const QModelIndex& parent, int first, int last)
-{
-    if (first < 0) {
-        return;
-    }
-    for (int i = first; i <= last; i++) {
-        table_models_.insert(i, new TriggerTableModel(this));
-    }
-}
-
-
-/**
- * @brief TriggerItemModel::aboutToRemoveRows
- * This slot is called when rows have been removed from this model i.e. when the rowsRemoved signal has been emitted.
- * It removes the corresponding TriggerTableModel objects and then deletes them.
- * @param parent
- * @param first
- * @param last
- */
-void TriggerItemModel::removedRows(const QModelIndex& parent, int first, int last)
-{
-    if (first < 0 || last >= table_models_.size()) {
-        return;
-    }
-    for (int i = first; i <= last; i++) {
-        auto table_model = table_models_.takeAt(i);
-        table_model->deleteLater();
-    }
 }

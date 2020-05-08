@@ -52,6 +52,8 @@ private:
 
     void update_add_node_menu();
     void update_deploy_menu();
+    
+    void update_trigger_edge_menu();
 
     void update_chart_menu();
 
@@ -93,6 +95,8 @@ private:
     QMenu* add_edge_menu = 0;
     //QMenu* remove_edge_menu = 0;
     QMenu* deploy_menu = 0;
+    
+    QMenu* trigger_edge_menu = nullptr;
 
     QMenu* dock_add_node_menu = 0;
     QMenu* dock_deploy_menu = 0;

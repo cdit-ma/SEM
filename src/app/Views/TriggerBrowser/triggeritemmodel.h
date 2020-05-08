@@ -5,7 +5,8 @@
 #ifndef MEDEA_TRIGGERITEMMODEL_H
 #define MEDEA_TRIGGERITEMMODEL_H
 
-#include "triggertablemodel.h"
+#include "../../Controllers/ViewController/nodeviewitem.h"
+
 #include <QStandardItemModel>
 
 class TriggerItemModel : public QStandardItemModel
@@ -14,15 +15,18 @@ class TriggerItemModel : public QStandardItemModel
 
 public:
     explicit TriggerItemModel(QObject* parent = nullptr);
-
-    TriggerTableModel* getTableModel(const QModelIndex& index) const;
-
-private slots:
-    void insertedRows(const QModelIndex& parent, int first, int last);
-    void removedRows(const QModelIndex& parent, int first, int last);
-
-private:
-    QVector<TriggerTableModel*> table_models_;
+    
+    enum TriggerItemRole {
+        IDRole = Qt::UserRole + 1,
+        DataTableRole = Qt::UserRole + 2,
+        SingleActivationRole = Qt::UserRole + 3,
+        WaitPeriodRowRole = Qt::UserRole + 4,
+    };
+    
+    QModelIndex addItemForTriggerDefinition(NodeViewItem& trigger_node_item);
+    bool removeItemForTriggerDefinition(int trigger_definition_id);
+    
+    DataTableModel* getTableModel(const QModelIndex& index) const;
 };
 
 #endif //MEDEA_TRIGGERITEMMODEL_H

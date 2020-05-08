@@ -1353,6 +1353,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 if (item->getData(KeyName::IsWorker).toBool()) {
                     node_item->setIconVisible(EntityItem::EntityRect::MAIN_ICON_OVERLAY, {"Icons", "spanner"}, true);
                 }
+                if (parent_node_kind == NODE_KIND::COMPONENT_INST) {
+                    // Move ClassInstances to the bottom-right-most cell in the Assemblies aspect
+                    emit setData(ID, KeyName::Row, 2);
+                    emit setData(ID, KeyName::Column, 1);
+                }
                 node_item->setSecondaryTextKey(KeyName::Version);
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tag"}, true);
                 break;
@@ -1399,6 +1404,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                     node_item->setPrimaryTextKey(KeyName::Label);
                 }
                 break;
+            case NODE_KIND::TRIGGER_INST:
+                node_item = new StackNodeItem(item, parent_node_item);
+                node_item->setSecondaryTextKey("type");
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
+                break;
             default:
                 node_item = new StackNodeItem(item, parent_node_item);
                 break;
@@ -1407,6 +1417,14 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             // Ignore the position for the contained node view item
             if (contained_node_view_item_ == item) {
                 node_item->setIgnorePosition(true);
+            }
+
+            // Remove data-fields that don't need to be shown in the data table for a Trigger/StrategyInst
+            if (node_kind == NODE_KIND::TRIGGER_INST || node_kind == NODE_KIND::STRATEGY_INST) {
+                auto data_table = node_item->getViewItem()->getTableModel();
+                data_table->removedData("column");
+                data_table->removedData("row");
+                data_table->removedData("index");
             }
 
             auto stack_item = qobject_cast<StackNodeItem*>(node_item);
@@ -1461,6 +1479,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 } else {
                     if (node_kind == NODE_KIND::AGGREGATE || node_kind == NODE_KIND::INPUT_PARAMETER_GROUP || node_kind == NODE_KIND::RETURN_PARAMETER_GROUP || node_kind == NODE_KIND::AGGREGATE_INST) {
                         stack_item->SetRenderCellSuffixIcon(0, 0, true, "Icons", "plus");
+                    } else if (node_kind == NODE_KIND::COMPONENT_INST) {
+                        // Add TriggerInstances vertically to the bottom-middle cell labelled "Triggers"
+                        int row = 1, col = 3;
+                        stack_item->SetRenderCellArea(row, col, true, true);
+                        stack_item->SetRenderCellText(row, col, true, "Triggers");
+                        stack_item->SetCellOrientation(row, col, Qt::Vertical);
                     }
                 }
             }

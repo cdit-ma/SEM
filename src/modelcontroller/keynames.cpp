@@ -104,3 +104,9 @@ const char* KeyName::X{"x"};
 const char* KeyName::Y{"y"};
 const char* KeyName::ZmqPublisherAddress{"zmq_publisher_address"};
 const char* KeyName::ZmqServerAddress{"zmq_server_address"};
+
+const char* KeyName::TriggerType{"trigger_type"};
+const char* KeyName::Condition{"condition"};
+const char* KeyName::SingleActivation{"single_activation"};
+const char* KeyName::WaitPeriod{"wait_period (ms)"};
+const char* KeyName::ContainerReference{"Container_reference"};

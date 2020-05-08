@@ -5,6 +5,7 @@
     </qresource>
     <qresource prefix="/Images/EntityIcons">
         <file alias="Aggregate">Resources/EntityIcons/Aggregate.png</file>
+        <file alias="Aggregate">Resources/EntityIcons/Aggregate.png</file>
         <file alias="AggregateInstance">Resources/EntityIcons/AggregateInstance.png</file>
         <file alias="AssemblyDefinitions">Resources/EntityIcons/AssemblyDefinitions.png</file>
         <file alias="Attribute">Resources/EntityIcons/Attribute.png</file>
@@ -24,7 +25,6 @@
         <file alias="DDS_QOSProfile">Resources/EntityIcons/DDS_QOSProfile.png</file>
         <file alias="DeploymentContainer">Resources/EntityIcons/DeploymentContainer.png</file>
         <file alias="Edge_Aggregate_Gray">Resources/EntityIcons/Edge_Aggregate_Gray.png</file>
-        <file alias="Edge_Aggregate_Gray">Resources/EntityIcons/Edge_Aggregate_Gray.png</file>
         <file alias="Edge_Aggregate">Resources/EntityIcons/Edge_Aggregate.png</file>
         <file alias="Edge_Assembly_Gray">Resources/EntityIcons/Edge_Assembly_Gray.png</file>
         <file alias="Edge_Assembly">Resources/EntityIcons/Edge_Assembly.png</file>
@@ -32,14 +32,12 @@
         <file alias="Edge_Data">Resources/EntityIcons/Edge_Data.png</file>
         <file alias="Edge_Definition_Gray">Resources/EntityIcons/Edge_Definition_Gray.png</file>
         <file alias="Edge_Definition">Resources/EntityIcons/Edge_Definition.png</file>
-        <file alias="Edge_Definition">Resources/EntityIcons/Edge_Definition.png</file>
         <file alias="Edge_Deployment_Gray">Resources/EntityIcons/Edge_Deployment_Gray.png</file>
-        <file alias="Edge_Deployment">Resources/EntityIcons/Edge_Deployment.png</file>
         <file alias="Edge_Deployment">Resources/EntityIcons/Edge_Deployment.png</file>
         <file alias="Edge_Qos_Gray">Resources/EntityIcons/Edge_Qos_Gray.png</file>
         <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
-        <file alias="Edge_Qos">Resources/EntityIcons/Edge_Qos.png</file>
-        <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
+        <file alias="Edge_Trigger_Gray">Resources/EntityIcons/Edge_Trigger_Gray.png</file>
+        <file alias="Edge_Trigger">Resources/EntityIcons/Edge_Trigger.png</file>
         <file alias="Edge_Workflow">Resources/EntityIcons/Edge_Workflow.png</file>
         <file alias="Enum">Resources/EntityIcons/Enum.png</file>
         <file alias="EnumMember">Resources/EntityIcons/EnumMember.png</file>

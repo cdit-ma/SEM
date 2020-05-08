@@ -169,6 +169,7 @@ void ModelController::ConnectViewController(ViewControllerInterface* view_contro
         connect(view_controller, &ViewControllerInterface::SetData, this, &ModelController::setData, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::RemoveData, this, &ModelController::removeData, Qt::QueuedConnection);
 
+        connect(view_controller, &ViewControllerInterface::constructTriggerDefinition, this, &ModelController::constructTriggerDefinition, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::constructDDSQOSProfile, this, &ModelController::constructDDSQOSProfile, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::ConstructNodeAtIndex, this, &ModelController::constructNodeAtIndex, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::ConstructNodeAtPos, this, &ModelController::constructNodeAtPos, Qt::QueuedConnection);
@@ -254,6 +255,7 @@ QList<EDGE_KIND> ModelController::GetEdgeOrderIndexes(){
     indices << EDGE_KIND::QOS;
     indices << EDGE_KIND::ASSEMBLY;
     indices << EDGE_KIND::DEPLOYMENT;
+    indices << EDGE_KIND::TRIGGER;
 
     for(auto kind : entity_factory->getEdgeKinds()){
         if(!indices.contains(kind)){
@@ -352,6 +354,9 @@ Node* ModelController::get_persistent_node(NODE_KIND node_kind){
         case NODE_KIND::HARDWARE_DEFINITIONS:{
             return hardwareDefinitions;
         }
+        case NODE_KIND::TRIGGER_DEFINITIONS:{
+            return triggerDefinitions;
+        }
         default:
             return 0;
     }
@@ -388,6 +393,10 @@ void ModelController::set_persistent_node(Node* node){
         }
         case NODE_KIND::HARDWARE_DEFINITIONS:{
             hardwareDefinitions = node;
+            break;
+        }
+        case NODE_KIND::TRIGGER_DEFINITIONS:{
+            triggerDefinitions = node;
             break;
         }
         default:
@@ -543,6 +552,13 @@ void ModelController::constructNodeAtPos(int parent_id, NODE_KIND kind, QPointF 
 void ModelController::constructDDSQOSProfile(){
     if(assemblyDefinitions){
         constructNodeAtIndex(assemblyDefinitions->getID(), NODE_KIND::QOS_DDS_PROFILE, -1);
+    }
+}
+
+void ModelController::constructTriggerDefinition()
+{
+    if (triggerDefinitions) {
+        constructNodeAtIndex(triggerDefinitions->getID(), NODE_KIND::TRIGGER_DEFN, -1);
     }
 }
 
@@ -1493,6 +1509,8 @@ bool ModelController::canDeleteNode(Node *node)
                 }
                 break;
             }
+            case NODE_KIND::TRIGGER_INST:
+                break;
             default:
                 //Can't remove instances
                 return false;

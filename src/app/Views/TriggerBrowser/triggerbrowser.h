@@ -6,6 +6,7 @@
 #define MEDEA_TRIGGERBROWSER_H
 
 #include "triggeritemmodel.h"
+#include "../../Controllers/ViewController/viewcontroller.h"
 
 #include <QWidget>
 #include <QListView>
@@ -18,34 +19,36 @@ class TriggerBrowser : public QWidget
     Q_OBJECT
 
 public:
-    explicit TriggerBrowser(QWidget* parent = nullptr);
+    explicit TriggerBrowser(ViewController* vc, QWidget* parent = nullptr);
 
 private slots:
     void themeChanged();
 
-    void currentTriggerChanged(const QModelIndex& current, const QModelIndex& previous);
-    void triggerListDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
-    void triggerTableDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
+    void triggerSelectionChanged(const QModelIndex& current, const QModelIndex& previous);
+    void triggerDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles = QVector<int>());
 
-    void addTrigger();
-    void removeTrigger();
+    void viewItem_constructed(ViewItem* item);
+    void viewItem_destructed(int id, ViewItem* item);
 
 private:
-    void setWaitPeriodRowVisible(TriggerTableModel* table_model);
-
+    void addTrigger(NodeViewItem& node_item);
+    void removeTrigger(int trigger_definition_id);
+    
+    void updateTableView(const QModelIndex& index);
     void setupLayout();
 
+    ViewController* view_controller_ = nullptr;
     TriggerItemModel* trigger_item_model_ = nullptr;
 
     QListView* trigger_list_view_ = nullptr;
-    QTableView* trigger_fields_view_ = nullptr;
+    QTableView* trigger_table_view_ = nullptr;
     QSplitter* horizontal_splitter_ = nullptr;
 
     QToolBar* toolbar_ = nullptr;
     QAction* add_trigger_action_ = nullptr;
     QAction* remove_trigger_action_ = nullptr;
-
-    QString trigger_item_text_;
+    
+    bool user_added_ = false;
 };
 
 #endif //MEDEA_TRIGGERBROWSER_H

@@ -26,6 +26,7 @@ ComponentInst::ComponentInst(EntityFactoryBroker& broker, bool is_temp) : Node(b
     setAcceptsNodeKind(NODE_KIND::PORT_PERIODIC_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_REPLIER_INST);
     setAcceptsNodeKind(NODE_KIND::PORT_REQUESTER_INST);
+    setAcceptsNodeKind(NODE_KIND::TRIGGER_INST);
 
     if(is_temp){
         //Break out early for temporary entities

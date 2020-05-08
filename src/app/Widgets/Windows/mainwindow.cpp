@@ -607,7 +607,7 @@ void MainWindow::setupDockablePanels()
 
     // Trigger Browser
     dockWidget_Trigger = window_manager->constructDockWidget("Trigger Browser", this);
-    dockWidget_Trigger->setWidget(new TriggerBrowser(this));
+    dockWidget_Trigger->setWidget(new TriggerBrowser(view_controller, this));
     dockWidget_Trigger->setIconVisible(true);
     dockWidget_Trigger->setProtected(true);
 
@@ -645,9 +645,9 @@ void MainWindow::setupDockablePanels()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Search);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Notification);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Qos);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget_Trigger);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Charts);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Dataflow);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget_Trigger);
 
     // initially hide tool dock widgets
     innerWindow->setDockWidgetVisibility(dockwidget_Qos, false);
