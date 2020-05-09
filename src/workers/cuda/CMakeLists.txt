@@ -14,8 +14,13 @@ if (NOT CUDAToolkit_FOUND)
     return()
 endif ()
 
+# Libraries
 add_subdirectory(common)
 add_subdirectory(fft)
+
+# Executables
+add_subdirectory(list_devices)
+
 if (BUILD_TEST)
     add_subdirectory(test)
 endif ()
