@@ -63,6 +63,8 @@ endif ()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/cmakevars.h @ONLY)
 
 # Build CUDA cpp wrapper library
+include(CheckLanguage)
+check_language(CUDA)
 add_subdirectory(extern/cuda-api-wrappers)
 
 if (BUILD_TEST)
