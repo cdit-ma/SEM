@@ -65,7 +65,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BI
 # Build CUDA cpp wrapper library
 include(CheckLanguage)
 check_language(CUDA)
-add_subdirectory(extern/cuda-api-wrappers)
+if (CMAKE_CUDA_COMPILER)
+    add_subdirectory(extern/cuda-api-wrappers)
+endif()
 
 if (BUILD_TEST)
     set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
