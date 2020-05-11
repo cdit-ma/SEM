@@ -38,6 +38,10 @@ public:
         return ip_addr_.to_string() + ':' + std::to_string(port_);
     }
 
+    [[nodiscard]] auto tcp() const -> std::string {
+        return "tcp://" + ip_addr_.to_string() + ':' + std::to_string(port_);
+    }
+
     constexpr SocketAddress(Ipv4 ip_addr, uint16_t port) : ip_addr_(ip_addr), port_(port) {}
 
     explicit SocketAddress(const std::string& addr_string) :

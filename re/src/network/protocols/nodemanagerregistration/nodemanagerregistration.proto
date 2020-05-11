@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package re.network.protocol.nodemanagerregistration;
+
+message RegistrationInfo {
+    string uuid = 1;
+    string node_ip_address = 2;
+    string hostname = 3;
+    string library_path = 4;
+}
+
+message Heartbeat {
+    string uuid = 1;
+}
+
+message Request {
+    oneof Action {
+        RegistrationInfo registration = 1;
+        Heartbeat heartbeat = 2;
+    }
+}
+
+message Reply {
+    bool success = 1;
+    string message = 2;
+}

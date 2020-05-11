@@ -1,4 +1,5 @@
 #include "workerdefinition.h"
+#include "attributedefinition.h"
 namespace re::Representation {
 
 WorkerDefinition::WorkerDefinition(const WorkerDefinition::PbType& pb) :
@@ -19,5 +20,13 @@ auto WorkerDefinition::ToProto() const -> std::unique_ptr<PbType>
         out->add_attribute_definition_uuids(attribute_definition_uuid.to_string());
     }
     return out;
+}
+WorkerDefinition::WorkerDefinition(GraphmlParser& parser, const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+{
+    cpp_class_name_ = parser.GetDataValue(medea_id, "type");
+}
+void WorkerDefinition::AddAttributeDefinition(const AttributeDefinition& attribute_definition) {
+    attribute_definition_uuids_.emplace_back(attribute_definition.GetCoreData().GetUuid());
 }
 } // namespace re::Representation

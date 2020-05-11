@@ -1,0 +1,8 @@
+[Unit]
+Description=re NodeManager service.
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=7
+ExecStart=/home/cdit-ma/re/bin/node_manager --config_file=/home/cdit-ma/re.conf

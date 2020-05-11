@@ -12,6 +12,8 @@
 #include <sstream>
 #include <iostream>
 
+/// This function is how we used to register a node manager with the environment manager in the
+///  past.
 std::unique_ptr<NodeManager::NodeManagerRegistrationReply>
 EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manager_endpoint,
         const std::string& experiment_name,
@@ -27,7 +29,7 @@ EnvironmentRequest::TryRegisterNodeManager(const std::string& environment_manage
 
 
     auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(environment_manager_endpoint));
-    
+
     // Retry three times
     int retry_count = 0;
     while(retry_count < 3){
@@ -57,7 +59,7 @@ EnvironmentRequest::TryRegisterLoganServer(const std::string& environment_manage
     request.mutable_id()->set_experiment_name(experiment_name);
     request.mutable_id()->set_ip_address(node_ip_address);
 
-    
+
     auto requester = std::unique_ptr<zmq::ProtoRequester>(new zmq::ProtoRequester(environment_manager_endpoint));
 
     int retry_count = 0;

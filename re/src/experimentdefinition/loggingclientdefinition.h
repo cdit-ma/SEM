@@ -3,6 +3,7 @@
 
 #include "modelentity.h"
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include <graphmlparser/graphmlparser.h>
 
 namespace re::Representation {
 
@@ -11,6 +12,7 @@ public:
     using PbType = network::protocol::experimentdefinition::LoggingClientDefinition;
     using LoggingModePbType = network::protocol::experimentdefinition::LoggingMode;
 
+    LoggingClientDefinition(GraphmlParser& parser, const std::string& medea_id);
     enum class Mode { Off, Cached, Live };
     explicit LoggingClientDefinition(const PbType& pb);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;

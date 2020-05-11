@@ -1,4 +1,7 @@
 #include "container.h"
+#include "cluster.h"
+#include "componentassembly.h"
+#include "componentinstance.h"
 namespace re::Representation {
 auto ContainerTypeToPb(Container::Type type) -> Container::PbType::ContainerType
 {
@@ -8,6 +11,7 @@ auto ContainerTypeToPb(Container::Type type) -> Container::PbType::ContainerType
         case Container::Type::OsProcess:
             return Container::PbType::OsProcess;
     }
+    throw std::invalid_argument("Invalid container type found in experiment_definition::container");
 }
 auto ContainerTypePbToType(Container::PbType::ContainerType type)
 {
@@ -62,5 +66,48 @@ Container::Container(const PbType& pb) : DefaultModelEntity{pb.core_data()}
     for(const auto& logger_definition_uuid : pb.logger_definition_uuids()) {
         logger_definition_uuids_.emplace_back(logger_definition_uuid);
     }
+}
+
+Container::Container(GraphmlParser& parser, const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+{
+    auto container_is_docker = (parser.GetDataValue(medea_id, "is_docker") == "true");
+
+    if(container_is_docker) {
+        container_type_ = Type::Docker;
+    } else {
+        container_type_ = Type::OsProcess;
+    }
+}
+
+auto Container::AddDeployedLoggingClient(const LoggingClientDefinition& logging_client) -> void
+{
+    logger_definition_uuids_.push_back(logging_client.GetCoreData().GetUuid());
+}
+
+auto Container::AddDeployedComponentAssembly(const ComponentAssembly& component_assembly) -> void
+{
+    component_assembly_uuids_.push_back(component_assembly.GetCoreData().GetUuid());
+}
+
+auto Container::AddDeployedComponentInstance(const ComponentInstance& component_instance) -> void
+{
+    component_instance_uuids_.push_back(component_instance.GetCoreData().GetUuid());
+}
+auto Container::Duplicate() -> Container
+{
+    // Our duplicate should be same in every way except for its uuid
+    CoreData new_core_data{types::Uuid{}, GetCoreData().GetMedeaId(), GetCoreData().GetMedeaId()};
+    auto out = Container(*this);
+    out.SetCoreData(new_core_data);
+    return out;
+}
+auto Container::GetType() const -> Container::Type
+{
+    return container_type_;
+}
+auto Container::GetDeployedComponents() const -> std::vector<types::Uuid>
+{
+    return component_instance_uuids_;
 }
 } // namespace re::Representation

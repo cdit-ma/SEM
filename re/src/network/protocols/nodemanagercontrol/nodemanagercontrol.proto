@@ -1,0 +1,30 @@
+syntax="proto3";
+
+package re.network.protocol.nodemanagercontrol;
+
+message Request {
+    oneof Action {
+        NewEpm new_epm = 1;
+        StopEpm stop_epm = 2;
+        Heartbeat heartbeat = 3;
+    }
+}
+
+message NewEpm {
+    string experiment_uuid = 1;
+    string experiment_name = 2;
+}
+
+message StopEpm {
+    string epm_uuid = 1;
+}
+
+message Heartbeat {
+
+}
+
+message Reply {
+    bool success = 1;
+    string failure_message = 2;
+    string epm_uuid = 3;
+}

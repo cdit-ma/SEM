@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package re.network.protocol.triggerevent;
+
+message Event {
+    string trigger_id = 1;
+}
+
+

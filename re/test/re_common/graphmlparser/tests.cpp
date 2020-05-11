@@ -13,7 +13,7 @@ CMRC_DECLARE(test_models);
 TEST(ReCommon_GraphmlParser, FileNotFound) {
 
     try {
-        auto out = ProtobufModelParser::ParseModel("models/non-existent.graphml", "FileNotFound");
+        auto out = re::ModelParser::ModelParser::ParseModel("models/non-existent.graphml", "FileNotFound");
         FAIL() << "Expected runtime_error exception on non-existent file.";
     } catch(const std::runtime_error& ex) {
 
@@ -29,8 +29,8 @@ TEST(ReCommon_GraphmlParser, Deterministic) {
     auto model_file = cmrc::test_models::get_filesystem().open("models/model.graphml");
     std::string model_string{model_file.begin(), model_file.end()};
 
-    auto out = ProtobufModelParser::ParseModelString(model_string, "simple_test");
-    auto out2 = ProtobufModelParser::ParseModelString(model_string, "simple_test");
+    auto out = re::ModelParser::ModelParser::ParseModelString(model_string, "simple_test");
+    auto out2 = re::ModelParser::ModelParser::ParseModelString(model_string, "simple_test");
 
     // The same model parsed twice should result in exactly the same output.
     std::string diffs;
@@ -49,9 +49,9 @@ TEST(ReCommon_GraphmlParser, ExperimentID) {
     auto model_file = cmrc::test_models::get_filesystem().open("models/model.graphml");
     std::string model_string{model_file.begin(), model_file.end()};
 
-    auto out = ProtobufModelParser::ParseModelString(model_string, "simple_test");
-    auto out_same = ProtobufModelParser::ParseModelString(model_string, "simple_test");
-    auto out_different = ProtobufModelParser::ParseModelString(model_string, "not_simple_test");
+    auto out = re::ModelParser::ModelParser::ParseModelString(model_string, "simple_test");
+    auto out_same = re::ModelParser::ModelParser::ParseModelString(model_string, "simple_test");
+    auto out_different = re::ModelParser::ModelParser::ParseModelString(model_string, "not_simple_test");
 
     // Should be different with a differing experiment id.
     EXPECT_FALSE(MessageDifferencer::Equals(*out, *out_different));
@@ -66,7 +66,7 @@ TEST(ReCommon_GraphmlParser, SimpleReplication) {
     // Get model from resource fs (copied by cmrs).
     auto model_file = cmrc::test_models::get_filesystem().open("models/simple_replication.graphml");
     std::string model_string{model_file.begin(), model_file.end()};
-    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+    auto out = re::ModelParser::ModelParser::ParseModelString(model_string, "replication");
 
     auto expected_file = cmrc::test_models::get_filesystem().open("models/simple_replication.json");
     std::string expected_string{expected_file.begin(), expected_file.end()};
@@ -90,7 +90,7 @@ TEST(ReCommon_GraphmlParser, ComplexReplication) {
     // Get model from resource fs (copied by cmrs).
     auto model_file = cmrc::test_models::get_filesystem().open("models/complex_replication.graphml");
     std::string model_string{model_file.begin(), model_file.end()};
-    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+    auto out = re::ModelParser::ModelParser::ParseModelString(model_string, "replication");
 
     auto expected_file = cmrc::test_models::get_filesystem().open("models/complex_replication.json");
     std::string expected_string{expected_file.begin(), expected_file.end()};
@@ -113,7 +113,7 @@ TEST(ReCommon_GraphmlParser, RE_414) {
     // Get model from resource fs (copied by cmrs).
     auto model_file = cmrc::test_models::get_filesystem().open("models/RE414.graphml");
     std::string model_string{model_file.begin(), model_file.end()};
-    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+    auto out = re::ModelParser::ModelParser::ParseModelString(model_string, "replication");
 
     auto expected_file = cmrc::test_models::get_filesystem().open("models/RE414.json");
     std::string expected_string{expected_file.begin(), expected_file.end()};
@@ -146,7 +146,7 @@ TEST(ReCommon_GraphmlParser, RE414_uneven_depth) {
     // Get model from resource fs (copied by cmrs).
     auto model_file = cmrc::test_models::get_filesystem().open("models/RE414_uneven_depth.graphml");
     std::string model_string{model_file.begin(), model_file.end()};
-    auto out = ProtobufModelParser::ParseModelString(model_string, "replication");
+    auto out = re::ModelParser::ModelParser::ParseModelString(model_string, "replication");
 
     auto expected_file = cmrc::test_models::get_filesystem().open("models/RE414_uneven_depth.json");
     std::string expected_string{expected_file.begin(), expected_file.end()};

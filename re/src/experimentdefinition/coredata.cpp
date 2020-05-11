@@ -17,4 +17,8 @@ CoreData::CoreData(const CoreData::PbType& pb)
     medea_name_ = pb.medea_name();
     medea_id_ = pb.medea_id();
 }
+CoreData::CoreData(types::Uuid uuid, const std::string& medea_id, const std::string& medea_name) :
+    uuid_{uuid}, medea_id_{medea_id}, medea_name_{medea_name}
+{
+}
 } // namespace re::Representation

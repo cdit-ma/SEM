@@ -1,1 +1,8 @@
+add_subdirectory(epmcontrol)
+add_subdirectory(epmregistration)
+add_subdirectory(epmstdout)
 add_subdirectory(experimentdefinition)
+add_subdirectory(experimentregistration)
+add_subdirectory(nodemanagercontrol)
+add_subdirectory(nodemanagerregistration)
+add_subdirectory(triggerevent)

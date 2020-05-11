@@ -1,7 +1,8 @@
+#include "dis_worker_impl.h"
+
 #include <utility>
 
 #include "dis_worker.h"
-#include "dis_worker_impl.h"
 
 Dis_Worker::Dis_Worker(const BehaviourContainer& container, const std::string& inst_name) : Worker(container, GET_FUNC, inst_name){
     impl_ = std::unique_ptr<Dis_Worker_Impl>(new Dis_Worker_Impl());

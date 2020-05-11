@@ -2,6 +2,8 @@
 #include "socketaddress.hpp"
 
 namespace re::types::test {
+#pragma warning(push)
+#pragma warning(disable : UnusedResult)
 TEST(re_types_socketaddress, equality_operator)
 {
     constexpr auto a = SocketAddress({0, 0, 0, 0}, 0);
@@ -40,3 +42,4 @@ TEST(re_types_socketaddress, from_string)
                  std::invalid_argument);
 }
 } // namespace re::types::test
+#pragma warning(pop)
