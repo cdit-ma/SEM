@@ -17,10 +17,14 @@ SlaveHeartbeater::~SlaveHeartbeater(){
 
     try{
         if(heartbeat_future_.valid()){
-            heartbeat_future_.get();
+            // REVIEW (Mitch): What's with the rando wait?
+            auto wait_result = heartbeat_future_.wait_for(std::chrono::seconds(1));
+            if(wait_result != std::future_status::ready) {
+                throw std::runtime_error("Shutdown timed out.");
+            }
         }
     }catch(const std::exception& ex){
-        std::cerr << ex.what() << std::endl;
+        std::cerr << "exception in slave heartbeater " <<ex.what() << std::endl;
     }
 }
 

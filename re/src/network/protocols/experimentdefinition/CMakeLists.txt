@@ -12,7 +12,7 @@ target_sources(experiment_definition_protocol PRIVATE
 target_include_directories(experiment_definition_protocol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Link Libraries
-target_link_libraries(experiment_definition_protocol 
-        PUBLIC 
+target_link_libraries(experiment_definition_protocol
+        PUBLIC
         protobuf::libprotobuf
         )

@@ -58,5 +58,10 @@ target_sources(${PROJECT_NAME} PRIVATE
         loggingserverdefinition.cpp
         )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE experiment_definition_protocol)
-target_link_libraries(${PROJECT_NAME} PRIVATE re_types)
+target_link_libraries(${PROJECT_NAME} PUBLIC experiment_definition_protocol)
+target_link_libraries(${PROJECT_NAME} PUBLIC re_types)
+target_link_libraries(${PROJECT_NAME} PUBLIC re_graphml_parser_lib)
+
+if (BUILD_TEST)
+    add_subdirectory(test)
+endif ()

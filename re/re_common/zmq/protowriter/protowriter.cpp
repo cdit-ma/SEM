@@ -1,5 +1,7 @@
 #include "protowriter.h"
 #include <iostream>
+#include <memory>
+#include <utility>
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
 #include <thread>
@@ -10,8 +12,8 @@
 zmq::ProtoWriter::ProtoWriter():
     message_process_delay_(200)
 {
-    context_ = std::unique_ptr<zmq::context_t>(new zmq::context_t(1));
-    socket_ = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_PUB));
+    context_ = std::make_unique<zmq::context_t>(1);
+    socket_ = std::make_unique<zmq::socket_t>(*context_, ZMQ_PUB);
     
     //Linger until all messages are sent to a peer
     socket_->setsockopt(ZMQ_LINGER, -1);
@@ -26,11 +28,13 @@ zmq::ProtoWriter::~ProtoWriter(){
 
 void zmq::ProtoWriter::RegisterMonitorCallback(const uint8_t& event, std::function<void(int, std::string)> fn){
     if(!monitor_){
-        monitor_ = std::unique_ptr<zmq::Monitor>(new zmq::Monitor(*socket_));
+        monitor_ = std::make_unique<zmq::Monitor>(*socket_);
     }
-    monitor_->RegisterEventCallback(event, fn);
+    monitor_->RegisterEventCallback(event, std::move(fn));
 }
 
+// Endpoint must be in format tcp://<ip_address>:<port>
+// e.g. "tcp://192.168.111.230:20000"
 bool zmq::ProtoWriter::BindPublisherSocket(const std::string& endpoint){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);

@@ -1,0 +1,13 @@
+syntax="proto3";
+
+package re.network.protocol.epmstdout;
+
+message Message {
+    oneof Action {
+        string output = 1;
+        Shutdown shutdown = 2;
+    }
+}
+
+message Shutdown {
+}
