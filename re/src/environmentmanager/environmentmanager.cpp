@@ -1,89 +1,89 @@
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <exception>
 #include <boost/program_options.hpp>
-#include <signal.h>
-#include "execution.hpp"
+#include <csignal>
+#include <iostream>
+#include <memory>
+#include "uuid.h"
 
 #include "sem_version.hpp"
 
 #include "deploymentregister.h"
 
-Execution execution;
-
-void signal_handler(int sig)
+namespace {
+volatile std::sig_atomic_t envmanager_signal_status = 0;
+}
+void signal_handler(int signal)
 {
-    execution.Interrupt();
+    envmanager_signal_status = signal;
 }
 
-int main(int argc, char **argv){
-
+/**
+ * Environment manager main function.
+ *
+ * Args:
+ *  * ip_address - Ip address that environment manager should use for zmq based comms with
+ *      experiment components.
+ *  * qpid_address - Qpid broker endpoint to use. In format 192.168.111.123:5672. [required]
+ *  * tao_naming_service_address - Tao naming endpoint to use. [optional]
+ *  * registration_port - Port used to communicate with the environment manager. [required]
+ */
+int main(int argc, char** argv)
+{
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    static const std::string default_registration_port = "20000";
-
     std::string ip_address;
-    std::string registration_port;
+    uint16_t registration_port;
     std::string qpid_address;
     std::string tao_naming_service_address;
 
-    //Parse Args
+    // Parse Args
     boost::program_options::options_description options("Environment Manager Options");
-    options.add_options()("ip_address,a", boost::program_options::value<std::string>(&ip_address),
-                            "Ip address of environment manager");
-    options.add_options()("registration_port,r", boost::program_options::value<std::string>(&registration_port),
-                            "Port number for deployment registration.");
 
-    options.add_options()("qpid_address,q", boost::program_options::value<std::string>(&qpid_address),
-                            "Endpoint of qpid broker. <ip_addr:port>");
-    
-    options.add_options()("tao_naming_service_address,t", boost::program_options::value<std::string>(&tao_naming_service_address),
-                            "Endpoint of tao naming service.");
+    options.add_options()("ip_address,a",
+                          boost::program_options::value<std::string>(&ip_address)->required(),
+                          "Ip address of environment manager");
+    options.add_options()("registration_port,r",
+                          boost::program_options::value<uint16_t>(&registration_port)->required(),
+                          "Port number for deployment registration.");
+
+    options.add_options()("qpid_address,q",
+                          boost::program_options::value<std::string>(&qpid_address)->required(),
+                          "Endpoint of qpid broker. <ip_addr:port>");
+
+    options.add_options()("tao_naming_service_address,t",
+                          boost::program_options::value<std::string>(&tao_naming_service_address),
+                          "Endpoint of tao naming service.");
     options.add_options()("help,h", "Display help");
 
     boost::program_options::variables_map vm;
 
-    try{
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
+    try {
+        boost::program_options::store(
+            boost::program_options::parse_command_line(argc, argv, options), vm);
         boost::program_options::notify(vm);
-    }
-    catch(...){
+    } catch(...) {
         std::cout << options << std::endl;
         return 1;
     }
 
-    if(vm.count("help")){
+    if(vm.count("help")) {
         std::cerr << options << std::endl;
         return 0;
     }
 
-    if(ip_address.empty()){
-        std::cerr << "No ip address set, see --h for paramaters." << std::endl;
-        std::cerr << options << std::endl;
-        return 1;
+    if(tao_naming_service_address.empty()) {
+        std::cerr << "* No Tao naming service address set. This will cause models containing TAO "
+                     "ports to fail."
+                  << std::endl;
     }
 
-    //If any reqired options are empty, set to default.
-    if(registration_port.empty()){
-        registration_port = default_registration_port;
+    re::EnvironmentManager::DeploymentRegister dep_reg{
+        re::types::Ipv4::from_string(ip_address), registration_port,
+        re::types::SocketAddress::from_string(qpid_address), tao_naming_service_address};
+
+    while(envmanager_signal_status == 0) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    //Broker and naming service endpoints default to same ip as environment manager.
-    if(qpid_address.empty()){
-        std::cerr << "* No Qpid broker address set. This will cause models containing Qpid ports to fail." << std::endl;
-    }
-    if(tao_naming_service_address.empty()){
-        std::cerr << "* No Tao naming service address set. This will cause models containing TAO ports to fail." << std::endl;
-    }
-
-    auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(execution, ip_address, registration_port, qpid_address, tao_naming_service_address));
-    std::cout << "-------[" << "re_environment_manager" <<" v" << SEM::GetVersion() << "]-------" << std::endl;
-    std::cout << "* Endpoint: " << "tcp://" << ip_address << ":" << registration_port << std::endl;
-    std::cout << "* Qpid Broker Address: " << qpid_address << std::endl;
-    std::cout << "* Tao Naming Service Endpoint: " << tao_naming_service_address << std::endl << std::endl;
-    std::cout << "------------------[Running]------------------" << std::endl << std::endl;
-    execution.Start();
     return 0;
 }

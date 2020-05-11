@@ -4,16 +4,21 @@
 #include "modelentity.h"
 #include <string>
 #include "uuid.h"
+#include "graphmlparser.h"
 namespace re::Representation {
 
+class Container;
 class Strategy : public DefaultModelEntity {
 public:
     using PbType = network::protocol::experimentdefinition::StrategyPrototype;
     explicit Strategy(const PbType& pb);
+    Strategy(GraphmlParser& parser, const std::string& medea_id, const Container& container);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
+    [[nodiscard]] auto GetContainerUuid() const -> types::Uuid;
 
 private:
     // Container to start on strategy execution.
+    types::Uuid container_uuid_;
     std::string container_medea_id_;
     std::string container_medea_name_;
 };

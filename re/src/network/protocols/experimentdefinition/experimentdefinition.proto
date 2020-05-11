@@ -1,6 +1,18 @@
 syntax = "proto3";
 
+import "controlmessage.proto";
 package re.network.protocol.experimentdefinition;
+
+message RegistrationRequest {
+    string request_uuid = 1;
+    ExperimentDefinition experiment = 2;
+    NodeManager.Experiment old_experiment_message_type = 3;
+    int64 duration_seconds = 4;
+}
+
+message RegistrationReply {
+    string experiment_uuid = 1;
+}
 
 message ExperimentDefinition {
     string uuid = 1;
@@ -52,10 +64,11 @@ message ComponentDefinition {
     CoreData core_data = 1;
     repeated string medea_namespaces = 5;
 
-    repeated string port_definition_uuids = 6;
+    repeated string middleware_port_definition_uuids = 6;
     repeated string worker_definition_uuids = 7;
     repeated string attribute_definition_uuids = 8;
     repeated string trigger_definition_uuids = 9;
+    repeated string periodic_port_definition_uuids = 10;
 }
 
 // Periodic port definition.
@@ -106,6 +119,8 @@ message MiddlewarePortInstance {
     repeated string internal_connected_port_uuids = 6;
     repeated string external_connected_port_uuids = 7;
     repeated string connected_port_delegate_uuids = 8;
+
+    string topic = 9;
 }
 
 enum AttributeType {
@@ -213,12 +228,19 @@ message Node {
     repeated string deployed_container_uuids = 4;
     repeated string deployed_logging_client_uuids = 5;
     repeated string deployed_logging_server_uuids = 6;
+    repeated string deployed_component_assembly_uuids = 7;
 }
 
 message Cluster {
     CoreData core_data = 1;
-    string jenkins_master_ip = 2;
+    string jenkins_url = 2;
     repeated string node_uuids = 3;
+
+    repeated string deployed_component_instance_uuids = 4;
+    repeated string deployed_container_uuids = 5;
+    repeated string deployed_logging_client_uuids = 6;
+    repeated string deployed_logging_server_uuids = 7;
+    repeated string deployed_component_assembly_uuids = 8;
 }
 
 message WorkerDefinition {
@@ -273,6 +295,7 @@ message StrategyPrototype {
     CoreData core_data = 1;
     string container_medea_id = 2;
     string container_medea_name = 3;
+    string container_uuid = 4;
 }
 
 message LoggingServerDefinition {

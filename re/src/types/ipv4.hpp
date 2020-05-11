@@ -57,6 +57,16 @@ public:
     /// Expected format 123.123.123.123 or as a regex (^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$)
     explicit Ipv4(const std::string& addr_string) : addr_{parse_string_to_octets(addr_string)} {}
 
+    [[nodiscard]] auto hash() const -> size_t
+    {
+        size_t out = 0;
+        out += (addr_[0] << 24);
+        out += (addr_[1] << 16);
+        out += (addr_[2] << 8);
+        out += addr_[3];
+        return out;
+    }
+
     /// Copy/move constructor
     constexpr Ipv4(const Ipv4&) = default;
     constexpr Ipv4(Ipv4&&) = default;
@@ -82,4 +92,10 @@ inline auto operator==(const Ipv4& a, const Ipv4& b)
 
 } // namespace re::types
 
+/// Supply std namespaced hash function object s.t. we can use re::uuid as std::unordered map key.
+namespace std {
+template<> struct hash<re::types::Ipv4> {
+    auto operator()(const re::types::Ipv4& ip) const -> size_t { return ip.hash(); }
+};
+} // namespace std
 #endif // CPP_UTIL_IPV4_HPP

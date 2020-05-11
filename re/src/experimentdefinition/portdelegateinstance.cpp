@@ -1,4 +1,5 @@
 #include "portdelegateinstance.h"
+#include "middlewareportinstance.h"
 
 namespace re::Representation {
 
@@ -30,5 +31,20 @@ auto PortDelegateInstance::ToProto() const -> std::unique_ptr<PortDelegateInstan
         out->add_connected_port_instance_uuids(instance_uuid.to_string());
     }
     return out;
+}
+PortDelegateInstance::PortDelegateInstance(GraphmlParser& parser, const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+    medea_aggregate_type_{parser.GetDataValue(medea_id, "type")}
+{
+}
+auto PortDelegateInstance::AddConnectedPortDelegate(
+    const PortDelegateInstance& port_delegate_instance) -> void
+{
+    connected_port_delegate_uuids_.emplace_back(port_delegate_instance.GetCoreData().GetUuid());
+}
+auto PortDelegateInstance::AddConnectedMiddlewarePortInstance(
+    const MiddlewarePortInstance& middleware_port_instance) -> void
+{
+    connected_port_instance_uuids_.emplace_back(middleware_port_instance.GetCoreData().GetUuid());
 }
 } // namespace re::Representation

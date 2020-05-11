@@ -1,6 +1,7 @@
 #ifndef RE_MIDDLEWAREPORTDEFINITION_H
 #define RE_MIDDLEWAREPORTDEFINITION_H
 #include "modelentity.h"
+#include <graphmlparser/graphmlparser.h>
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
 #include <string>
 #include "uuid.h"
@@ -12,9 +13,12 @@ public:
     using PbType = re::network::protocol::experimentdefinition::MiddlewarePortDefinition;
     using MiddlewarePortKindPb = re::network::protocol::experimentdefinition::MiddlewarePortKind;
     explicit MiddlewarePortDefinition(const PbType& pb);
+    MiddlewarePortDefinition(GraphmlParser& parser, const std::string& medea_id);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
     enum class Kind { Publisher, Subscriber, Requester, Replier };
-    [[nodiscard]] auto GetUuid() -> re::types::Uuid { return GetCoreData().GetUuid(); }
+
+    std::string GetMedeaAggregateType();
+    Kind GetKind() { return kind_; }
 
 private:
     std::vector<re::types::Uuid> attribute_definition_uuids_;

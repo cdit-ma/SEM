@@ -1,4 +1,9 @@
 #include "node.h"
+#include "componentassembly.h"
+#include "componentinstance.h"
+#include "container.h"
+#include "loggingclientdefinition.h"
+#include "loggingserverdefinition.h"
 
 namespace re::Representation {
 
@@ -45,4 +50,43 @@ Node::Node(const PbType& pb) :
         deployed_logging_server_uuids_.emplace_back(deployed_logging_server_uuid);
     }
 }
+Node::Node(GraphmlParser& parser, const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{parser.GetDataValue(medea_id, "uuid")}, medea_id,
+                        parser.GetDataValue(medea_id, "label")}},
+    ip_address_(types::Ipv4::from_string(parser.GetDataValue(medea_id, "ip_address")))
+{
+}
+auto Node::AddDeployedContainer(const Container& container) -> void
+{
+    deployed_container_uuids_.push_back(container.GetCoreData().GetUuid());
+}
+auto Node::AddDeployedLoggingClient(const LoggingClientDefinition& logging_client_definition)
+    -> void
+{
+    deployed_logging_client_uuids_.push_back(logging_client_definition.GetCoreData().GetUuid());
+}
+auto Node::AddDeployedLoggingServer(const LoggingServerDefinition& logging_server_definition)
+    -> void
+{
+    deployed_logging_server_uuids_.push_back(logging_server_definition.GetCoreData().GetUuid());
+}
+auto Node::AddDeployedComponentInstance(const ComponentInstance& component_instance) -> void
+{
+    deployed_component_instance_uuids_.push_back(component_instance.GetCoreData().GetUuid());
+}
+auto Node::AddDeployedComponentAssembly(const ComponentAssembly& component_assembly) -> void
+{
+    deployed_component_assembly_uuids.push_back(component_assembly.GetCoreData().GetUuid());
+}
+auto Node::HasDeployedContainer(const Container& container) const -> bool
+{
+    return std::find(deployed_container_uuids_.begin(), deployed_container_uuids_.end(),
+                     container.GetCoreData().GetUuid())
+           != deployed_container_uuids_.end();
+}
+auto Node::GetIpAddress() const -> types::Ipv4
+{
+    return ip_address_;
+}
+
 } // namespace re::Representation

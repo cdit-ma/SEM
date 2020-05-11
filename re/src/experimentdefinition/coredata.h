@@ -9,6 +9,7 @@ class CoreData {
 public:
     using PbType = re::network::protocol::experimentdefinition::CoreData;
     explicit CoreData(const PbType& pb);
+    CoreData(types::Uuid uuid, const std::string& medea_id, const std::string& medea_name);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
 
     [[nodiscard]] auto GetUuid() const -> types::Uuid { return uuid_; }

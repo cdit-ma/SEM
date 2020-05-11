@@ -1,0 +1,31 @@
+syntax="proto3";
+
+package re.network.protocol.epmcontrol;
+
+message ExperimentProcessConfig {
+    string experiment_uuid = 1;
+    string experiment_name = 2;
+    string ip_address = 3;
+    string container_id = 4;
+    string master_publisher_endpoint = 5;
+    string master_registration_endpoint = 6;
+    string library_path = 7;
+}
+
+message Stop {
+
+}
+
+message Request {
+    string message_uuid = 1;
+    oneof Action {
+        ExperimentProcessConfig new_experiment_process = 2;
+        Stop stop = 3;
+    }
+
+}
+
+message Reply {
+    bool success = 1;
+    string error_message = 2;
+}

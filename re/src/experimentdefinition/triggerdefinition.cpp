@@ -1,6 +1,26 @@
 #include "triggerdefinition.h"
 namespace re::Representation {
 
+namespace detail {
+auto ParseComparator(const std::string& comparator_str) -> TriggerDefinition::Comparator
+{
+    if(comparator_str == "==") {
+        return TriggerDefinition::Comparator::Equal;
+    } else if(comparator_str == "!=") {
+        return TriggerDefinition::Comparator::NotEqual;
+    } else if(comparator_str == "<") {
+        return TriggerDefinition::Comparator::Less;
+    } else if(comparator_str == ">") {
+        return TriggerDefinition::Comparator::Greater;
+    } else if(comparator_str == "<=") {
+        return TriggerDefinition::Comparator::LessOrEqual;
+    } else if(comparator_str == ">=") {
+        return TriggerDefinition::Comparator::GreaterOrEqual;
+    } else {
+        throw std::runtime_error("Invalid comparator string: " + comparator_str);
+    }
+}
+} // namespace detail
 auto MetricFromProto(const network::protocol::experimentdefinition::TriggerMetric& pb)
     -> TriggerDefinition::Metric
 {
@@ -72,6 +92,7 @@ auto ComparatorToProto(const TriggerDefinition::Comparator& comparator)
             return network::protocol::experimentdefinition::NOT_EQUAL;
     }
 }
+
 TriggerDefinition::TriggerDefinition(const PbType& pb) : DefaultModelEntity{pb.core_data()}
 {
     value_ = pb.value();
@@ -80,6 +101,7 @@ TriggerDefinition::TriggerDefinition(const PbType& pb) : DefaultModelEntity{pb.c
     comparator_ = ComparatorFromProto(pb.comparator());
     reactivation_disabled_ms_ = pb.reactivation_disabled_ms();
 }
+
 auto TriggerDefinition::ToProto() const -> std::unique_ptr<PbType>
 {
     auto out = std::make_unique<PbType>();
@@ -90,6 +112,32 @@ auto TriggerDefinition::ToProto() const -> std::unique_ptr<PbType>
     out->set_comparator(ComparatorToProto(comparator_));
     out->set_reactivation_disabled_ms(reactivation_disabled_ms_);
     return out;
+}
+
+TriggerDefinition::TriggerDefinition(GraphmlParser& parser, const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+{
+    value_ = std::stod(parser.GetDataValue(medea_id, "value"));
+
+    auto single_activation_str = parser.GetDataValue(medea_id, "single_activation");
+    if(single_activation_str == "false") {
+        single_activation_ = false;
+    } else if(single_activation_str == "true") {
+        single_activation_ = true;
+    }
+
+    comparator_ = detail::ParseComparator(parser.GetDataValue(medea_id, "condition"));
+
+    auto metric_str = parser.GetDataValue(medea_id, "trigger_type");
+    if(metric_str == "CPU_util") {
+        metric_ = Metric::CpuUtil;
+    } else if(metric_str == "Mem_util") {
+        metric_ = Metric::MemoryUtil;
+    }
+
+    if(!single_activation_) {
+        reactivation_disabled_ms_ = std::stoi(parser.GetDataValue(medea_id, "wait_period (ms)"));
+    }
 }
 
 } // namespace re::Representation
