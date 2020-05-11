@@ -63,4 +63,30 @@ auto MiddlewarePortDefinition::ToProto() const -> std::unique_ptr<PbType>
     }
     return out;
 }
+MiddlewarePortDefinition::MiddlewarePortDefinition(GraphmlParser& parser,
+                                                   const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+{
+    // Port kind is of either "PublisherPort" "SubscriberPort" "RequesterPort" or "ReplierPort"
+    auto kind_string = parser.GetDataValue(medea_id, "kind");
+
+    if(kind_string == "PublisherPort") {
+        kind_ = Kind::Publisher;
+    } else if(kind_string == "SubscriberPort") {
+        kind_ = Kind::Subscriber;
+    } else if(kind_string == "RequesterPort") {
+        kind_ = Kind::Requester;
+    } else if(kind_string == "ReplierPort") {
+        kind_ = Kind::Replier;
+    } else {
+        throw std::invalid_argument("Invalid port kind found in port definition with id: "
+                                    + medea_id);
+    }
+
+    medea_aggregate_type_ = parser.GetDataValue(medea_id, "type");
+}
+std::string MiddlewarePortDefinition::GetMedeaAggregateType()
+{
+    return medea_aggregate_type_;
+}
 } // namespace re::Representation

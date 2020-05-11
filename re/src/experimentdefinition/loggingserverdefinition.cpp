@@ -1,4 +1,6 @@
 #include "loggingserverdefinition.h"
+#include "loggingclientdefinition.h"
+
 namespace re::Representation {
 
 LoggingServerDefinition::LoggingServerDefinition(
@@ -21,4 +23,16 @@ auto LoggingServerDefinition::ToProto() const -> std::unique_ptr<PbType>
     }
     return out;
 }
+LoggingServerDefinition::LoggingServerDefinition(GraphmlParser& graphml_parser,
+                                                 const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, graphml_parser.GetDataValue(medea_id, "label")}}
+{
+    db_file_name_ = graphml_parser.GetDataValue(medea_id, "database");
+}
+void LoggingServerDefinition::AddConnectedLoggingClient(
+    const re::Representation::LoggingClientDefinition& logging_client_definition)
+{
+    logging_client_definition_uuids_.emplace_back(logging_client_definition.GetCoreData().GetUuid());
+}
+
 } // namespace re::Representation

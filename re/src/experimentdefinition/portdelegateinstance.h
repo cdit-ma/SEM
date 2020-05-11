@@ -2,14 +2,23 @@
 #define RE_PORTDELEGATEINSTANCE_H
 
 #include "modelentity.h"
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "graphmlparser.h"
+#include "experimentdefinition.pb.h"
 #include "uuid.h"
 namespace re::Representation {
+
+class MiddlewarePortInstance;
 class PortDelegateInstance : public DefaultModelEntity {
 public:
     using PbType = re::network::protocol::experimentdefinition::PortDelegateInstance;
     explicit PortDelegateInstance(const PbType& pb);
+    PortDelegateInstance(GraphmlParser& parser, const std::string& medea_id);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
+
+    auto AddConnectedMiddlewarePortInstance(const MiddlewarePortInstance& middleware_port_instance)
+        -> void;
+
+    auto AddConnectedPortDelegate(const PortDelegateInstance& port_delegate_instance) -> void;
 
 private:
     std::string medea_aggregate_type_;

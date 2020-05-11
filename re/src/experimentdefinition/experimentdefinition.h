@@ -29,7 +29,41 @@ class ExperimentDefinition {
 public:
     using PbType = re::network::protocol::experimentdefinition::ExperimentDefinition;
     explicit ExperimentDefinition(const PbType& definition_pb);
+    explicit ExperimentDefinition(std::istream& model);
+
+    auto GetUuid() -> types::Uuid;
+
+    auto SetName(const std::string& experiment_name) -> void;
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
+
+    auto GetContainerToStartOnTriggerEvent(const std::string& trigger_medea_id) -> Container;
+    auto GetDeploymentLocation(const Container& container) const -> std::variant<Node, Cluster>;
+    auto
+    GetContainersComponents(const Container& container) const -> std::vector<ComponentInstance>;
+    auto GetComponentInstanceDefinition(const ComponentInstance& component_instance) const
+        -> ComponentDefinition;
+    auto GetComponentInstanceMiddlewarePorts(const ComponentInstance& component_instance) const
+        -> std::vector<MiddlewarePortInstance>;
+
+    auto GetComponentInstancePeriodicPorts(const ComponentInstance& component_instance) const
+        -> std::vector<PeriodicPortInstance>;
+
+    auto GetPeriodicPortFrequencyAttribute(const PeriodicPortInstance& periodic_port_instance) const
+        -> double;
+    auto GetMiddlewarePortDefinition(const MiddlewarePortInstance& instance) const
+        -> MiddlewarePortDefinition;
+
+    auto GetTriggerInstFromMedeaId(const std::string& trigger_inst_id) const -> TriggerInstance;
+    auto GetTriggerDefinition(const TriggerInstance& instance) const -> TriggerDefinition;
+    auto GetComponentInstanceWorkers(const ComponentInstance& instance) const
+        -> std::vector<WorkerInstance>;
+
+    auto GetWorkerDefinition(const WorkerInstance& inst) const -> WorkerDefinition;
+
+    auto GetComponentAttributeInstances(const ComponentInstance& component) const
+        -> std::vector<std::unique_ptr<AttributeInstancePb>>;
+
+    auto dbg() const -> void { ToProto()->PrintDebugString(); };
 
 private:
     std::string experiment_name_;
@@ -67,6 +101,35 @@ private:
 
     std::unordered_map<types::Uuid, LoggingServerDefinition> logging_server_definitions_;
     std::unordered_map<types::Uuid, LoggingClientDefinition> logging_client_definitions_;
+
+    std::unordered_map<types::Uuid, std::string> uuid_to_medea_id_map_;
+    void RegisterMedeaId(const types::Uuid& uuid, const std::string& medea_id);
+    auto GetUuidFromMedeaId(const std::string& medea_id) -> types::Uuid;
+
+    auto PopulateClusters(GraphmlParser& graphml_parser) -> void;
+    void PopulateNodes(GraphmlParser& graphml_parser);
+    auto AddNodeToCluster(GraphmlParser& graphml_parser, const Node& node) -> void;
+
+    void PopulateContainers(GraphmlParser& parser);
+    void DeployContainers(GraphmlParser& parser);
+
+    void PopulateLoggingServers(GraphmlParser& parser);
+    void PopulateLoggingClients(GraphmlParser& parser);
+    std::vector<types::Uuid>
+    GetDeploymentLocations(GraphmlParser& parser, const std::string& deployed_entity_medea_id);
+    void ConnectLoggingClientsToServers(GraphmlParser& parser);
+    void PopulateComponents(GraphmlParser& parser);
+    void PopulateMiddlewarePorts(GraphmlParser& parser);
+    void PopulateAttributes(GraphmlParser& parser);
+    void PopulatePortDelegates(GraphmlParser& parser);
+    void ConnectPortsAndPortDelegates(GraphmlParser& parser);
+    void PopulatePeriodicPorts(GraphmlParser& parser);
+    void PopulateComponentAssemblies(GraphmlParser& parser);
+    void PopulateWorkers(GraphmlParser& parser);
+    void DeployComponentInstances(GraphmlParser& parser);
+    void DeployComponentAssemblies(GraphmlParser& parser);
+    void PopulateTriggers(GraphmlParser& parser);
+    void PopulateStrategies(GraphmlParser& parser);
 };
 
 } // namespace re::Representation

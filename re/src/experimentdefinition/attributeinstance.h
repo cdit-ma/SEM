@@ -3,6 +3,7 @@
 
 #include "attributedefinition.h"
 #include "modelentity.h"
+#include <graphmlparser/graphmlparser.h>
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
 #include <string>
 #include "uuid.h"
@@ -28,12 +29,22 @@ public:
 auto ConstructAttributeInstance(const AttributeInstancePb& attr_pb)
     -> std::unique_ptr<AttributeInstanceInterface>;
 
+auto ConstructAttributeInstance(GraphmlParser& parser,
+                                const std::string& medea_id,
+                                const types::Uuid& definition_uuid)
+    -> std::unique_ptr<AttributeInstanceInterface>;
+
 template<typename ValueType> class AttributeInstance final : public AttributeInstanceInterface {
 public:
     AttributeInstance(const CoreData::PbType& core_data_pb,
                       types::Uuid definition_uuid,
                       const ValueType& value) :
         core_data_{core_data_pb}, definition_uuid_{definition_uuid}, value_{value}
+    {
+    }
+
+    AttributeInstance(CoreData core_data, types::Uuid definition_uuid, const ValueType& value) :
+        core_data_{std::move(core_data)}, definition_uuid_{definition_uuid}, value_{value}
     {
     }
 
@@ -53,10 +64,11 @@ private:
     CoreData core_data_;
     types::Uuid definition_uuid_;
     ValueType value_;
-    auto GetPrefilledProto() const -> std::unique_ptr<AttributeInstancePb>
+    [[nodiscard]] auto GetPrefilledProto() const -> std::unique_ptr<AttributeInstancePb>
     {
         auto out = std::make_unique<AttributeInstancePb>();
         out->set_allocated_core_data(GetCoreData().ToProto().release());
+        out->set_definition_uuid(definition_uuid_.to_string());
         return out;
     };
 };

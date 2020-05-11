@@ -1,4 +1,6 @@
 #include "workerinstance.h"
+#include "attributeinstance.h"
+#include "workerdefinition.h"
 
 namespace re::Representation {
 
@@ -21,4 +23,16 @@ auto WorkerInstance::ToProto() const -> std::unique_ptr<PbType>
     }
     return out;
 }
+WorkerInstance::WorkerInstance(GraphmlParser& parser,
+                               const std::string& medea_id,
+                               const WorkerDefinition& definition) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+    definition_uuid_{definition.GetCoreData().GetUuid()}
+{
+}
+void WorkerInstance::AddAttributeInstance(const AttributeInstanceInterface& attribute_instance)
+{
+    attribute_instance_uuids_.emplace_back(attribute_instance.GetCoreData().GetUuid());
+}
+
 } // namespace re::Representation

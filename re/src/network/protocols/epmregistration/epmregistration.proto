@@ -1,0 +1,14 @@
+syntax="proto3";
+
+package re.network.protocol.epmregistration;
+
+
+message Request {
+    string epm_uuid = 1;
+    string request_uuid = 2;
+}
+
+message Reply {
+    bool success = 1;
+    string error_message = 2;
+}

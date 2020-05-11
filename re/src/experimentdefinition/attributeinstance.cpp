@@ -22,7 +22,6 @@ auto ConstructAttributeInstance(const AttributeInstancePb& attr_pb)
                                                              static_cast<char>(attr_pb.c()));
         }
         case AttributeTypePb::Boolean: {
-            // TODO: Investigate if it's worth migrating to protobuf bool type
             return std::make_unique<AttributeInstance<bool>>(attr_pb.core_data(), definition_uuid,
                                                              attr_pb.b());
         }
@@ -51,4 +50,71 @@ auto ConstructAttributeInstance(const AttributeInstancePb& attr_pb)
     throw std::invalid_argument("Invalid type found in attribute in ConstructAttributeInstance");
 }
 
+auto ConstructAttributeInstance(GraphmlParser& parser,
+                                const std::string& medea_id,
+                                const types::Uuid& definition_uuid)
+    -> std::unique_ptr<AttributeInstanceInterface>
+{
+    CoreData core_data{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")};
+
+    auto type_str = parser.GetDataValue(medea_id, "type");
+    auto value_str = parser.GetDataValue(medea_id, "value");
+
+    if(type_str == "String") {
+        return std::make_unique<AttributeInstance<std::string>>(core_data, definition_uuid,
+                                                                value_str);
+    } else if(type_str == "Integer") {
+        int64_t value = 0;
+        try {
+            value = std::stoi(value_str);
+        } catch(const std::invalid_argument& ex) {
+            std::cerr << "No value assigned to attribute with id: " << medea_id
+                      << " using default of 0" << std::endl;
+        }
+        return std::make_unique<AttributeInstance<int64_t>>(core_data, definition_uuid, value);
+
+    } else if(type_str == "Character") {
+        // XXX: This seems horrible. We should probably look at how we're handling character
+        //  typed attributes elsewhere also.
+        return std::make_unique<AttributeInstance<char>>(core_data, definition_uuid,
+                                                         value_str.front());
+    } else if(type_str == "Boolean") {
+        return std::make_unique<AttributeInstance<bool>>(core_data, definition_uuid,
+                                                         value_str == "true");
+    } else if(type_str == "Double") {
+        double value = 0;
+        try {
+            value = std::stod(value_str);
+        } catch(const std::invalid_argument& ex) {
+            std::cerr << "No value assigned to attribute with id: " << medea_id
+                      << " using default of 0" << std::endl;
+        }
+        return std::make_unique<AttributeInstance<double>>(core_data, definition_uuid, value);
+
+    } else if(type_str == "Float") {
+        float value = 0;
+        try {
+            value = std::stof(value_str);
+        } catch(const std::invalid_argument& ex) {
+            std::cerr << "No value assigned to attribute with id: " << medea_id
+                      << " using default of 0" << std::endl;
+        }
+        return std::make_unique<AttributeInstance<float>>(core_data, definition_uuid, value);
+
+    } else if(type_str == "StringList") {
+        // TODO: Find out what we split on for string list attributes.
+        // XXX: Currently no way to add string lists in MEDEA?
+        std::vector<std::string> strings;
+        //        for(const auto& string : ) {
+        //            strings.push_back(string);
+        //        }
+        return std::make_unique<AttributeInstance<std::vector<std::string>>>(core_data,
+                                                                             definition_uuid,
+                                                                             strings);
+    } else {
+        throw std::invalid_argument("Invalid type found in attribute in "
+                                    "ConstructAttributeInstance");
+    }
+    throw std::invalid_argument("Invalid type found in attribute in ConstructAttributeInstance");
+}
 } // namespace re::Representation

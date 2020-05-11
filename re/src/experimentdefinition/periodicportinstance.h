@@ -3,17 +3,29 @@
 
 #include "modelentity.h"
 #include <chrono>
+#include <graphmlparser/graphmlparser.h>
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
 #include "uuid.h"
 #include <vector>
 
 namespace re::Representation {
 
+class AttributeInstanceInterface;
+class PeriodicPortDefinition;
 class PeriodicPortInstance : public DefaultModelEntity {
 public:
     using PbType = network::protocol::experimentdefinition::PeriodicPortInstance;
     explicit PeriodicPortInstance(const PbType& pb);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
+    PeriodicPortInstance(GraphmlParser& parser,
+                         const std::string& medea_id,
+                         const PeriodicPortDefinition& definition,
+                         const AttributeInstanceInterface& frequency_attribute);
+
+    [[nodiscard]] auto GetFrequencyAttributeUuid() const -> types::Uuid
+    {
+        return frequency_attribute_uuid_;
+    }
 
 private:
     types::Uuid definition_uuid_;

@@ -23,7 +23,8 @@ auto TypeFromProto(const network::protocol::experimentdefinition::AttributeType&
         case network::protocol::experimentdefinition::AttributeType_INT_MAX_SENTINEL_DO_NOT_USE_:
             break;
     }
-    throw std::invalid_argument("Invalid attribute type found in AttributeDefinition::TypeFromProto");
+    throw std::invalid_argument("Invalid attribute type found in "
+                                "AttributeDefinition::TypeFromProto");
 }
 
 auto TypeToProto(const AttributeDefinition::Type& type)
@@ -59,6 +60,29 @@ auto AttributeDefinition::ToProto() const -> std::unique_ptr<PbType>
     out->set_allocated_core_data(GetCoreData().ToProto().release());
     out->set_type(TypeToProto(type_));
     return out;
+}
+AttributeDefinition::AttributeDefinition(GraphmlParser& parser, const std::string& medea_id) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+{
+    auto type_str = parser.GetDataValue(medea_id, "type");
+    if(type_str == "Integer") {
+        type_ = Type::Integer;
+    } else if(type_str == "Double") {
+        type_ = Type::Double;
+    } else if(type_str == "Float") {
+        type_ = Type::Float;
+    } else if(type_str == "Boolean") {
+        type_ = Type::Boolean;
+    } else if(type_str == "Character") {
+        type_ = Type::Character;
+    } else if(type_str == "String") {
+        type_ = Type::String;
+    } else if(type_str == "StringList") {
+        type_ = Type::StringList;
+    } else {
+        throw std::invalid_argument("Invalid attribute type: " + type_str
+                                    + " found id: " + medea_id);
+    }
 }
 
 } // namespace re::Representation

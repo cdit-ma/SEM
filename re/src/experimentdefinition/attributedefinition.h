@@ -2,6 +2,7 @@
 #define RE_ATTRIBUTEDEFINITION_H
 
 #include "modelentity.h"
+#include <graphmlparser/graphmlparser.h>
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
 #include "uuid.h"
 namespace re::Representation {
@@ -10,6 +11,7 @@ class AttributeDefinition : public DefaultModelEntity {
 public:
     using PbType = re::network::protocol::experimentdefinition::AttributeDefinition;
     explicit AttributeDefinition(const PbType& pb);
+    AttributeDefinition(GraphmlParser& parser, const std::string& medea_id);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
 
     enum class Type { Integer, Character, Boolean, Float, Double, String, StringList };

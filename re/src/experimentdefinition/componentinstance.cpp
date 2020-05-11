@@ -1,4 +1,7 @@
 #include "componentinstance.h"
+#include "middlewareportinstance.h"
+#include "periodicportinstance.h"
+#include "triggerinstance.h"
 namespace re::Representation {
 
 auto ComponentInstance::ToProto() const -> std::unique_ptr<PbType>
@@ -29,6 +32,7 @@ auto ComponentInstance::ToProto() const -> std::unique_ptr<PbType>
     }
     return out;
 }
+
 ComponentInstance::ComponentInstance(const ComponentInstance::PbType& pb) :
     DefaultModelEntity{pb.core_data()}
 {
@@ -54,5 +58,34 @@ ComponentInstance::ComponentInstance(const ComponentInstance::PbType& pb) :
     for(const auto& trigger_instance_uuid : pb.trigger_instance_uuids()) {
         trigger_instance_uuids_.emplace_back(trigger_instance_uuid);
     }
+}
+
+ComponentInstance::ComponentInstance(GraphmlParser& parser,
+                                     const std::string& medea_id,
+                                     const types::Uuid& definition_uuid) :
+    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+    medea_type_{parser.GetDataValue(medea_id, "type")},
+    definition_uuid_{definition_uuid}
+{
+}
+auto ComponentInstance::AddMiddlewarePortInstance(const MiddlewarePortInstance& port_instance)
+    -> void
+{
+    middleware_port_instance_uuids_.emplace_back(port_instance.GetCoreData().GetUuid());
+}
+auto ComponentInstance::AddPeriodicPortInstance(const PeriodicPortInstance& port_instance) -> void
+{
+    periodic_port_instance_uuids_.emplace_back(port_instance.GetCoreData().GetUuid());
+}
+auto ComponentInstance::GetDefinitionUuid() const -> types::Uuid
+{
+    return definition_uuid_;
+}
+auto ComponentInstance::GetMedeaType() const -> std::string
+{
+    return medea_type_;
+}
+auto ComponentInstance::AddTriggerInstance(const TriggerInstance& trigger_instance) -> void {
+    trigger_instance_uuids_.emplace_back(trigger_instance.GetCoreData().GetUuid());
 }
 } // namespace re::Representation
