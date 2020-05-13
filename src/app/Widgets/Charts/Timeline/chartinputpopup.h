@@ -31,6 +31,8 @@ public:
 
     explicit ChartInputPopup(QWidget* parent = nullptr);
 
+    void enforceChartsOnly();
+
     void enableFilters();
 
     bool eventFilter(QObject *watched, QEvent *event);
@@ -92,6 +94,9 @@ private:
 
     QCheckBox* charts_checkbox_ = nullptr;
     QCheckBox* pulse_checkbox_ = nullptr;
+
+    bool force_charts_only_ = false;
+    QActionGroup* checkbox_group_ = nullptr;
 
     QToolBar* toolbar_ = nullptr;
     QAction* okAction_ = nullptr;

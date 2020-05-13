@@ -37,6 +37,33 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ChartInputPopup::themeChanged);
     themeChanged();
+
+    // The signal below is emitted when done(), accept() or reject() has been called or triggered by the user
+    // This makes sure that the charts/pulse checkboxes are visible for when the ChartInputPopup is shown again
+    connect(this, &ChartInputPopup::finished, [&checkboxes_hidden = force_charts_only_, &checkboxes = checkbox_group_]() {
+        // When force_charts_only_ is true, it means that the checkboxes are currently invisible; set them back to visible when the popup has finished
+        if (checkboxes_hidden) {
+            checkboxes->setVisible(true);
+            checkboxes_hidden = false;
+        }
+    });
+}
+
+
+/**
+ * @brief ChartInputPopup::enforceChartsOnly
+ * This is called when the popup is shown by the context (right-click) menu, that is only used for displaying filtered charts data
+ */
+void ChartInputPopup::enforceChartsOnly()
+{
+    force_charts_only_ = true;
+
+    // Only show charts data
+    charts_checkbox_->setChecked(true);
+    pulse_checkbox_->setChecked(false);
+
+    // Hide the checkboxes to stop the user from changing the checked states
+    checkbox_group_->setVisible(false);
 }
 
 
@@ -559,22 +586,24 @@ void ChartInputPopup::setupLayout()
     toolbar_->setMinimumWidth(MIN_WIDTH);
     toolbar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
+    checkbox_group_ = new QActionGroup(this);
+
     charts_checkbox_ = new QCheckBox("Charts", this);
     charts_checkbox_->setLayoutDirection(Qt::RightToLeft);
     charts_checkbox_->setChecked(true);
-    toolbar_->addWidget(charts_checkbox_);
+    checkbox_group_->addAction(toolbar_->addWidget(charts_checkbox_));
     toolbar_->addSeparator();
 
     auto splitter = new QFrame(this);
     splitter->setFrameShape(QFrame::VLine);
     splitter->setLineWidth(1);
     splitter->setStyleSheet("color: gray;");
-    toolbar_->addWidget(splitter);
+    checkbox_group_->addAction(toolbar_->addWidget(splitter));
 
     pulse_checkbox_ = new QCheckBox("Pulse", this);
     pulse_checkbox_->setLayoutDirection(Qt::RightToLeft);
     pulse_checkbox_->setChecked(true);
-    toolbar_->addWidget(pulse_checkbox_);
+    checkbox_group_->addAction(toolbar_->addWidget(pulse_checkbox_));
     toolbar_->addSeparator();
 
     QWidget* spacerWidget = new QWidget(this);

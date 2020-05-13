@@ -855,6 +855,9 @@ void ExperimentDataManager::filterRequestsBySelectedEntities(const QVector<ViewI
 {
     selectedViewItems_ = selectedItems;
     selectedDataKinds_ = selectedDataKinds;
+
+    // NOTE: This should be the only place where this is called
+    chartPopup_.enforceChartsOnly();
     showChartInputPopup();
 }
 
