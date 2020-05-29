@@ -287,6 +287,15 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
             auto&& events = futureWatcher->result();
             if (port_data_requester != nullptr) {
                 port_data_requester->addPortLifecycleEvents(events);
+                if (show_in_charts_) {
+                    if (events.isEmpty()) {
+                        toastNotification("No port lifecycle events received for selection", "plug");
+                    } else {
+                        emit showChartsPanel();
+                        const auto& series = port_data_requester->getPortLifecycleSeriesPointer();
+                        timelineChartView().addPortLifecycleChart(series, experimentRun);
+                    }
+                }
             } else {
                 processPortLifecycleEvents(experimentRun, events);
             }
@@ -519,10 +528,15 @@ void ExperimentDataManager::processExperimentState(const QString& experiment_nam
         if (exp_data == nullptr) {
             throw std::invalid_argument("ExperimentDataManager::processExperimentState - There is no ExperimentData with experiment name: " + experiment_name.toStdString());
         }
+
+        // THIS IS PART OF THE REFACTOR
+        auto& exp_run_data = exp_data->getExperimentRun(experiment_run_id);
+        exp_run_data.updateData(experiment_state);
+
         if (show_in_pulse_) {
             // Setup/display experiment data for PULSE
-            auto& exp_run_data = exp_data->getExperimentRun(experiment_run_id);
-            exp_run_data.updateData(experiment_state);
+            //auto& exp_run_data = exp_data->getExperimentRun(experiment_run_id);
+            //exp_run_data.updateData(experiment_state);
             getDataflowDialog().constructGraphicsItemsForExperimentRun(experiment_name, exp_run_data);
             emit showDataflowPanel();
         }

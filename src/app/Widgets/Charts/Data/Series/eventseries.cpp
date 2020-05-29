@@ -95,7 +95,7 @@ void MEDEA::EventSeries::updateTimeRange(qint64 new_timestamp)
  */
 void MEDEA::EventSeries::setLabel(const QString& label)
 {
-    label_ = label;
+    label_ = label + Event::GetChartDataKindStringSuffix(kind_);
 }
 
 /**

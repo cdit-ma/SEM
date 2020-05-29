@@ -28,7 +28,11 @@ public:
 
     quint32 getExperimentRunID() const;
 
-	bool isHovered();
+    void addSeries(QPointer<const MEDEA::EventSeries> series);
+    void addSeries(EventSeries *series);
+    void removeSeries(ChartDataKind kind);
+
+    bool isHovered();
 
     void addSeries(EventSeries *series);
 
@@ -157,7 +161,8 @@ private:
     double networkSeriesOpacity_ = 1.0;
 
     QHash<ChartDataKind, bool> seriesKindVisible_;
-    QHash<ChartDataKind, EventSeries*> seriesList_;
+    QHash<ChartDataKind, EventSeries*> seriesList_2;
+    QHash<ChartDataKind, QPointer<const MEDEA::EventSeries>> seriesList_;
 
     QVector<QList<Event*>> portLifecycleBinnedData_;
     QVector<QList<Event*>> workloadBinnedData_;

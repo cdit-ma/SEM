@@ -11,6 +11,8 @@
 #include "Series/portlifecycleeventseries.h"
 #include "Series/porteventseries.h"
 
+#include <QPointer>
+
 class ComponentInstanceData;
 class PortInstanceData : public QObject
 {
@@ -25,6 +27,9 @@ public:
     const QString& getMiddleware() const;
 
     AggServerResponse::Port::Kind getKind() const;
+
+    //QPointer<const PortLifecycleEventSeries> getPortLifecycleSeriesPointer() const;
+    PortLifecycleEventSeries* getPortLifecycleSeriesPointer() const;
 
     const PortLifecycleRequest& getPortLifecycleRequest() const;
     const PortEventRequest& getPortEventRequest() const;
@@ -56,6 +61,8 @@ private:
 
     PortLifecycleRequest port_lifecycle_request_;
     PortEventRequest port_event_request_;
+
+    //QPointer<const PortLifecycleEventSeries> port_lifecycle_series_ = nullptr;
 
     PortLifecycleEventSeries* port_lifecycle_series_ = nullptr;
     PortEventSeries* port_event_series_ = nullptr;
