@@ -58,6 +58,21 @@ quint32 Chart::getExperimentRunID() const
 }
 
 
+void Chart::addSeries(QPointer<const MEDEA::EventSeries> series)
+{
+    if (series) {
+        seriesList_[series->getKind()] = series;
+        if (series->getKind() == ChartDataKind::CPU_UTILISATION ||
+            series->getKind() == ChartDataKind::MEMORY_UTILISATION ||
+            series->getKind() == ChartDataKind::NETWORK_UTILISATION) {
+            containsYRange_ = true;
+            connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
+            connect(series, &EventSeries::maxYValueChanged, this, &Chart::updateVerticalMax);
+        }
+    }
+}
+
+
 /**
  * @brief Chart::addSeries
  * @param series
@@ -93,7 +108,7 @@ void Chart::removeSeries(ChartDataKind kind)
  */
 const QHash<ChartDataKind, EventSeries*>& Chart::getSeries() const
 {
-    return seriesList_;
+    return seriesList_2;
 }
 
 
@@ -203,12 +218,14 @@ void Chart::updateBinnedData(QSet<ChartDataKind> kinds)
 {
     return;
 
+    /*
     if (kinds.isEmpty())
         kinds = seriesList_.keys().toSet();
 
     for (auto kind : kinds) {
         updateBinnedData(kind);
     }
+    */
 
     update();
 }
@@ -1105,7 +1122,9 @@ void Chart::paintMarkerEventSeries(QPainter &painter)
         currentLeft = binEndTimes.last();
     }
 
-    auto markerEventSeries = (MarkerEventSeries*) eventSeries;
+    //auto markerEventSeries = (MarkerEventSeries*) eventSeries;
+    MarkerEventSeries* markerEventSeries = nullptr;
+    return;
     const auto& startTimesMap = markerEventSeries->getMarkerIDsMappedByStartTimes();
     const auto& idSetDuration = markerEventSeries->getMarkerIDSetDurations();
 

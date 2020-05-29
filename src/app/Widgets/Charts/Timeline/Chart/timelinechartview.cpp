@@ -97,6 +97,7 @@ void TimelineChartView::addPortLifecycleChart(PortLifecycleEventSeries* series, 
     }
      */
 
+    // NOTE: graphml_id fromat = <medea_ID>_<first_replication_ID>_<second_replication_ID>
     // port instance data series name == port.name + "_" + port.graphml_id
 
     // NOTE: Need experiment run info for the tooltip and the last_updated_time for the chart's range
@@ -104,9 +105,53 @@ void TimelineChartView::addPortLifecycleChart(PortLifecycleEventSeries* series, 
         throw std::invalid_argument("TimelineChartView::addPortLifecycleChart - series is null.");
     }
 
+    const auto exp_run_id = experiment_run.experiment_run_id;
     const auto& series_id = series->getID();
     const auto& series_label = series->getLabel();
 
+    Chart* chart = new Chart(exp_run_id, experiment_run.start_time, this);
+    chart->addSeries(series);
+    chartList_->addChart(chart);
+    charts_[series_id] = chart;
+
+    MEDEA::ChartLabel* chartLabel = new ChartLabel(series_label, this);
+    chartLabel->setMinimumHeight(MIN_ENTITY_HEIGHT);
+    chartLabel->themeChanged(Theme::theme());
+    chartLabelList_->appendChartLabel(chartLabel);
+    chartLabels_[series_id] = chartLabel;
+
+    connect(this, &TimelineChartView::seriesLegendHovered, chart, &Chart::seriesKindHovered);
+    connect(chartLabel, &ChartLabel::visibilityChanged, chart, &Chart::setVisible);
+    connect(chartLabel, &ChartLabel::closeChart, this, &TimelineChartView::chartClosed);
+    connect(chartLabel, &ChartLabel::hovered, [=] (bool hovered) {
+        chartList_->setChartHovered(chart, hovered);
+    });
+
+    // set the initial visibility state of the chart/chart label
+    for (auto& action : legendActions_.values()) {
+        auto kind = legendActions_.key(action, MEDEA::ChartDataKind::DATA);
+        if (kind == series->getKind()) {
+            chart->setSeriesKindVisible(kind, true);
+            chart->setVisible(action->isChecked());
+            chartLabel->setVisible(action->isChecked());
+        }
+    }
+
+    if (mainWidget_->isHidden()) {
+        mainWidget_->show();
+        emptyLabel_->hide();
+    }
+
+    /*
+     if (series) {
+        // NOTE: This needs to be set before the chart is constructed
+        series->setProperty(EXPERIMENT_RUN_ID, experimentRunID);
+        series->setProperty(EXPERIMENT_RUN_START_TIME, experimentRun.start_time);
+        constructChartForSeries(series, seriesID, seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
+        seriesList_.insert(seriesID, series);
+        experimentRunSeriesCount_[experimentRunID]++;
+    }
+    */
 
     /*
     // addedEvents()
@@ -148,17 +193,6 @@ void TimelineChartView::addMarkerSetChart(MarkerEventSeries* series){};
  */
 void TimelineChartView::addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent*>& events)
 {
-    /*
-    for (const auto& event : events) {
-        const auto& series_id = event->getSeriesID();
-        auto series = getSeriesForEventKind(MEDEA::ChartDataKind::PORT_LIFECYCLE, experimentRun, series_id);
-        if (series == nullptr) {
-            const auto& series_name = event->getSeriesName();
-            series = constructSeriesForEventKind(MEDEA::ChartDataKind::PORT_LIFECYCLE, experimentRun, series_id, series_name);
-        }
-        series->addEvent(event);
-    }
-    */
     for (const auto& event : events) {
         addEvent(MEDEA::ChartDataKind::PORT_LIFECYCLE, experimentRun, event);
     }
@@ -741,13 +775,16 @@ MEDEA::EventSeries* TimelineChartView::constructSeriesForEventKind(MEDEA::ChartD
     }
 
     auto experimentRunID = experimentRun.experiment_run_id;
+    //qDebug() << "eventSeriesID: " << eventSeriesID;
     auto seriesID = eventSeriesID + QString::number(experimentRunID);
+    //qDebug() << "PRE seriesID: " << seriesID;
     auto seriesLabel = label;
 
     switch (kind) {
     case MEDEA::ChartDataKind::PORT_LIFECYCLE: {
         auto strList = seriesID.split("_");
         seriesLabel += "_" + strList.first();
+        //qDebug() << seriesID << ", " << seriesLabel;
         series = new PortLifecycleEventSeries(seriesID, this);
         break;
     }

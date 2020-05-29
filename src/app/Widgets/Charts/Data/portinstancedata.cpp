@@ -35,12 +35,23 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
     //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
 
-    // Setup event series
-    port_lifecycle_series_ = new PortLifecycleEventSeries(graphml_id_);
-    port_lifecycle_series_->setLabel(name_);
 
-    port_event_series_ = new PortEventSeries(graphml_id_);
-    port_event_series_->setLabel(name_);
+    //    seriesLabel = port.name + "_ " + graphml_id
+    //    seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
+    //    auto seriesLabel = "[" + QString::number(experimentRunID) + "] " + label;
+
+    // Setup event series
+    auto&& exp_run_id_str = QString::number(experiment_run_id_);
+    auto&& series_id = graphml_id_ + exp_run_id_str;
+    auto medea_id = graphml_id_.split('_').first();
+    auto port_lifecycle_label = name_ + "_" + medea_id; // + MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind::PORT_LIFECYCLE);
+    auto port_event_label = name_ + "_" + medea_id; // + MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind::PORT_EVENT);
+
+    port_lifecycle_series_ = new PortLifecycleEventSeries(series_id);
+    port_lifecycle_series_->setLabel("[" + exp_run_id_str + "] " + port_lifecycle_label);
+
+    port_event_series_ = new PortEventSeries(series_id);
+    port_event_series_->setLabel("[" + exp_run_id_str + "] " + port_event_label);
 
     connect(this, &PortInstanceData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestPortInstanceEvents);
     emit requestData(*this);
@@ -94,6 +105,13 @@ const QString& PortInstanceData::getMiddleware() const
 AggServerResponse::Port::Kind PortInstanceData::getKind() const
 {
     return kind_;
+}
+
+
+PortLifecycleEventSeries* PortInstanceData::getPortLifecycleSeriesPointer() const
+{
+    qDebug() << "PortInstanceData - events: " << port_lifecycle_series_->getEvents().size();
+    return port_lifecycle_series_;
 }
 
 

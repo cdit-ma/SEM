@@ -14,7 +14,7 @@ std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
  */
 MEDEA::EventSeries::EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent)
     : QObject(parent),
-      ID_(ID),
+      ID_(ID + Event::GetChartDataKindString(kind)),
       label_(ID),
       kind_(kind),
       eventSeriesID_(eventSeries_ID++),
@@ -102,7 +102,7 @@ void MEDEA::EventSeries::updateTimeRange(qint64 new_timestamp)
  */
 void MEDEA::EventSeries::setLabel(const QString& label)
 {
-    label_ = label;
+    label_ = label + Event::GetChartDataKindStringSuffix(kind_);
 }
 
 
