@@ -338,10 +338,14 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
  */
 void TimelineChartView::chartLabelListSizeChanged(QSizeF size)
 {
+    // NOTE: On MacOs, this moves the axis widget too far to the right when the scrollbar is visible
+    // TODO: Double check if this is needed on Windows. If not, remove it.
+    /*
 	qreal chartHeight = height() - timelineAxis_->height() - legendToolbar_->height() - SPACING * 3;
 	if (size.height() > chartHeight) {
 		size.setWidth(size.width() + SCROLLBAR_WIDTH);
 	}
+    */
 	topFillerWidget_->setFixedWidth(size.width());
 	bottomFillerWidget_->setFixedWidth(size.width());
 }

@@ -17,7 +17,7 @@ AxisWidget::AxisWidget(Qt::Orientation orientation, Qt::Alignment alignment, VAL
 	  orientation_(orientation),
 	  alignment_(alignment),
 	  slider_(orientation, alignment),
-	  display_(slider_, type)
+	  display_(QPointer<AxisSlider>(&slider_), type)
 {
 	QBoxLayout* mainLayout;
 	if (orientation_ == Qt::Horizontal) {

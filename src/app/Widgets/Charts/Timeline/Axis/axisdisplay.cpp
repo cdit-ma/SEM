@@ -9,13 +9,18 @@
  * @param slider
  * @param parent
  * @param type
+ * @throws std::invalid_argument
  */
-AxisDisplay::AxisDisplay(const AxisSlider& slider, VALUE_TYPE type, QWidget* parent)
+AxisDisplay::AxisDisplay(QPointer<AxisSlider> slider, VALUE_TYPE type, QWidget* parent)
 	: QWidget(parent),
 	  slider_(slider)
 {
-	orientation_ = slider.getOrientation();
-	penWidth_ = slider.getAxisPenWidth();
+    if (slider.isNull()) {
+        throw std::invalid_argument("Cannot construct AxisDisplay with a null AxisSlider");
+    }
+
+	orientation_ = slider->getOrientation();
+	penWidth_ = slider->getAxisPenWidth();
 	textHeight_ = fontMetrics().height();
 	tickLength_ = textHeight_ / 4.0;
 
@@ -32,10 +37,10 @@ AxisDisplay::AxisDisplay(const AxisSlider& slider, VALUE_TYPE type, QWidget* par
 		}
 	} else {
 		spacing_ = SPACING * 2;
-		setMinimumWidth(slider.width());
+		setMinimumWidth(slider->width());
 	}
 
-	switch (slider.getAlignment()) {
+	switch (slider->getAlignment()) {
 		case Qt::AlignTop:
 			textAlignment_ = Qt::AlignBottom | Qt::AlignHCenter;
 			break;
@@ -54,10 +59,10 @@ AxisDisplay::AxisDisplay(const AxisSlider& slider, VALUE_TYPE type, QWidget* par
 	}
 
 	// when the slider is destroyed, delete this object as well
-	connect(&slider , &AxisSlider::destroyed, this, &AxisDisplay::deleteLater);
+	connect(slider , &AxisSlider::destroyed, this, &AxisDisplay::deleteLater);
 
-	connect(&slider, &AxisSlider::minRatioChanged, this, &AxisDisplay::updateDisplayedMin);
-	connect(&slider, &AxisSlider::maxRatioChanged, this, &AxisDisplay::updateDisplayedMax);
+	connect(slider, &AxisSlider::minRatioChanged, this, &AxisDisplay::updateDisplayedMin);
+	connect(slider, &AxisSlider::maxRatioChanged, this, &AxisDisplay::updateDisplayedMax);
 	connect(Theme::theme(), &Theme::theme_Changed, this, &AxisDisplay::themeChanged);
 	themeChanged();
 }
@@ -281,7 +286,7 @@ void AxisDisplay::paintEvent(QPaintEvent* event)
 
 		if (orientation_ == Qt::Horizontal) {
 			w = qMin(paintRect.width() - 1, fontMetrics().horizontalAdvance(hoveredStr) + spacing_ * 2.0);
-			y = slider_.getAlignment() == Qt::AlignTop ? paintRect.top() : paintRect.top() + offset;
+			y = slider_->getAlignment() == Qt::AlignTop ? paintRect.top() : paintRect.top() + offset;
 			x = hoveredPos_ - w / 2.0;
 			if (x < 0) {
 				x = 0;
@@ -294,7 +299,7 @@ void AxisDisplay::paintEvent(QPaintEvent* event)
 				hoveredStr.truncate(hoveredStr.length() - 1);
 			}
 			w = fontMetrics().horizontalAdvance(hoveredStr) + spacing_ * 2.0;
-			x = slider_.getAlignment() == Qt::AlignLeft ? width()- w - offset : offset;
+			x = slider_->getAlignment() == Qt::AlignLeft ? width()- w - offset : offset;
 			y = hoveredPos_ - textHeight_ / 2.0;
 			if (y < 0) {
 				y = 0;
@@ -335,7 +340,7 @@ void AxisDisplay::paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines,
 	QPointF startPoint(-rectWidth / 2.0 + rect.left(), rect.top() + offset);
 	QPointF dateRectCenter(rect.center().x(), rect.center().y() + rectSize.height() / 2.0);
 
-	if (slider_.getAlignment() == Qt::AlignTop) {
+	if (slider_->getAlignment() == Qt::AlignTop) {
 		tickY = rect.bottom() - penWidth_ / 2.0;
 		lineLength = -tickLength_;
 		startPoint.setY(rect.top());
@@ -429,7 +434,7 @@ void AxisDisplay::paintVertical(QPainter &painter, QVector<QLineF> &tickLines, Q
 	double offset = tickLength_ + spacing_;
 	QPointF startPoint(rect.left() + offset, rect.top() + (penWidth_ - rectHeight) / 2.0);
 
-	if (slider_.getAlignment() == Qt::AlignLeft) {
+	if (slider_->getAlignment() == Qt::AlignLeft) {
 		tickX = rect.right();
 		lineLength = -tickLength_;
 		startPoint.setX(rect.left());
