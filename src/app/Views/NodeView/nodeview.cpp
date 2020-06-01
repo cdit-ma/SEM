@@ -63,7 +63,6 @@ NodeView::NodeView(ViewController& view_controller, QWidget* parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // Set the background font
-    //background_font_.setPixelSize(70);
     background_font_.setPixelSize(50);
     setFont(background_font_);
 
