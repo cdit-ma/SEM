@@ -117,10 +117,6 @@ void ContextMenu::themeChanged()
     main_menu->setStyle(menu_style);
     main_menu->setStyleSheet("QLabel{ color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}"
                              + theme->getMenuStyleSheet(icon_size.width()));
-                             /*"QMenu::item#no_valid_action {"
-                             "color:blue;"
-                             "font-style: italic;"
-                             "}");*/
 
     //Set Icons for top level icons
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
