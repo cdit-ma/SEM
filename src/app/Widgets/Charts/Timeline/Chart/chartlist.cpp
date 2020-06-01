@@ -12,6 +12,8 @@
 
 using namespace MEDEA;
 
+const double ChartList::axis_width_default_ = 2.0;
+
 /**
  * @brief ChartList::ChartList
  * @param parent
@@ -27,6 +29,7 @@ ChartList::ChartList(QWidget* parent)
 	layout_->setSpacing(0);
 
 	hoverLineRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
+	axisWidth_ = axis_width_default_;
 
 	connect(Theme::theme(), &Theme::theme_Changed, this, &ChartList::themeChanged);
 	themeChanged();

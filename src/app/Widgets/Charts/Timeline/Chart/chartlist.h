@@ -78,7 +78,9 @@ private:
     void hoverRectUpdated(bool repaintRequired = false);
     void clearDragMode();
 
-    double axisWidth_ = 2.0;
+    static const double axis_width_default_;
+    double axisWidth_;
+
     bool axisXVisible_ = false;
     bool axisYVisible_ = false;
 

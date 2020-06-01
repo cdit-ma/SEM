@@ -27,8 +27,6 @@ namespace cdit {
             cdit::Verbosity verbosity_level = Verbosity::DEBUG;
     };
 
-    static bool ParseCommandLineFlags(int *argc, char*** argv);
-
     static std::ostream& Log(const Verbosity verbosity);
 };
 
@@ -48,12 +46,6 @@ cdit::Logger::~Logger()
 cdit::Logger& cdit::Logger::logger()
 {
     return log_singleton;
-}
-
-bool cdit::ParseCommandLineFlags(int *argc, char*** argv)
-{
-    // TODO: Ask Jackson what this function is being used for and why it's always returning true
-    return true;
 }
 
 std::ostream& cdit::Logger::Logger::GetStream(Verbosity verbosity)

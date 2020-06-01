@@ -46,9 +46,12 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
+    Disconnect();
+
     while(!child_nodes_.isEmpty()){
         removeChild(*child_nodes_.begin());
     }
+
     while(!child_edges_.isEmpty()){
         removeChild(*child_edges_.begin());
     }

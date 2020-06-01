@@ -8,6 +8,7 @@ namespace MEDEA {
 class GraphicsLayoutItem : public QGraphicsLayoutItem
 {
 protected:
+    // TODO: Look into the use of a protected only class and if there might be another way we want to write/implement this class
     GraphicsLayoutItem() = default;
 
     // Required for QGraphicsLayoutItem

@@ -32,12 +32,9 @@ AxisSlider::AxisSlider(Qt::Orientation orientation, Qt::Alignment alignment, QWi
 		maxSlider_ = QRectF(QPointF(0, 0), QSizeF(AXIS_THICKNESS, SLIDER_THICKNESS));
 	}
 
-	minRatio_ = 0;
-	maxRatio_ = 1;
-
 	setMouseTracking(true);
 
-	// This function initialises the following variables: sliderMin_, sliderMax_, sliderRange_, actualMin_ & actualMax_
+	// This function calculates the initial values of the following variables: sliderMin_, sliderMax_, sliderRange_, actualMin_ & actualMax_
 	updateSlidersOnSizeChange();
 
 	connect(Theme::theme(), &Theme::theme_Changed, this, &AxisSlider::themeChanged);

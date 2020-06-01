@@ -54,7 +54,7 @@ void JenkinsMonitor::JobFinished()
 
     if(!json.isNull()){
         auto config = json.object();
-        // TODO: Ask Jackson if the toArray() is necessary
+        // The toArray() tells JSON how to interpret the artifacts array inside config as an array rather than a string or an object etc
         for(const auto& artifact : config["artifacts"].toArray()){
             auto relative_path = artifact.toObject()["relativePath"].toString();
             auto url_str = jenkins_manager->GetArtifactUrl(job_name, build_number, relative_path);
@@ -296,9 +296,7 @@ void JenkinsMonitor::artifactPressed()
 {
     QString artifact_url;
     if (artifacts_box) {
-        // TODO: Ask Jackson if we could just leave this as a list since it also has a constBegin()
-        //  If not, use an alternative way to cast it to a set; toSet() is deprecated
-        auto artifact_selected = artifacts_box->getCheckedOptions<QString>().toSet();
+        auto artifact_selected = artifacts_box->getCheckedOptions<QString>();
         if (!artifacts_box->isResetChecked()) {
             artifact_url = *artifact_selected.constBegin();
         }

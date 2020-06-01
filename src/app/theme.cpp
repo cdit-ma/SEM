@@ -1599,7 +1599,8 @@ Theme* Theme::theme()
     return &theme;
 }
 
-
+// QProxyStyle("Windows") - "Constructs a QProxyStyle object for overriding behavior in the base style specified by
+// style key, or in the current application style if the specified style key is unrecognized."
 CustomMenuStyle::CustomMenuStyle(int icon_size)
     : QProxyStyle("Windows")
 {

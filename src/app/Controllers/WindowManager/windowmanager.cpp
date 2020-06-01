@@ -292,8 +292,10 @@ void WindowManager::destructDockWidget(BaseDockWidget *widget)
 
 void WindowManager::teardown()
 {
-    delete managerSingleton;
-    managerSingleton = nullptr;
+    if (managerSingleton) {
+        delete managerSingleton;
+        managerSingleton = nullptr;
+    }
 }
 
 BaseWindow *WindowManager::getMainWindow()

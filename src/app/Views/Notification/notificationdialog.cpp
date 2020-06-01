@@ -8,6 +8,8 @@
 
 #define FILTER_DEFAULT_WIDTH 150
 
+const int NotificationDialog::default_max_visible_notifications_ = 30;
+
 /**
  * @brief NotificationDialog::NotificationDialog
  * @param parent
@@ -47,7 +49,7 @@ NotificationDialog::NotificationDialog(ViewController* viewController, QWidget *
 void NotificationDialog::filtersChanged()
 {
     //Reset so that only 30 notifications are shown initially
-    max_visible = 30;
+    max_visible = default_max_visible_notifications_;
 
     //Reset the scroll bar back to the top
     auto v_scrollbar = notifications_scroll->verticalScrollBar();

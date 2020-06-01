@@ -6,12 +6,12 @@
 
 int BaseDockWidget::_DockWidgetID = 0;
 
-BaseDockWidget::BaseDockWidget(BaseDockType type, QWidget* parent)
-    : QDockWidget(parent)
+BaseDockWidget::BaseDockWidget(BaseDockType type, QWidget* parent) :
+    QDockWidget(parent),
+    type(type)
 {
     //TODO: Setting QDockWidget parent as the MainWindow fixes application shortcut issues
     ID = ++_DockWidgetID;
-    this->type = type;
 
     setProperty("ID", ID);
     setContextMenuPolicy(Qt::CustomContextMenu);

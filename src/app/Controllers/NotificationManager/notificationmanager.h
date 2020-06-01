@@ -21,7 +21,7 @@ Q_OBJECT
 protected:
     static bool construct_singleton(ViewController* controller);
     
-    // TODO: This isn't being used; should it be called to delete the singleton at some point?
+    // TODO: (Ask Jackson) This isn't being used. Should it be called to delete the singleton at some point?
     static void destruct_singleton();
 
 public:

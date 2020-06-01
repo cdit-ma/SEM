@@ -409,18 +409,21 @@ void ExecutionManager::CheckForRe_(const QString& re_configure_path)
 
 ProcessResult ExecutionManager::RunSaxonTransform(const QString& transform_path, const QString& document, const QString& output_directory, const QStringList& arguments)
 {
-	// TODO: Do we need to do something if this function returns false???
-	FileHandler::ensureDirectory(output_directory);
+	bool got_directory = FileHandler::ensureDirectory(output_directory);
+    if (!got_directory) {
+        NotificationManager::manager()->AddNotification("RunSaxonTransform", "Icons", "octagonCriticalDark", Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
+        return ProcessResult();
+    }
 
-	QString&& program = "java";
+    QStringList args;
+    args << "-jar";
+    args << GetSaxonPath();
+    args << "-xsl:" + transform_path;
+    args << "-s:" + document;
+    args << arguments;
 
-	QStringList args;
-	args << "-jar";
-	args << GetSaxonPath();
-	args << "-xsl:" + transform_path;
-	args << "-s:" + document;
-	args << arguments;
+    QString&& program = "java";
+    ProcessRunner runner;
 
-	ProcessRunner runner;
     return runner.RunProcess(program, args, output_directory);
 }

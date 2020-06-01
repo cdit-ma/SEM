@@ -127,8 +127,16 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 				}
 				break;
 			}
+            case ExperimentDataRequestType::NetworkUtilisationEvent: {
+                valid = request_param.canConvert<UtilisationRequest>();
+                if (valid) {
+                    auto request = request_param.value<UtilisationRequest>();
+                    requestNetworkUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+                }
+                break;
+            }
 		}
-		
+
 		if (!valid) {
 			auto&& request_str = QString::number(static_cast<int>(request_type)).toStdString() + request_param.toString().toStdString();
 			throw std::invalid_argument("Failed to request data (" + request_str + ") - Invalid request parameter.");

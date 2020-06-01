@@ -178,16 +178,19 @@ void Chart::updateRange(double startTime, double duration)
  */
 void Chart::updateBinnedData(const QSet<ChartDataKind>& kinds)
 {
-	return;
-	/*
+	// TODO: Instead of re-calculating the binned data in the paint method, calculate and store the binned data per series
+	//  and only recalculate it when the data or diaplay range has changed, or when the widget is resized.
+	//  This should do a lot less calculations and provide smoother rendering of the charts
+
+    /*
     if (kinds.isEmpty()) {
         kinds = seriesList_.keys().toSet();
-	}
+    }
     for (auto kind : kinds) {
         updateBinnedData(kind);
     }
-	update();
-	*/
+    update();
+    */
 }
 
 /**
