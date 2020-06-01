@@ -17,7 +17,7 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     auto updateTimer = new QTimer(this);
     updateTimer->setInterval(1000);
     updateTimer->start();
-    
+    // TODO: Figure out why we changed back to using the old connect notation
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(update()));
     //connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::update);
 
