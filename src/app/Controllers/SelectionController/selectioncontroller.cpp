@@ -19,7 +19,7 @@ SelectionHandler *SelectionController::constructSelectionHandler(QObject *object
         qCritical() << "SelectionController::constructSelectionHandler() - Already got Selection Handler for QObject: " << object;
         return selectionHandlers[sID];
     } else {
-        auto handler = new SelectionHandler(this);
+        auto handler = new SelectionHandler();
         connect(handler, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(removeSelectionHandler()));
         connect(viewController, &ViewController::vc_viewItemDestructing, handler, &SelectionHandler::itemDeleted);
         selectionHandlers[handler->getID()] = handler;

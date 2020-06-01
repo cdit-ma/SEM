@@ -12,7 +12,7 @@ class AxisDisplay : public QWidget
     Q_OBJECT
 
 public:
-    explicit AxisDisplay(const AxisSlider &slider, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = nullptr);
+    explicit AxisDisplay(QPointer<AxisSlider> slider, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = nullptr);
 
     void setAxisMargin(int margin);
     void setAxisLineVisible(bool visible);
@@ -55,8 +55,7 @@ private:
     QString getConvertedString(double value);
     QRectF getAdjustedRect();
 
-	// TODO: Ask if this should be changed from being a const reference
-    const AxisSlider& slider_;
+    QPointer<AxisSlider> slider_;
 
     Qt::Orientation orientation_;
     Qt::Alignment textAlignment_;
