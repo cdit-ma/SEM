@@ -1069,10 +1069,9 @@ void Theme::settingChanged(SETTINGS setting, const QVariant& value)
         case SETTINGS::THEME_ALTERNATE_TEXT_COLOR:
             setAltTextColor(color);
             break;
-        case SETTINGS::THEME_ICON_COLOR:{
+        case SETTINGS::THEME_ICON_COLOR:
             setMenuIconColor(ColorRole::NORMAL, color);
             break;
-        }
         case SETTINGS::THEME_BG_DISABLED_COLOR:
             setDisabledBackgroundColor(color);
             break;
