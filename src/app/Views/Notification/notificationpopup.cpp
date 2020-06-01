@@ -86,9 +86,6 @@ void NotificationPopup::setupLayout()
     layout->addWidget(icon);
     layout->addWidget(label);
 
-    widget = new QWidget(this);
-    widget->setContentsMargins(5, 2, 5, 2);
-    widget->setLayout(layout);
     setWidget(widget);
 }
 

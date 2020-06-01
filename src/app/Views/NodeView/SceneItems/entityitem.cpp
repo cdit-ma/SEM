@@ -140,18 +140,20 @@ QPainterPath EntityItem::getElementPath(EntityRect rect) const
 void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityRect entityRect, const QString& imagePath, const QString& imageName, QColor tintColor)
 {
     QRectF imageRect = getElementRect(entityRect);
-    if (!imageRect.isEmpty()) {
-        RENDER_STATE state = getRenderState(lod);
-        if (state == RENDER_STATE::BLOCK) {
-            //Only allow the Main Icon/Secondary Icon and Edge Kind Icon to be drawn in block state.
-            if (entityRect == EntityRect::MAIN_ICON || entityRect == EntityRect::SECONDARY_ICON) {
-                paintPixmapRect(painter, imagePath, imageName, imageRect);
-            }
-        } else {
-            auto required_size = getPixmapSize(imageRect, lod);
-            auto pixmap = getPixmap(imagePath, imageName, required_size, std::move(tintColor));
-            paintPixmap(painter, imageRect, pixmap);
+    if (imageRect.isEmpty()) {
+        return;
+    }
+
+    RENDER_STATE state = getRenderState(lod);
+    if (state == RENDER_STATE::BLOCK) {
+        //Only allow the Main Icon/Secondary Icon and Edge Kind Icon to be drawn in block state.
+        if (entityRect == EntityRect::MAIN_ICON || entityRect == EntityRect::SECONDARY_ICON) {
+            paintPixmapRect(painter, imagePath, imageName, imageRect);
         }
+    } else {
+        auto required_size = getPixmapSize(imageRect, lod);
+        auto pixmap = getPixmap(imagePath, imageName, required_size, std::move(tintColor));
+        paintPixmap(painter, imageRect, pixmap);
     }
 }
 
@@ -635,7 +637,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         } else {
             brush.setColor(getBodyColor());
         }
+
     } else if (state > RENDER_STATE::BLOCK) {
+
+        // TODO: We should really look into a safer way of making this check
+        //  It will break if anyone was to reorder the enum values
 
         //Paint the Outline path.
         painter->setPen(getPen());
@@ -781,14 +787,7 @@ void EntityItem::updateZValue(bool childSelected, bool childActive)
     bool raise = childSelected || isSelected();
     childActive |= isActiveSelected();
 
-    qreal z = fabs(getDefaultZValue());
-
-    // TODO - Ask Jackson why this is always true
-    if(z == 0 && raise){
-        z = 1;
-        z *= 2;
-    }
-
+    qreal z = 2;
     z *= childActive ? 2 : 1;
     setZValue(z);
 

@@ -55,8 +55,10 @@ bool NotificationManager::construct_singleton(ViewController* controller)
 
 void NotificationManager::destruct_singleton()
 {
-    delete managerSingleton;
-    managerSingleton = nullptr;
+    if (managerSingleton) {
+        delete managerSingleton;
+        managerSingleton = nullptr;
+    }
 }
 
 /**

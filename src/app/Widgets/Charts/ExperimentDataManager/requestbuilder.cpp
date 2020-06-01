@@ -18,25 +18,25 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
     for (auto kind : requestKinds) {
         switch (kind) {
         case MEDEA::ChartDataKind::PORT_LIFECYCLE:
-            portLifecycleRequest_ = std::make_unique<PortLifecycleRequest>(PortLifecycleRequest());
+            portLifecycleRequest_ = std::make_unique<PortLifecycleRequest>();
             break;
         case MEDEA::ChartDataKind::WORKLOAD:
-            workloadRequest_ = std::make_unique<WorkloadRequest>(WorkloadRequest());
+            workloadRequest_ = std::make_unique<WorkloadRequest>();
             break;
         case MEDEA::ChartDataKind::CPU_UTILISATION:
-            cpuUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
+            cpuUtilisationRequest_ = std::make_unique<UtilisationRequest>();
             break;
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
+            memoryUtilisationRequest_ = std::make_unique<UtilisationRequest>();
             break;
         case MEDEA::ChartDataKind::MARKER:
-            markerRequest_ = std::make_unique<MarkerRequest>(MarkerRequest());
+            markerRequest_ = std::make_unique<MarkerRequest>();
             break;
         case MEDEA::ChartDataKind::PORT_EVENT:
-            portEventRequest_ = std::make_unique<PortEventRequest>(PortEventRequest());
+            portEventRequest_ = std::make_unique<PortEventRequest>();
             break;
         case MEDEA::ChartDataKind::NETWORK_UTILISATION:
-            networkUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
+            networkUtilisationRequest_ = std::make_unique<UtilisationRequest>();
             break;
         default:
 	        throw std::invalid_argument("RequestBuilder::buildRequests - Unknown chart data kind");

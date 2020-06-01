@@ -80,13 +80,13 @@ private:
     HIT_RECT prevClickedRect_ = HIT_RECT::NO_SLIDER;
     double zoomFactor_ = 1.1;
 
-    double minRatio_;
-    double maxRatio_;
-    double sliderMin_;
-    double sliderMax_;
-    double sliderRange_;
-    double actualMin_;
-    double actualMax_;
+    double minRatio_ = 0;
+    double maxRatio_ = 1;
+    double sliderMin_ = 0;
+    double sliderMax_ = 1;
+    double sliderRange_ = 1;
+    double actualMin_ = 0;
+    double actualMax_ = 1;
 
     bool isPanning_ = false;
 };

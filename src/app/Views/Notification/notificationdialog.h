@@ -95,6 +95,8 @@ private:
     OptionGroupBox* category_filters = nullptr;
     OptionGroupBox* source_filters = nullptr;
 
+    static const int default_max_visible_notifications_;
+
     int max_visible = 0;
     int total_notifications = 0;
     int current_matched_notifications = 0;

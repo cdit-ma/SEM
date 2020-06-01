@@ -229,6 +229,8 @@ private:
     QState* state_rubberband_mode_ = nullptr;
 
     ArrowLine* connect_line_ = nullptr;
+
+    const QPointF null_point_ = QPointF();
 };
 
 #endif // NODEVIEW_H

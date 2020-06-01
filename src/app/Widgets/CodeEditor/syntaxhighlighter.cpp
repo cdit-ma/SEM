@@ -20,7 +20,7 @@ const QStringList SyntaxHighlighter::keyword_patterns_{
 
 QVector<ParenthesisInfo *> TextBlockData::parentheses()
 {
-	return m_parentheses;
+    return m_parentheses;
 }
 
 void TextBlockData::insert(ParenthesisInfo *info)

@@ -379,7 +379,7 @@ void NodeView::alignHorizontal()
         item->setPos(pos);
 
         if (item->setMoveFinished()) {
-            pos = item->getNearestGridPoint(QPointF());
+            pos = item->getNearestGridPoint(null_point_);
             emit setData(item->getID(), KeyName::X, pos.x());
             emit setData(item->getID(), KeyName::Y, pos.y());
         }
@@ -411,7 +411,7 @@ void NodeView::alignVertical()
         item->setPos(pos);
 
         if (item->setMoveFinished()) {
-            pos = item->getNearestGridPoint(QPointF());
+            pos = item->getNearestGridPoint(null_point_);
             emit setData(item->getID(), KeyName::X, pos.x());
             emit setData(item->getID(), KeyName::Y, pos.y());
         }
@@ -1771,7 +1771,7 @@ void NodeView::setMovingModeOff()
         }
         if (any_moved) {
             // Send a signal to update the model (graphml) data
-            QPointF pos = item->getNearestGridPoint(QPointF());
+            QPointF pos = item->getNearestGridPoint(null_point_);
             emit setData(item->getID(), KeyName::X, pos.x());
             emit setData(item->getID(), KeyName::Y, pos.y());
         }
