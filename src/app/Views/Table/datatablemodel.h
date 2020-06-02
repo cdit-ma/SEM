@@ -28,6 +28,8 @@ public:
 	
 	Qt::ItemFlags flags(const QModelIndex &index) const override;
 	void sort(int column, Qt::SortOrder order) override;
+  
+  int getIndex(const QString& keyName) const;
 
 signals:
     void req_dataChanged(int ID, QString keyName, QVariant data);
@@ -40,7 +42,6 @@ public slots:
     void clearData();
 
 private:
-    int getIndex(const QString& keyName) const;
     QString getKey(const QModelIndex &index) const;
     QString getKey(int row) const;
 	QVariant getData(const QModelIndex &index) const;

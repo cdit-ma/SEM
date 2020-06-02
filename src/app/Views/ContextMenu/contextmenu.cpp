@@ -40,6 +40,7 @@ ContextMenu::ContextMenu(ViewController *vc)
 
     connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::PORT_REPLIER_IMPL] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::TRIGGER_INST] = EDGE_KIND::DEFINITION;
 
     action_controller = view_controller->getActionController();
 
@@ -122,6 +123,7 @@ void ContextMenu::themeChanged()
     add_node_menu->setIcon(theme->getIcon("Icons", "plus"));
     add_edge_menu->setIcon(theme->getIcon("Icons", "connect"));
     deploy_menu->setIcon(theme->getIcon("Icons", "screenTwoTone"));
+    trigger_edge_menu->setIcon(theme->getIcon("Icons", "servers"));
 
     for(auto node_action : add_node_action_hash.values()){
         Theme::UpdateActionIcon(node_action, theme);
@@ -343,15 +345,17 @@ void ContextMenu::update_dock_menus()
 
 void ContextMenu::update_menu(QMenu* menu)
 {
-    if(menu == main_menu){
+    if (menu == main_menu) {
         return update_main_menu();
-    }else if(menu == add_edge_menu){
+    } else if (menu == add_edge_menu) {
         return update_add_edge_menu();
-    }else if(menu == add_node_menu || menu == dock_add_node_menu){
+    } else if (menu == add_node_menu || menu == dock_add_node_menu) {
         return update_add_node_menu();
-    }else if(menu == deploy_menu || menu == dock_deploy_menu){
+    } else if (menu == deploy_menu || menu == dock_deploy_menu) {
         return update_deploy_menu();
-    }else{
+    } else if (menu == trigger_edge_menu) {
+        return update_trigger_edge_menu();
+    } else {
         if(menu){
             auto action_kind = menu->property("action_kind").value<ACTION_KIND>();
             auto edge_kind = menu->property("edge_kind").value<EDGE_KIND>();
@@ -671,6 +675,7 @@ void ContextMenu::update_main_menu()
         add_node_menu->menuAction()->setVisible(can_add_node);
         add_edge_menu->menuAction()->setVisible(can_add_edge);
         deploy_menu->menuAction()->setVisible(edge_kinds.contains(EDGE_KIND::DEPLOYMENT));
+        trigger_edge_menu->menuAction()->setVisible(edge_kinds.contains(EDGE_KIND::TRIGGER));
 
         // show/hide chart menu
         update_chart_menu();
@@ -813,9 +818,27 @@ QMenu* ContextMenu::construct_viewitem_menu(ViewItem* item, QMenu* parent_menu)
     return nullptr;
 }
 
-void ContextMenu::update_deploy_menu()
+void ContextMenu::update_trigger_edge_menu()
 {
-    if (deploy_menu && dock_deploy_menu) {
+    if (trigger_edge_menu) {
+        auto connect_map = view_controller->getValidEdges(EDGE_KIND::TRIGGER);
+        auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::TRIGGER);
+        trigger_edge_menu->setProperty("load_all", true);
+        update_edge_menu(
+        nullptr,
+        trigger_edge_menu,
+        connect_map.values(EDGE_DIRECTION::SOURCE),
+        connect_map.values(EDGE_DIRECTION::TARGET),
+        disconnect_map.values()
+        );
+    }
+}
+
+
+void ContextMenu::update_deploy_menu(){
+    if(deploy_menu && dock_deploy_menu){
+        auto edge_kind = EDGE_KIND::DEPLOYMENT;
+        auto edge_direction = EDGE_DIRECTION::TARGET;
         auto connect_map = view_controller->getValidEdges(EDGE_KIND::DEPLOYMENT);
         auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::DEPLOYMENT);
         auto menus = {dock_deploy_menu, deploy_menu};
@@ -850,9 +873,8 @@ void ContextMenu::update_chart_menu()
     }
 }
 
-QWidgetAction* construct_menu_label(const QString& label)
-{
-    auto action = new QWidgetAction(nullptr);
+QWidgetAction* construct_menu_label(QString label){
+    auto action = new QWidgetAction(0);
     auto label_widget = new QLabel(label);
     label_widget->setContentsMargins(4,8,4,8);
     label_widget->setAlignment(Qt::AlignCenter);
@@ -898,8 +920,9 @@ QWidgetAction* ContextMenu::get_load_more_action(QMenu* parent)
 void ContextMenu::setupMenus()
 {
     main_menu = construct_menu("", nullptr);
-
+  
     deploy_menu = construct_menu("Deploy", main_menu);
+    trigger_edge_menu = construct_menu("Spawn Container", main_menu);
     add_edge_menu = construct_menu("Connect", main_menu);
     
     //Add a Label to the Add Node Menu
@@ -916,6 +939,18 @@ void ContextMenu::setupMenus()
 
     dock_deploy_menu->addAction(construct_menu_search(dock_deploy_menu));
     deploy_menu->addAction(construct_menu_search(deploy_menu));
+    
+    
+    trigger_edge_menu->addAction(construct_menu_search(trigger_edge_menu));
+    
+    {
+        auto menu_titles = new DeployTitles;
+        menu_titles->connect_to_title =  ConstructDisabledAction("CONNECT TO", this);
+        menu_titles->connect_from_title =  ConstructDisabledAction("CONNECT FROM", this);
+        menu_titles->disconnect_title = ConstructDisabledAction("DISCONNECT", this);
+        title_actions[trigger_edge_menu] = menu_titles;
+    }
+
 
     {
         auto menu_titles = new DeployTitles;
@@ -1029,6 +1064,10 @@ void ContextMenu::setupMenus()
     deploy_menu->setProperty("remove_source", true);
     deploy_menu->setProperty("remove_target", true);
     
+    trigger_edge_menu->setProperty("edge_kind", QVariant::fromValue(EDGE_KIND::TRIGGER));
+    trigger_edge_menu->setProperty("remove_source", true);
+    trigger_edge_menu->setProperty("remove_target", true);
+    
     dock_deploy_menu->setProperty("edge_kind", QVariant::fromValue(EDGE_KIND::DEPLOYMENT));
     dock_deploy_menu->setProperty("remove_source", true);
     dock_deploy_menu->setProperty("remove_target", true);
@@ -1036,6 +1075,7 @@ void ContextMenu::setupMenus()
     //Put our custom deploy menu into the edge hash
     add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
     add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
+    add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::TRIGGER}] = trigger_edge_menu;
 
     // setup chart menu
     chart_data_kind_menu = construct_menu("View In Chart", main_menu);
@@ -1075,6 +1115,7 @@ void ContextMenu::setupMenus()
     main_menu->addAction(action_controller->edit_delete->constructSubAction(true));
     main_menu->addSeparator();
     main_menu->addMenu(deploy_menu);
+    main_menu->addMenu(trigger_edge_menu);
     main_menu->addMenu(add_edge_menu);
     main_menu->addSeparator();
     main_menu->addAction(action_controller->view_viewConnections->constructSubAction(true));

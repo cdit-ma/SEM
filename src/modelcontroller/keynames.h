@@ -1,4 +1,3 @@
-
 #ifndef KEYNAME_LITERALS_H
 #define KEYNAME_LITERALS_H
 
@@ -103,6 +102,12 @@ namespace KeyName {
     extern const char* Y;
     extern const char* ZmqPublisherAddress;
     extern const char* ZmqServerAddress;
+
+    extern const char* TriggerType;
+    extern const char* Condition;
+    extern const char* SingleActivation;
+    extern const char* WaitPeriod;
+    extern const char* ContainerReference;
 };
 
-#endif //KEYNAME_LITERALS_H
+#endif // KEYNAME_LITERALS_H

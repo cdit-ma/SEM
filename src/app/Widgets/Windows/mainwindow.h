@@ -68,6 +68,7 @@ private:
     BaseDockWidget* dockwidget_Qos = nullptr;
     BaseDockWidget* dockwidget_Notification = nullptr;
 
+    BaseDockWidget* dockWidget_Trigger = nullptr;
     BaseDockWidget* dockwidget_Charts = nullptr;
     BaseDockWidget* dockwidget_Dataflow = nullptr;
 

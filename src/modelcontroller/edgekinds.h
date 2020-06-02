@@ -9,7 +9,8 @@ enum class EDGE_KIND{
     DEPLOYMENT,
     DATA,
     ASSEMBLY,
-    QOS
+    QOS,
+    TRIGGER
 };
 
 enum class EDGE_DIRECTION{

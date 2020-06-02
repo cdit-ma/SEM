@@ -14,6 +14,7 @@
 #include "../../Views/Search/searchdialog.h"
 #include "../../Views/Table/datatablewidget.h"
 #include "../../Views/QOSBrowser/qosbrowser.h"
+#include "../../Views/TriggerBrowser/triggerbrowser.h"
 #include "../../Views/NodeView/nodeviewminimap.h"
 #include "../../Views/Notification/notificationdialog.h"
 #include "../../Views/Notification/notificationtoolbar.h"
@@ -341,6 +342,7 @@ void MainWindow::setupDockIcons()
     setDockWidgetIcon(dockwidget_Dock, "Icons", "zoomInPage", theme);
     setDockWidgetIcon(dockwidget_Charts, "Icons", "barChart", theme);
     setDockWidgetIcon(dockwidget_Dataflow, "Icons", "wave", theme);
+    setDockWidgetIcon(dockWidget_Trigger, "Icons", "circleBoltDark", theme);
 
     theme->setWindowIcon(applicationToolbar->windowTitle(), "Icons", "spanner");
 }
@@ -562,19 +564,25 @@ void MainWindow::setupDockablePanels()
 {   
     auto window_manager = WindowManager::manager();
 
-    //QOS Browser
+    // Trigger Browser
+    dockWidget_Trigger = window_manager->constructDockWidget("Trigger Browser", this);
+    dockWidget_Trigger->setWidget(new TriggerBrowser(view_controller, this));
+    dockWidget_Trigger->setIconVisible(true);
+    dockWidget_Trigger->setProtected(true);
+
+    // QOS Browser
     dockwidget_Qos = window_manager->constructDockWidget("QOS Browser", this);
     dockwidget_Qos->setWidget(new QOSBrowser(view_controller, dockwidget_Qos));
     dockwidget_Qos->setIconVisible(true);
     dockwidget_Qos->setProtected(true);
 
-    //Search Panel
+    // Search Panel
     dockwidget_Search = window_manager->constructDockWidget("Search", this);
     dockwidget_Search->setWidget(SearchManager::manager()->getSearchDialog());
     dockwidget_Search->setIconVisible(true);
     dockwidget_Search->setProtected(true);
     
-    //Notification Panel
+    // Notification Panel
     dockwidget_Notification = window_manager->constructDockWidget("Notifications", this);
     dockwidget_Notification->setWidget(NotificationManager::manager()->getPanel());
     dockwidget_Notification->setIconVisible(true);
@@ -596,6 +604,7 @@ void MainWindow::setupDockablePanels()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Search);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Notification);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Qos);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget_Trigger);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockwidget_Charts);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockwidget_Dataflow);
 

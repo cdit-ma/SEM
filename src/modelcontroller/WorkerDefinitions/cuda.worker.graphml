@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+    <key attr.name="kind" attr.type="string" for="all" id="kind"/>
+    <key attr.name="label" attr.type="string" for="all" id="label"/>
+    <key attr.name="value" attr.type="string" for="all" id="value"/>
+    <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    <key attr.name="is_generic_param" attr.type="boolean" for="all" id="is_generic_param"/>
+    <key attr.name="is_generic_param_src" attr.type="boolean" for="all" id="is_generic_param_src"/>
+    <key attr.name="description" attr.type="string" for="all" id="description"/>
+    <key attr.name="worker" attr.type="string" for="all" id="worker"/>
+    <key attr.name="folder" attr.type="string" for="all" id="folder"/>
+    <key attr.name="file" attr.type="string" for="all" id="file"/>
+    <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+    <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
+    <key attr.name="operation" attr.type="string" for="all" id="operation"/>
+    <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
+
+    <graph id="G">
+        <node id="cuda">
+            <data key="kind">Class</data>
+            <data key="version">0.9.0</data>
+            <data key="worker">CUDAWorker</data>
+            <data key="label">CUDA Worker</data>
+            <data key="description">Provides NVIDIA GPU compute workload functionality.</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">nvidia</data>
+            <data key="folder">${RE_PATH}/src/workers/cuda</data>
+            <data key="file">cudaworker</data>
+            <graph id="cuda:">
+                <node id="cuda::fft">
+                    <data key="kind">Function</data>
+                    <data key="label">FFT</data>
+                    <data key="operation">FFT</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">wave</data>
+                    <data key="description">Run an FFT using the given data, with the result overwriting the input array.</data>
+                    <graph id="cuda::fft:">
+                        <node id="cuda::fft::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cuda::fft::in:">
+                                <node id="cuda::fft::in::data">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Data</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector_Member</data>
+                                    <data key="description">An array of complex-interleaved floats whose length is combination of powers of 2, 3, 5 and 7.</data>
+                                </node>
+                                <node id="cuda::fft::in::success">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Success</data>
+                                    <data key="type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">triangleCritical</data>
+                                    <data key="description">Whether or not the FFT operation succeeded</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="cuda::fft::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="cuda::fft::out:">
+                                <node id="cuda::fft::out::data">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Result</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector_Member</data>
+                                    <data key="description">The result of the computation.</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="cuda::device_ids">
+					<data key="type">String</data>
+					<data key="label">cuda_device_ids</data>
+					<data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">numberOne</data>
+				</node>
+            </graph>
+        </node>
+    </graph>
+</graphml>
