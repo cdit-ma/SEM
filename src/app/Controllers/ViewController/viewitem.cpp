@@ -46,6 +46,7 @@ ViewItem::ViewItem(ViewController* controller, int ID, GRAPHML_KIND entity_kind)
 
 ViewItem::~ViewItem()
 {
+    // TODO: Fix the issues with virtual functions being called in destructors
     Disconnect();
 
     while(!child_nodes_.isEmpty()){

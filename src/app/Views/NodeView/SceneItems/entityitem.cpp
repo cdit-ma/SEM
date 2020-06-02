@@ -787,7 +787,11 @@ void EntityItem::updateZValue(bool childSelected, bool childActive)
     bool raise = childSelected || isSelected();
     childActive |= isActiveSelected();
 
-    qreal z = 2;
+    qreal z = fabs(getDefaultZValue());
+    
+    if (z == 0 && raise) {
+        z = 2;
+    }
     z *= childActive ? 2 : 1;
     setZValue(z);
 

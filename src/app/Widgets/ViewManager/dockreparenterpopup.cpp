@@ -30,6 +30,7 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget)
         getWindowAction(manager->getCentralWindow());
 
         // Ask Jackson: This construction of a set doesn't work
+        // TODO: Change to using QSet constructor
         // auto windows_list = manager->getWindows();
         // note: in instantiation of function template specialization 'QSet<BaseWindow *>::QSet<BaseWindow *, true>' requested here
         // auto valid_windows = QSet<BaseWindow*>(windows_list.first(), windows_list.last());
