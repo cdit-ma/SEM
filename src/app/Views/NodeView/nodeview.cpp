@@ -24,6 +24,8 @@ const qreal centered_rect_scale = 1.1;
 
 const int invalid_node_id = -1;
 
+const QPointF NodeView::null_point_ = QPointF();
+
 /**
  * @brief NodeView::NodeView
  * @param view_controller

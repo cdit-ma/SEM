@@ -230,7 +230,7 @@ private:
 
     ArrowLine* connect_line_ = nullptr;
 
-    const QPointF null_point_ = QPointF();
+    static const QPointF null_point_;
 };
 
 #endif // NODEVIEW_H
