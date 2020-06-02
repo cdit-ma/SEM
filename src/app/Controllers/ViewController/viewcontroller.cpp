@@ -1447,6 +1447,15 @@ ModelController* ViewController::getModelController()
     return controller;    
 }
 
+QVariant ViewController::getEntityDataValue(int ID, QString key_name)
+{
+    QVariant data;
+    if (controller) {
+        data = controller->getEntityDataValue(ID, key_name);
+    }
+    return data;
+}
+
 void ViewController::EdgeConstructed(int id, EDGE_KIND kind, int src_id, int dst_id)
 {
     auto src = getNodeViewItem(src_id);

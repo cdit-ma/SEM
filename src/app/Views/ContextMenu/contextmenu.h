@@ -96,24 +96,9 @@ private:
     QMenu* dock_add_node_menu = nullptr;
     QMenu* dock_deploy_menu = nullptr;
     QMenu* chart_data_kind_menu = nullptr;
-    
-    QHash <NODE_KIND, QAction*> add_node_action_hash;
-    QMenu* get_add_edge_menu(EDGE_DIRECTION direction, EDGE_KIND edge_kind);
-    QMenu* get_remove_edge_menu(EDGE_KIND edge_kind);
-
-    QMenu* main_menu = 0;
-    QMenu* add_node_menu = 0;
-    QMenu* add_edge_menu = 0;
-    //QMenu* remove_edge_menu = 0;
-    QMenu* deploy_menu = 0;
-    
     QMenu* trigger_edge_menu = nullptr;
 
-    QMenu* dock_add_node_menu = 0;
-    QMenu* dock_deploy_menu = 0;
-
-    QMenu* chart_data_kind_menu = 0;
-
+    QHash <NODE_KIND, QAction*> add_node_action_hash;
     QHash <EDGE_KIND, QMenu*> add_edge_menu_hash;
     QHash <QPair<EDGE_DIRECTION, EDGE_KIND> , QMenu*> add_edge_menu_direct_hash;
     QHash<NODE_KIND, EDGE_KIND> connect_node_edge_kinds;
