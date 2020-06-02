@@ -17,9 +17,12 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     auto updateTimer = new QTimer(this);
     updateTimer->setInterval(1000);
     updateTimer->start();
-    // TODO: Figure out why we changed back to using the old connect notation
-    connect(updateTimer, SIGNAL(timeout()), this, SLOT(update()));
+
+    // NOTE: We reverted back to using the old connect notation because the new notation produces the following error:
+    //  error: no matching member function for call to 'connect'
+    //    connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::update);
     //connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::update);
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(update()));
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

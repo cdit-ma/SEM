@@ -45,7 +45,6 @@ public:
     QList<Event*>::const_iterator getFirstAfterTime(qint64 timeMS) const;
     QList<Event*> getEventsBetween(qint64 fromTimeMS = -1, qint64 toTimeMS = -1) const;
 	
-	// TODO: Ask Mitch/Jackson why default parameters are prohibited on virtual or override methods
     virtual QString getHoveredDataString (
             qint64 fromTimeMS,
             qint64 toTimeMS,

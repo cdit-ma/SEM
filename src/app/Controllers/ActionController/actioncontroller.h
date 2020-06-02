@@ -59,7 +59,7 @@ private slots:
     QAction* getSettingAction(SETTINGS key);
 
 public:
-    // TODO: Remove enum???
+    // TODO: (Ask Jackson) This enum is not being used. Remove it???
     enum ACTION{};
     explicit ActionController(ViewController* vc);
 

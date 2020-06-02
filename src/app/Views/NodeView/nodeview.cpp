@@ -2067,6 +2067,7 @@ void NodeView::shiftOrderInParent(NodeItem* item, int key)
 void NodeView::wheelEvent(QWheelEvent* event)
 {
     // TODO: Does this check have anything to do with zooming???
+    //  Ask Jackson if this can be removed
     //if (view_controller_.isControllerReady())
     zoom(event->delta(), event->pos());
 }
