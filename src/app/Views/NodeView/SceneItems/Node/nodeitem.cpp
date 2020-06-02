@@ -246,7 +246,7 @@ const QList<NodeItem*>& NodeItem::getSortedChildNodes()
 void NodeItem::RecalcSortedChildNodes()
 {
     if(sorted_child_nodes_dirty){
-        sorted_child_nodes = child_nodes.toList();
+        sorted_child_nodes = child_nodes.values();
         std::sort(sorted_child_nodes.begin(), sorted_child_nodes.end(), [](const NodeItem* n1, const NodeItem* n2){
             return n1->getSortOrder() < n2->getSortOrder();
         });

@@ -109,8 +109,9 @@ public:
     void ShowJenkinsBuildDialog(const QStringList& jobs);
 
     bool isNodeAncestor(int ID, int ID2);
-
     VIEW_ASPECT getNodeViewAspect(int ID);
+
+    QVariant getEntityDataValue(int ID, QString key_name);
 
     void constructEdges(int id, EDGE_KIND edge_kind, EDGE_DIRECTION edge_direction);
 

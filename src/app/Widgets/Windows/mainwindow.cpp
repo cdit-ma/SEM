@@ -612,6 +612,7 @@ void MainWindow::setupDockablePanels()
     innerWindow->setDockWidgetVisibility(dockwidget_Qos, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Search, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Notification, false);
+    innerWindow->setDockWidgetVisibility(dockWidget_Trigger, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Charts, false);
     innerWindow->setDockWidgetVisibility(dockwidget_Dataflow, false);
     
