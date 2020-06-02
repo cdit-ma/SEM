@@ -80,6 +80,7 @@ private:
     HIT_RECT prevClickedRect_ = HIT_RECT::NO_SLIDER;
     double zoomFactor_ = 1.1;
 
+    // TODO: Consider replacing with getter functions to maintain invariants (and also store less)
     double minRatio_ = 0;
     double maxRatio_ = 1;
     double sliderMin_ = 0;
