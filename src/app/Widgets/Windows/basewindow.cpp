@@ -42,8 +42,6 @@ void BaseWindow::resetDockWidgets()
 
 BaseWindow::~BaseWindow()
 {
-    // TODO: Ask Jackson why this terminating flag is necessary
-    //  It's only used in removeDockWidget and not even used in the function called below
     terminating = true;
     removeAllDockWidgets();
 }

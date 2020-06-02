@@ -29,19 +29,15 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget)
         //Construct a CentralWindow widget second will ensure that it'll be second if it's valid
         getWindowAction(manager->getCentralWindow());
 
-        // Ask Jackson: This construction of a set doesn't work
-        // TODO: Change to using QSet constructor
-        // auto windows_list = manager->getWindows();
-        // note: in instantiation of function template specialization 'QSet<BaseWindow *>::QSet<BaseWindow *, true>' requested here
-        // auto valid_windows = QSet<BaseWindow*>(windows_list.first(), windows_list.last());
-
         //Remove the dockWindows current Window, and the MainWindow from the windows this dock_widget can be put into
-        auto valid_windows = manager->getWindows().toSet();
+        auto windows_list = manager->getWindows();
+        auto valid_windows = QSet<BaseWindow*>(windows_list.begin(), windows_list.end());
         valid_windows.remove(dock_widget->getCurrentWindow());
         valid_windows.remove(manager->getMainWindow());
         
         //New Window should always be visible
         new_window_button->show();
+
         //Add New Buttons for the other valid windows, and show them
         for(auto window : valid_windows){
             if(window->getType() != BaseWindow::INVISIBLE_WINDOW){

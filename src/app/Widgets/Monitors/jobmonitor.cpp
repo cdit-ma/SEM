@@ -282,14 +282,9 @@ void JobMonitor::jobPressed()
 {
     QString job_key;
     if (running_jobs_box) {
-
-        // TODO: Use an alternative way to cast it to a set; toSet() is deprecated
-        auto jobs_selected = running_jobs_box->getCheckedOptions<QString>().toSet();
-
-        // Ask Jackson: Had a second look at what this function is doing, and I don't think this needs to be a set
-        // NOTE: The code below doesn't work
-        //auto jobs_selected_set = QSet<QString>(jobs_selected.first(), jobs_selected.last());
-
+        // TODO: Had a second look at what this function is doing, and I don't think this needs to be a set
+        //  Ask Jackson to confirm
+        auto jobs_selected = running_jobs_box->getCheckedOptions<QString>();
         if (!running_jobs_box->isResetChecked()) {
             job_key = *jobs_selected.constBegin();
         }

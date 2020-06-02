@@ -13,7 +13,8 @@ CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem)
     addRequiredData(KeyName::Row);
     addRequiredData(KeyName::Column);
     
-    // TODO: Call reloadRequiredData? - It seems to be called in other places where required data has been added/removed
+    // TODO: (Ask Jackson) Call reloadRequiredData?
+    //  It seems to be called in other places where required data has been added/removed
     //reloadRequiredData();
     
     setPrimaryTextKey(KeyName::Label);

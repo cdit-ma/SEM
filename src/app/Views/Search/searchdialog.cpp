@@ -232,7 +232,7 @@ void SearchDialog::setupLayout()
     auto left_widget = new QWidget(this);
     auto right_widget = new QWidget(this);
     
-    // TODO: Are these brackets necessary?
+    // TODO (Ask Jackson): Are these brackets necessary?
     {
         //LEFT WIDGET
         left_widget->setContentsMargins(5,5,1,5);

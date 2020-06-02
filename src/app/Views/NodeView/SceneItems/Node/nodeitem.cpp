@@ -16,7 +16,8 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
     setMoveEnabled(true);
     setExpandEnabled(true);
 
-    // TODO: Call reloadRequiredData? - It seems to be called in other places where required data has been added/removed
+    // NOTE: Added reloadRequiredData here
+    //  It seems to be called in other places where required data has been added/removed
     reloadRequiredData();
 
     const auto& grid_size = getGridSize();

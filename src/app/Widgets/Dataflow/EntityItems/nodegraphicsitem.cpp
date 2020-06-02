@@ -210,25 +210,26 @@ void NodeGraphicsItem::constructChildrenItems()
  */
 void NodeGraphicsItem::validateChildMove(ComponentInstanceGraphicsItem* child, QPointF pos)
 {
-    if (child != nullptr) {
-        // TODO: Re-check these review comments again once later when the other branches has been merged in
-        //  They may have already been fixed elsewhere
-        // REVIEW (Jackson): Is there a particular reason for chosing the top left as minimum?
-        //  This prevents a left/upward drag from expanding the NodeGraphicsItem, intentional?
-        auto&& min_x = getTopLeftChildPos().x();
-        auto&& min_y = getTopLeftChildPos().y();
-        auto x = pos.x();
-        auto y = pos.y();
-        if (x < min_x) {
-            x = min_x;
-        }
-        if (y < min_y) {
-            y = min_y;
-        }
-        prepareGeometryChange();
-        child->moveTo(x, y);
-        update();
+    if (child == nullptr) {
+        return;
     }
+
+    auto&& min_x = getTopLeftChildPos().x();
+    auto&& min_y = getTopLeftChildPos().y();
+    auto x = pos.x();
+    auto y = pos.y();
+
+    // This prevents a left/upward drag
+    if (x < min_x) {
+        x = min_x;
+    }
+    if (y < min_y) {
+        y = min_y;
+    }
+
+    prepareGeometryChange();
+    child->moveTo(x, y);
+    update();
 }
 
 /**

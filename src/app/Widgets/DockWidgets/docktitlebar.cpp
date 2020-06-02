@@ -175,13 +175,13 @@ void DockTitleBar::setupToolBar()
 {
     iconAction = addAction("");
 
-    // TODO: Test further and keep an eye out for weird looking/behaving icons on DockWidget's DockTitleBars
-    //  As far as I'm aware, the icons are purely used for display and have no functionality; this shouldn't be needed
-    /*
+    // NOTE: Removing this gets rid of the icons for the tool dock widgets and replaces them with an empty box
+    // TODO: Investigate and fix how this is working
+    //*
     iconAction->setCheckable(true);
     iconAction->setChecked(true);
     connect(iconAction, &QAction::triggered, [=](){iconAction->setChecked(true);});
-    */
+    //*/
 
     auto button = (QToolButton*) widgetForAction(iconAction);
     button->setObjectName("WINDOW_ICON");
