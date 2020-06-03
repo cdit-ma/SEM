@@ -30,8 +30,8 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget)
         getWindowAction(manager->getCentralWindow());
 
         //Remove the dockWindows current Window, and the MainWindow from the windows this dock_widget can be put into
-        auto windows_list = manager->getWindows();
-        auto valid_windows = QSet<BaseWindow*>(windows_list.begin(), windows_list.end());
+        // TODO: toSet is deprecated - find an alternative
+        auto valid_windows = manager->getWindows().toSet();
         valid_windows.remove(dock_widget->getCurrentWindow());
         valid_windows.remove(manager->getMainWindow());
         
