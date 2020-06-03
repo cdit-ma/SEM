@@ -46,7 +46,6 @@ ChartInputPopup::ChartInputPopup(QWidget* parent)
     });
 }
 
-
 /**
  * @brief ChartInputPopup::enforceChartsOnly
  * This is called when the popup is shown by the context (right-click) menu, that is only used for displaying filtered charts data

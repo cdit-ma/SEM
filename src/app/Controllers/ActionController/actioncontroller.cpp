@@ -2,6 +2,7 @@
 #include "../ViewController/viewcontroller.h"
 #include "../../Utils/filehandler.h"
 #include "../../../modelcontroller/modelcontroller.h"
+#include "../../../modelcontroller/keynames.h"
 
 #include <QShortcut>
 #include <QApplication>

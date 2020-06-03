@@ -1,4 +1,5 @@
 #include "datatablewidget.h"
+#include "../../../modelcontroller/keynames.h"
 
 #include <QHeaderView>
 #include <QStringBuilder>

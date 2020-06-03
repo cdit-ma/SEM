@@ -8,9 +8,8 @@ const QString kind_string = "Periodic Port Instance";
 void PeriodicPortInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
         return new PeriodicPortInst(broker, is_temp_node);
-        });
+    });
 }
-#include <QDebug>
 
 PeriodicPortInst::PeriodicPortInst(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State

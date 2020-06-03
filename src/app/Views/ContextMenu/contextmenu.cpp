@@ -40,6 +40,7 @@ ContextMenu::ContextMenu(ViewController *vc)
 
     connect_node_edge_kinds[NODE_KIND::PORT_REQUESTER_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::PORT_REPLIER_IMPL] = EDGE_KIND::DEFINITION;
+    connect_node_edge_kinds[NODE_KIND::TRIGGER_INST] = EDGE_KIND::DEFINITION;
 
     connect_node_edge_kinds[NODE_KIND::TRIGGER_INST] = EDGE_KIND::DEFINITION;
 
@@ -347,7 +348,7 @@ void ContextMenu::update_dock_menus()
 
 void ContextMenu::update_menu(QMenu* menu)
 {
-    if(menu == main_menu){
+    if (menu == main_menu) {
         return update_main_menu();
     } else if (menu == add_edge_menu) {
         return update_add_edge_menu();
@@ -820,7 +821,6 @@ QMenu* ContextMenu::construct_viewitem_menu(ViewItem* item, QMenu* parent_menu)
     return nullptr;
 }
 
-
 void ContextMenu::update_trigger_edge_menu()
 {
     if (trigger_edge_menu) {
@@ -839,7 +839,26 @@ void ContextMenu::update_trigger_edge_menu()
 
 void ContextMenu::update_deploy_menu()
 {
-    if (deploy_menu && dock_deploy_menu) {
+    if (trigger_edge_menu) {
+        auto connect_map = view_controller->getValidEdges(EDGE_KIND::TRIGGER);
+        auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::TRIGGER);
+        trigger_edge_menu->setProperty("load_all", true);
+        update_edge_menu(
+        nullptr,
+        trigger_edge_menu,
+        connect_map.values(EDGE_DIRECTION::SOURCE),
+        connect_map.values(EDGE_DIRECTION::TARGET),
+        disconnect_map.values()
+        );
+    }
+}
+
+
+void ContextMenu::update_deploy_menu()
+{
+    if(deploy_menu && dock_deploy_menu){
+        auto edge_kind = EDGE_KIND::DEPLOYMENT;
+        auto edge_direction = EDGE_DIRECTION::TARGET;
         auto connect_map = view_controller->getValidEdges(EDGE_KIND::DEPLOYMENT);
         auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::DEPLOYMENT);
         auto menus = {dock_deploy_menu, deploy_menu};
@@ -874,9 +893,8 @@ void ContextMenu::update_chart_menu()
     }
 }
 
-QWidgetAction* construct_menu_label(const QString& label)
-{
-    auto action = new QWidgetAction(nullptr);
+QWidgetAction* construct_menu_label(QString label){
+    auto action = new QWidgetAction(0);
     auto label_widget = new QLabel(label);
     label_widget->setContentsMargins(4,8,4,8);
     label_widget->setAlignment(Qt::AlignCenter);
@@ -925,7 +943,6 @@ void ContextMenu::setupMenus()
 
     deploy_menu = construct_menu("Deploy", main_menu);
     trigger_edge_menu = construct_menu("Spawn Container", main_menu);
-
     add_edge_menu = construct_menu("Connect", main_menu);
     
     //Add a Label to the Add Node Menu
@@ -953,7 +970,6 @@ void ContextMenu::setupMenus()
         menu_titles->disconnect_title = ConstructDisabledAction("DISCONNECT", this);
         title_actions[trigger_edge_menu] = menu_titles;
     }
-
 
     {
         auto menu_titles = new DeployTitles;
@@ -1078,6 +1094,7 @@ void ContextMenu::setupMenus()
     //Put our custom deploy menu into the edge hash
     add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
     add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
+    add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::TRIGGER}] = trigger_edge_menu;
 
     add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::TRIGGER}] = trigger_edge_menu;
 

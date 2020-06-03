@@ -57,6 +57,8 @@ private:
 
     void update_add_node_menu();
     void update_deploy_menu();
+    
+    void update_trigger_edge_menu();
 
     void update_trigger_edge_menu();
 
