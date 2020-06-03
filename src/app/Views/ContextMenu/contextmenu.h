@@ -60,8 +60,6 @@ private:
     
     void update_trigger_edge_menu();
 
-    void update_trigger_edge_menu();
-
     void update_chart_menu();
 
     void populate_dynamic_add_node_menu(QMenu* menu);

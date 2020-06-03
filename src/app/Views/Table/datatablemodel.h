@@ -28,8 +28,6 @@ public:
 
 	Qt::ItemFlags flags(const QModelIndex &index) const override;
 	void sort(int column, Qt::SortOrder order) override;
-  
-  int getIndex(const QString& keyName) const;
 
 	int getIndex(const QString& keyName) const;
 

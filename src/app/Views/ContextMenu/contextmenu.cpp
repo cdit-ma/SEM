@@ -853,22 +853,6 @@ void ContextMenu::update_deploy_menu()
     }
 }
 
-
-void ContextMenu::update_deploy_menu()
-{
-    if(deploy_menu && dock_deploy_menu){
-        auto edge_kind = EDGE_KIND::DEPLOYMENT;
-        auto edge_direction = EDGE_DIRECTION::TARGET;
-        auto connect_map = view_controller->getValidEdges(EDGE_KIND::DEPLOYMENT);
-        auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::DEPLOYMENT);
-        auto menus = {dock_deploy_menu, deploy_menu};
-        for (auto menu : menus){
-            menu->setProperty("load_all", true);
-            update_edge_menu(nullptr, menu, connect_map.values(EDGE_DIRECTION::SOURCE), connect_map.values(EDGE_DIRECTION::TARGET), disconnect_map.values());
-        }
-    }
-}
-
 void ContextMenu::update_chart_menu()
 {
     if (!chart_data_kind_menu)
@@ -893,8 +877,9 @@ void ContextMenu::update_chart_menu()
     }
 }
 
-QWidgetAction* construct_menu_label(QString label){
-    auto action = new QWidgetAction(0);
+QWidgetAction* construct_menu_label(const QString& label)
+{
+    auto action = new QWidgetAction(nullptr);
     auto label_widget = new QLabel(label);
     label_widget->setContentsMargins(4,8,4,8);
     label_widget->setAlignment(Qt::AlignCenter);

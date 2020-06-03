@@ -23,9 +23,7 @@ protected:
     Q_INVOKABLE void adjustSize();
 
     void paintEvent(QPaintEvent* event) override;
-
-    // NOTE: This is a non-virtual function - QDialog's function is called from within
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
 private:
     void themeChanged();

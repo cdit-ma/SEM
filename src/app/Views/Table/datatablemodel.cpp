@@ -179,17 +179,18 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
 			} else {
 				return QVariant(Qt::AlignCenter);
 			}
-		case Qt::DecorationRole:
-			if (isIndexProtected(index)) {
-				return Theme::theme()->getIcon("Icons", "lockClosed");
-			}
-			if (hasCodeEditor(index) || hasIconEditor(index)) {
-				return Theme::theme()->getIcon("Icons", "popOut");
-			}
-			// Return a hidden icon for everything else to keep the values aligned
-            auto hidden_icon = theme->getImage("Icons", "blank", icon_size);
+		case Qt::DecorationRole: {
+            if (isIndexProtected(index)) {
+                return Theme::theme()->getIcon("Icons", "lockClosed");
+            }
+            if (hasCodeEditor(index) || hasIconEditor(index)) {
+                return Theme::theme()->getIcon("Icons", "popOut");
+            }
+            // Return a hidden icon for everything else to keep the values aligned
+            auto hidden_icon = Theme::theme()->getImage("Icons", "blank", Theme::theme()->getIconSize());
             hidden_icon.fill(Qt::transparent);
             return hidden_icon;
+        }
 		case MULTILINE_ROLE:
 			return hasCodeEditor(index);
 		case ICON_ROLE:
