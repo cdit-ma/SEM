@@ -257,13 +257,13 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
     try {
         auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
-    } catch (const std::exception&) {
+    } catch (const std::exception& ex) {
 		qInfo(ex.what());
     }
     try {
         auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
-    } catch (const std::exception&) {
+    } catch (const std::exception& ex) {
 		qInfo(ex.what());
     }
 
