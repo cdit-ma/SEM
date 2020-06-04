@@ -2,8 +2,6 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../theme.h"
 
-#include <QBitmap>
-#include <QDebug>
 #include <keynames.h>
 
 const static QSet<QString> multiline_keys({KeyName::ProcessesToLog, KeyName::Code});

@@ -839,17 +839,17 @@ void ContextMenu::update_trigger_edge_menu()
 
 void ContextMenu::update_deploy_menu()
 {
-    if (trigger_edge_menu) {
-        auto connect_map = view_controller->getValidEdges(EDGE_KIND::TRIGGER);
-        auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::TRIGGER);
-        trigger_edge_menu->setProperty("load_all", true);
-        update_edge_menu(
-        nullptr,
-        trigger_edge_menu,
-        connect_map.values(EDGE_DIRECTION::SOURCE),
-        connect_map.values(EDGE_DIRECTION::TARGET),
-        disconnect_map.values()
-        );
+    if (deploy_menu && dock_deploy_menu) {
+    auto edge_kind = EDGE_KIND::DEPLOYMENT;
+    auto edge_direction = EDGE_DIRECTION::TARGET;
+    auto connect_map = view_controller->getValidEdges(EDGE_KIND::DEPLOYMENT);
+    auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::DEPLOYMENT);
+    auto menus = {dock_deploy_menu, deploy_menu};
+    for (auto menu : menus) {
+        menu->setProperty("load_all", true);
+        update_edge_menu(nullptr, menu, connect_map.values(EDGE_DIRECTION::SOURCE), connect_map.values(EDGE_DIRECTION::TARGET), disconnect_map.values());
+    }
+}
     }
 }
 
