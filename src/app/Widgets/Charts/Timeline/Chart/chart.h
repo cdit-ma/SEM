@@ -28,15 +28,17 @@ public:
 
     quint32 getExperimentRunID() const;
 
-    void addSeries(QPointer<const MEDEA::EventSeries> series);
+    void addSeries(const QPointer<const MEDEA::EventSeries>& series);
+    const QHash<ChartDataKind, QPointer<const EventSeries>>& getSeriesPointers() const;
+
     void addSeries(EventSeries *series);
     void removeSeries(ChartDataKind kind);
 
     bool isHovered();
 
     const QHash<ChartDataKind, EventSeries*>& getSeries() const;
-    const QList<ChartDataKind> getHoveredSeriesKinds() const;
-    const QPair<qint64, qint64> getHoveredTimeRange(ChartDataKind kind) const;
+    QList<ChartDataKind> getHoveredSeriesKinds() const;
+    QPair<qint64, qint64> getHoveredTimeRange(ChartDataKind kind) const;
 
     void updateBinnedData(ChartDataKind kind);
     void updateBinnedData(QSet<ChartDataKind> kinds = QSet<ChartDataKind>());
@@ -65,6 +67,12 @@ protected:
     void paintEvent(QPaintEvent* event);
 
 private:
+    void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void outlineHoveredData(QPainter& painter);
+    void displayDataMinMax(QPainter& painter);
+
+    void paintPortLifecycleSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+
     void paintSeries(QPainter& painter, const ChartDataKind kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
@@ -97,19 +105,19 @@ private:
     bool containsYRange_ = false;
     bool hovered_ = false;
 
-    double displayMin_;
-    double displayMax_;
-    double dataMinX_;
-    double dataMaxX_;
-    double dataMinY_;
-    double dataMaxY_;
+    double dataMinX_ = DBL_MAX;
+    double dataMaxX_ = DBL_MIN;
+    double dataMinY_ = DBL_MAX;
+    double dataMaxY_ = DBL_MIN;
+    double displayMin_ = dataMinX_;
+    double displayMax_ = dataMaxX_;
 
     double minRatio_ = 0.0;
     double maxRatio_ = 1.0;
 
-    int binCount_;
-    double binPixelWidth_;
-    double binTimeWidth_;
+    int binCount_ = 1;
+    double binPixelWidth_ = 1.0;
+    double binTimeWidth_ = 1.0;
 
     QRectF hoveredRect_;
 
@@ -158,8 +166,9 @@ private:
     double networkSeriesOpacity_ = 1.0;
 
     QHash<ChartDataKind, bool> seriesKindVisible_;
-    QHash<ChartDataKind, EventSeries*> seriesList_2;
-    QHash<ChartDataKind, QPointer<const MEDEA::EventSeries>> seriesList_;
+    QHash<ChartDataKind, EventSeries*> seriesList_;
+
+    QHash<ChartDataKind, QPointer<const MEDEA::EventSeries>> series_pointers_;
 
     //QHash<ChartDataKind, QVector< QList<Event*> >> binnedData_;
     QVector<QList<Event*>> portLifecycleBinnedData_;
@@ -172,7 +181,7 @@ private:
     QVector<QList<Event*>> emptyBinnedData_;
 
     QHash<ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
-    ChartDataKind hoveredSeriesKind_;
+    ChartDataKind hoveredSeriesKind_ = ChartDataKind::DATA;
     QList<QRectF> hoveredEllipseRects_;
     QList<QRectF> hoveredRects_;
 

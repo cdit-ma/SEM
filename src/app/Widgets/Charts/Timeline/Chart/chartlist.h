@@ -60,6 +60,7 @@ public slots:
     void themeChanged();
 
     void setChartHovered(Chart* chart, bool hovered_);
+    void clearHovered();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);

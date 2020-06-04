@@ -28,8 +28,8 @@ public:
 
     AggServerResponse::Port::Kind getKind() const;
 
-    //QPointer<const PortLifecycleEventSeries> getPortLifecycleSeriesPointer() const;
-    PortLifecycleEventSeries* getPortLifecycleSeriesPointer() const;
+    QPointer<const MEDEA::EventSeries> getPortLifecycleSeriesPointer() const;
+    //PortLifecycleEventSeries* getPortLifecycleSeriesPointer() const;
 
     const PortLifecycleRequest& getPortLifecycleRequest() const;
     const PortEventRequest& getPortEventRequest() const;

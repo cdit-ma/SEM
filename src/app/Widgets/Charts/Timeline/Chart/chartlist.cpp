@@ -169,9 +169,16 @@ void ChartList::setChartHovered(Chart* chart, bool hovered)
         emit chartHovered(chart, hovered);
         chart->setHovered(hovered);
     }
-    hovered_ = hovered;
     update();
 }
+
+
+void ChartList::clearHovered()
+{
+    hovered_ = false;
+    update();
+}
+
 
 
 /**
@@ -365,6 +372,7 @@ void ChartList::paintEvent(QPaintEvent *event)
  */
 void ChartList::hoverRectUpdated(bool repaintRequired)
 {
+    /*
     if (hoverLineRect_.isNull()) {
         for (Chart* chart : charts_) {
             chart->setHoveredRect(hoverLineRect_);
@@ -380,16 +388,26 @@ void ChartList::hoverRectUpdated(bool repaintRequired)
             }
         }
     }
+     */
+
+    for (auto chart : charts_) {
+        if (chart->isVisible()) {
+            if (visibleRegion().intersects(chart->geometry())) {
+                chart->setHoveredRect(hoverLineRect_);
+            }
+        }
+    }
 
     if (repaintRequired) {
-        // this repaint is required instead of an update whenever there's a moveEvent
-        // the hovered series ranges are being calculated in the children charts' paint event
-        // and it needs to happen before the signal below is sent to the timeline view
+        // NOTE: This repaint is required instead of an update whenever there's a moveEvent
+        //  The hoveredSeriesTimeRange_ is populated in the children charts' paintEvent and needs to happen before the signal below is sent
+        //  The slot connected to the signal in the TimelineChartView is what updates the hover display
         repaint();
     } else {
         update();
     }
 
+    // Send a signal to the AxisWidget and the TimelineChartVIew notifying them of the change in hover line
     emit hoverLineUpdated(hoverLineRect_.isValid(), mapToGlobal(hoverLineRect_.center().toPoint()));
 }
 

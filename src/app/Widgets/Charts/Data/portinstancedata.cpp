@@ -35,7 +35,7 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
     //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
 
-
+    // NOTE: graphml_id fromat = <medea_ID>_<first_replication_ID>_<second_replication_ID>
     //    seriesLabel = port.name + "_ " + graphml_id
     //    seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
     //    auto seriesLabel = "[" + QString::number(experimentRunID) + "] " + label;
@@ -108,9 +108,8 @@ AggServerResponse::Port::Kind PortInstanceData::getKind() const
 }
 
 
-PortLifecycleEventSeries* PortInstanceData::getPortLifecycleSeriesPointer() const
+QPointer<const MEDEA::EventSeries> PortInstanceData::getPortLifecycleSeriesPointer() const
 {
-    qDebug() << "PortInstanceData - events: " << port_lifecycle_series_->getEvents().size();
     return port_lifecycle_series_;
 }
 
