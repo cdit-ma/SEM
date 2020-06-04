@@ -11,12 +11,13 @@ class ViewDockWidget : public DefaultDockWidget
     Q_OBJECT
 
 protected:
-    ViewDockWidget(QString title, QWidget* parent = nullptr, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    explicit ViewDockWidget(const QString& title, QWidget* parent = nullptr, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
 
 public:
     SelectionHandler* getSelectionHandler();
     NodeView* getNodeView();
-    void setWidget(QWidget* widget);
+
+    void setWidget(QWidget* widget) override;
 
 private:
     NodeView* nodeView = nullptr;

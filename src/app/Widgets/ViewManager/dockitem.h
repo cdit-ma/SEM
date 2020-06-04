@@ -24,11 +24,11 @@ private:
     void setupLayout();
 
     QLabel* label = nullptr;
-
     QAction* iconAction = nullptr;
     ViewManagerWidget* manager = nullptr;
     BaseDockWidget* dockWidget = nullptr;
 
-    bool isNodeViewDockWidget;
+    bool isNodeViewDockWidget = false;
 };
+
 #endif // DOCKITEM_H

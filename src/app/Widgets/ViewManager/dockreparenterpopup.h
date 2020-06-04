@@ -15,26 +15,31 @@ class BaseWindow;
 class DockReparenterPopup : public PopupWidget
 {
     Q_OBJECT
+    
 public:
     explicit DockReparenterPopup();
 
     bool ReparentDockWidget(BaseDockWidget* dock_widget);
 
 protected:
-    void reject();
+    void reject() final;
+    
 private:
     void windowTriggered(int window_id);
+    void unsetDockWidget();
 
     QToolButton* getWindowAction(BaseWindow* window);
+    
     void themeChanged();
     void setupLayout(); 
 
-    BaseDockWidget* dock_widget = 0;
+    BaseDockWidget* dock_widget = nullptr;
 
-    QAction* close_action = 0;
+    QAction* close_action = nullptr;
+    QHBoxLayout* h_layout = nullptr;
+    QToolBar* toolbar = nullptr;
+
     QHash<int, QToolButton*> button_lookup;
-    QHBoxLayout* h_layout = 0;
-    QToolBar* toolbar = 0;
 };
 
-#endif //DOCKREPARENTERPOPUP_H
+#endif // DOCKREPARENTERPOPUP_H

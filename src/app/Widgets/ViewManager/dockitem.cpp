@@ -1,5 +1,5 @@
 #include "dockitem.h"
-#include "../../theme.h"
+
 #include <QToolButton>
 
 DockItem::DockItem(ViewManagerWidget *manager, BaseDockWidget *dockWidget)
@@ -25,7 +25,7 @@ DockItem::DockItem(ViewManagerWidget *manager, BaseDockWidget *dockWidget)
 
 void DockItem::updateIcon()
 {
-    if(iconAction && dockWidget){
+    if (iconAction && dockWidget) {
         QPair<QString, QString> icon = dockWidget->getIcon();
         iconAction->setIcon(Theme::theme()->getIcon(icon));
     }
@@ -56,30 +56,34 @@ void DockItem::titleChanged()
 
 void DockItem::setupLayout()
 {
-    DockTitleBar * titleBar = dockWidget->getTitleBar();
+    DockTitleBar* titleBar = dockWidget->getTitleBar();
 
     label = new QLabel(this);
 
-    QWidget* labelWidget = new QWidget(this);
-    QHBoxLayout* labelWidgetLayout = new QHBoxLayout(labelWidget);
-    labelWidgetLayout->setMargin(0);
+    auto labelWidget = new QWidget(this);
     labelWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+
+    auto labelWidgetLayout = new QHBoxLayout(labelWidget);
+    labelWidgetLayout->setMargin(0);
     labelWidgetLayout->addWidget(label);
     labelWidgetLayout->addStretch();
 
     // TODO - Why is the iconAction checkable???
     iconAction = addAction("");
+
+    // TODO: Figure out how/why we're using the checked state to simply display an icon on the toolbar
+    //  Do this in a different way!
     iconAction->setCheckable(true);
     iconAction->setChecked(true);
+    connect(iconAction, &QAction::triggered, [=](){ iconAction->setChecked(true); });
 
     auto button = (QToolButton*) widgetForAction(iconAction);
     button->setObjectName("WINDOW_ICON");
     button->setAutoRaise(false);
-    connect(iconAction, &QAction::triggered, [=](){ iconAction->setChecked(true); });
-    
+
     addWidget(labelWidget);
 
-    if(titleBar){
+    if (titleBar) {
         addActions(titleBar->getToolActions());
     }
 

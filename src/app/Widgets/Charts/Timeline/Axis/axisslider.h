@@ -20,9 +20,6 @@ public:
     Qt::Alignment getAlignment() const;
     double getAxisPenWidth() const;
 
-    double getMinRatio() const;
-    double getMaxRatio() const;
-
     void setZoomFactor(double factor);
     void setPanning(bool panning);
 
@@ -40,15 +37,15 @@ public slots:
 protected:
     void themeChanged();
 
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 
-    void leaveEvent(QEvent *event);
-    void resizeEvent(QResizeEvent *event);
-    void paintEvent(QPaintEvent *event);
+    void leaveEvent(QEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     HIT_RECT getCursorHitRect(QPointF cursorPos);
@@ -83,16 +80,16 @@ private:
     HIT_RECT prevClickedRect_ = HIT_RECT::NO_SLIDER;
     double zoomFactor_ = 1.1;
 
-    double minRatio_;
-    double maxRatio_;
-    double sliderMin_;
-    double sliderMax_;
-    double sliderRange_;
-    double actualMin_;
-    double actualMax_;
+    // TODO: Consider replacing with getter functions to maintain invariants (and also store less)
+    double minRatio_ = 0;
+    double maxRatio_ = 1;
+    double sliderMin_ = 0;
+    double sliderMax_ = 1;
+    double sliderRange_ = 1;
+    double actualMin_ = 0;
+    double actualMax_ = 1;
 
     bool isPanning_ = false;
-
 };
 
 #endif // AXISSLIDER_H

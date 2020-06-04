@@ -31,7 +31,6 @@ NodeGraphicsItem::NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* par
     constructChildrenItems();
 }
 
-
 /**
  * @brief NodeGraphicsItem::addComponentInstanceItem
  * @param comp_inst_data
@@ -56,7 +55,6 @@ ComponentInstanceGraphicsItem* NodeGraphicsItem::addComponentInstanceItem(Compon
     return comp_inst_item;
 }
 
-
 /**
  * @brief NodeGraphicsItem::getComponentInstanceItems
  * @return
@@ -74,10 +72,9 @@ const std::vector<ComponentInstanceGraphicsItem*>& NodeGraphicsItem::getComponen
 QRectF NodeGraphicsItem::boundingRect() const
 {
     QRectF rect(0, 0, getWidth(), getHeight());
-    auto padding = pen_width / 2.0;
-    return rect.adjusted(-padding, -padding, padding, padding);
+    auto rect_padding = pen_width / 2.0;
+    return rect.adjusted(-rect_padding, -rect_padding, rect_padding, rect_padding);
 }
-
 
 /**
  * @brief NodeGraphicsItem::sizeHint
@@ -88,17 +85,16 @@ QRectF NodeGraphicsItem::boundingRect() const
 QSizeF NodeGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& constraint) const
 {
     switch (which) {
-    case Qt::MinimumSize:
-    case Qt::PreferredSize:
-        return boundingRect().size();
-    case Qt::MaximumSize:
-        return QSizeF(100000, 10000);
-    default:
-        break;
+        case Qt::MinimumSize:
+        case Qt::PreferredSize:
+            return boundingRect().size();
+        case Qt::MaximumSize:
+            return {100000, 10000};
+        default:
+            break;
     }
     return constraint;
 }
-
 
 /**
  * @brief NodeGraphicsItem::setGeometry
@@ -119,7 +115,6 @@ void NodeGraphicsItem::setGeometry(const QRectF& rect)
     QGraphicsWidget::setGeometry(adjusted_rect);
 }
 
-
 /**
  * @brief NodeGraphicsItem::paint
  * @param painter
@@ -131,15 +126,14 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    auto padding = pen_width / 2.0;
-    QRectF rect = boundingRect().adjusted(padding, padding, -padding, -padding);
+    auto rect_padding = pen_width / 2.0;
+    QRectF rect = boundingRect().adjusted(rect_padding, rect_padding, -rect_padding, -rect_padding);
     painter->fillRect(rect, body_color_);
     painter->fillRect(getTopRect(), top_color_);
 
     painter->setPen(QPen(top_color_, pen_width));
     painter->drawRoundedRect(rect, 2, 2);
 }
-
 
 /**
  * @brief NodeGraphicsItem::mousePressEvent
@@ -153,7 +147,6 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
     QGraphicsWidget::mousePressEvent(event);
 }
-
 
 /**
  * @brief NodeGraphicsItem::mouseMoveEvent
@@ -170,7 +163,6 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     }
 }
 
-
 /**
  * @brief NodeGraphicsItem::mouseReleaseEvent
  * @param event
@@ -181,7 +173,6 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     prev_move_origin_ = QPointF(0, 0);
     QGraphicsWidget::mouseReleaseEvent(event);
 }
-
 
 /**
  * @brief NodeGraphicsItem::mouseDoubleClickEvent
@@ -194,7 +185,6 @@ void NodeGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
     }
     QGraphicsWidget::mouseDoubleClickEvent(event);
 }
-
 
 /**
  * @brief NodeGraphicsItem::constructChildrenItems
@@ -220,25 +210,27 @@ void NodeGraphicsItem::constructChildrenItems()
  */
 void NodeGraphicsItem::validateChildMove(ComponentInstanceGraphicsItem* child, QPointF pos)
 {
-    if (child != nullptr) {
-        // REVIEW (Jackson): Is there a particular reason for chosing the top left as minimum?
-        //  This prevents a left/upward drag from expanding the NodeGraphicsItem, intentional?
-        auto&& min_x = getTopLeftChildPos().x();
-        auto&& min_y = getTopLeftChildPos().y();
-        auto x = pos.x();
-        auto y = pos.y();
-        if (x < min_x) {
-            x = min_x;
-        }
-        if (y < min_y) {
-            y = min_y;
-        }
-        prepareGeometryChange();
-        child->moveTo(x, y);
-        update();
+    if (child == nullptr) {
+        return;
     }
-}
 
+    auto&& min_x = getTopLeftChildPos().x();
+    auto&& min_y = getTopLeftChildPos().y();
+    auto x = pos.x();
+    auto y = pos.y();
+
+    // This prevents a left/upward drag
+    if (x < min_x) {
+        x = min_x;
+    }
+    if (y < min_y) {
+        y = min_y;
+    }
+
+    prepareGeometryChange();
+    child->moveTo(x, y);
+    update();
+}
 
 /**
  * @brief NodeGraphicsItem::toggleExpanded
@@ -254,7 +246,6 @@ void NodeGraphicsItem::toggleExpanded()
     emit updateConnectionPos();
 }
 
-
 /**
  * @brief NodeGraphicsItem::updateOnGeometryChange
  */
@@ -263,7 +254,6 @@ void NodeGraphicsItem::updateOnGeometryChange()
     updateGeometry();
     update();
 }
-
 
 /**
  * @brief NodeGraphicsItem::getWidth
@@ -280,7 +270,6 @@ qreal NodeGraphicsItem::getWidth() const
     }
 }
 
-
 /**
  * @brief NodeGraphicsItem::getHeight
  * @return
@@ -294,7 +283,6 @@ qreal NodeGraphicsItem::getHeight() const
     }
 }
 
-
 /**
  * @brief NodeGraphicsItem::getTopRect
  * @return
@@ -303,7 +291,6 @@ QRectF NodeGraphicsItem::getTopRect() const
 {
     return QRectF(0, 0, getWidth(), MEDEA::GraphicsLayoutItem::DEFAULT_GRAPHICS_ITEM_HEIGHT);
 }
-
 
 /**
  * @brief NodeGraphicsItem::getVisibleChildrenRect
@@ -321,7 +308,6 @@ QRectF NodeGraphicsItem::getVisibleChildrenRect() const
     return visible_rect;
 }
 
-
 /**
  * @brief NodeGraphicsItem::getTopLeftChildPos
  * @return
@@ -331,7 +317,6 @@ QPointF NodeGraphicsItem::getTopLeftChildPos() const
     return QPointF(padding, getTopRect().bottom() + padding);
 }
 
-
 /**
  * @brief NodeGraphicsItem::getAvailableChildPos
  * @return
@@ -340,7 +325,6 @@ QPointF NodeGraphicsItem::getAvailableChildPos() const
 {
     return QPointF(padding, childrenBoundingRect().bottom() + padding);
 }
-
 
 /**
  * @brief NodeGraphicsItem::themeChanged
@@ -356,8 +340,7 @@ void NodeGraphicsItem::themeChanged()
     top_color_ = theme->getActiveWidgetBorderColor();
     body_color_ = theme->getDisabledBackgroundColor();
     update();
-}   
-
+}
 
 /**
  * @brief NodeGraphicsItem::setupLayout

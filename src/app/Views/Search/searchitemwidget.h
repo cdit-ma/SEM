@@ -26,7 +26,7 @@ class SearchItemWidget : public QFrame
 
 public:
     explicit SearchItemWidget(ViewItem* item, QWidget *parent = nullptr);
-    ~SearchItemWidget();
+    ~SearchItemWidget() final;
 
     void addMatchedKeys(const QSet<QString>& keys);
     void addMatchedKey(const QString& key);
@@ -48,15 +48,14 @@ public slots:
     void themeChanged();
 
 protected:
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
     void updateData(const QString& data);
     void updateDataStyleSheet(const QString& key);
     void updateIcon();
     void updateLabel();
-
     void updateStyleSheet();
 
     void setupLayout();
@@ -75,8 +74,7 @@ private:
     QToolButton* button_expand = nullptr;
     QWidget* data_widget = nullptr;
 
-    QSize icon_size = QSize(24, 24);
-    QSize small_icon_size = QSize(16, 16);
+    QSize data_icon_size = QSize(24, 24);
 
     QSet<QString> matched_keys;
     QSet<QString> persistent_keys;

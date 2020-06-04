@@ -30,49 +30,48 @@ class WindowManager : public QObject
 
 public:
     static bool Sort(const BaseDockWidget *a, const BaseDockWidget *b);
-
+    
     //Public Static functions.
     static WindowManager* manager();
     static void teardown();
     static void ShowDockWidget(BaseDockWidget* widget);
-
-    static void MoveWidget(QWidget* widget, QWidget* parent_widget = 0, Qt::Alignment = Qt::AlignCenter);
+    
+    static void MoveWidget(QWidget* widget, QWidget* parent_widget = nullptr, Qt::Alignment = Qt::AlignCenter);
     static bool isViewDockWidget(BaseDockWidget* base_dock_widget);
-
+    
     BaseWindow* getMainWindow();
     BaseWindow* getCentralWindow();
     ViewManagerWidget* getViewManagerGUI();
     BaseWindow* getActiveWindow();
-
+    
     void destructDockWidget(BaseDockWidget* widget);
-
+    
     //Factory constructor Functions
     BaseWindow* constructMainWindow(ViewController* vc);
-    BaseWindow* constructSubWindow(QString title, BaseWindow* parent_window);
-    BaseWindow* constructCentralWindow(QString title, BaseWindow* parent_window);
-    BaseWindow* constructInvisibleWindow(QString title, BaseWindow* parent_window);
+    BaseWindow* constructSubWindow(const QString& title, BaseWindow* parent_window);
+    BaseWindow* constructCentralWindow(const QString& title, BaseWindow* parent_window);
+    BaseWindow* constructInvisibleWindow(const QString& title, BaseWindow* parent_window);
     
-    ViewDockWidget* constructViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    DefaultDockWidget* constructDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    ToolDockWidget* constructToolDockWidget(QString title, QWidget* parent);
-    InvisibleDockWidget* constructInvisibleDockWidget(QString title, QWidget* parent);
-
-    DefaultDockWidget* constructChartDockWidget(QString title, ChartDialog* dialog, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-    DefaultDockWidget* constructPulseDockWidget(QString title, DataflowDialog* dialog, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-
-    void constructInnerDockWidget(ViewController* vc, BaseDockWidget* parentDockWidget, QString title = "");
-
+    ViewDockWidget* constructViewDockWidget(const QString& title, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    DefaultDockWidget* constructDockWidget(const QString& title, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    ToolDockWidget* constructToolDockWidget(const QString& title, QWidget* parent);
+    InvisibleDockWidget* constructInvisibleDockWidget(const QString& title, QWidget* parent);
+    
+    DefaultDockWidget* constructChartDockWidget(const QString& title, ChartDialog* dialog, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    DefaultDockWidget* constructPulseDockWidget(const QString& title, DataflowDialog* dialog, QWidget* parent, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    
+    void constructInnerDockWidget(ViewController* vc, BaseDockWidget* parentDockWidget, const QString& title = "");
+    
     bool reparentDockWidget(BaseDockWidget* dockWidget);
     bool reparentDockWidget(BaseDockWidget* dockWidget, BaseWindow* window);
     
     //Getters
     ViewDockWidget* getActiveViewDockWidget();
-
-    void setActiveViewDockWidget(ViewDockWidget *view = 0);
-
+    
+    void setActiveViewDockWidget(ViewDockWidget *view = nullptr);
+    
     BaseWindow* getWindow(int ID);
     QList<BaseWindow*> getWindows();
-    QList<BaseDockWidget*> getDockWidgets();
     QList<ViewDockWidget*> getViewDockWidgets();
     ViewDockWidget* getViewDockWidget(ViewItem* item);
 
@@ -83,7 +82,7 @@ signals:
     void dockWidgetConstructed(BaseDockWidget* widget);
     void dockWidgetDestructed(int ID);
     
-    void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevWidget = 0);
+    void activeViewDockWidgetChanged(ViewDockWidget* widget, ViewDockWidget* prevWidget = nullptr);
 
 private slots:
     void dockWidget_Close(int ID);
@@ -92,8 +91,8 @@ private slots:
 
 protected:
     WindowManager();
-    ~WindowManager();
-
+    ~WindowManager() final;
+    
     DockReparenterPopup* getDockPopup();
     void destructWindow(BaseWindow* window);
 
@@ -104,22 +103,22 @@ private:
     void addDockWidget(BaseDockWidget* dockWidget);
     void removeDockWidget(BaseDockWidget* dockWidget);
     
-    BaseWindow* mainWindow = 0;
-    BaseWindow* centralWindow = 0;
-    ViewDockWidget* activeViewDockWidget = 0;
+    BaseWindow* mainWindow = nullptr;
+    BaseWindow* centralWindow = nullptr;
+    ViewDockWidget* activeViewDockWidget = nullptr;
     
-    ViewManagerWidget* viewManagerWidget = 0;
-
-    DockReparenterPopup* dock_popup = 0;
+    ViewManagerWidget* viewManagerWidget = nullptr;
+    DockReparenterPopup* dock_popup = nullptr;
     
     QHash<int, BaseWindow*> windows;
     QHash<int, BaseDockWidget*> dockWidgets;
-
+    
     QSet<int> window_ids;
     QSet<int> view_dock_ids;
-    Q_INVOKABLE void MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment);
+	
+	static WindowManager* managerSingleton;
     
-    static WindowManager* managerSingleton;
+    Q_INVOKABLE void MoveWidgetEvent(QWidget* widget, QWidget* parent_widget, Qt::Alignment alignment);
 };
 
 #endif // WINDOWMANAGER_H

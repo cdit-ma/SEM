@@ -1,9 +1,6 @@
 #include "nodedata.h"
 #include "../ExperimentDataManager/experimentdatamanager.h"
 
-#include <QFuture>
-#include <QFutureWatcher>
-
 /**
  * @brief NodeData::NodeData
  * @param exp_run_id
@@ -46,7 +43,6 @@ NodeData::NodeData(quint32 exp_run_id, const AggServerResponse::Node& node, QObj
     emit requestData(*this);
 }
 
-
 /**
  * @brief NodeData::getHostname
  * @return
@@ -56,7 +52,6 @@ const QString& NodeData::getHostname() const
     return hostname_;
 }
 
-
 /**
  * @brief NodeData::getIP
  * @return
@@ -65,7 +60,6 @@ const QString& NodeData::getIP() const
 {
     return ip_;
 }
-
 
 /**
  * @brief NodeData::addContainerInstanceData
@@ -82,7 +76,6 @@ void NodeData::addContainerInstanceData(const AggServerResponse::Container& cont
     }
 }
 
-
 /**
  * @brief NodeData::getContainerInstanceData
  * @return
@@ -92,26 +85,23 @@ QList<ContainerInstanceData*> NodeData::getContainerInstanceData() const
     return container_inst_data_hash_.values();
 }
 
-
 /**
  * @brief NodeData::getCPUUtilisationRequest
  * @return
  */
-const CPUUtilisationRequest& NodeData::getCPUUtilisationRequest() const
+const UtilisationRequest &NodeData::getCPUUtilisationRequest() const
 {
     return cpu_utilisation_request_;
 }
-
 
 /**
  * @brief NodeData::getMemoryUtilisationRequest
  * @return
  */
-const MemoryUtilisationRequest& NodeData::getMemoryUtilisationRequest() const
+const UtilisationRequest &NodeData::getMemoryUtilisationRequest() const
 {
     return memory_utilisation_request_;
 }
-
 
 /**
  * @brief NodeData::getNetworkUtilisationRequest
@@ -132,16 +122,18 @@ void NodeData::addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& even
     cpu_utilisation_series_->addEvents(events);
 }
 
-
 /**
  * @brief NodeData::getCPUUtilisationSeries
+ * @throws std::runtime_error
  * @return
  */
-CPUUtilisationEventSeries* NodeData::getCPUUtilisationSeries() const
+const CPUUtilisationEventSeries& NodeData::getCPUUtilisationSeries() const
 {
-    return cpu_utilisation_series_;
+	if (cpu_utilisation_series_ == nullptr) {
+		throw std::runtime_error("CPUUtilisationEventSeries& NodeData::getCPUUtilisationSeries - CPU utilisation event series is null");
+	}
+	return *cpu_utilisation_series_;
 }
-
 
 /**
  * @brief NodeData::addMemoryUtilisationEvents
@@ -152,16 +144,18 @@ void NodeData::addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>
     memory_utilisation_series_->addEvents(events);
 }
 
-
 /**
  * @brief NodeData::getMemoryUtilisationSeries
+ * @throws std::runtime_error
  * @return
  */
-MemoryUtilisationEventSeries* NodeData::getMemoryUtilisationSeries() const
+const MemoryUtilisationEventSeries& NodeData::getMemoryUtilisationSeries() const
 {
-    return memory_utilisation_series_;
+	if (memory_utilisation_series_ == nullptr) {
+		throw std::runtime_error("MemoryUtilisationEventSeries& NodeData::getMemoryUtilisationSeries - Memory utilisation event series is null");
+	}
+	return *memory_utilisation_series_;
 }
-
 
 /**
  * @brief NodeData::addNetworkUtilisationEvents

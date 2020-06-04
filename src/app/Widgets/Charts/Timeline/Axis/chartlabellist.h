@@ -34,14 +34,11 @@ signals:
 
 public slots:
     void themeChanged();
-    void resizeEvent(QResizeEvent* event);
+    void resizeEvent(QResizeEvent* event) override;
 
 private:
     QVBoxLayout* mainLayout_ = nullptr;
-
-    int minimumEntityHeight_ = 0;
-    int maximumEntityWidth_ = 0;
-
+    
     bool axisLineVisible_ = true;
     bool tickVisible_ = true;
 };

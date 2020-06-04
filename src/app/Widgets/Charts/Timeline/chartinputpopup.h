@@ -35,10 +35,9 @@ public:
 
     void enableFilters();
 
-    bool eventFilter(QObject *watched, QEvent *event);
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 signals:
-    void setChartTitle(QString title);
     void visualiseExperimentRunData(const AggServerResponse::ExperimentRun& experimentRun, bool showCharts, bool showPulse);
 
 public slots:
@@ -49,8 +48,8 @@ public slots:
 
     void filterMenuTriggered(QAction* action);
 
-    void accept();
-    void reject();
+    void accept() override;
+    void reject() override;
 
 private slots:
     void experimentNameChanged(const QString& experimentName);
@@ -76,8 +75,8 @@ private:
     QStringList& getFilterList(FILTER_KEY filter);
     QGroupBox* getFilterGroupBox(FILTER_KEY filter);
 
-    QGroupBox* constructFilterWidgets(FILTER_KEY filter, QString filterName);
-    QVBoxLayout* constructVBoxLayout(QWidget* widget, int spacing = 0, int margin = 0);
+    QGroupBox* constructFilterWidgets(FILTER_KEY filter, const QString& filterName);
+    static QVBoxLayout* constructVBoxLayout(QWidget* widget, int spacing = 0, int margin = 0);
 
     QLineEdit* experimentNameLineEdit_ = nullptr;
     QScrollArea* experimentRunsScrollArea_ = nullptr;
@@ -108,7 +107,7 @@ private:
     bool filtersEnabled_ = false;
 
     AggServerResponse::ExperimentRun selectedExperimentRun_;
-    qint32 selectedExperimentRunID_;
+    qint32 selectedExperimentRunID_ = -1;
 
     QString selectedNode_;
     QString selectedComponent_;
@@ -122,7 +121,6 @@ private:
     QCompleter* experimentsCompleter_ = nullptr;
     QStringListModel* experimentsModel_ = nullptr;
     QMultiHash<QString, AggServerResponse::ExperimentRun> experimentRuns_;
-
 };
 
 #endif // CHARTINPUTPOPUP_H

@@ -12,7 +12,7 @@ class AxisDisplay : public QWidget
     Q_OBJECT
 
 public:
-    explicit AxisDisplay(const AxisSlider &slider, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = nullptr);
+    explicit AxisDisplay(QPointer<AxisSlider> slider, VALUE_TYPE type = VALUE_TYPE::DOUBLE, QWidget* parent = nullptr);
 
     void setAxisMargin(int margin);
     void setAxisLineVisible(bool visible);
@@ -39,8 +39,8 @@ private slots:
     void updateDisplayedMax(double maxRatio);
 
 protected:
-    void resizeEvent(QResizeEvent *event);
-    void paintEvent(QPaintEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     void paintHorizontal(QPainter &painter, QVector<QLineF> &tickLines, QRectF &rect);
@@ -52,10 +52,10 @@ private:
 
     QString getDateTimeString(double value);
     QString getElapsedTimeString(double value);
-    QString getCovertedString(double value);
+    QString getConvertedString(double value);
     QRectF getAdjustedRect();
 
-    const AxisSlider& slider_;
+    QPointer<AxisSlider> slider_;
 
     Qt::Orientation orientation_;
     Qt::Alignment textAlignment_;
@@ -63,18 +63,15 @@ private:
     VALUE_TYPE valueType_;
     TIME_DISPLAY_FORMAT axisFormat_;
 
-    QString currentDisplayFormat_ = TIME_FORMAT;
-    bool displayFormatChanged_ = false;
-
     bool displayHoverValue_ = false;
-    double hoveredValue_;
-    double hoveredPos_;
+    double hoveredValue_ = 0.0;
+    double hoveredPos_ = -1.0;
 
     bool axisLineVisible_ = true;
     bool tickVisible_ = true;
-    double tickLength_ = 4;
     int tickCount_ = 2;
-    int penWidth_ = 4;
+	double tickLength_ = 4.0;
+    double penWidth_ = 4.0;
 
     double min_ = 0;
     double max_ = 100;
@@ -86,7 +83,7 @@ private:
 
     int spacing_;
     int textHeight_;
-    int widestTextLength_;
+    int widestTextLength_ = 0;
 
     QLineF axisLine_;
     QColor labelColor_;

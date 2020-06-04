@@ -1,22 +1,19 @@
 #include "notificationitem.h"
-
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Controllers/NotificationManager/notificationobject.h"
 
 #include <QMouseEvent>
-#include <QToolBar>
 
 /**
  * @brief NotificationItem::NotificationItem
  * @param obj
  * @param parent
+ * @throws std::invalid_argument
  */
 NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidget *parent)
-    : QFrame(parent)
+	: QFrame(parent)
 {
-    if (!obj) {
-        qWarning("NotificationItem::NotificationItem - Notification object is null.");
-        return;
+    if (obj.isNull()) {
+        throw std::invalid_argument("NotificationItem::NotificationItem - Notification object cannot be null.");
     }
     
     notification = obj;
@@ -42,7 +39,6 @@ NotificationItem::NotificationItem(QSharedPointer<NotificationObject> obj, QWidg
     });
 }
 
-
 /**
  * @brief NotificationItem::setupDescriptionLayout
  */
@@ -55,7 +51,6 @@ void NotificationItem::setupDescriptionLayout()
     //Add to the main layout
     layout()->addWidget(label_description);
 }
-
 
 /**
  * @brief NotificationItem::setupLayout
@@ -95,7 +90,6 @@ void NotificationItem::setupLayout()
     timeChanged();
 }
 
-
 /**
  * @brief NotificationItem::getID
  * @return
@@ -104,7 +98,6 @@ int NotificationItem::getID()
 {
     return notification->getID();
 }
-
 
 /**
  * @brief NotificationItem::getEntityID
@@ -115,7 +108,6 @@ int NotificationItem::getEntityID()
     return notification->getEntityID();
 }
 
-
 /**
  * @brief NotificationItem::isSelected
  * @return
@@ -124,7 +116,6 @@ bool NotificationItem::isSelected()
 {
     return selected_;
 }
-
 
 /**
  * @brief NotificationItem::setSelected
@@ -137,7 +128,6 @@ void NotificationItem::setSelected(bool selected)
         updateStyleSheet();
     }
 }
-
 
 /**
  * @brief NotificationItem::themeChanged
@@ -157,7 +147,6 @@ void NotificationItem::themeChanged()
     updateIcon();
 }
 
-
 /**
  * @brief NotificationItem::descriptionChanged
  */
@@ -171,7 +160,6 @@ void NotificationItem::descriptionChanged()
     label_description->setVisible(description.length());
 }
 
-
 /**
  * @brief NotificationItem::titleChanged
  * @param description
@@ -181,7 +169,6 @@ void NotificationItem::titleChanged()
     label_text->setText(notification->getTitle());
 }
 
-
 /**
  * @brief NotificationItem::timestampChanged
  * @param time
@@ -190,7 +177,6 @@ void NotificationItem::timeChanged()
 {
     label_time->setText(notification->getModifiedTime().toString("H:mm:ss"));
 }
-
 
 /**
  * @brief NotificationItem::iconChanged
@@ -231,7 +217,6 @@ void NotificationItem::updateActionDeleteEnabled()
     action_delete->setEnabled(notification->getSeverity() != Notification::Severity::RUNNING);
 }
 
-
 /**
  * @brief NotificationItem::mouseReleaseEvent
  * This sends a signal to the notification dialog notifying it of this item's current selected state and whether the CONTROL key is down.
@@ -268,7 +253,6 @@ void NotificationItem::mouseDoubleClickEvent(QMouseEvent *event)
     }
 }
 
-
 /**
  * @brief NotificationItem::toggleSelected
  * This should only be called from within the mouse events, when this item is clicked/double-clicked.
@@ -287,7 +271,6 @@ void NotificationItem::toggleSelected()
         }
     }
 }
-
 
 /**
  * @brief NotificationItem::updateStyleSheet

@@ -8,13 +8,15 @@ class CentralWindow : public ViewWindow
 {
     Q_OBJECT
     friend class WindowManager;
+
 protected:
-    CentralWindow(BaseWindow* parent_window);
-    ~CentralWindow();
+    explicit CentralWindow(BaseWindow* parent_window);
+
 public:
-    QMenu* createPopupMenu();
+    QMenu* createPopupMenu() override;
+
 private:
-    BaseWindow* parent_window = 0;
+    BaseWindow* parent_window = nullptr;
 };
 
 #endif // CENTRALWINDOW_H

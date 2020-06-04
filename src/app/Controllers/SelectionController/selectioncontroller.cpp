@@ -1,33 +1,27 @@
 #include "selectioncontroller.h"
-
 #include "../ViewController/viewcontroller.h"
 #include "../../Widgets/DockWidgets/defaultdockwidget.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
 #include "../WindowManager/windowmanager.h"
 
-#include <QDebug>
-SelectionController::SelectionController(ViewController *vc):QObject(vc)
+SelectionController::SelectionController(ViewController *vc)
+	: QObject(vc)
 {
-    currentHandler = 0;
-    currentViewDockWidget = 0;
     viewController = vc;
-
+    
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &SelectionController::activeViewDockWidgetChanged);
 }
 
 SelectionHandler *SelectionController::constructSelectionHandler(QObject *object)
 {
-    if(selectionHandlerIDLookup.contains(object)){
+    if (selectionHandlerIDLookup.contains(object)) {
         int sID = selectionHandlerIDLookup[object];
         qCritical() << "SelectionController::constructSelectionHandler() - Already got Selection Handler for QObject: " << object;
         return selectionHandlers[sID];
-    }else{
-        SelectionHandler* handler = new SelectionHandler(this);
+    } else {
+        auto handler = new SelectionHandler();
         connect(handler, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(removeSelectionHandler()));
-
-
         connect(viewController, &ViewController::vc_viewItemDestructing, handler, &SelectionHandler::itemDeleted);
-
         selectionHandlers[handler->getID()] = handler;
         registerSelectionHandler(object, handler);
         return handler;
@@ -53,8 +47,7 @@ QVector<ViewItem *> SelectionController::getSelection()
 QList<int> SelectionController::getSelectionIDs()
 {
     QList<int> selection;
-
-    foreach(ViewItem* item, getSelection()){
+    for (ViewItem* item : getSelection()) {
         selection.append(item->getID());
     }
     return selection;
@@ -71,8 +64,8 @@ int SelectionController::getSelectionCount()
 
 ViewItem *SelectionController::getFirstSelectedItem()
 {
-    ViewItem* item = 0;
-    if(currentHandler){
+    ViewItem* item = nullptr;
+    if (currentHandler) {
         item = currentHandler->getFirstSelectedItem();
     }
     return item;
@@ -80,14 +73,15 @@ ViewItem *SelectionController::getFirstSelectedItem()
 
 ViewItem *SelectionController::getActiveSelectedItem()
 {
-    ViewItem* item = 0;
-    if(currentHandler){
+    ViewItem* item = nullptr;
+    if (currentHandler) {
         item = currentHandler->getActiveSelectedItem();
     }
     return item;
 }
 
-int SelectionController::getActiveSelectedID(){
+int SelectionController::getActiveSelectedID()
+{
     int id = -1;
     auto active = getActiveSelectedItem();
     if(active){
@@ -131,7 +125,7 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
         }
         currentViewDockWidget = new_dock;
 
-        SelectionHandler* selectionHandler = 0;
+        SelectionHandler* selectionHandler = nullptr;
         if(currentViewDockWidget){
             selectionHandler = currentViewDockWidget->getSelectionHandler();
             NodeView* nodeView = currentViewDockWidget->getNodeView();
@@ -145,17 +139,16 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
     }
 }
 
-
 void SelectionController::removeSelectionHandler()
 {
-    SelectionHandler* handler = qobject_cast<SelectionHandler*>(sender());
+    auto handler = qobject_cast<SelectionHandler*>(sender());
     if (handler) {
 
         if (!handler->hasRegisteredObjects()) {
 
-            // NOTE: This is added to avoid a null SelectionHandler from being passed around - remove handler from lookup
-            // TODO: Investigate further when this is being called (related to registering/unregistering of QObjectRegistrar)
-            // Currently, unselecting an item unregisters its selection handler from it
+            // NOTE: This is added to avoid a null SelectionHandler from being passed around - removed handler from lookup
+            //  Currently, deselecting an item unregisters its selection handler from it
+			// TODO: Investigate further when this is being called (related to registering/unregistering of QObjectRegistrar)
             auto handler_id = handler->getID();
             auto lookup_key = selectionHandlerIDLookup.key(handler_id);
             selectionHandlerIDLookup.remove(lookup_key);
@@ -170,7 +163,6 @@ void SelectionController::removeSelectionHandler()
         }
     }
 }
-
 
 void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 {
@@ -188,11 +180,8 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
             selectionCount = currentHandler->getSelectionCount();
             emit itemActiveSelectionChanged(currentHandler->getActiveSelectedItem(), true);
         }else{
-            emit itemActiveSelectionChanged(0, true);
+            emit itemActiveSelectionChanged(nullptr, true);
         }
         emit selectionChanged(selectionCount);
-
     }
 }
-
-

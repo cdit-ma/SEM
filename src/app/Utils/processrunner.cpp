@@ -1,14 +1,12 @@
 #include "processrunner.h"
-#include <QProcess>
-#include <QDebug>
+
 #include <QEventLoop>
 #include <QThread>
 #include <QHttpMultiPart>
 
-
-ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
+ProcessRunner::ProcessRunner(QObject *parent)
+	: QObject(parent)
 {
-    network_access_manager_ = 0;
     //Register Exit Status
     qRegisterMetaType<QProcess::ExitStatus>();
     qRegisterMetaType<ProcessResult>("ProcessResult");
@@ -21,7 +19,7 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
  * @param scriptPath The path to the script file.
  * @return
  */
- QProcessEnvironment ProcessRunner::RunEnvVarScript(QString scriptPath)
+ QProcessEnvironment ProcessRunner::RunEnvVarScript(const QString& scriptPath)
  {
     //Copy the global environment_vars
     QProcessEnvironment env_vars = global_vars;
@@ -44,7 +42,6 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
         print_vars = "set;exit\n";
         shell_command = ". " + scriptPath + ">/dev/null 2>&1;" + print_vars;
     #endif
-
  
     //Print the env_vars for an empty shell environment(So we can ignore these keys)
     process.start(program);
@@ -52,10 +49,10 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
     process.write(print_vars.toUtf8());
     process.waitForFinished(-1);
 
-    while(process.canReadLine()){
+    while (process.canReadLine()) {
         auto line = process.readLine().simplified();
         auto split_pos = line.indexOf('=');
-        if(split_pos > 0){
+        if (split_pos > 0) {
             auto key = line.left(split_pos);
             auto value = line.mid(split_pos + 1);
             //Any keys we get, we want to ignore them
@@ -72,17 +69,16 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
     process.write(shell_command.toUtf8());
     process.waitForFinished(-1);
 
-    while(process.canReadLine()){
+    while (process.canReadLine()) {
         auto line = process.readLine().simplified();
         auto split_pos = line.indexOf('=');
-        if(split_pos > 0){
+        if (split_pos > 0) {
             auto key = line.left(split_pos);
             auto value = line.mid(split_pos + 1);
-            
             auto black_list_value = black_list_vars.value(key);
 
             //Only care about the environment variables which exist soly in
-            if(black_list_value != value){
+            if (black_list_value != value) {
                 env_vars.insert(key, value);
             }
         }
@@ -90,19 +86,22 @@ ProcessRunner::ProcessRunner(QObject *parent) : QObject(parent)
     return env_vars;
  }
 
-ProcessResult ProcessRunner::RunProcess(QString program, QStringList args, QString directory, QProcessEnvironment env){
-    if(env.isEmpty()){
+ProcessResult ProcessRunner::RunProcess(const QString& program, const QStringList& args, const QString& directory, QProcessEnvironment env)
+{
+    if (env.isEmpty()) {
         env = global_vars;
     }
+    
     auto result = RunProcess_(program, args, directory, env, true);
     
     //Clean up the QProcess and return
     delete result.process;
-    result.process = 0;
+    result.process = nullptr;
     return result;
 }
 
-ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QString directory, QProcessEnvironment env, bool emit_stdout){
+ProcessResult ProcessRunner::RunProcess_(const QString& program, const QStringList& args, const QString& directory, const QProcessEnvironment& env, bool emit_stdout)
+{
     ProcessResult result;
     
     //Construct and setup the process
@@ -111,16 +110,14 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
         result.process->setProcessEnvironment(env);
     }
 
-
     //Set working directory if we have one
     if(!directory.isEmpty()){
         result.process->setWorkingDirectory(directory);
     }
 
-    //qCritical() << "Running: Program: '" << program << "' " << args.join(" ") << " IN: " << directory;
-
     //Start the program
     result.process->start(program, args);
+
     //Try and start
     bool started = result.process->waitForStarted();
     while(started){
@@ -193,8 +190,7 @@ ProcessResult ProcessRunner::RunProcess_(QString program, QStringList args, QStr
     return result;
 }
 
-
-HTTPResult ProcessRunner::HTTPGet(QNetworkRequest request)
+HTTPResult ProcessRunner::HTTPGet(const QNetworkRequest& request)
 {
     HTTPResult result;
 
@@ -210,7 +206,7 @@ HTTPResult ProcessRunner::HTTPGet(QNetworkRequest request)
     return result;
 }
 
-QNetworkAccessManager *ProcessRunner::GetNetworkAccessManager()
+QNetworkAccessManager* ProcessRunner::GetNetworkAccessManager()
 {
     if(!network_access_manager_){
         network_access_manager_ = new QNetworkAccessManager(this);
@@ -218,11 +214,10 @@ QNetworkAccessManager *ProcessRunner::GetNetworkAccessManager()
     return network_access_manager_;
 }
 
-HTTPResult ProcessRunner::HTTPPost(QNetworkRequest request, QByteArray post_data)
+HTTPResult ProcessRunner::HTTPPost(const QNetworkRequest& request, const QByteArray& post_data)
 {
+    auto network_access_manager = GetNetworkAccessManager();
     HTTPResult result;
-
-    QNetworkAccessManager* network_access_manager = GetNetworkAccessManager();
 
     if(network_access_manager && request.url().isValid()){
         //Post to the URL from the networkManager.
@@ -231,14 +226,14 @@ HTTPResult ProcessRunner::HTTPPost(QNetworkRequest request, QByteArray post_data
         //Free up the memory of the Network Reply
         delete reply;
     }
+    
     return result;
 }
 
-HTTPResult ProcessRunner::HTTPPostMulti(QNetworkRequest request, QHttpMultiPart* post_data)
+HTTPResult ProcessRunner::HTTPPostMulti(const QNetworkRequest& request, QHttpMultiPart* post_data)
 {
-    HTTPResult result;
-
     auto network_access_manager = GetNetworkAccessManager();
+    HTTPResult result;
 
     if(network_access_manager && request.url().isValid()){
         QScopedPointer<QNetworkReply> reply(network_access_manager->post(request, post_data));
@@ -249,7 +244,6 @@ HTTPResult ProcessRunner::HTTPPostMulti(QNetworkRequest request, QHttpMultiPart*
     
     return result;
 }
-
 
 HTTPResult ProcessRunner::WaitForNetworkReply(QNetworkReply *reply)
 {

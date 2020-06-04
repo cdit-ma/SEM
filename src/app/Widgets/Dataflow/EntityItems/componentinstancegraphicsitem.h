@@ -19,7 +19,7 @@ class ComponentInstanceGraphicsItem : public QGraphicsWidget
     Q_OBJECT
 
 public:
-    ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, NodeGraphicsItem* parent = nullptr);
+    explicit ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, NodeGraphicsItem* parent = nullptr);
 
     PortInstanceGraphicsItem* addPortInstanceItem(PortInstanceData& port_data);
     const std::vector<PortInstanceGraphicsItem*>& getPortInstanceItems() const;

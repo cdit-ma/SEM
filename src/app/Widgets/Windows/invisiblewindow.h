@@ -1,20 +1,24 @@
 #ifndef INVISIBLEWINDOW_H
 #define INVISIBLEWINDOW_H
 
-#include "viewwindow.h"
+#include "basewindow.h"
 #include <QMenu>
+
 class InvisibleWindow : public BaseWindow
 {
     Q_OBJECT
     friend class WindowManager;
+
 protected:
-    InvisibleWindow(BaseWindow* parent_window);
+    explicit InvisibleWindow(BaseWindow* parent_window);
+
+public:
+    QMenu* createPopupMenu() override;
+
 private:
     void updateVisibility();
-public:
-    QMenu* createPopupMenu();
-private:
-    BaseWindow* parent_window = 0;
+
+    BaseWindow* parent_window = nullptr;
 };
 
 #endif // INVISIBLEWINDOW_H

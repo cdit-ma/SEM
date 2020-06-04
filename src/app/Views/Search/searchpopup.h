@@ -6,7 +6,6 @@
 #include <QLineEdit>
 #include <QToolBar>
 
-
 #include "../../Widgets/Dialogs/popupwidget.h"
 
 class SearchPopup : public PopupWidget
@@ -15,6 +14,7 @@ class SearchPopup : public PopupWidget
 
 public:
     explicit SearchPopup();
+
     void updateSearchSuggestions(const QStringList& suggestions);
     void takeFocus();
 
@@ -30,4 +30,4 @@ private:
     QAction* search_action = nullptr;
 };
 
-#endif //SEARCHPOPUP_H
+#endif // SEARCHPOPUP_H

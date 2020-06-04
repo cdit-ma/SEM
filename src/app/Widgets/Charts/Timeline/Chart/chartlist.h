@@ -4,12 +4,11 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QPen>
-#include <math.h>
-#include <float.h>
 
-#include <QDebug>
+#include <cmath>
+#include <cfloat>
 
-enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
+//enum class CHART_RENDER_TYPE{DEFAULT, COUNT, BAR_CODE, FLOATING_BAR, GROUNDED_BAR};
 
 static const QString DATE_TIME_FORMAT = "MMM d, hh:mm:ss.zzz";
 static const QString TIME_FORMAT = "hh:mm:ss.zzz";
@@ -58,28 +57,28 @@ signals:
 
 public slots:
     void themeChanged();
-
     void setChartHovered(Chart* chart, bool hovered_);
 
 protected:
-    bool eventFilter(QObject *watched, QEvent *event);
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
 
-    void wheelEvent(QWheelEvent *event);
-    void keyReleaseEvent(QKeyEvent *event);
+    void wheelEvent(QWheelEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
 
-    void enterEvent(QEvent *event);
-    void leaveEvent(QEvent *event);
+    void enterEvent(QEvent *event) override;
+    void leaveEvent(QEvent *event) override;
 
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     void hoverRectUpdated(bool repaintRequired = false);
     void clearDragMode();
 
+    static const double axis_width_default_;
     double axisWidth_;
 
     bool axisXVisible_ = false;
@@ -87,27 +86,20 @@ private:
 
     DRAG_MODE dragMode_ = NONE;
     bool hovered_ = false;
-    bool rangeSet_ = false;
 
     QColor backgroundColor_;
     QColor highlightColor_;
-    QColor hoveredRectColor_;
 
     QPen axisLinePen_;
-    QPen topLinePen_;
     QPen hoverLinePen_;
-    QPen cursorPen_;
 
     QPointF cursorPoint_;
     QPointF panOrigin_;
     QRectF rubberBandRect_;
-    QRectF hoveredChartRect_;
     QRectF hoverLineRect_;
 
     QVBoxLayout* layout_ = nullptr;
     QList<Chart*> charts_;
-
-    QPointF hoverCursor_;
 };
 
 }

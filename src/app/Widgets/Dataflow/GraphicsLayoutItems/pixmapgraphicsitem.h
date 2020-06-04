@@ -9,16 +9,17 @@ class PixmapGraphicsItem : public QGraphicsPixmapItem, public MEDEA::GraphicsLay
 {
 
 public:
-    PixmapGraphicsItem(const QPixmap &pixmap, QGraphicsItem* parent = nullptr);
+    explicit PixmapGraphicsItem(const QPixmap &pixmap, QGraphicsItem* parent = nullptr);
 
     void updatePixmap(const QPixmap &pixmap);
     void setPixmapPadding(int padding);
     void setSquareSize(int size);
 
     void setGeometry(const QRectF &geom) override;
+
 protected:
     // QGraphicsLayoutItem interface
-    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override;
+    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint) const override;
 
 private:
     int pixmap_size_ = getDefaultHeight();

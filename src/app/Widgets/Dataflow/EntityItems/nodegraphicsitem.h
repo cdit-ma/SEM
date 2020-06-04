@@ -16,7 +16,7 @@ class NodeGraphicsItem : public QGraphicsWidget
     Q_OBJECT
 
 public:
-    NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* parent = nullptr);
+    explicit NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* parent = nullptr);
 
     ComponentInstanceGraphicsItem* addComponentInstanceItem(ComponentInstanceData& comp_inst_data);
     const std::vector<ComponentInstanceGraphicsItem*>& getComponentInstanceItems() const;
@@ -49,9 +49,9 @@ private:
     QRectF getTopRect() const;
     QRectF getVisibleChildrenRect() const;
 
-    QPointF getTopLeftChildPos() const;
-    // REVIEW (Jackson): What is meant by available?
+    // This returns the next available pos vertically where a child can be placed without being put on top of another
     QPointF getAvailableChildPos() const;
+    QPointF getTopLeftChildPos() const;
 
     void themeChanged();
     void setupLayout();

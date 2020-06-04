@@ -1,30 +1,21 @@
 #include "basewindow.h"
-#include <QDebug>
+
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <QMenu>
 #include <QStringBuilder>
 
-#include "../DockWidgets/docktitlebar.h"
-
-#include "../../Controllers/WindowManager/windowmanager.h"
-#include "../../theme.h"
-
 int BaseWindow::_WindowID = 0;
 
-BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow(parent)
+BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type)
+    : QMainWindow(parent)
 {
-    terminating = false;
     ID = ++_WindowID;
     windowType = type;
 
-    // Why was this set to false?
-    //setDockNestingEnabled(false);
     setDockNestingEnabled(true);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setFocusPolicy(Qt::ClickFocus);
-
-    //setMinimumSize(550,350);
 
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
@@ -41,7 +32,8 @@ BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow
     themeChanged();
 }
 
-void BaseWindow::resetDockWidgets(){
+void BaseWindow::resetDockWidgets()
+{
     for(auto dock_widget : getDockWidgets()){
         dock_widget->setVisible(true);
     }
@@ -74,7 +66,7 @@ void BaseWindow::setDockWidgetsVisible(bool visible)
     setDockWidgetMaximized(-1, !visible);
 }
 
-void BaseWindow::addDockWidget(BaseDockWidget *widget)
+void BaseWindow::addDockWidget(BaseDockWidget* widget)
 {
     if(widget){
         addDockWidget(widget->getDockWidgetArea(), widget, Qt::Horizontal);
@@ -88,20 +80,18 @@ void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget)
 
 void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt::Orientation orientation)
 {
-    BaseDockWidget* dockWidget = qobject_cast<BaseDockWidget*>(widget);
-    if(dockWidget){
-        int ID = dockWidget->getID();
-        if(!currentDockWidgets.contains(ID)){
-            if(!dockWidget->getSourceWindow()){
+    auto dockWidget = qobject_cast<BaseDockWidget*>(widget);
+    if (dockWidget) {
+        int id = dockWidget->getID();
+        if (!currentDockWidgets.contains(id)) {
+            if (!dockWidget->getSourceWindow()) {
                 //Set the Dock's source window to this.
                 dockWidget->setSourceWindow(this);
                 ownedDockWidgets.append(dockWidget);
             }
-
             dockWidget->setCurrentWindow(this);
-            currentDockWidgets.insert(ID, dockWidget);
+            currentDockWidgets.insert(id, dockWidget);
             updateActions();
-
 
             connect(dockWidget->toggleViewAction(), &QAction::triggered, this, &BaseWindow::dockWidgetVisibilityChanged);
             connect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
@@ -109,6 +99,8 @@ void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
             connect(dockWidget, &BaseDockWidget::req_Maximize, this, &BaseWindow::setDockWidgetMaximized);
             connect(dockWidget, &BaseDockWidget::req_Visible, this, &BaseWindow::_setDockWidgetVisibility);
         }
+        // INSPECT: (Ask Jackson) Shouldn't this signal and the QMainWindow function below only be called inside of
+        //  the if statement above, where it hasn't been added yet?
         emit dockWidgetAdded(dockWidget);
     }
     QMainWindow::addDockWidget(area, widget, orientation);
@@ -116,15 +108,14 @@ void BaseWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt:
 
 void BaseWindow::removeDockWidget(QDockWidget *widget)
 {
-    BaseDockWidget* dockWidget = qobject_cast<BaseDockWidget*>(widget);
+    auto dockWidget = qobject_cast<BaseDockWidget*>(widget);
     if(dockWidget){
-        int ID = dockWidget->getID();
-        if(currentDockWidgets.contains(ID)){
-            currentDockWidgets.remove(ID);
+        int id = dockWidget->getID();
+        if (currentDockWidgets.contains(id)) {
+            currentDockWidgets.remove(id);
         }
-        previouslyVisibleDockIDs.removeAll(ID);
+        previouslyVisibleDockIDs.removeAll(id);
         updateActions();
-
 
         disconnect(dockWidget->toggleViewAction(), &QAction::triggered, this, &BaseWindow::dockWidgetVisibilityChanged);
         disconnect(dockWidget, &QDockWidget::visibilityChanged, this, &BaseWindow::dockWidgetVisibilityChanged);
@@ -135,7 +126,7 @@ void BaseWindow::removeDockWidget(QDockWidget *widget)
 
     QMainWindow::removeDockWidget(widget);
 
-    if(!terminating && currentDockWidgets.isEmpty()){
+    if (!terminating && currentDockWidgets.isEmpty()) {
         WindowManager::manager()->destructWindow(this);
     }
 }
@@ -146,8 +137,6 @@ void BaseWindow::setDockWidgetVisibility(BaseDockWidget *widget, bool visible)
         _setDockWidgetVisibility(widget->getID(), visible);
     }
 }
-
-
 
 void BaseWindow::closeEvent(QCloseEvent *)
 {
@@ -165,36 +154,31 @@ void BaseWindow::showContextMenu(const QPoint & point)
     createPopupMenu()->exec(mapToGlobal(point));
 }
 
-void BaseWindow::setDockWidgetMaximized(int ID, bool maximized)
+void BaseWindow::setDockWidgetMaximized(int id, bool maximized)
 {
-    if(maximized){
+    if (maximized) {
         //Clear the old list of visible docks
         previouslyVisibleDockIDs.clear();
-
-        foreach(BaseDockWidget* dw, currentDockWidgets.values()){
+        for (BaseDockWidget* dw : currentDockWidgets.values()) {
             int dID = dw->getID();
-            if(dw->isVisible()){
+            if (dw->isVisible()) {
                 //if the dock was visible before maximizing, store it's ID
                 previouslyVisibleDockIDs.append(dID);
             }
-
             //The only item which should be visible should be the ID passed.
-            dw->setVisible(dID == ID);
+            dw->setVisible(dID == id);
             //The only item which is maximized is the ID passed.
-            dw->setMaximizeToggled(dID == ID);
+            dw->setMaximizeToggled(dID == id);
         }
-    }else{
+    } else {
         //Minimize
-
-        if(!previouslyVisibleDockIDs.contains(ID)){
+        if (!previouslyVisibleDockIDs.contains(ID)) {
             //We should minimize this item
             previouslyVisibleDockIDs.append(ID);
         }
-
-
-        foreach(int ID, previouslyVisibleDockIDs){
-            BaseDockWidget* dw = currentDockWidgets.value(ID, 0);
-            if(dw){
+        for (int prev_id : previouslyVisibleDockIDs) {
+            BaseDockWidget* dw = currentDockWidgets.value(prev_id, nullptr);
+            if (dw) {
                 dw->setVisible(true);
                 dw->setMaximizeToggled(false);
             }
@@ -203,15 +187,14 @@ void BaseWindow::setDockWidgetMaximized(int ID, bool maximized)
     }
 }
 
-void BaseWindow::_setDockWidgetVisibility(int ID, bool visible)
+void BaseWindow::_setDockWidgetVisibility(int id, bool visible)
 {
     //If we are hiding an item, remove it from the list of previously visible items.
-    if(!visible){
-        previouslyVisibleDockIDs.removeAll(ID);
+    if (!visible) {
+        previouslyVisibleDockIDs.removeAll(id);
     }
-
-    BaseDockWidget* dw = currentDockWidgets.value(ID, 0);
-    if(dw){
+    BaseDockWidget* dw = currentDockWidgets.value(id, nullptr);
+    if (dw) {
         dw->setVisible(visible);
     }
     updateActions();
@@ -228,35 +211,32 @@ void BaseWindow::removeAllDockWidgets()
     //Unset Original flag on all owned DockWidgets.
     while(!ownedDockWidgets.isEmpty()){
         BaseDockWidget* dockWidget = ownedDockWidgets.takeFirst();
-        dockWidget->setSourceWindow(0);
+        dockWidget->setSourceWindow(nullptr);
     }
-
     //Clean up current dock widget.
-    foreach(int ID, currentDockWidgets.uniqueKeys()){
-        BaseDockWidget* dockWidget = currentDockWidgets.take(ID);
+    for (int id : currentDockWidgets.uniqueKeys()) {
+        BaseDockWidget* dockWidget = currentDockWidgets.take(id);
         if(dockWidget){
             //This should cause MedeaWindowManager to shutdown the widget.
             dockWidget->close();
         }
     }
-
 }
 
 void BaseWindow::updateActions()
 {
-
     int visibleCount = 0;
-    BaseDockWidget* maximizedDW = 0;
-    foreach(BaseDockWidget* dw, currentDockWidgets.values()){
-        if(dw->isVisible()){
-            if(visibleCount == 0){
+    BaseDockWidget* maximizedDW = nullptr;
+    for (BaseDockWidget* dw : currentDockWidgets.values()) {
+        if (dw->isVisible()) {
+            if (visibleCount == 0) {
                 maximizedDW = dw;
             }
-            visibleCount ++;
+            visibleCount++;
         }
         dw->setMaximizeToggled(false);
     }
-    if(visibleCount == 1 && maximizedDW){
+    if (visibleCount == 1 && maximizedDW) {
         maximizedDW->setMaximizeToggled(true);
     }
 }
@@ -294,7 +274,4 @@ void BaseWindow::themeChanged()
                   "padding: 5px;"
                   "}"
                   % theme->getToolTipStyleSheet());
-                  //"QToolTip{ background: white; }");
 }
-
-

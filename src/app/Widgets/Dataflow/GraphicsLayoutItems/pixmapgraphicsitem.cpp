@@ -1,7 +1,5 @@
 #include "pixmapgraphicsitem.h"
 
-#include <QDebug>
-
 /**
  * @brief PixmapGraphicsItem::PixmapGraphicsItem
  * @param pixmap
@@ -16,7 +14,6 @@ PixmapGraphicsItem::PixmapGraphicsItem(const QPixmap& pixmap, QGraphicsItem* par
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }
 
-
 /**
  * @brief PixmapGraphicsItem::updatePixmap
  * This scales and sets this item's Pixmap
@@ -30,7 +27,6 @@ void PixmapGraphicsItem::updatePixmap(const QPixmap& pixmap)
     setPixmap(scaled_pix);
     update();
 }
-
 
 /**
  * @brief PixmapGraphicsItem::setPixmapPadding
@@ -47,7 +43,6 @@ void PixmapGraphicsItem::setPixmapPadding(int padding)
     }
 }
 
-
 /**
  * @brief PixmapGraphicsItem::setSquareSize
  * This sets this item's preferred size to QSize(size, size)
@@ -58,7 +53,6 @@ void PixmapGraphicsItem::setSquareSize(int size)
     pixmap_size_ = size - getPadding();
     updatePixmap(pixmap());
 }
-
 
 /**
  * @brief PixmapGraphicsItem::setGeometry
@@ -88,7 +82,6 @@ void PixmapGraphicsItem::setGeometry(const QRectF &geom)
     setOffset(offset_x, offset_y);
 }
 
-
 /**
  * @brief PixmapGraphicsItem::sizeHint
  * This sets the values returned by minimum, maximum and preferred sizes
@@ -99,13 +92,13 @@ void PixmapGraphicsItem::setGeometry(const QRectF &geom)
 QSizeF PixmapGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF &constraint) const
 {
     switch (which) {
-    case Qt::MinimumSize:
-    case Qt::PreferredSize:
-        return QSizeF(pixmap_size_, pixmap_size_);
-    case Qt::MaximumSize:
-        return QSizeF(10000, 10000);
-    default:
-        break;
+        case Qt::MinimumSize:
+        case Qt::PreferredSize:
+            return QSizeF(pixmap_size_, pixmap_size_);
+        case Qt::MaximumSize:
+            return QSizeF(10000, 10000);
+        default:
+            break;
     }
     return constraint;
 }

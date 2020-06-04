@@ -2,14 +2,18 @@
 #define DATATABLEVIEW_H
 
 #include <QTableView>
+
 class DataTableView : public QTableView
 {
     Q_OBJECT
+    
 public:
-    DataTableView(QWidget *parent=0);
-    void setModel(QAbstractItemModel *model);
+    explicit DataTableView(QWidget* parent = nullptr);
+    
+    void setModel(QAbstractItemModel* model) override;
+    
 public slots:
-    void editDataValue(int ID, QString keyName);
+    void editDataValue(int ID, const QString& keyName);
 };
 
 #endif // DATATABLEVIEW_H

@@ -2,52 +2,47 @@
 #include <QFont>
 
 #include "codeeditor.h"
-#include "syntaxhighlighter.h"
 #include "../../theme.h"
 
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
+CodeEditor::CodeEditor(QWidget *parent) 
+	: QPlainTextEdit(parent)
 {
     //Construct areas.
     lineNumberArea = new LineNumberArea(this);
     highlighter = new SyntaxHighlighter(document());
 
-    QAction* gotoLine = new QAction("Go to Line", this);
-    gotoLine->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
-    connect(gotoLine, SIGNAL(triggered(bool)), this, SLOT(gotoLine()));
-
-    setTabStopWidth(24);
+    auto gotoLine_action = new QAction("Go to Line", this);
+    gotoLine_action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    connect(gotoLine_action, SIGNAL(triggered(bool)), this, SLOT(gotoLine()));
+	
+	//setTabStopDistance(24);
+	
     QFont font("courier");
     font.setPointSize(12);
     setFont(font);
 
-    addAction(gotoLine);
+    addAction(gotoLine_action);
 
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
     connect(this, &CodeEditor::cursorPositionChanged, this, &CodeEditor::matchParentheses);
 
-    updateLineNumberAreaWidth(0);
+    updateLineNumberAreaWidth();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
 
-
-
 int CodeEditor::lineNumberAreaWidth()
 {
     QString lines = QString::number(blockCount() + 1);
-    return 10 + fontMetrics().width(lines);
+    return 10 + fontMetrics().horizontalAdvance(lines);
 }
 
-
-
-void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
+void CodeEditor::updateLineNumberAreaWidth()
 {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
-
-
 
 void CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
 {
@@ -57,15 +52,12 @@ void CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
         lineNumberArea->update(0, rect.y(), lineNumberArea->width(), rect.height());
 
     if (rect.contains(viewport()->rect()))
-        updateLineNumberAreaWidth(0);
+        updateLineNumberAreaWidth();
 }
-
-
 
 void CodeEditor::resizeEvent(QResizeEvent *e)
 {
     QPlainTextEdit::resizeEvent(e);
-
     QRect cr = contentsRect();
     lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
@@ -86,7 +78,7 @@ void CodeEditor::matchParentheses()
     highlights.clear();
 
     QTextBlock currentBlock = textCursor().block();
-    TextBlockData *data = static_cast<TextBlockData *>(currentBlock.userData());
+    auto data = dynamic_cast<TextBlockData *>(currentBlock.userData());
     if (data) {
         QVector<ParenthesisInfo *> brackets = data->parentheses();
 
@@ -94,7 +86,7 @@ void CodeEditor::matchParentheses()
         int currentPos = textCursor().position() - blockPos;
 
         for(int i = 0; i < brackets.length(); i++){
-            ParenthesisInfo* b = brackets.value(i, 0);
+            ParenthesisInfo* b = brackets.value(i, nullptr);
             if(b && (currentPos - 1 == b->position || currentPos == b->position)){
                 createParenthesisSelection(currentBlock.position() + b->position);
                 matchOtherParenthesis(b, currentBlock, i);
@@ -133,7 +125,8 @@ void CodeEditor::themeChanged()
 
 bool CodeEditor::matchOtherParenthesis(ParenthesisInfo *bracket, QTextBlock currentBlock, int index, int openCount)
 {
-    TextBlockData *data = static_cast<TextBlockData *>(currentBlock.userData());
+	// TODO: This looks very similar to matchParentheses; check both functions and see how they can be improved
+    auto data = dynamic_cast<TextBlockData *>(currentBlock.userData());
     QVector<ParenthesisInfo *> brackets = data->parentheses();
 
     if(index == -1){
@@ -142,8 +135,7 @@ bool CodeEditor::matchOtherParenthesis(ParenthesisInfo *bracket, QTextBlock curr
 
     //Look forward if we have an open bracket, else backwards
     for(int i = index;(i >= 0 && i < brackets.size()); i += bracket->isOpening() ? 1 : -1){
-        ParenthesisInfo* b = brackets.value(i, 0);
-
+        ParenthesisInfo* b = brackets.value(i, nullptr);
         if(bracket != b){
             if(bracket->character == b->character){
                 //Got the same bracket, we need to match this first.
@@ -159,7 +151,6 @@ bool CodeEditor::matchOtherParenthesis(ParenthesisInfo *bracket, QTextBlock curr
             }
         }
     }
-
 
     if(bracket->isOpening()){
         currentBlock = currentBlock.next();
@@ -192,8 +183,6 @@ void CodeEditor::createParenthesisSelection(int pos)
 
     highlights.append(selection);
 }
-
-
 
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {

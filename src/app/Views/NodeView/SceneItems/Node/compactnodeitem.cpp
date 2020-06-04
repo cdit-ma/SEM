@@ -1,31 +1,35 @@
 #include "compactnodeitem.h"
 
-CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem) : BasicNodeItem(viewItem, parentItem)
+CompactNodeItem::CompactNodeItem(NodeViewItem* viewItem, NodeItem* parentItem)
+	: BasicNodeItem(viewItem, parentItem)
 {
     setMoveEnabled(false);
     setExpandEnabled(true);
 
     setContractedHeight(getContractedHeight() / 2);
     setContractedWidth(40);
-    
-    //setExpandedWidth(getContractedWidth());
-    //setExpandedHeight(getMinimumHeight());
 
     addRequiredData(KeyName::Index);
     addRequiredData(KeyName::Row);
     addRequiredData(KeyName::Column);
-
+    
+    // TODO: (Ask Jackson) Call reloadRequiredData?
+    //  It seems to be called in other places where required data has been added/removed
+    //reloadRequiredData();
+    
     setPrimaryTextKey(KeyName::Label);
     getTextItem(EntityRect::PRIMARY_TEXT)->setAlignment(Qt::AlignCenter);
     getTextItem(EntityRect::SECONDARY_TEXT)->setAlignment(Qt::AlignCenter);
     getTextItem(EntityRect::TERTIARY_TEXT)->setAlignment(Qt::AlignCenter);
 }
 
-QRectF CompactNodeItem::childrenRect() const{
-    return QRectF(0,0, getContractedWidth(), getContractedHeight() * 2);
+QRectF CompactNodeItem::childrenRect() const
+{
+    return {0,0, getContractedWidth(), getContractedHeight() * 2};
 }
 
-QRectF CompactNodeItem::getElementRect(EntityRect rect) const{
+QRectF CompactNodeItem::getElementRect(EntityRect rect) const
+{
     switch(rect){
     case EntityRect::EXPAND_CONTRACT:
     case EntityRect::MAIN_ICON:
@@ -49,10 +53,10 @@ QRectF CompactNodeItem::getElementRect(EntityRect rect) const{
     return BasicNodeItem::getElementRect(rect);
 }
 
-QRectF CompactNodeItem::headerRect() const{
+QRectF CompactNodeItem::headerRect() const
+{
     auto rect = BasicNodeItem::headerRect();
-
-    if(isExpanded()){
+    if (isExpanded()) {
         rect |= primaryRow() | secondaryRow() | tertiaryRow();
         rect += QMargins(0, 0, 0, 2);
     }
@@ -61,34 +65,32 @@ QRectF CompactNodeItem::headerRect() const{
 
 QRectF CompactNodeItem::primaryRow() const
 {
-    auto rect = BasicNodeItem::headerRect();;
-
     auto margin = QMarginsF(2, 2, 2, 2);
-    if(isRightJustified()){
+    if (isRightJustified()) {
         margin.setRight(4);
-    }else{
+    } else {
         margin.setLeft(4);
     }
-
+    auto rect = BasicNodeItem::headerRect();;
     return rect - margin;
 }
 
-QRectF CompactNodeItem::textRect_Primary() const{
+QRectF CompactNodeItem::textRect_Primary() const
+{
     const auto& icon_rect = iconRect_Primary();
     auto rect = primaryRow();
-
-    if(isRightJustified()){
+    if (isRightJustified()) {
         rect.setRight(icon_rect.left());
-    }else{
+    } else {
         rect.setLeft(icon_rect.right());
     }
     return rect;
 }
 
-
-QRectF CompactNodeItem::secondaryRow() const{
+QRectF CompactNodeItem::secondaryRow() const
+{
     QRectF rect;
-    if(isExpanded() && isIconVisible(EntityRect::SECONDARY_ICON)){
+    if (isExpanded() && isIconVisible(EntityRect::SECONDARY_ICON)) {
         rect = primaryRow();
         rect.moveTop(rect.bottom());
         rect -= QMarginsF(0, 1, 0, 0);
@@ -96,23 +98,22 @@ QRectF CompactNodeItem::secondaryRow() const{
     return rect;
 }
 
-QRectF CompactNodeItem::tertiaryRow() const{
+QRectF CompactNodeItem::tertiaryRow() const
+{
     QRectF rect;
-    if(isExpanded() && isIconVisible(EntityRect::SECONDARY_ICON)){
-        rect = primaryRow();
+    if (isExpanded() && isIconVisible(EntityRect::SECONDARY_ICON)) {
         const auto& union_rect = primaryRow() | secondaryRow();
-
+        rect = primaryRow();
         rect.moveTop(union_rect.bottom());
         rect -= QMarginsF(0, 1, 0, 0);
     }
-
     return rect;
 }
-    
 
-QRectF CompactNodeItem::iconRect_Secondary() const{
+QRectF CompactNodeItem::iconRect_Secondary() const
+{
     QRectF rect;
-    if(isIconVisible(EntityRect::SECONDARY_ICON)){
+    if (isIconVisible(EntityRect::SECONDARY_ICON)) {
         const auto& full_rect = secondaryRow();
         rect = full_rect;
 
@@ -120,85 +121,82 @@ QRectF CompactNodeItem::iconRect_Secondary() const{
         rect.setWidth(rect.height() *.75);
         rect.setHeight(rect.width());
 
-        if(!isRightJustified()){
+        if (!isRightJustified()) {
             rect.moveBottomLeft(full_rect.bottomLeft());
-        }else{
+        } else {
             rect.moveBottomRight(full_rect.bottomRight());
         }
     }
     return rect;
 }
 
-QRectF CompactNodeItem::iconRect_Primary() const{
+QRectF CompactNodeItem::iconRect_Primary() const
+{
     QRectF rect;
-    if(isIconVisible(EntityRect::MAIN_ICON)){
+    if (isIconVisible(EntityRect::MAIN_ICON)) {
         const auto& full_rect = primaryRow();
         rect = full_rect;
+        
         //Baby Icon
         rect.setWidth(rect.height());
         rect.setHeight(rect.width());
 
-        QPointF offset;
-        offset.ry() += (full_rect.height() - rect.height()) / 2.0;
-       
-
-        if(isRightJustified()){
+        QPointF offset(0,(full_rect.height() - rect.height()) / 2.0);
+        if (isRightJustified()) {
             rect.moveTopRight(full_rect.topRight() + offset);
-        }else{
+        } else {
             rect.moveTopLeft(full_rect.topLeft() + offset);
         }
     }
     return rect;
 }
 
-QRectF CompactNodeItem::iconRect_Tertiary() const{
+QRectF CompactNodeItem::iconRect_Tertiary() const
+{
     QRectF rect;
-    if(isIconVisible(EntityRect::TERTIARY_ICON)){
+    if (isIconVisible(EntityRect::TERTIARY_ICON)) {
         const auto& full_rect = tertiaryRow();
         rect = full_rect;
+        
         //Baby Icon
         rect.setWidth(rect.height() *.75);
         rect.setHeight(rect.width());
 
-        QPointF offset;
-        offset.ry() += (full_rect.height() - rect.height()) / 2.0;
-       
-
-        if(isRightJustified()){
+        QPointF offset(0, (full_rect.height() - rect.height()) / 2.0);
+        if (isRightJustified()) {
             rect.moveTopRight(full_rect.topRight() + offset);
-        }else{
+        } else {
             rect.moveTopLeft(full_rect.topLeft() + offset);
         }
     }
     return rect;
 }
 
-QRectF CompactNodeItem::textRect_Secondary() const{
+QRectF CompactNodeItem::textRect_Secondary() const
+{
     const auto& icon_rect = iconRect_Secondary();
-
     auto rect = secondaryRow();
-
-    if(isRightJustified()){
+    if (isRightJustified()) {
         rect.setRight(icon_rect.left() - 1);
-    }else{
+    } else {
         rect.setLeft(icon_rect.right() + 1);
     }
     return rect;
 }
 
-QRectF CompactNodeItem::textRect_Tertiary() const{
+QRectF CompactNodeItem::textRect_Tertiary() const
+{
     const auto& icon_rect = iconRect_Tertiary();
     auto rect = tertiaryRow();
-
-    if(isRightJustified()){
+    if (isRightJustified()) {
         rect.setRight(icon_rect.left() - 1);
-    }else{
+    } else {
         rect.setLeft(icon_rect.right() + 1);
     }
     return rect;
 }
 
-
-bool CompactNodeItem::isExpandEnabled(){
+bool CompactNodeItem::isExpandEnabled()
+{
     return true;
 }

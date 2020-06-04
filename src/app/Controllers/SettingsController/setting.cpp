@@ -1,16 +1,16 @@
 #include "setting.h"
 #include <QStringBuilder>
-Setting::Setting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name)
+
+Setting::Setting(SETTINGS ID, SETTING_TYPE type, const QString& category, const QString& section, const QString& name)
 {
     this->ID = ID;
     this->type = type;
     this->category = category;
     this->section = section;
     this->name = name;
-    this->defaultValue = "";
-    this->value = "";
+    defaultValue = "";
+    value = "";
 }
-
 
 SETTINGS Setting::getID() const
 {
@@ -42,22 +42,25 @@ QVariant Setting::getDefaultValue() const
     return defaultValue;
 }
 
-
 QPair<QString, QString> Setting::getIcon() const
 {
     return icon;
 }
 
-bool Setting::gotIcon() const{
+bool Setting::gotIcon() const
+{
     return icon.first != "" && icon.second != "";
 }
 
-void Setting::setIcon(QString path, QString name){
-    icon.first = path;
-    icon.second = name;
+void Setting::setIcon(const QString& icon_path, const QString& icon_name)
+{
+    icon.first = icon_path;
+    icon.second = icon_name;
 }
-void Setting::setIcon(QPair<QString, QString> icon){
-    setIcon(icon.first, icon.second);
+
+void Setting::setIcon(const QPair<QString, QString>& _icon)
+{
+    setIcon(_icon.first, _icon.second);
 }
 
 bool Setting::isThemeSetting() const
@@ -65,20 +68,19 @@ bool Setting::isThemeSetting() const
     return category.toLower() == "theme";
 }
 
-void Setting::setDefaultValue(QVariant value)
+void Setting::setDefaultValue(const QVariant& _value)
 {
-    if(defaultValue != value){
-        defaultValue = value;
+    if(defaultValue != _value){
+        defaultValue = _value;
         setValue(defaultValue);
     }
 }
 
-
-bool Setting::setValue(QVariant value)
+bool Setting::setValue(const QVariant& _value)
 {
    //Update if setting has changed
-   if(value != this->value){
-       this->value = value;
+   if(_value != value){
+       value = _value;
        return true;
    }else if(type == SETTING_TYPE::BUTTON || type == SETTING_TYPE::NONE){
        return true;

@@ -2,21 +2,18 @@
 #define BASEWINDOW_H
 
 #include <QMainWindow>
+
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../DockWidgets/basedockwidget.h"
 
-class BaseWindow : public QMainWindow{
-
+class BaseWindow : public QMainWindow
+{
     Q_OBJECT
-friend class WindowManager;
+    friend class WindowManager;
 
 public:
     enum WindowType {MAIN_WINDOW, VIEW_WINDOW, INVISIBLE_WINDOW};
-protected:
-    BaseWindow(QWidget* parent = 0, WindowType type = VIEW_WINDOW);
-    ~BaseWindow();
 
-public:
     QList<BaseDockWidget*> getDockWidgets();
     int getID();
     WindowType getType();
@@ -24,50 +21,53 @@ public:
     void setDockWidgetsVisible(bool visible);
     void addDockWidget(BaseDockWidget *widget);
 
-    void addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget);
+    // NOTE: These are non-virtual functions
+    //  QMainWindow's implementations are called within the functions
+    void addDockWidget(Qt::DockWidgetArea area, QDockWidget* widget);
     virtual void addDockWidget(Qt::DockWidgetArea area, QDockWidget* widget, Qt::Orientation orientation);
     void removeDockWidget(QDockWidget* widget);
 
     void setDockWidgetVisibility(BaseDockWidget* widget, bool visible);
-    virtual QMenu *createPopupMenu();
+    QMenu* createPopupMenu() override;
+
+    void resetDockWidgets();
+
+protected:
+    explicit BaseWindow(QWidget* parent = nullptr, WindowType type = VIEW_WINDOW);
+    ~BaseWindow() override;
+
+    void closeEvent(QCloseEvent *) override;
+    bool focusNextPrevChild(bool next) override;
 
 signals:
     void dockWidgetAdded(BaseDockWidget* widget);
     void dockWidgetVisibilityChanged();
-private slots:
-    void themeChanged();
-    void showContextMenu(const QPoint &point);
 
-    void setDockWidgetMaximized(int ID, bool maximized);
-    void _setDockWidgetVisibility(int ID, bool visible);
 public slots:
     void tryClose();
+
+private slots:
+    void themeChanged();
+
+    void showContextMenu(const QPoint &point);
+    void setDockWidgetMaximized(int id, bool maximized);
+    void _setDockWidgetVisibility(int ID, bool visible);
 
 private:
     void removeAllDockWidgets();
     void updateActions();
-protected:
-public:
-    void resetDockWidgets();
-private:
+
     QList<int> previouslyVisibleDockIDs;
     WindowType windowType;
 
     QHash<int, BaseDockWidget*> currentDockWidgets;
     QList<BaseDockWidget*> ownedDockWidgets;
 
-protected:
-    void closeEvent(QCloseEvent *);
-private:
     int ID;
-    bool terminating;
     static int _WindowID;
-    QAction* reset_action;
-    // QWidget interface
-protected:
-    bool focusNextPrevChild(bool next);
+
+    bool terminating = false;
+    QAction* reset_action = nullptr;
 };
 
-#endif //BASEWINDOW_H
-
-
+#endif // BASEWINDOW_H

@@ -8,11 +8,12 @@ namespace MEDEA {
 class GraphicsLayoutItem : public QGraphicsLayoutItem
 {
 protected:
-    GraphicsLayoutItem();
+    // TODO: Look into the use of a protected only class and if there might be another way we want to write/implement this class
+    GraphicsLayoutItem() = default;
 
     // Required for QGraphicsLayoutItem
-    virtual void setGeometry(const QRectF &geom) override = 0;
-    virtual QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override = 0;
+    void setGeometry(const QRectF &geom) override = 0;
+    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override = 0;
 
     int getDefaultWidth() const;
     int getDefaultHeight() const;

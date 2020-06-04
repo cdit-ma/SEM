@@ -6,15 +6,14 @@
 
 class TextGraphicsItem : public QGraphicsTextItem, public MEDEA::GraphicsLayoutItem
 {
-
 public:
-    TextGraphicsItem(const QString &text, QGraphicsItem* parent = nullptr);
+    explicit TextGraphicsItem(const QString &text, QGraphicsItem* parent = nullptr);
 
     void setTextAlignment(Qt::Alignment alignment);
 
 protected:
     void setGeometry(const QRectF &geom) override;
-    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint = QSizeF()) const override;
+    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint) const override;
 
 private:
     QPointF getAlignedPos() const;

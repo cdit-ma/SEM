@@ -8,7 +8,8 @@
  * @brief TimeProgressBar::TimeProgressBar
  * @param parent
  */
-TimeProgressBar::TimeProgressBar(QWidget* parent) : QWidget(parent)
+TimeProgressBar::TimeProgressBar(QWidget* parent)
+    : QWidget(parent)
 {
     elapsed_time_label_ = new QLabel("00:20", this);
     total_time_label_ = new QLabel("03:14", this);
@@ -29,7 +30,6 @@ TimeProgressBar::TimeProgressBar(QWidget* parent) : QWidget(parent)
     themeChanged();
 }
 
-
 /**
  * @brief TimeProgressBar::themeChanged
  */
@@ -40,19 +40,6 @@ void TimeProgressBar::themeChanged()
     total_time_label_->setStyleSheet(theme->getLabelStyleSheet() + "QLabel:disabled{ color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";}");
     time_bar_->setStyleSheet(theme->getProgressBarStyleSheet() + "QProgressBar{ margin: 5px; }");
 }
-
-
-/**
- * @brief TimeProgressBar::setEnabled
- * @param enabled
- */
-void TimeProgressBar::setEnabled(bool enabled)
-{
-    elapsed_time_label_->setEnabled(enabled);
-    total_time_label_->setEnabled(enabled);
-    time_bar_->setEnabled(enabled);
-}
-
 
 /**
  * @brief TimeProgressBar::setTimeRange
@@ -70,7 +57,6 @@ void TimeProgressBar::setTimeRange(qint64 start_time, qint64 end_time)
     resetTimeProgress();
 }
 
-
 /**
  * @brief TimeProgressBar::updateEndTime
  * @param time
@@ -84,7 +70,6 @@ void TimeProgressBar::updateEndTime(qint64 time)
     end_time_ = time;
     updateTotalDuration();
 }
-
 
 /**
  * @brief TimeProgressBar::setCurrentTime
@@ -104,7 +89,6 @@ void TimeProgressBar::setCurrentTime(qint64 time)
     }
 }
 
-
 /**
  * @brief TimeProgressBar::incrementCurrentTime
  * @param ms
@@ -119,7 +103,6 @@ void TimeProgressBar::incrementCurrentTime(int ms)
     }
 }
 
-
 /**
  * @brief TimeProgressBar::resetTimeProgress
  */
@@ -129,7 +112,6 @@ void TimeProgressBar::resetTimeProgress()
     elapsed_time_label_->setText("00.000");
     time_bar_->reset();
 }
-
 
 /**
  * @brief TimeProgressBar::updateProgressValue
@@ -143,7 +125,6 @@ void TimeProgressBar::updateProgressValue()
     }
 }
 
-
 /**
  * @brief TimeProgressBar::updateTotalDuration
  */
@@ -154,7 +135,6 @@ void TimeProgressBar::updateTotalDuration()
     updateProgressValue();
 }
 
-
 /**
  * @brief TimeProgressBar::getElapsedTime
  * @return
@@ -164,7 +144,6 @@ qint64 TimeProgressBar::getElapsedTime() const
     return current_time_ - start_time_;
 }
 
-
 /**
  * @brief TimeProgressBar::getDuration
  * @return
@@ -173,7 +152,6 @@ qint64 TimeProgressBar::getDuration() const
 {
     return end_time_ - start_time_;
 }
-
 
 /**
  * @brief TimeProgressBar::getDurationString
@@ -231,7 +209,6 @@ QString TimeProgressBar::getDurationString(qint64 duration_ms) const
 
     return time_str;
 }
-
 
 /**
  * @brief TimeProgressBar::leftPad

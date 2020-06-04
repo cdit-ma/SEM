@@ -2,7 +2,6 @@
 
 #include <QTextStream>
 #include <QDateTime>
-#include <QDebug>
 
 std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
 
@@ -13,17 +12,16 @@ std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
  * @param parent
  */
 MEDEA::EventSeries::EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent)
-    : QObject(parent),
-      ID_(ID),
-      label_(ID),
-      kind_(kind),
-      eventSeriesID_(eventSeries_ID++),
-      eventSeriesIDStr_(QString::number(eventSeriesID_))
+	: QObject(parent),
+	  ID_(ID),
+	  label_(ID),
+	  kind_(kind),
+	  eventSeriesID_(eventSeries_ID++),
+	  eventSeriesIDStr_(QString::number(eventSeriesID_))
 {
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
 }
-
 
 /**
  * @brief MEDEA::EventSeries::~EventSeries
@@ -36,7 +34,6 @@ MEDEA::EventSeries::~EventSeries()
         }
     }
 }
-
 
 /**
  * @brief MEDEA::EventSeries::clear
@@ -58,7 +55,6 @@ void MEDEA::EventSeries::clear()
     maxTime_ = 0;
 }
 
-
 /**
  * @brief MEDEA::EventSeries::isEmpty
  * @return
@@ -68,7 +64,6 @@ bool MEDEA::EventSeries::isEmpty() const
     return events_.isEmpty();
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getEvents
  * @return
@@ -77,7 +72,6 @@ const QList<MEDEA::Event*>& MEDEA::EventSeries::getEvents() const
 {
     return events_;
 }
-
 
 /**
  * @brief MEDEA::EventSeries::updateTimeRange
@@ -95,7 +89,6 @@ void MEDEA::EventSeries::updateTimeRange(qint64 new_timestamp)
     }
 }
 
-
 /**
  * @brief MEDEA::EventSeries::setLabel
  * @param label
@@ -104,7 +97,6 @@ void MEDEA::EventSeries::setLabel(const QString& label)
 {
     label_ = label;
 }
-
 
 /**
  * @brief MEDEA::EventSeries::getLabel
@@ -115,7 +107,6 @@ const QString& MEDEA::EventSeries::getLabel() const
     return label_;
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getMinTimeMS
  * @return
@@ -124,7 +115,6 @@ qint64 MEDEA::EventSeries::getMinTimeMS() const
 {
     return minTime_;
 }
-
 
 /**
  * @brief MEDEA::EventSeries::getMaxTimeMS
@@ -135,7 +125,6 @@ qint64 MEDEA::EventSeries::getMaxTimeMS() const
     return maxTime_;
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getTimeRangeMS
  * @return
@@ -144,7 +133,6 @@ QPair<qint64, qint64> MEDEA::EventSeries::getTimeRangeMS() const
 {
     return {minTime_, maxTime_};
 }
-
 
 /**
  * @brief MEDEA::EventSeries::getKind
@@ -155,7 +143,6 @@ MEDEA::ChartDataKind MEDEA::EventSeries::getKind() const
     return kind_;
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getID
  * @return
@@ -165,7 +152,6 @@ const QString& MEDEA::EventSeries::getID() const
     return ID_;
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getEventSeriesID
  * @return
@@ -174,7 +160,6 @@ const QString& MEDEA::EventSeries::getEventSeriesID() const
 {
     return eventSeriesIDStr_;
 }
-
 
 /**
  * @brief MEDEA::EventSeries::getPreviousTime
@@ -199,7 +184,6 @@ qint64 MEDEA::EventSeries::getPreviousTime(qint64 time) const
     }
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getNextTime
  * @param time
@@ -222,7 +206,6 @@ qint64 MEDEA::EventSeries::getNextTime(qint64 time) const
     return time;
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getFirstAfterTime
  * This returns a const iterator that points to the first item whose time is greater than or equal to the provided time
@@ -236,7 +219,6 @@ QList<MEDEA::Event*>::const_iterator MEDEA::EventSeries::getFirstAfterTime(const
     });
     return firstItr;
 }
-
 
 /**
  * @brief MEDEA::EventSeries::getEventsBetween
@@ -287,7 +269,6 @@ QList<MEDEA::Event*> MEDEA::EventSeries::getEventsBetween(qint64 fromTimeMS, qin
     return events;
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getHoveredDataString
  * @param fromTimeMS
@@ -310,7 +291,6 @@ QString MEDEA::EventSeries::getHoveredDataString (
     auto toItr = getFirstAfterTime(toTimeMS);
     return getDataString(fromItr, toItr, numberOfItemsToDisplay, displayFormat);
 }
-
 
 /**
  * @brief MEDEA::EventSeries::getDataString
@@ -350,7 +330,6 @@ QString MEDEA::EventSeries::getDataString (
     return hoveredData.trimmed();
 }
 
-
 /**
  * @brief MEDEA::EventSeries::contains
  * @param event
@@ -360,7 +339,6 @@ bool MEDEA::EventSeries::contains(MEDEA::Event* event) const
 {
     return event_ids_.contains(event->getID());
 }
-
 
 /**
  * @brief MEDEA::EventSeries::addEventToList
@@ -382,7 +360,6 @@ void MEDEA::EventSeries::addEventToList(MEDEA::Event& event)
     emit eventAdded(new_event);
 }
 
-
 /**
  * @brief MEDEA::EventSeries::getDefaultDisplayFormat
  * @return
@@ -392,7 +369,6 @@ const QString& MEDEA::EventSeries::getDefaultDisplayFormat()
     static QString displayFormat = "MMM d, hh:mm:ss.zzz";
     return displayFormat;
 }
-
 
 /**
  * @brief MEDEA::EventSeries::getDefaultNumberOfItemsToDisplay

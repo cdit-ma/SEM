@@ -31,7 +31,6 @@ ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInst
     constructChildrenItems();
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::addPortInstanceItem
  * @param port_data
@@ -62,7 +61,6 @@ PortInstanceGraphicsItem* ComponentInstanceGraphicsItem::addPortInstanceItem(Por
     return port_inst_item;
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::getPortInstanceItems
  * @return
@@ -84,7 +82,6 @@ QRectF ComponentInstanceGraphicsItem::boundingRect() const
     return rect.adjusted(-padding, -padding, padding, padding);
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::sizeHint
  * @param which
@@ -94,17 +91,16 @@ QRectF ComponentInstanceGraphicsItem::boundingRect() const
 QSizeF ComponentInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& constraint) const
 {
     switch (which) {
-    case Qt::MinimumSize:
-    case Qt::PreferredSize:
-        return boundingRect().size();
-    case Qt::MaximumSize:
-        return main_layout_->geometry().size();
-    default:
-        break;
+        case Qt::MinimumSize:
+        case Qt::PreferredSize:
+            return boundingRect().size();
+        case Qt::MaximumSize:
+            return main_layout_->geometry().size();
+        default:
+            break;
     }
     return constraint;
 }
-
 
 /**
  * @brief ComponentInstanceGraphicsItem::paint
@@ -129,7 +125,6 @@ void ComponentInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionG
     painter->drawRoundedRect(rect, 2, 2);
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::mousePressEvent
  * @param event
@@ -142,7 +137,6 @@ void ComponentInstanceGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* ev
     }
     QGraphicsWidget::mousePressEvent(event);
 }
-
 
 /**
  * @brief ComponentInstanceGraphicsItem::mouseMoveEvent
@@ -158,7 +152,6 @@ void ComponentInstanceGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* eve
     }
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::mouseReleaseEvent
  * @param event
@@ -169,7 +162,6 @@ void ComponentInstanceGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* 
     prev_move_origin_ = QPointF(0, 0);
     QGraphicsWidget::mouseReleaseEvent(event);
 }
-
 
 /**
  * @brief ComponentInstanceGraphicsItem::mouseDoubleClickEvent
@@ -185,7 +177,6 @@ void ComponentInstanceGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEve
     }
     QGraphicsWidget::mouseDoubleClickEvent(event);
 }
-
 
 /**
  * @brief ComponentInstanceGraphicsItem::constructChildrenItems
@@ -218,7 +209,6 @@ void ComponentInstanceGraphicsItem::toggleExpanded()
     emit itemExpanded(expanded_);
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::moveTo
  * @param x
@@ -230,7 +220,6 @@ void ComponentInstanceGraphicsItem::moveTo(int x, int y)
     setPos(x, y);
     update();
 }
-
 
 /**
  * @brief ComponentInstanceGraphicsItem::getWidth
@@ -247,7 +236,6 @@ qreal ComponentInstanceGraphicsItem::getWidth() const
     }
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::getHeight
  * @return
@@ -260,7 +248,6 @@ qreal ComponentInstanceGraphicsItem::getHeight() const
         return top_layout_->geometry().height();
     }
 }
-
 
 /**
  * @brief ComponentInstanceGraphicsItem::themeChanged
@@ -280,7 +267,6 @@ void ComponentInstanceGraphicsItem::themeChanged()
     body_color_ = theme->getAltBackgroundColor();
     update();
 }   
-
 
 /**
  * @brief ComponentInstanceGraphicsItem::setupLayout

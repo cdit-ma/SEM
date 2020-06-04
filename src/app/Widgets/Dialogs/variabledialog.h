@@ -4,30 +4,34 @@
 #include "popupwidget.h"
 #include "../dataeditwidget.h"
 #include "../customgroupbox.h"
+
 #include <QToolBar>
 
-class VariableDialog:  public PopupWidget
+class VariableDialog : public PopupWidget
 {
     Q_OBJECT
-public:
-    VariableDialog(QString label);
-    void addOption(QString option, SETTING_TYPE type, QVariant default_value = QVariant());
-    void setOptionIcon(QString option, QString icon_path, QString icon_alias);
-    void setOptionEnabled(QString option, bool enabled);
-    QVariant getOptionValue(QString option);
 
+public:
+    explicit VariableDialog(QString label);
+
+    void addOption(const QString& option, SETTING_TYPE type, const QVariant& default_value = QVariant());
+    void setOptionIcon(const QString& option, const QString& icon_path, const QString& icon_alias);
+    void setOptionEnabled(const QString& option, bool enabled);
+
+    QVariant getOptionValue(const QString& option);
     QHash<QString, QVariant> getOptions();
+
 private:
     void setupLayout();
     void themeChanged();
 
-    QHash<QString, DataEditWidget*> fields;
-    QAction* cancel_action = 0;
-    QAction* okay_action = 0;
-    QToolBar* toolbar = 0;
+    QAction* cancel_action = nullptr;
+    QAction* okay_action = nullptr;
+    QToolBar* toolbar = nullptr;
+    CustomGroupBox* box = nullptr;
 
-    CustomGroupBox* box = 0;
     QString label;
+    QHash<QString, DataEditWidget*> fields;
 };
 
-#endif //VARIABLE_DIALOG_H
+#endif // VARIABLE_DIALOG_H

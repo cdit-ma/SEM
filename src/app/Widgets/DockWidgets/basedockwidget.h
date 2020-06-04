@@ -1,8 +1,8 @@
 #ifndef BASEDOCKWIDGET_H
 #define BASEDOCKWIDGET_H
 
-#include <QDockWidget>
 #include "docktitlebar.h"
+#include <QDockWidget>
 
 class BaseWindow;
 enum class BaseDockType{DOCK, TOOL, INVISIBLE};
@@ -18,31 +18,33 @@ public:
 
     void setDockWidgetArea(Qt::DockWidgetArea area);
     Qt::DockWidgetArea getDockWidgetArea();
+
     void setSourceWindow(BaseWindow* window);
     BaseWindow* getSourceWindow();
-    
+
     virtual void themeChanged();
+
+    // NOTE: This is a non-virtual function - QDockWidget's function is called within
     virtual void setWidget(QWidget* widget);
-    
+
     DockTitleBar* getTitleBar();
     void removeTitleBar();
 
     bool isProtected() const;
     void setProtected(bool protect);
+
     void setCurrentWindow(BaseWindow* window);
     BaseWindow* getCurrentWindow();
 
-
-    void setIcon(QString, QString);
-    void setIcon(QPair<QString, QString> pair);
+    void setIcon(const QString& prefix, const QString& alias);
+    void setIcon(const QPair<QString, QString>& pair);
     QPair<QString, QString> getIcon();
-    void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
+
+    void setTitle(const QString& title, Qt::Alignment alignment = Qt::AlignLeft);
     QString getTitle() const;
 
-    virtual void setActive(bool focussed);
+    virtual void setActive(bool active);
     bool isActive();
-
-    void setFocusEnabled(bool enabled);
 
     void setIconVisible(bool visible);
     void setCloseVisible(bool visible);
@@ -51,6 +53,10 @@ public:
     void setPopOutVisible(bool visible);
 
     void setMaximizeToggled(bool toggled);
+
+    // NOTE: This is a non-virtual function
+    //  It is being overridden so that closing of the dockwidget has to be requested and approved
+    //  It is used to reparent the dockwidget on close if need be instead of destructing it
     void close();
 
 signals:
@@ -74,40 +80,37 @@ private slots:
     void showContextMenu(const QPoint &point);
 
 protected:
-    BaseDockWidget(BaseDockType type, QWidget* parent = nullptr);
+    explicit BaseDockWidget(BaseDockType type, QWidget* parent = nullptr);
 
-    bool eventFilter(QObject *object, QEvent *event);
-    void resizeEvent(QResizeEvent *event);
+    bool eventFilter(QObject *object, QEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void closeOrHide();
 
     void setActionVisible(DockTitleBar::DOCK_ACTION action, bool visible);
     void setActionToggled(DockTitleBar::DOCK_ACTION action, bool toggled);
-    void setActionEnabled(DockTitleBar::DOCK_ACTION action, bool enabled);
 
     QAction* getAction(DockTitleBar::DOCK_ACTION action);
-    QAction* addAction(QString text, QString iconPath = "", QString iconName = "", Qt::Alignment a = Qt::AlignRight);
+    QAction* addAction(const QString& text, const QString& iconPath = "", const QString& iconName = "", Qt::Alignment a = Qt::AlignRight);
 
     QString title;
     DockTitleBar* titleBar = nullptr;
-    Qt::DockWidgetArea initialArea;
-
-    BaseWindow* sourceWindow;
-    BaseWindow* currentWindow;
-
     QPair<QString, QString> titleIcon;
 
-    QFrame* borderFrame;
+    BaseWindow* sourceWindow = nullptr;
+    BaseWindow* currentWindow = nullptr;
 
+    QFrame* borderFrame = nullptr;
+
+    Qt::DockWidgetArea initialArea = Qt::TopDockWidgetArea;
     BaseDockType type;
-    bool _isProtected;
-    bool _isActive;
-    bool _isFocusEnabled;
-    QString highlightedTextColor;
+
+    bool _isProtected = false;
+    bool _isActive = false;
+
     int ID;
     static int _DockWidgetID;
 };
-
 
 #endif // BASEDOCKWIDGET_H

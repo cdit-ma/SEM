@@ -12,12 +12,16 @@
 
 class WindowItem;
 class DockItem;
+
 class ViewManagerWidget : public QWidget
 {
     Q_OBJECT
+
 public:
-    ViewManagerWidget(WindowManager* manager);
+    explicit ViewManagerWidget(WindowManager* manager);
+
     DockItem* getDockItem(int ID);
+
 private slots:
     void themeChanged();
 
@@ -37,9 +41,5 @@ private:
     QHash<int, WindowItem*> windowItems;
     QHash<int, DockItem*> dockItems;
 };
-
-
-
-
 
 #endif // VIEWMANAGERWIDGET_H

@@ -1,18 +1,10 @@
 #include "selectionhandler.h"
 
-
-#include "../../Controllers/ViewController/nodeviewitem.h"
-#include "../../Controllers/SelectionController/selectioncontroller.h"
-
-#include <QDebug>
 int SelectionHandler::_SelectionHandlerID  = 0;
-SelectionHandler::SelectionHandler(SelectionController *controller)
+
+SelectionHandler::SelectionHandler()
 {
     ID = ++_SelectionHandlerID;
-    currentActiveSelectedItem = 0;
-    newActiveSelectedItem = 0;
-    selectionController = controller;
-    orderedSelectionValid = true;
 
     //Empty selection will result in destruction.
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
@@ -30,23 +22,22 @@ void SelectionHandler::toggleItemsSelection(ViewItem *item, bool append)
     toggleItemsSelection(items, append);
 }
 
-void SelectionHandler::toggleItemsSelection(QList<ViewItem *> items, bool append)
+void SelectionHandler::toggleItemsSelection(const QList<ViewItem*>& items, bool append)
 {
     int changes = 0;
-    if(!append){
-        //Unselect for non-append
+    if (!append) {
+        //Deselect for non-append
         changes += _clearSelection();
     }
-    foreach(ViewItem* item, items){
+    for (ViewItem* item : items) {
         changes += _toggleItemsSelection(item);
     }
-
     _selectionChanged(changes);
 }
 
-void SelectionHandler::itemDeleted(int ID, ViewItem *item)
+void SelectionHandler::itemDeleted(int id, ViewItem *item)
 {
-    Q_UNUSED(ID)
+    Q_UNUSED(id)
     int changes = _toggleItemsSelection(item, true);
     _selectionChanged(changes);
 }
@@ -75,13 +66,11 @@ void SelectionHandler::cycleActiveSelectedItem(bool forward)
         }else{
             index --;
         }
-
         if(index > lastPos){
             index = 0;
         }else if(index < 0){
             index = lastPos;
         }
-
         newActiveSelectedItem = currentSelection.at(index);
         _selectionChanged();
     }
@@ -92,15 +81,6 @@ QVector<ViewItem *> SelectionHandler::getSelection() const
     return currentSelection;
 }
 
-QVector<int> SelectionHandler::getSelectionIDs()
-{
-    QVector<int> IDs;
-    foreach(ViewItem* item, currentSelection){
-        IDs.append(item->getID());
-    }
-    return IDs;
-}
-
 int SelectionHandler::getSelectionCount()
 {
     return currentSelection.count();
@@ -108,7 +88,7 @@ int SelectionHandler::getSelectionCount()
 
 ViewItem *SelectionHandler::getFirstSelectedItem()
 {
-    ViewItem* item = 0;
+    ViewItem* item = nullptr;
     if(!currentSelection.isEmpty()){
         item = currentSelection.first();
     }
@@ -123,7 +103,6 @@ ViewItem *SelectionHandler::getActiveSelectedItem()
 void SelectionHandler::_selectionChanged(int changes)
 {
     if(changes > 0){
-        orderedSelectionValid = false;
         emit selectionChanged(currentSelection.size());
     }
     if(newActiveSelectedItem != currentActiveSelectedItem){
@@ -140,20 +119,17 @@ void SelectionHandler::_selectionChanged(int changes)
 int SelectionHandler::_clearSelection()
 {
     int itemsChanged = 0;
-    foreach(ViewItem* item, currentSelection){
+    for (ViewItem* item : currentSelection) {
         itemsChanged += _toggleItemsSelection(item);
-        //itemsChanged += _setItemSelected(item, false);
     }
     return itemsChanged;
 }
 
-
-
 int SelectionHandler::_toggleItemsSelection(ViewItem *item, bool deletingItem)
 {
     int changeCount = 0;
-
     bool inSelection = currentSelection.contains(item);
+    
     if(deletingItem){
         if(!inSelection){
             //We don't need to unselect item.
@@ -190,7 +166,7 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
 
         //If there is no items left, there is no active item
         if(currentSelection.isEmpty()){
-            newActiveSelectedItem = 0;
+            newActiveSelectedItem = nullptr;
         }else{
             if(currentActiveSelectedItem == item || newActiveSelectedItem == item){
                 newActiveSelectedItem = currentSelection.first();
@@ -199,5 +175,3 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
     }
     return changeCount;
 }
-
-

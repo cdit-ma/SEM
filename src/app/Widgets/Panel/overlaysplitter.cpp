@@ -1,13 +1,10 @@
 #include "overlaysplitter.h"
 #include "panelwidget.h"
-
 #include "../../Views/NodeView/nodeview.h"
 
 #include <QApplication>
 #include <QPainter>
-#include <QDebug>
 
-//#define WIDGET_MIN_HEIGHT 800
 #define WIDGET_MIN_HEIGHT 400
 #define HANDLE_WIDTH 8
 
@@ -33,7 +30,6 @@ OverlaySplitter::OverlaySplitter(QWidget* parent)
     setMouseTracking(true);
     installEventFilter(this);
 }
-
 
 /**
  * @brief OverlaySplitter::setWidget
@@ -61,7 +57,7 @@ void OverlaySplitter::setWidget(QWidget* widget, Qt::Alignment location)
         setStretchFactor(indexOf(fillerWidget), 1);
         setSizes(defaultSizes);
 
-        PanelWidget* panel = qobject_cast<PanelWidget*>(widget);
+        auto panel = qobject_cast<PanelWidget*>(widget);
         if (panel) {
             // adjust size & constraints based on the panel's minimised state
             widgetMinimised(panel->isMinimised());
@@ -69,7 +65,6 @@ void OverlaySplitter::setWidget(QWidget* widget, Qt::Alignment location)
         }
     }
 }
-
 
 /**
  * @brief OverlaySplitter::widgetMinimised
@@ -95,7 +90,6 @@ void OverlaySplitter::widgetMinimised(bool minimised)
         setSizes(defaultSizes);
     }
 }
-
 
 /**
  * @brief OverlaySplitter::eventFilter

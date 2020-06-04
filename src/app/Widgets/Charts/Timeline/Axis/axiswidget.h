@@ -36,7 +36,7 @@ public:
     void zoom(double factor);
     void pan(double dx, double dy);
 
-    bool eventFilter(QObject* watched, QEvent* event);
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 signals:
     void minRatioChanged(double ratio);
@@ -46,7 +46,7 @@ public slots:
     void hoverLineUpdated(bool visible, QPointF pos = QPointF());
 
 protected:
-    void wheelEvent(QWheelEvent* event);
+    void wheelEvent(QWheelEvent* event) override;
 
 private:
     void updateMinSliderRatio(double min);
@@ -62,8 +62,6 @@ private:
     double max_;
     double range_;
     double zoomFactor_ = 1.1;
-
 };
 
 #endif // AXISWIDGET_H
-

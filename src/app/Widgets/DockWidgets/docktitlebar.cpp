@@ -1,9 +1,7 @@
 #include "docktitlebar.h"
 #include "../../theme.h"
 
-#include <QDebug>
 #include <QToolButton>
-
 
 /**
  * @brief DockTitleBar::DockTitleBar
@@ -12,9 +10,6 @@
 DockTitleBar::DockTitleBar(QWidget* parent)
     : QToolBar(parent)
 {
-    _isActive = false;
-
-    //This sets to the parent that everything is okay.
     setFocusPolicy(Qt::ClickFocus);
     setContentsMargins(0,0,0,0);
 
@@ -38,26 +33,24 @@ void DockTitleBar::setActive(bool active)
     }
 }
 
-
 /**
  * @brief DockTitleBar::setIcon
  * @param iconPath
  * @param iconName
  */
-void DockTitleBar::setIcon(QString iconPath, QString iconName)
+void DockTitleBar::setIcon(const QString& iconPath, const QString& iconName)
 {
     iconAction->setProperty("iconPath", iconPath);
     iconAction->setProperty("iconName", iconName);
     iconAction->setIcon(Theme::theme()->getIcon(iconPath, iconName));
 }
 
-
 /**
  * @brief DockTitleBar::setTitle
  * @param title
  * @param alignment
  */
-void DockTitleBar::setTitle(QString title, Qt::Alignment alignment)
+void DockTitleBar::setTitle(const QString& title, Qt::Alignment alignment)
 {
     if (titleLabel) {
         titleLabel->setText(title);
@@ -65,19 +58,17 @@ void DockTitleBar::setTitle(QString title, Qt::Alignment alignment)
     }
 }
 
-
 /**
  * @brief DockTitleBar::getTitle
  * @return
  */
-QString DockTitleBar::getTitle()
+QString DockTitleBar::getTitle() const
 {
     if (titleLabel) {
         return titleLabel->text();
     }
     return "";
 }
-
 
 /**
  * @brief DockTitleBar::getAction
@@ -87,24 +78,22 @@ QString DockTitleBar::getTitle()
 QAction* DockTitleBar::getAction(DockTitleBar::DOCK_ACTION action)
 {
     switch(action) {
-    case DA_CLOSE:
-        return closeAction;
-    case DA_MAXIMIZE:
-        return maximizeAction;
-    case DA_POPOUT:
-        return popOutAction;
-    case DA_PROTECT:
-        return protectAction;
-    case DA_HIDE:
-        return hideAction;
-    case DA_ICON:
-        return iconAction;
-    default:
-        return 0;
+        case DA_CLOSE:
+            return closeAction;
+        case DA_MAXIMIZE:
+            return maximizeAction;
+        case DA_POPOUT:
+            return popOutAction;
+        case DA_PROTECT:
+            return protectAction;
+        case DA_HIDE:
+            return hideAction;
+        case DA_ICON:
+            return iconAction;
+        default:
+            return nullptr;
     }
 }
-
-
 
 /**
  * @brief DockTitleBar::addToolAction
@@ -113,7 +102,7 @@ QAction* DockTitleBar::getAction(DockTitleBar::DOCK_ACTION action)
  * @param iconName
  * @param alignment
  */
-void DockTitleBar::addToolAction(QAction* action, QString iconPath, QString iconName, Qt::Alignment alignment)
+void DockTitleBar::addToolAction(QAction* action, const QString& iconPath, const QString& iconName, Qt::Alignment alignment)
 {
     if (action) {
         if (alignment == Qt::AlignLeft) {
@@ -126,7 +115,6 @@ void DockTitleBar::addToolAction(QAction* action, QString iconPath, QString icon
         updateIcon(action, iconPath, iconName);
     }
 }
-
 
 /**
  * @brief DockTitleBar::themeChanged
@@ -146,7 +134,13 @@ void DockTitleBar::themeChanged()
         }
     }
 }
-QList<QAction*> DockTitleBar::getToolActions(){
+
+/**
+ * @brief DockTitleBar::getToolActions
+ * @return
+ */
+QList<QAction*> DockTitleBar::getToolActions() const
+{
     return toolActions;
 }
 
@@ -155,9 +149,8 @@ QList<QAction*> DockTitleBar::getToolActions(){
  */
 void DockTitleBar::updateActiveStyle()
 {
-    setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(isActive()));
+    setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(_isActive));
 }
-
 
 /**
  * @brief DockTitleBar::updateIcon
@@ -166,7 +159,7 @@ void DockTitleBar::updateActiveStyle()
  * @param iconName
  * @param newIcon
  */
-void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconName)
+void DockTitleBar::updateIcon(QAction* action, const QString& iconPath, const QString& iconName)
 {
     if (action) {
         action->setProperty("iconPath", iconPath);
@@ -175,18 +168,20 @@ void DockTitleBar::updateIcon(QAction* action, QString iconPath, QString iconNam
     }
 }
 
-
 /**
  * @brief DockTitleBar::setupToolBar
  */
 void DockTitleBar::setupToolBar()
 {
     iconAction = addAction("");
+
+    // NOTE: Removing this gets rid of the icons for the tool dock widgets and replaces them with an empty box
+    // TODO: Investigate and fix how this is working
+    //*
     iconAction->setCheckable(true);
     iconAction->setChecked(true);
-
-    // TODO - What is this for???
     connect(iconAction, &QAction::triggered, [=](){iconAction->setChecked(true);});
+    //*/
 
     auto button = (QToolButton*) widgetForAction(iconAction);
     button->setObjectName("WINDOW_ICON");
@@ -225,14 +220,4 @@ void DockTitleBar::setupToolBar()
     updateIcon(closeAction, "Icons", "cross");
     closeAction->setVisible(false);
     toolActions.append(closeAction);
-}
-
-
-/**
- * @brief DockTitleBar::isActive
- * @return
- */
-bool DockTitleBar::isActive()
-{
-    return _isActive;
 }

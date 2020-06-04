@@ -1,16 +1,13 @@
 #include "notificationmanager.h"
-#include "notificationobject.h"
-
 #include "../WindowManager/windowmanager.h"
-#include "../ViewController/viewcontroller.h"
 #include "../../Widgets/Windows/mainwindow.h"
 #include "../../Views/Notification/notificationdialog.h"
 #include "../../Views/Notification/notificationtoolbar.h"
 #include "../../Views/Notification/notificationpopup.h"
-#include "../../Widgets/Dialogs/popupwidget.h"
+
 #include <QSharedPointer>
 
-NotificationManager* NotificationManager::managerSingleton = 0;
+NotificationManager* NotificationManager::managerSingleton = nullptr;
 
 /**
  * @brief NotificationManager::NotificationManager
@@ -47,11 +44,6 @@ NotificationManager::NotificationManager(ViewController* controller)
     theme->setIconAlias(notification_str, Notification::getTypeString(Notification::Type::APPLICATION), icon_prefix, "home");
 }
 
-
-NotificationManager::~NotificationManager(){
-    //TODO Clear up memory
-}
-
 bool NotificationManager::construct_singleton(ViewController* controller)
 {
     if (!managerSingleton) {
@@ -65,10 +57,9 @@ void NotificationManager::destruct_singleton()
 {
     if (managerSingleton) {
         delete managerSingleton;
+        managerSingleton = nullptr;
     }
-    managerSingleton = 0;
 }
-
 
 /**
  * @brief NotificationManager::manager
@@ -79,7 +70,6 @@ NotificationManager* NotificationManager::manager()
     return managerSingleton;
 }
 
-
 NotificationDialog* NotificationManager::getPanel()
 {
     if(!notification_panel){
@@ -88,8 +78,8 @@ NotificationDialog* NotificationManager::getPanel()
     return notification_panel;
 }
 
-
-void NotificationManager::displayToastNotification(QSharedPointer<NotificationObject> notification){
+void NotificationManager::displayToastNotification(QSharedPointer<NotificationObject> notification)
+{
     if(!viewController->isWelcomeScreenShowing()){
         notification_popup->DisplayNotification(notification);
         auto window = WindowManager::manager()->getMainWindow();
@@ -107,7 +97,8 @@ NotificationPopup* NotificationManager::getToast()
     return notification_popup;
 }
 
-void NotificationManager::hideToast(){
+void NotificationManager::hideToast()
+{
     getToast()->hide();
 }
 
@@ -130,7 +121,6 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
     return notifications.values();
 }
 
-
 /**
  * @brief NotificationManager::getNotificationsOfType
  * @param type
@@ -139,14 +129,13 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
 QList<QSharedPointer<NotificationObject> > NotificationManager::getNotificationsOfType(Notification::Type type)
 {
     QList<QSharedPointer<NotificationObject> > list;
-    for (auto notification : notifications.values()) {
+    for (const auto& notification : notifications.values()) {
         if (notification->getType() == type) {
             list << notification;
         }
     }
     return list;
 }
-
 
 /**
  * @brief NotificationManager::getNotificationsOfCategory
@@ -156,14 +145,13 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
 QList<QSharedPointer<NotificationObject> > NotificationManager::getNotificationsOfCategory(Notification::Category category)
 {
     QList<QSharedPointer<NotificationObject> > list;
-    for (auto notification : notifications.values()) {
+    for (const auto& notification : notifications.values()) {
         if (notification->getCategory() == category) {
             list << notification;
         }
     }
     return list;
 }
-
 
 /**
  * @brief NotificationManager::AddNotification
@@ -178,7 +166,7 @@ QList<QSharedPointer<NotificationObject> > NotificationManager::getNotifications
  * @param defer_update
  * @return
  */
-QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString title, QString icon_path, QString icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update)
+QSharedPointer<NotificationObject> NotificationManager::AddNotification(const QString& title, const QString& icon_path, const QString& icon_name, Notification::Severity severity, Notification::Type type, Notification::Category category, bool toast, int entity_id, bool defer_update)
 {
     auto notification = QSharedPointer<NotificationObject>(new NotificationObject());
     notification->setTitle(title);
@@ -187,7 +175,7 @@ QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString 
     notification->setType(type);
     notification->setCategory(category);
     notification->setEntityID(entity_id);
-    notification->setToastable(toast);
+    notification->setToastEnabled(toast);
 
     auto notification_id = notification->getID();
     notifications[notification_id] = notification;
@@ -197,23 +185,17 @@ QSharedPointer<NotificationObject> NotificationManager::AddNotification(QString 
     if(!defer_update){
         emit notificationAdded(notification);
     }
+    
     NotificationUpdated(notification);
     return notification;
 }
 
-
-void NotificationManager::toastLatestNotification(){
-    auto popup = getToast(); 
-
+void NotificationManager::toastLatestNotification()
+{
     if(latest_notification){
         emit toastNotification(latest_notification);
     }
-    
-    
 }
-
-
-
 
 /**
  * @brief NotificationManager::deleteNotification
@@ -250,24 +232,28 @@ void NotificationManager::deleteNotification(int ID)
     }
 }
 
-QSharedPointer<NotificationObject> NotificationManager::getLatestNotification(){
+QSharedPointer<NotificationObject> NotificationManager::getLatestNotification()
+{
     return latest_notification;
 }
 
-void NotificationManager::NotificationUpdated(QSharedPointer<NotificationObject> notification){
+void NotificationManager::NotificationUpdated(QSharedPointer<NotificationObject> notification)
+{
     if(notification){
         auto notification_id = notification->getID();
         if(notifications.count(notification_id)){
             latest_notification = notification;
             emit notificationUpdated(notification);
         
-            if (notification->getToastable()) {
+            if (notification->isToastEnabled()) {
                 emit toastNotification(notification);
             }
         }
     }
 }
-void NotificationManager::ShowNotificationPanel(Notification::Severity severity){
+
+void NotificationManager::ShowNotificationPanel(Notification::Severity severity)
+{
     getPanel()->showSeveritySelection(severity);
     emit showNotificationPanel();
 }

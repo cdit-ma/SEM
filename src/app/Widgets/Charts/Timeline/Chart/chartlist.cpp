@@ -1,6 +1,6 @@
 #include "chartlist.h"
-#include "../../../../theme.h"
 #include "chart.h"
+#include "../../../../theme.h"
 
 #include <QPainter>
 #include <QWheelEvent>
@@ -12,28 +12,28 @@
 
 using namespace MEDEA;
 
-//QColor ChartList::backgroundColor_ = QColor(0,0,0);
+const double ChartList::axis_width_default_ = 2.0;
 
 /**
  * @brief ChartList::ChartList
  * @param parent
  */
 ChartList::ChartList(QWidget* parent)
-    : QWidget(parent)
+	: QWidget(parent)
 {
-    setMouseTracking(true);
-    setFocusPolicy(Qt::WheelFocus);
+	setMouseTracking(true);
+	setFocusPolicy(Qt::WheelFocus);
 
-    layout_ = new QVBoxLayout(this);
-    layout_->setMargin(0);
-    layout_->setSpacing(0);
+	layout_ = new QVBoxLayout(this);
+	layout_->setMargin(0);
+	layout_->setSpacing(0);
 
-    hoverLineRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
+	hoverLineRect_ = QRectF(0, 0, HOVER_LINE_WIDTH, height());
+	axisWidth_ = axis_width_default_;
 
-    connect(Theme::theme(), &Theme::theme_Changed, this, &ChartList::themeChanged);
-    themeChanged();
+	connect(Theme::theme(), &Theme::theme_Changed, this, &ChartList::themeChanged);
+	themeChanged();
 }
-
 
 /**
  * @brief ChartList::setAxisXVisible
@@ -41,9 +41,8 @@ ChartList::ChartList(QWidget* parent)
  */
 void ChartList::setAxisXVisible(bool visible)
 {
-    axisXVisible_ = visible;
+	axisXVisible_ = visible;
 }
-
 
 /**
  * @brief ChartList::setAxisYVisible
@@ -51,9 +50,8 @@ void ChartList::setAxisXVisible(bool visible)
  */
 void ChartList::setAxisYVisible(bool visible)
 {
-    axisYVisible_ = visible;
+	axisYVisible_ = visible;
 }
-
 
 /**
  * @brief ChartList::setAxisWidth
@@ -61,11 +59,10 @@ void ChartList::setAxisYVisible(bool visible)
  */
 void ChartList::setAxisWidth(double width)
 {
-    axisWidth_ = width;
-    axisLinePen_.setWidthF(width);
-    setContentsMargins(width, 0, 0, 0);
+	axisWidth_ = width;
+	axisLinePen_.setWidthF(width);
+	setContentsMargins(width, 0, 0, 0);
 }
-
 
 /**
  * @brief ChartListWidget::addChart
@@ -73,9 +70,8 @@ void ChartList::setAxisWidth(double width)
  */
 void ChartList::addChart(Chart* chart)
 {
-    insertChart(-1, chart);
+	insertChart(-1, chart);
 }
-
 
 /**
  * @brief ChartList::insertChart
@@ -84,13 +80,12 @@ void ChartList::addChart(Chart* chart)
  */
 void ChartList::insertChart(int index, Chart* chart)
 {
-    if (chart) {
-        charts_.append(chart);
-        layout_->insertWidget(index, chart);
-        chart->installEventFilter(this);
-    }
+	if (chart) {
+		charts_.append(chart);
+		layout_->insertWidget(index, chart);
+		chart->installEventFilter(this);
+	}
 }
-
 
 /**
  * @brief ChartList::removeChart
@@ -98,12 +93,11 @@ void ChartList::insertChart(int index, Chart* chart)
  */
 void ChartList::removeChart(Chart* chart)
 {
-    if (chart) {
-        layout_->removeWidget(chart);
-        charts_.removeAll(chart);
-    }
+	if (chart) {
+		layout_->removeWidget(chart);
+		charts_.removeAll(chart);
+	}
 }
-
 
 /**
  * @brief ChartList::getCharts
@@ -111,9 +105,8 @@ void ChartList::removeChart(Chart* chart)
  */
 const QList<Chart*>& ChartList::getCharts() const
 {
-    return charts_;
+	return charts_;
 }
-
 
 /**
  * @brief ChartList::getHoverLineRect
@@ -121,9 +114,8 @@ const QList<Chart*>& ChartList::getCharts() const
  */
 const QRectF& ChartList::getHoverLineRect() const
 {
-    return hoverLineRect_;
+	return hoverLineRect_;
 }
-
 
 /**
  * @brief ChartList::isPanning
@@ -131,28 +123,23 @@ const QRectF& ChartList::getHoverLineRect() const
  */
 bool ChartList::isPanning() const
 {
-    return dragMode_ == DRAG_MODE::PAN || dragMode_ == DRAG_MODE::RUBBERBAND;
+	return dragMode_ == DRAG_MODE::PAN || dragMode_ == DRAG_MODE::RUBBERBAND;
 }
-
 
 /**
  * @brief ChartList::themeChanged
  */
 void ChartList::themeChanged()
 {
-    Theme* theme = Theme::theme();
-    highlightColor_ = theme->getHighlightColor();
-    hoveredRectColor_ = theme->getBackgroundColor();
+	Theme* theme = Theme::theme();
+	highlightColor_ = theme->getHighlightColor();
 
-    backgroundColor_ = theme->getAltBackgroundColor();
-    backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
+	backgroundColor_ = theme->getAltBackgroundColor();
+	backgroundColor_.setAlphaF(BACKGROUND_OPACITY);
 
-    cursorPen_ = QPen(theme->getTextColor(), 8);
-    axisLinePen_ = QPen(theme->getAltTextColor(), axisWidth_);
-    topLinePen_ = QPen(theme->getAltTextColor(), 1.5);
-    hoverLinePen_ = QPen(theme->getTextColor(), HOVER_LINE_WIDTH, Qt::PenStyle::DotLine);
+	axisLinePen_ = QPen(theme->getAltTextColor(), axisWidth_);
+	hoverLinePen_ = QPen(theme->getTextColor(), HOVER_LINE_WIDTH, Qt::PenStyle::DotLine);
 }
-
 
 /**
  * @brief ChartList::setChartHovered
@@ -163,16 +150,15 @@ void ChartList::themeChanged()
  */
 void ChartList::setChartHovered(Chart* chart, bool hovered)
 {
-    if (chart) {
-        // the signal below is used to tell the TimelineChartView which chart was hovered on/off
-        // it sets the corresponding ChartLabel's hovered state
-        emit chartHovered(chart, hovered);
-        chart->setHovered(hovered);
-    }
-    hovered_ = hovered;
-    update();
+	if (chart) {
+		// the signal below is used to tell the TimelineChartView which chart was hovered on/off
+		// it sets the corresponding ChartLabel's hovered state
+		emit chartHovered(chart, hovered);
+		chart->setHovered(hovered);
+	}
+	hovered_ = hovered;
+	update();
 }
-
 
 /**
  * @brief ChartList::eventFilter
@@ -182,15 +168,14 @@ void ChartList::setChartHovered(Chart* chart, bool hovered)
  */
 bool ChartList::eventFilter(QObject* watched, QEvent *event)
 {
-    Chart* chart = qobject_cast<Chart*>(watched);
-    if (event->type() == QEvent::Enter) {
-        setChartHovered(chart, true);
-    } else if (event->type() == QEvent::Leave) {
-        setChartHovered(chart, false);
-    }
-    return QWidget::eventFilter(watched, event);
+	auto chart = qobject_cast<Chart*>(watched);
+	if (event->type() == QEvent::Enter) {
+		setChartHovered(chart, true);
+	} else if (event->type() == QEvent::Leave) {
+		setChartHovered(chart, false);
+	}
+	return QWidget::eventFilter(watched, event);
 }
-
 
 /**
  * @brief ChartList::mousePressEvent
@@ -198,19 +183,18 @@ bool ChartList::eventFilter(QObject* watched, QEvent *event)
  */
 void ChartList::mousePressEvent(QMouseEvent *event)
 {
-    if (event->buttons() & Qt::LeftButton) {
-        dragMode_ = PAN;
-        panOrigin_ = event->pos();
-        setCursor(Qt::ClosedHandCursor);
-        // if the CTRL key is down, go into rubberband mode
-        if (event->modifiers() & Qt::ControlModifier) {
-            dragMode_ = RUBBERBAND;
-            setCursor(Qt::CrossCursor);
-        }
-    }
-    QWidget::mousePressEvent(event);
+	if (event->buttons() & Qt::LeftButton) {
+		dragMode_ = PAN;
+		panOrigin_ = event->pos();
+		setCursor(Qt::ClosedHandCursor);
+		// if the CTRL key is down, go into rubberband mode
+		if (event->modifiers() & Qt::ControlModifier) {
+			dragMode_ = RUBBERBAND;
+			setCursor(Qt::CrossCursor);
+		}
+	}
+	QWidget::mousePressEvent(event);
 }
-
 
 /**
  * @brief ChartList::mouseReleaseEvent
@@ -218,19 +202,18 @@ void ChartList::mousePressEvent(QMouseEvent *event)
  */
 void ChartList::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (dragMode_ == RUBBERBAND && !rubberBandRect_.isNull()) {
-        // send a signal to update the axis' displayed range
-        emit rubberbandUsed(rubberBandRect_.left(), rubberBandRect_.right());
-    }
+	if (dragMode_ == RUBBERBAND && !rubberBandRect_.isNull()) {
+		// send a signal to update the axis' displayed range
+		emit rubberbandUsed(rubberBandRect_.left(), rubberBandRect_.right());
+	}
 
-    // this is only here to demo that the hover axis dislay's position can be set manually
-    //emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
+	// NOTE: This is only here to demo that the hover axis display's position can be set manually
+	//emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
 
-    emit panning(false);
-    clearDragMode();
-    QWidget::mouseReleaseEvent(event);
+	emit panning(false);
+	clearDragMode();
+	QWidget::mouseReleaseEvent(event);
 }
-
 
 /**
  * @brief ChartList::mouseMoveEvent
@@ -238,27 +221,26 @@ void ChartList::mouseReleaseEvent(QMouseEvent* event)
  */
 void ChartList::mouseMoveEvent(QMouseEvent *event)
 {
-    QWidget::mouseMoveEvent(event);
-    cursorPoint_ = mapFromGlobal(cursor().pos());
-    hoverLineRect_.moveCenter(cursorPoint_);
-    hoverRectUpdated(true);
+	QWidget::mouseMoveEvent(event);
+	cursorPoint_ = mapFromGlobal(cursor().pos());
+	hoverLineRect_.moveCenter(cursorPoint_);
+	hoverRectUpdated(true);
 
-    switch (dragMode_) {
-    case PAN: {
-        QPointF delta = cursorPoint_ - panOrigin_;
-        panOrigin_ = cursorPoint_;
-        emit panning(true);
-        emit panned(-delta.x(), 0);
-        break;
-    }
-    case RUBBERBAND:
-        rubberBandRect_ = QRectF(panOrigin_.x(), 0, event->pos().x() - panOrigin_.x(), height());
-        break;
-    default:
-        break;
-    }
+	switch (dragMode_) {
+		case PAN: {
+			QPointF delta = cursorPoint_ - panOrigin_;
+			panOrigin_ = cursorPoint_;
+			emit panning(true);
+			emit panned(-delta.x(), 0);
+			break;
+		}
+		case RUBBERBAND:
+			rubberBandRect_ = QRectF(panOrigin_.x(), 0, event->pos().x() - panOrigin_.x(), height());
+			break;
+		default:
+			break;
+	}
 }
-
 
 /**
  * @brief ChartList::wheelEvent
@@ -266,11 +248,10 @@ void ChartList::mouseMoveEvent(QMouseEvent *event)
  */
 void ChartList::wheelEvent(QWheelEvent *event)
 {
-    // need to accept the event here so that it doesn't scroll the timeline chart
-    emit zoomed(event->delta());
-    event->accept();
+	// need to accept the event here so that it doesn't scroll the timeline chart
+	emit zoomed(event->delta());
+	event->accept();
 }
-
 
 /**
  * @brief ChartList::keyReleaseEvent
@@ -278,14 +259,13 @@ void ChartList::wheelEvent(QWheelEvent *event)
  */
 void ChartList::keyReleaseEvent(QKeyEvent *event)
 {
-    if (dragMode_ == RUBBERBAND) {
-        if (event->key() == Qt::Key_Control) {
-            clearDragMode();
-        }
-    }
-    QWidget::keyReleaseEvent(event);
+	if (dragMode_ == RUBBERBAND) {
+		if (event->key() == Qt::Key_Control) {
+			clearDragMode();
+		}
+	}
+	QWidget::keyReleaseEvent(event);
 }
-
 
 /**
  * @brief ChartList::enterEvent
@@ -293,15 +273,14 @@ void ChartList::keyReleaseEvent(QKeyEvent *event)
  */
 void ChartList::enterEvent(QEvent *event)
 {
-    QWidget::enterEvent(event);
-    setCursor(Qt::BlankCursor);
-    hovered_ = true;
+	QWidget::enterEvent(event);
+	setCursor(Qt::BlankCursor);
+	hovered_ = true;
 
-    hoverLineRect_ = visibleRegion().boundingRect();
-    hoverLineRect_.setWidth(HOVER_LINE_WIDTH);
-    hoverRectUpdated();
+	hoverLineRect_ = visibleRegion().boundingRect();
+	hoverLineRect_.setWidth(HOVER_LINE_WIDTH);
+	hoverRectUpdated();
 }
-
 
 /**
  * @brief ChartList::leaveEvent
@@ -309,13 +288,12 @@ void ChartList::enterEvent(QEvent *event)
  */
 void ChartList::leaveEvent(QEvent *event)
 {
-    QWidget::leaveEvent(event);
-    hovered_ = false;
-    hoverLineRect_ = QRectF();
-    hoverRectUpdated();
-    cursorPoint_.setX(-10);
+	QWidget::leaveEvent(event);
+	hovered_ = false;
+	hoverLineRect_ = QRectF();
+	hoverRectUpdated();
+	cursorPoint_.setX(-10);
 }
-
 
 /**
  * @brief ChartList::paintEvent
@@ -323,41 +301,35 @@ void ChartList::leaveEvent(QEvent *event)
  */
 void ChartList::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event);
+	Q_UNUSED(event);
 
-    QPainter painter(this);
-    QRect visibleRect = visibleRegion().boundingRect();
-    painter.fillRect(visibleRect, backgroundColor_);
+	QPainter painter(this);
+	QRect visibleRect = visibleRegion().boundingRect();
+	painter.fillRect(visibleRect, backgroundColor_);
 
-    painter.setPen(axisLinePen_);
-    if (axisXVisible_) {
-        QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
-        painter.drawLine(axisX);
-    }
-    if (axisYVisible_) {
-        QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
-        axisY.translate(axisWidth_ / 2.0, 0);
-        painter.drawLine(axisY);
-    }
+	visibleRect = visibleRect.adjusted(axisWidth_ / 2.0, 0, 0, 0);
 
-    switch (dragMode_) {
-    case RUBBERBAND: {
-        painter.setOpacity(0.25);
-        painter.setPen(QPen(highlightColor_.darker(), 2));
-        painter.setBrush(highlightColor_);
-        painter.drawRect(rubberBandRect_);
-        break;
-    }
-    default:
-        if (hovered_) {
-            // paint the hover line
-            painter.setPen(hoverLinePen_);
-            painter.drawLine(cursorPoint_.x(), rect().top(), cursorPoint_.x(), rect().bottom());
-        }
-        break;
-    }
+	painter.setPen(axisLinePen_);
+	if (axisXVisible_) {
+		QLineF axisX(visibleRect.bottomLeft(), visibleRect.bottomRight());
+		painter.drawLine(axisX);
+	}
+	if (axisYVisible_) {
+		QLineF axisY(visibleRect.topLeft(), visibleRect.bottomLeft());
+		painter.drawLine(axisY);
+	}
+
+	if (dragMode_ == RUBBERBAND) {
+		painter.setOpacity(0.25);
+		painter.setPen(QPen(highlightColor_.darker(), 2));
+		painter.setBrush(highlightColor_);
+		painter.drawRect(rubberBandRect_);
+	} else if (hovered_) {
+		// paint the hover line
+		painter.setPen(hoverLinePen_);
+		painter.drawLine(cursorPoint_.x(), rect().top(), cursorPoint_.x(), rect().bottom());
+	}
 }
-
 
 /**
  * @brief ChartList::hoverRectUpdated
@@ -365,42 +337,41 @@ void ChartList::paintEvent(QPaintEvent *event)
  */
 void ChartList::hoverRectUpdated(bool repaintRequired)
 {
-    if (hoverLineRect_.isNull()) {
-        for (Chart* chart : charts_) {
-            chart->setHoveredRect(hoverLineRect_);
-        }
-    } else {
-        for (Chart* chart : charts_) {
-            if (!chart->isVisible()) {
-                continue;
-            }
-            QRect childRect(chart->x(), chart->y(), chart->width(), chart->height());
-            if (visibleRegion().contains(childRect)) {
-                chart->setHoveredRect(hoverLineRect_);
-            }
-        }
-    }
+	if (hoverLineRect_.isNull()) {
+		for (Chart* chart : charts_) {
+			chart->setHoveredRect(hoverLineRect_);
+		}
+	} else {
+		for (Chart* chart : charts_) {
+			if (!chart->isVisible()) {
+				continue;
+			}
+			QRect childRect(chart->x(), chart->y(), chart->width(), chart->height());
+			if (visibleRegion().contains(childRect)) {
+				chart->setHoveredRect(hoverLineRect_);
+			}
+		}
+	}
 
-    if (repaintRequired) {
-        // this repaint is required instead of an update whenever there's a moveEvent
-        // the hovered series ranges are being calculated in the children charts' paint event
-        // and it needs to happen before the signal below is sent to the timeline view
-        repaint();
-    } else {
-        update();
-    }
+	if (repaintRequired) {
+		// this repaint is required instead of an update whenever there's a moveEvent
+		// the hovered series ranges are being calculated in the children charts' paint event
+		// and it needs to happen before the signal below is sent to the timeline view
+		repaint();
+	} else {
+		update();
+	}
 
-    emit hoverLineUpdated(hoverLineRect_.isValid(), mapToGlobal(hoverLineRect_.center().toPoint()));
+	emit hoverLineUpdated(hoverLineRect_.isValid(), mapToGlobal(hoverLineRect_.center().toPoint()));
 }
-
 
 /**
  * @brief ChartList::clearDragMode
  */
 void ChartList::clearDragMode()
 {
-    dragMode_ = NONE;
-    rubberBandRect_ = QRectF();
-    setCursor(Qt::BlankCursor);
-    update();
+	dragMode_ = NONE;
+	rubberBandRect_ = QRectF();
+	setCursor(Qt::BlankCursor);
+	update();
 }

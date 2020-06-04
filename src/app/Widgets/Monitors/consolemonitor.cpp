@@ -1,22 +1,28 @@
 #include "consolemonitor.h"
-#include <QBoxLayout>
 #include "../../theme.h"
 
-ConsoleMonitor::ConsoleMonitor(QWidget* parent):Monitor(parent){
+#include <QBoxLayout>
+
+ConsoleMonitor::ConsoleMonitor(QWidget* parent)
+    : Monitor(parent)
+{
     setupLayout();
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ConsoleMonitor::themeChanged);
     themeChanged();
+
     connect(this, &Monitor::StateChanged, this, &ConsoleMonitor::stateChanged);
     StateChanged(Notification::Severity::RUNNING);
 }
 
-void ConsoleMonitor::stateChanged(Notification::Severity  state){
+void ConsoleMonitor::stateChanged(Notification::Severity state)
+{
     //Abortable
     abort_action->setEnabled(state == Notification::Severity::RUNNING);
 }
 
-void ConsoleMonitor::setupLayout(){
+void ConsoleMonitor::setupLayout()
+{
     auto layout = new QVBoxLayout(this);
     layout->setMargin(2);
     layout->setSpacing(2);
@@ -38,7 +44,8 @@ void ConsoleMonitor::setupLayout(){
     layout->addWidget(toolbar, 0, Qt::AlignRight);
 }
 
-void ConsoleMonitor::themeChanged(){
+void ConsoleMonitor::themeChanged()
+{
     Theme* theme = Theme::theme();
     setStyleSheet(theme->getWidgetStyleSheet("ConsoleMonitor"));
     editor->setStyleSheet(theme->getLineEditStyleSheet("QTextBrowser"));

@@ -1,22 +1,21 @@
 #include "dockreparenterpopup.h"
-#include <QBoxLayout>
-#include <QScrollArea>
-#include <QToolButton>
+#include "../../Controllers/WindowManager/windowmanager.h"
+#include "../../Widgets/Windows/basewindow.h"
+
 #include <QScrollBar>
 #include <QPainter>
-#include "../../Controllers/WindowManager/windowmanager.h"
-#include "../../Widgets/DockWidgets/basedockwidget.h"
-#include "../../Widgets/Windows/basewindow.h"
-#include "../../theme.h"
 
-DockReparenterPopup::DockReparenterPopup():PopupWidget(PopupWidget::TYPE::DIALOG, 0){
+DockReparenterPopup::DockReparenterPopup()
+    : PopupWidget(PopupWidget::TYPE::DIALOG, nullptr)
+{
     setupLayout();
     connect(Theme::theme(), &Theme::theme_Changed, this, &DockReparenterPopup::themeChanged);
     themeChanged();
 }
 
-bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget){
-    if(dock_widget){
+bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget)
+{
+    if (dock_widget) {
         auto manager = WindowManager::manager();
         this->dock_widget = dock_widget;
 
@@ -26,17 +25,19 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget){
         }
         
         //Add a new Window Button first
-        auto new_window_button = getWindowAction(0);
+        auto new_window_button = getWindowAction(nullptr);
         //Construct a CentralWindow widget second will ensure that it'll be second if it's valid
         getWindowAction(manager->getCentralWindow());
 
         //Remove the dockWindows current Window, and the MainWindow from the windows this dock_widget can be put into
+        // TODO: toSet is deprecated - find an alternative
         auto valid_windows = manager->getWindows().toSet();
         valid_windows.remove(dock_widget->getCurrentWindow());
         valid_windows.remove(manager->getMainWindow());
         
         //New Window should always be visible
         new_window_button->show();
+
         //Add New Buttons for the other valid windows, and show them
         for(auto window : valid_windows){
             if(window->getType() != BaseWindow::INVISIBLE_WINDOW){
@@ -55,10 +56,11 @@ bool DockReparenterPopup::ReparentDockWidget(BaseDockWidget* dock_widget){
     return false;
 }
 
-void DockReparenterPopup::windowTriggered(int window_id){
+void DockReparenterPopup::windowTriggered(int window_id)
+{
     if(dock_widget){
         auto manager = WindowManager::manager();
-        BaseWindow* window = 0;
+        BaseWindow* window = nullptr;
         
         if(window_id >= 0){
             window = manager->getWindow(window_id);
@@ -67,26 +69,30 @@ void DockReparenterPopup::windowTriggered(int window_id){
             window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
             window->show();
             window->activateWindow();
-        }else{
-            //DO NOTHING
         }
 
         if(window && manager->reparentDockWidget(dock_widget, window)){
             accept();
         }
-        //Unset the dock_widget
-        dock_widget = 0;
+
+        unsetDockWidget();
     }
 }
 
-QToolButton* DockReparenterPopup::getWindowAction(BaseWindow* window){
-    int window_id = -1;
+void DockReparenterPopup::unsetDockWidget()
+{
+    // Unset the dock_widget
+    dock_widget = nullptr;
+}
 
+QToolButton* DockReparenterPopup::getWindowAction(BaseWindow* window)
+{
+    int window_id = -1;
     if(window){
         window_id = window->getID();
     }
     
-    auto button = button_lookup.value(window_id, 0);
+    auto button = button_lookup.value(window_id, nullptr);
     if(!button){
         button = new QToolButton(this);
         button->setIconSize(QSize(96,96));
@@ -119,23 +125,25 @@ QToolButton* DockReparenterPopup::getWindowAction(BaseWindow* window){
     return button;
 }
 
-void DockReparenterPopup::themeChanged(){
+void DockReparenterPopup::themeChanged()
+{
     auto theme = Theme::theme();
     setStyleSheet(theme->getToolBarStyleSheet() + theme->getLabelStyleSheet() + "QScrollArea {background: transparent;}" + theme->getScrollBarStyleSheet() + "QFrame{background:transparent;}  QLabel{}");
     close_action->setIcon(theme->getIcon("Icons", "cross"));
     toolbar->setIconSize(theme->getIconSize());
 }
 
-void DockReparenterPopup::reject(){
-    windowTriggered(-2);
+void DockReparenterPopup::reject()
+{
+    unsetDockWidget();
     QDialog::reject();
 }
 
-void DockReparenterPopup::setupLayout(){
+void DockReparenterPopup::setupLayout()
+{
     auto parent_widget = new QWidget(this);
     parent_widget->setMinimumWidth(150);
     parent_widget->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred));
-
 
     auto layout = new QVBoxLayout(parent_widget);
     layout->setMargin(2);
@@ -151,8 +159,6 @@ void DockReparenterPopup::setupLayout(){
     toolbar->addWidget(label_title);
     close_action = toolbar->addAction("Exit");
 
-    
-    
     h_layout = new QHBoxLayout();
     h_layout->setMargin(0);
     h_layout->setSpacing(5);
@@ -160,7 +166,7 @@ void DockReparenterPopup::setupLayout(){
     layout->addWidget(toolbar);
     layout->addLayout(h_layout, Qt::AlignHCenter);
     
-    //Get the close action to call windowTriggered with -2
-    connect(close_action, &QAction::triggered, this, &QDialog::reject);
+    // Get the close action to unset the dock_widget
+    connect(close_action, &QAction::triggered, this, &DockReparenterPopup::reject);
     setWidget(parent_widget);
 }

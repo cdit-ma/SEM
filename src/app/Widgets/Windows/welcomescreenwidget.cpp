@@ -1,20 +1,19 @@
 #include "welcomescreenwidget.h"
-
-#include <QLabel>
-#include <QVBoxLayout>
 #include "../../theme.h"
-#include <QStringBuilder>
 #include "../../Controllers/ActionController/actioncontroller.h"
 #include "../../../modelcontroller/version.h"
 
+#include <QVBoxLayout>
+#include <QStringBuilder>
+
 #define MIN_WIDTH 800
-#define MIN_HEIGHT 700
 
-
-QToolButton* WelcomeScreenWidget::getButton(QAction* action, Qt::ToolButtonStyle style){
+QToolButton* WelcomeScreenWidget::getButton(QAction* action, Qt::ToolButtonStyle style)
+{
     auto button = new QToolButton(this);
     button->setToolButtonStyle(style);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+
     //Connect the button to it's action so we don't need to worry about QToolButton stuff
     button->setDefaultAction(action);
     return button;
@@ -25,7 +24,8 @@ QToolButton* WelcomeScreenWidget::getButton(QAction* action, Qt::ToolButtonStyle
  * @param ac
  * @param parent
  */
-WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QWidget *parent) : QWidget(parent)
+WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QWidget *parent)
+    : QWidget(parent)
 {
     this->action_controller = action_controller;
 
@@ -55,7 +55,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
         left_toolbar->addWidget(getButton(action_controller->options_settings, Qt::ToolButtonTextUnderIcon));
         left_toolbar->addWidget(getButton(action_controller->file_exit, Qt::ToolButtonTextUnderIcon));
     }
-    
+
     bottom_toolbar = new QToolBar(this);
     bottom_toolbar->setOrientation(Qt::Horizontal);
     
@@ -64,10 +64,10 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
         bottom_toolbar->addWidget(getButton(action_controller->help_aboutMedea, Qt::ToolButtonTextUnderIcon));
     }
 
-    for(auto action : left_toolbar->actions()){
+    for (auto action : left_toolbar->actions()) {
         auto widget = left_toolbar->widgetForAction(action);
         auto toolbutton = qobject_cast<QToolButton*>(widget);
-        if(toolbutton){
+        if (toolbutton) {
             toolbutton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         }
     }
@@ -81,7 +81,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     left_layout->setSpacing(10);
     left_layout->addLayout(title_layout);
     left_layout->addWidget(left_toolbar);
-    
+
     auto right_layout = new QVBoxLayout();
     right_layout->setSpacing(2);
     right_layout->addWidget(recent_project_label);
@@ -114,7 +114,6 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     themeChanged();
 }
 
-
 /**
  * @brief WelcomeScreenWidget::themeChanged
  */
@@ -123,7 +122,7 @@ void WelcomeScreenWidget::themeChanged()
     Theme* theme = Theme::theme();
     setStyleSheet("QToolButton{border: 0px;}"
                     "QToolButton:!hover{background: rgba(0,0,0,0); }");
-    
+
     auto icon_size = theme->getLargeIconSize();
     recent_project_toolbar->setIconSize(icon_size);
     recent_project_toolbar->setStyleSheet(theme->getToolBarStyleSheet() +
@@ -136,17 +135,17 @@ void WelcomeScreenWidget::themeChanged()
     
     const auto& toolbar_style = "QToolButton{ border: 0px; }"
                                 "QToolButton:!hover{ background: rgba(0,0,0,0); }";
-                                
+
     left_toolbar->setIconSize(icon_size);
     left_toolbar->setStyleSheet(theme->getToolBarStyleSheet() + toolbar_style);
-    
+
     bottom_toolbar->setIconSize(icon_size);
     bottom_toolbar->setStyleSheet(theme->getToolBarStyleSheet() + toolbar_style);
-    
+
     recent_project_label->setIconSize(icon_size);
     recent_project_label->setIcon(theme->getIcon("Icons", "clock"));
     recent_project_label->setStyleSheet("color:" + theme->getTextColorHex() + ";");
-    
+
     medea_icon->setPixmap(theme->getImage("Icons", "medeaLogo", icon_size * 4));
 
     auto title_font = theme->getLargeFont();
@@ -158,9 +157,6 @@ void WelcomeScreenWidget::themeChanged()
     medea_version_label->setStyleSheet("color:" + theme->getTextColorHex(ColorRole::DISABLED) + ";");
 }
 
-
-
-
 /**
  * @brief WelcomeScreenWidget::recentProjectsUpdated
  */
@@ -168,9 +164,8 @@ void WelcomeScreenWidget::recentProjectsUpdated()
 {
     if (action_controller) {
         recent_project_toolbar->clear();
-        for(auto action : action_controller->getRecentProjectActions()){
+        for (auto action : action_controller->getRecentProjectActions()) {
             recent_project_toolbar->addWidget(getButton(action));
         }
     }
 }
-

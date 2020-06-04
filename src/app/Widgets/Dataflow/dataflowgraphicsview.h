@@ -6,9 +6,8 @@
 
 class DataflowGraphicsView : public QGraphicsView
 {
-
 public:
-    DataflowGraphicsView(QWidget* parent = nullptr);
+    explicit DataflowGraphicsView(QWidget* parent = nullptr);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;
@@ -19,7 +18,6 @@ protected:
 private:
     bool panning_ = false;
     QPointF prev_pan_origin_;
-
 };
 
 #endif // DATAFLOWGRAPHICSVIEW_H

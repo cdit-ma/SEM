@@ -9,7 +9,6 @@
 PortEventSeries::PortEventSeries(const QString& ID, QObject* parent)
     : MEDEA::EventSeries(ID, MEDEA::ChartDataKind::PORT_EVENT, parent) {}
 
-
 /**
  * @brief PortEventSeries::addEvent
  * @param event

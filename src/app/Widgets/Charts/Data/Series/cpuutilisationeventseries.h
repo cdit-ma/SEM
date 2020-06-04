@@ -12,7 +12,7 @@ class CPUUtilisationEventSeries : public MEDEA::EventSeries
 public:
     explicit CPUUtilisationEventSeries(const QString& ID, QObject* parent = nullptr);
 
-    void addEvent(MEDEA::Event* event);
+    void addEvent(MEDEA::Event* event) override;
 
 private:
     double minUtilisation_ = DBL_MAX;

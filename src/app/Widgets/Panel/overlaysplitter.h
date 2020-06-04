@@ -7,8 +7,10 @@
 class OverlaySplitter : public QSplitter
 {
     Q_OBJECT
+
 public:
-    explicit OverlaySplitter(QWidget* parent = 0);
+    explicit OverlaySplitter(QWidget* parent = nullptr);
+
     void setWidget(QWidget* widget, Qt::Alignment location = Qt::AlignBottom);
 
 signals:
@@ -21,7 +23,7 @@ protected:
     bool eventFilter(QObject* object, QEvent* event);
 
 private:
-    QWidget* fillerWidget = 0;
+    QWidget* fillerWidget = nullptr;
     int widgetIndex = -1;
 
     QList<int> defaultSizes;

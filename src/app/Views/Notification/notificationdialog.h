@@ -19,7 +19,7 @@ class NotificationDialog : public QFrame
     Q_OBJECT
 
 public:
-    NotificationDialog(ViewController* viewController, QWidget *parent = nullptr);
+    explicit NotificationDialog(ViewController* viewController, QWidget *parent = nullptr);
 
 signals:
     void mouseEntered();
@@ -40,6 +40,9 @@ private slots:
     void flashEntity(int ID);
     void selectAndCenterEntity(int ID);
     void clearFilteredNotifications();
+
+protected:
+    void enterEvent(QEvent* event) override;
 
 private:
     NotificationItem* constructNotificationItem(QSharedPointer<NotificationObject> notification);
@@ -65,12 +68,10 @@ private:
     
     QWidget* filters_widget = nullptr;
     QWidget* notifications_widget = nullptr;
-    QVBoxLayout* notifications_layout = nullptr;
-    QVBoxLayout* filters_layout = nullptr;
-    
     QWidget* notifications_status_widget = nullptr;
 
-    QSet<QSharedPointer<NotificationObject> > filtered_notifications;
+    QVBoxLayout* notifications_layout = nullptr;
+    QVBoxLayout* filters_layout = nullptr;
 
     QToolBar* top_toolbar = nullptr;
     QToolBar* bottom_toolbar = nullptr;
@@ -94,19 +95,18 @@ private:
     OptionGroupBox* category_filters = nullptr;
     OptionGroupBox* source_filters = nullptr;
 
-    int max_visible = 0;
+    static const int default_max_visible_notifications_;
 
+    int max_visible = 0;
     int total_notifications = 0;
     int current_matched_notifications = 0;
     int current_visible_notifications = 0;
 
     QHash<int, NotificationItem*> notification_items;
+    QSet<QSharedPointer<NotificationObject>> filtered_notifications;
+
     NotificationItem* selected_notification = nullptr;
     ViewController* viewController = nullptr;
-
-protected:
-    void enterEvent(QEvent* event);
-
 };
 
 #endif // NOTIFICATIONDIALOG_H

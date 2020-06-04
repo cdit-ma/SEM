@@ -1,9 +1,10 @@
 #include "customgroupbox.h"
 #include "../theme.h"
 
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+
 #define TITLE_FRAME_WIDTH 4
-#define TITLE_ARROW_SIZE 16
-#define DEFAULT_ICON_SIZE 16
 
 /**
  * @brief CustomGroupBox::CustomGroupBox
@@ -14,12 +15,14 @@ CustomGroupBox::CustomGroupBox(const QString& title, QWidget* parent)
     : QFrame(parent)
 {
     setupLayout();
-    setTitle(title);
+
+	if (groupTitleButton) {
+		groupTitleButton->setText(title);
+	}
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &CustomGroupBox::themeChanged);
     themeChanged();
 }
-
 
 /**
  * @brief CustomGroupBox::setTitle
@@ -32,7 +35,6 @@ void CustomGroupBox::setTitle(const QString& title)
     }
 }
 
-
 /**
  * @brief CustomGroupBox::getTitle
  * @return
@@ -44,7 +46,6 @@ QString CustomGroupBox::getTitle()
     }
     return "";
 }
-
 
 /**
  * @brief CustomGroupBox::setCheckable
@@ -62,7 +63,6 @@ void CustomGroupBox::setCheckable(bool checkable)
     }
 }
 
-
 /**
  * @brief CustomGroupBox::setChecked
  * @param checked
@@ -73,7 +73,6 @@ void CustomGroupBox::setChecked(bool checked)
         groupTitleButton->setChecked(checked);
     }
 }
-
 
 /**
  * @brief CustomGroupBox::isChecked
@@ -86,7 +85,6 @@ bool CustomGroupBox::isChecked()
     }
     return false;
 }
-
 
 /**
  * @brief CustomGroupBox::addWidget
@@ -101,7 +99,6 @@ QAction* CustomGroupBox::addWidget(QWidget* widget)
     return nullptr;
 }
 
-
 /**
  * @brief CustomGroupBox::insertWidget
  * @param beforeAction
@@ -115,7 +112,6 @@ QAction* CustomGroupBox::insertWidget(QAction* beforeAction, QWidget *widget)
     }
     return nullptr;
 }
-
 
 /**
  * @brief CustomGroupBox::themeChanged
@@ -146,9 +142,9 @@ void CustomGroupBox::themeChanged()
         }
         groupTitleButton->setStyleSheet("QToolButton {"
                                         "padding: 1px 1px 1px 0px;"
-                                        "border: none;"
+                                        "border: 0px;"
                                         "color:" + theme->getTextColorHex() + ";"
-                                        "background: rgba(0,0,0,0);"
+                                        "background:" + theme->getBackgroundColorHex() + ";"
                                         "}"
                                         + checkableStyle);
     }
@@ -158,7 +154,6 @@ void CustomGroupBox::themeChanged()
     widgetsToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
 }
-
 
 /**
  * @brief CustomGroupBox::setupLayout
@@ -174,14 +169,13 @@ void CustomGroupBox::setupLayout()
     groupTitleButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     groupTitleButton->setCheckable(true);
     groupTitleButton->setChecked(true);
-
     connect(groupTitleButton, &QToolButton::toggled, widgetsToolbar, &QToolBar::setVisible);
 
-    QFrame* leftTitleFrame = new QFrame(this);
+    auto leftTitleFrame = new QFrame(this);
     leftTitleFrame->setFrameShape(QFrame::HLine);
     leftTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
 
-    QFrame* rightTitleFrame = new QFrame(this);
+	auto rightTitleFrame = new QFrame(this);
     rightTitleFrame->setFrameShape(QFrame::HLine);
     rightTitleFrame->setLineWidth(TITLE_FRAME_WIDTH);
 
@@ -189,7 +183,7 @@ void CustomGroupBox::setupLayout()
     topToolbar->addWidget(groupTitleButton);
     topToolbar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
-    QHBoxLayout* topLayout = new QHBoxLayout();
+	auto topLayout = new QHBoxLayout();
     topLayout->setMargin(0);
     topLayout->addWidget(leftTitleFrame, 1);
     topLayout->addSpacerItem(new QSpacerItem(1,0));
@@ -197,7 +191,7 @@ void CustomGroupBox::setupLayout()
     topLayout->addSpacerItem(new QSpacerItem(1,0));
     topLayout->addWidget(rightTitleFrame, 1);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    auto mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(0, 2, 0, 2);

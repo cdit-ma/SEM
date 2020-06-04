@@ -16,12 +16,12 @@ class PanelWidget : public QFrame
     Q_OBJECT
 
 public:
-    explicit PanelWidget(QWidget* parent = 0);
+    explicit PanelWidget(QWidget* parent = nullptr);
 
     QAction* addTab(QString title, QString iconPath = "", QString iconName = "");
     QAction* addTab(QString title, QWidget* widget, QString iconPath = "", QString iconName = "");
 
-    bool isMinimised();
+    bool isMinimised() const;
 
     void constructEventsView();
     void constructPortLifecycleEventsView();
@@ -42,7 +42,7 @@ public slots:
     void activeTabChanged();
 
     void tabMenuTriggered(QAction* action);
-    void setActiveTabTitle(QString title);
+    void setActiveTabTitle(const QString& title);
 
     void minimisePanel(bool checked);
     void closePanel();
@@ -60,38 +60,38 @@ private:
     void activateNewTab(QAction* previouslyActivatedTab);
 
     void setupLayout();
-    void updateIcon(QAction* action, QString iconPath, QString iconName, bool newIcon = true);
+    void updateIcon(QAction* action, const QString& iconPath, const QString& iconName, bool newIcon = true);
 
     void connectChartViewToAggreagtionProxy(TimelineChartView* view);
 
-    ViewController* viewController = 0;
-    ChartInputPopup* chartPopup = 0;
+    ViewController* viewController = nullptr;
+    ChartInputPopup* chartPopup = nullptr;
 
-    QToolBar* tabBar = 0;
-    QToolBar* titleBar = 0;
+    QToolBar* tabBar = nullptr;
+    QToolBar* titleBar = nullptr;
 
-    QAction* minimiseAction = 0;
-    QAction* closeAction = 0;
-    QAction* snapShotAction = 0;
-    QAction* popOutAction = 0;
-    QAction* popOutActiveTabAction = 0;
-    QAction* clearActiveTabAction = 0;
+    QAction* minimiseAction = nullptr;
+    QAction* closeAction = nullptr;
+    QAction* snapShotAction = nullptr;
+    QAction* popOutAction = nullptr;
+    QAction* popOutActiveTabAction = nullptr;
+    QAction* clearActiveTabAction = nullptr;
 
-    QAction* playPauseAction = 0;
-    QAction* refreshDataAction = 0;
+    QAction* playPauseAction = nullptr;
+    QAction* refreshDataAction = nullptr;
 
-    QAction* tabsMenuAction = 0;
-    QMenu* tabsMenu = 0;
+    QAction* tabsMenuAction = nullptr;
+    QMenu* tabsMenu = nullptr;
     QHash<QAction*, QAction*> tabMenuActions;
     int hiddenTabs = 0;
 
-    QStackedWidget* tabStack = 0;
-    QActionGroup* tabsActionGroup = 0;
+    QStackedWidget* tabStack = nullptr;
+    QActionGroup* tabsActionGroup = nullptr;
     QHash<QAction*, QWidget*> tabWidgets;
 
-    QTimer* timer;
+    QTimer* timer = nullptr;
 
-    QAction* defaultActiveAction = 0;
+    QAction* defaultActiveAction = nullptr;
     QDateTime minDateTime;
 
     QList<int> sampleDataY;

@@ -14,7 +14,6 @@ TextGraphicsItem::TextGraphicsItem(const QString& text, QGraphicsItem* parent)
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }
 
-
 /**
  * @brief TextGraphicsItem::setAlignment
  * This sets this item's text alignment
@@ -26,7 +25,6 @@ void TextGraphicsItem::setTextAlignment(Qt::Alignment alignment)
     alignment_ = alignment;
     updateGeometry();
 }
-
 
 /**
  * @brief TextGraphicsItem::setGeometry
@@ -40,7 +38,6 @@ void TextGraphicsItem::setGeometry(const QRectF& geom)
     setPos(getAlignedPos());
 }
 
-
 /**
  * @brief TextGraphicsItem::sizeHint
  * This sets the values returned by minimum, maximum and preferred sizes
@@ -51,17 +48,16 @@ void TextGraphicsItem::setGeometry(const QRectF& geom)
 QSizeF TextGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF &constraint) const
 {
     switch (which) {
-    case Qt::MinimumSize:
-    case Qt::PreferredSize:
-        return boundingRect().size();
-    case Qt::MaximumSize:
-        return QSizeF(100000, 10000);
-    default:
-        break;
+        case Qt::MinimumSize:
+        case Qt::PreferredSize:
+            return boundingRect().size();
+        case Qt::MaximumSize:
+            return {100000, 10000};
+        default:
+            break;
     }
     return constraint;
 }
-
 
 /**
  * @brief TextGraphicsItem::getAlignedPos
@@ -90,5 +86,5 @@ QPointF TextGraphicsItem::getAlignedPos() const
         py = c.y() - boundingRect().height() / 2.0;
     }
 
-    return QPointF(px, py);
+    return {px, py};
 }

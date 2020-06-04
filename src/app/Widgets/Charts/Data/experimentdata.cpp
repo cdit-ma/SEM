@@ -10,10 +10,9 @@ using namespace MEDEA;
  * @param experiment_name
  * @param parent
  */
-ExperimentData::ExperimentData(const QString& experiment_name, QObject* parent)
+ExperimentData::ExperimentData(QString experiment_name, QObject* parent)
     : QObject(parent),
-      experiment_name_(experiment_name) {}
-
+      experiment_name_(std::move(experiment_name)) {}
 
 /**
  * @brief ExperimentData::experiment_name
@@ -23,7 +22,6 @@ const QString& ExperimentData::experiment_name() const
 {
     return experiment_name_;
 }
-
 
 /**
  * @brief ExperimentData::addExperimentRun
@@ -37,20 +35,20 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
         throw std::invalid_argument("ExperimentData::addExperimentRun - Invalid experiment run.");
     }
 
-    auto&& exp_run_data = std::unique_ptr<ExperimentRunData>(new ExperimentRunData(exp_run_id,
+    auto&& exp_run_data = std::make_unique<ExperimentRunData>(exp_run_id,
                                                               exp_run.job_num,
                                                               exp_run.start_time,
                                                               exp_run.end_time,
-                                                              exp_run.last_updated_time));
+                                                              exp_run.last_updated_time);
 
     // TODO: We should figure out what the emplace/insert functions actually do
     experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));
 }
 
-
 /**
  * @brief ExperimentData::getExperimentRun
  * @param exp_run_id
+ * @throws std::invalid_argument
  * @return
  */
 MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) const
@@ -61,7 +59,6 @@ MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) c
     }
     return *exp_run;
 }
-
 
 /**
  * @brief ExperimentData::updateData

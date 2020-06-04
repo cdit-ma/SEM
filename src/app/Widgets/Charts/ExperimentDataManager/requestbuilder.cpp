@@ -1,12 +1,6 @@
 #include "requestbuilder.h"
 
 /**
- * @brief RequestBuilder::RequestBuilder
- */
-RequestBuilder::RequestBuilder() {}
-
-
-/**
  * @brief RequestBuilder::build
  */
 RequestBuilder RequestBuilder::build()
@@ -14,43 +8,41 @@ RequestBuilder RequestBuilder::build()
     return RequestBuilder();
 }
 
-
 /**
  * @brief RequestBuilder::buildRequests
  * @param requestKinds
+ * @throws std::invalid_argument
  */
 void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKinds)
 {
     for (auto kind : requestKinds) {
         switch (kind) {
         case MEDEA::ChartDataKind::PORT_LIFECYCLE:
-            portLifecycleRequest_ = std::make_unique<PortLifecycleRequest>(PortLifecycleRequest());
+            portLifecycleRequest_ = std::make_unique<PortLifecycleRequest>();
             break;
         case MEDEA::ChartDataKind::WORKLOAD:
-            workloadRequest_ = std::make_unique<WorkloadRequest>(WorkloadRequest());
+            workloadRequest_ = std::make_unique<WorkloadRequest>();
             break;
         case MEDEA::ChartDataKind::CPU_UTILISATION:
-            cpuUtilisationRequest_ = std::make_unique<CPUUtilisationRequest>(CPUUtilisationRequest());
+            cpuUtilisationRequest_ = std::make_unique<UtilisationRequest>();
             break;
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = std::make_unique<MemoryUtilisationRequest>(MemoryUtilisationRequest());
+            memoryUtilisationRequest_ = std::make_unique<UtilisationRequest>();
             break;
         case MEDEA::ChartDataKind::MARKER:
-            markerRequest_ = std::make_unique<MarkerRequest>(MarkerRequest());
+            markerRequest_ = std::make_unique<MarkerRequest>();
             break;
         case MEDEA::ChartDataKind::PORT_EVENT:
-            portEventRequest_ = std::make_unique<PortEventRequest>(PortEventRequest());
+            portEventRequest_ = std::make_unique<PortEventRequest>();
             break;
         case MEDEA::ChartDataKind::NETWORK_UTILISATION:
-            networkUtilisationRequest_ = std::make_unique<UtilisationRequest>(UtilisationRequest());
+            networkUtilisationRequest_ = std::make_unique<UtilisationRequest>();
             break;
         default:
-            qWarning("RequestBuilder::buildRequests - Unknown chart data kind");
-            break;
+	        throw std::invalid_argument("RequestBuilder::buildRequests - Unknown chart data kind");
         }
     }
 }
-
 
 /**
  * @brief RequestBuilder::setExperimentRunID
@@ -81,7 +73,6 @@ void RequestBuilder::setExperimentRunID(const quint32 experiment_run_id)
     }
 }
 
-
 /**
  * @brief RequestBuilder::setTimeInterval
  * @param time_interval
@@ -111,7 +102,6 @@ void RequestBuilder::setTimeInterval(const QVector<qint64> &time_interval)
     }
 }
 
-
 /**
  * @brief RequestBuilder::setComponentNames
  * @param component_names
@@ -131,7 +121,6 @@ void RequestBuilder::setComponentNames(const QVector<QString> &component_names)
         portEventRequest_->setComponentNames(component_names);
     }
 }
-
 
 /**
  * @brief RequestBuilder::setComponentInstanceIDS
@@ -153,7 +142,6 @@ void RequestBuilder::setComponentInstanceIDS(const QVector<QString> &component_i
     }
 }
 
-
 /**
  * @brief RequestBuilder::setComponentInstancePaths
  * @param component_instance_paths
@@ -174,7 +162,6 @@ void RequestBuilder::setComponentInstancePaths(const QVector<QString> &component
     }
 }
 
-
 /**
  * @brief RequestBuilder::setPortIDs
  * @param port_ids
@@ -188,7 +175,6 @@ void RequestBuilder::setPortIDs(const QVector<QString> &port_ids)
         portEventRequest_->setPortIDs(port_ids);
     }
 }
-
 
 /**
  * @brief RequestBuilder::setPortPaths
@@ -204,7 +190,6 @@ void RequestBuilder::setPortPaths(const QVector<QString> &port_paths)
     }
 }
 
-
 /**
  * @brief RequestBuilder::setWorkerInstanceIDs
  * @param worker_instance_ids
@@ -219,7 +204,6 @@ void RequestBuilder::setWorkerInstanceIDs(const QVector<QString> &worker_instanc
     }
 }
 
-
 /**
  * @brief RequestBuilder::setWorkerInstancePaths
  * @param worker_paths
@@ -233,7 +217,6 @@ void RequestBuilder::setWorkerInstancePaths(const QVector<QString> &worker_insta
         markerRequest_->setWorkerInstancePaths(worker_instance_paths);
     }
 }
-
 
 /**
  * @brief RequestBuilder::setNodeIDs
@@ -252,7 +235,6 @@ void RequestBuilder::setNodeIDs(const QVector<QString> &node_ids)
     }
 }
 
-
 /**
  * @brief RequestBuilder::setNodeHostnames
  * @param node_hostnames
@@ -270,7 +252,6 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
     }
 }
 
-
 /**
  * @brief RequestBuilder::getPortLifecycleRequest
  * @throws std::invalid_argument
@@ -279,11 +260,10 @@ void RequestBuilder::setNodeHostnames(const QVector<QString> &node_hostnames)
 const PortLifecycleRequest& RequestBuilder::getPortLifecycleRequest() const
 {
     if (!portLifecycleRequest_) {
-        throw std::invalid_argument("No PortLifecycleRequest");
+        throw std::invalid_argument("There is no built PortLifecycleRequest");
     }
     return *portLifecycleRequest_;
 }
-
 
 /**
  * @brief RequestBuilder::getWorkloadRequest
@@ -293,39 +273,36 @@ const PortLifecycleRequest& RequestBuilder::getPortLifecycleRequest() const
 const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
 {
     if (!workloadRequest_) {
-        throw std::invalid_argument("No WorkloadRequest");
+        throw std::invalid_argument("There is no built WorkloadRequest");
     }
     return *workloadRequest_;
 }
-
 
 /**
  * @brief RequestBuilder::getCPUUtilisationRequest
  * @throws std::invalid_argument
  * @return
  */
-const CPUUtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
+const UtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
 {
     if (!cpuUtilisationRequest_) {
-        throw std::invalid_argument("No CPUUtilisationRequest");
+        throw std::invalid_argument("There is no built CPUUtilisationRequest");
     }
     return *cpuUtilisationRequest_;
 }
-
 
 /**
  * @brief RequestBuilder::getMemoryUtilisationRequest
  * @throws std::invalid_argument
  * @return
  */
-const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
+const UtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
 {
     if (!memoryUtilisationRequest_) {
-        throw std::invalid_argument("No MemoryUtilisationRequest");
+        throw std::invalid_argument("There is no built MemoryUtilisationRequest");
     }
     return *memoryUtilisationRequest_;
 }
-
 
 /**
  * @brief RequestBuilder::getMarkerRequest
@@ -335,11 +312,10 @@ const MemoryUtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() co
 const MarkerRequest& RequestBuilder::getMarkerRequest() const
 {
     if (!markerRequest_) {
-        throw std::invalid_argument("No MarkerRequest");
+        throw std::invalid_argument("There is no built MarkerRequest");
     }
     return *markerRequest_;
 }
-
 
 /**
  * @brief RequestBuilder::getPortEventRequest
@@ -349,7 +325,7 @@ const MarkerRequest& RequestBuilder::getMarkerRequest() const
 const PortEventRequest& RequestBuilder::getPortEventRequest() const
 {
     if (!portEventRequest_) {
-        throw std::invalid_argument("No PortEventRequest");
+        throw std::invalid_argument("There is no built PortEventRequest");
     }
     return *portEventRequest_;
 }

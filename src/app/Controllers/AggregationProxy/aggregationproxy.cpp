@@ -88,7 +88,7 @@ QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const
  * @param request
  * @return
  */
-QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const CPUUtilisationRequest& request) const
+QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const UtilisationRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, request);
 }
@@ -99,7 +99,7 @@ QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisation
  * @param request
  * @return
  */
-QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const MemoryUtilisationRequest& request) const
+QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const UtilisationRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, request);
 }
@@ -181,15 +181,15 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
         request.set_experiment_name(experiment_name.toStdString());
         
         auto results = requester_->GetExperimentRuns(request);
-        for (const auto& ex : results->experiments()) {
-            const auto& experiment_name = ConstructQString(ex.name());
-            for (auto& ex_run : ex.runs()) {
+        for (const auto& exp : results->experiments()) {
+            const auto& exp_name = ConstructQString(exp.name());
+            for (auto& exp_run : exp.runs()) {
                 AggServerResponse::ExperimentRun run;
-                run.experiment_name = experiment_name;
-                run.experiment_run_id = static_cast<qint32>(ex_run.experiment_run_id());
-                run.job_num = ex_run.job_num();
-                run.start_time = ConstructQDateTime(ex_run.start_time()).toMSecsSinceEpoch();
-                run.end_time = ConstructQDateTime(ex_run.end_time()).toMSecsSinceEpoch();
+                run.experiment_name = exp_name;
+                run.experiment_run_id = static_cast<qint32>(exp_run.experiment_run_id());
+                run.job_num = exp_run.job_num();
+                run.start_time = ConstructQDateTime(exp_run.start_time()).toMSecsSinceEpoch();
+                run.end_time = ConstructQDateTime(exp_run.end_time()).toMSecsSinceEpoch();
                 runs.append(run);
             }
         }
@@ -220,10 +220,6 @@ AggServerResponse::ExperimentState AggregationProxy::GetExperimentState(const qu
         auto result = requester_->GetExperimentState(request);
         state.last_updated_time = ConstructQDateTime(result->last_updated()).toMSecsSinceEpoch();
         state.end_time = ConstructQDateTime(result->end_time()).toMSecsSinceEpoch();
-
-        //qDebug() << "Proxy END time: " << QDateTime::fromMSecsSinceEpoch(state.end_time).toString("hh:mm:ss.zzz");
-        //qDebug() << "Proxy LAST time: " << QDateTime::fromMSecsSinceEpoch(state.last_updated_time).toString("hh:mm:ss.zzz");
-        //qDebug() << "result raw: " << result->last_updated().seconds();
 
         for (const auto& n : result->nodes()) {
             auto node = ConvertNode(n);
@@ -351,7 +347,7 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadReques
  * @throws RequestException
  * @return
  */
-QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CPUUtilisationRequest &request) const
+QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const UtilisationRequest &request) const
 {
     CheckRequester();
 
@@ -391,7 +387,7 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const CP
  * @throws RequestException
  * @return
  */
-QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const MemoryUtilisationRequest &request) const
+QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const UtilisationRequest &request) const
 {
     CheckRequester();
 

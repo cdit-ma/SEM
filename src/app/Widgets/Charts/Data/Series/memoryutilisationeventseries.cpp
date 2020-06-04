@@ -8,7 +8,6 @@
 MemoryUtilisationEventSeries::MemoryUtilisationEventSeries(const QString& ID, QObject* parent)
     : MEDEA::EventSeries(ID, MEDEA::ChartDataKind::MEMORY_UTILISATION, parent) {}
 
-
 /**
  * @brief MemoryUtilisationEventSeries::addEvent
  * @param event

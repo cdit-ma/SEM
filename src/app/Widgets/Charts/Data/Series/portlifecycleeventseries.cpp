@@ -8,7 +8,6 @@
 PortLifecycleEventSeries::PortLifecycleEventSeries(const QString& ID, QObject* parent)
     : MEDEA::EventSeries(ID, MEDEA::ChartDataKind::PORT_LIFECYCLE, parent) {}
 
-
 /**
  * @brief PortLifecycleEventSeries::addEvent
  * @param event

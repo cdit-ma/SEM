@@ -12,6 +12,7 @@ class NotificationObject;
 class NotificationItem : public QFrame
 {
     Q_OBJECT
+    
 public:
     explicit NotificationItem(QSharedPointer<NotificationObject> obj, QWidget* parent = nullptr);
 
@@ -37,8 +38,8 @@ private slots:
     void updateActionDeleteEnabled();
 
 protected:
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
     void toggleSelected();
@@ -57,9 +58,9 @@ private:
     QToolBar* toolbar = nullptr;
     
     QString backgroundColor_;
+    
     bool selected_ = false;
     bool doubleClicked_ = false;
 };
-
 
 #endif // NOTIFICATIONITEM_H

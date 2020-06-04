@@ -21,7 +21,6 @@ SearchPopup::SearchPopup()
     hide();
 }
 
-
 /**
  * @brief SearchPopup::takeFocus
  */
@@ -30,7 +29,6 @@ void SearchPopup::takeFocus()
     search_bar->setFocus();
     search_bar->selectAll();
 }
-
 
 /**
  * @brief SearchPopup::themeChanged
@@ -48,7 +46,6 @@ void SearchPopup::themeChanged()
     search_completer->popup()->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 }
 
-
 /**
  * @brief SearchPopup::SearchRequested
  */
@@ -59,7 +56,6 @@ void SearchPopup::SearchRequested()
     hide();
 }
 
-
 /**
  * @brief SearchPopup::updateSearchSuggestions
  * @param suggestions
@@ -68,7 +64,6 @@ void SearchPopup::updateSearchSuggestions(const QStringList& suggestions)
 {
     search_model->setStringList(suggestions);
 }
-
 
 /**
  * @brief SearchPopup::setupLayout

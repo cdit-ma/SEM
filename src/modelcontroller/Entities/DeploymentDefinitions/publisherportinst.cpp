@@ -33,4 +33,3 @@ PublisherPortInst::PublisherPortInst(EntityFactoryBroker& broker, bool is_temp) 
     MiddlewareUpdated();
 }
 
-

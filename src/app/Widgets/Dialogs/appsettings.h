@@ -15,19 +15,12 @@
 #include "../../theme.h"
 #include "../../Controllers/SettingsController/settingscontroller.h"
 
-struct SettingStruct {
-    QString key;
-    QString group;
-    QVariant value;
-};
-
-class AppSettings: public QDialog
+class AppSettings : public QDialog
 {
     Q_OBJECT
     
 public:
-    AppSettings(QWidget* parent = nullptr);
-    ~AppSettings();
+    explicit AppSettings(QWidget* parent = nullptr);
 
 signals:
     void setSetting(SETTINGS key, const QVariant& data);
@@ -72,7 +65,4 @@ private:
     QHash<QString, CustomGroupBox*> sectionBoxes;
 };
 
-
-
-
-#endif
+#endif // APPSETTINGS_H

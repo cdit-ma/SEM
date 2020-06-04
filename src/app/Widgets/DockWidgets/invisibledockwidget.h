@@ -10,7 +10,7 @@ class InvisibleDockWidget : public BaseDockWidget
     Q_OBJECT
 
 protected:
-    InvisibleDockWidget(QString title, QWidget* parent = nullptr);
+    explicit InvisibleDockWidget(const QString& title, QWidget* parent = nullptr);
 };
 
 #endif // INVISIBLEDOCKWIDGET_H

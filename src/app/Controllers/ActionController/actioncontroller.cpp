@@ -1,25 +1,17 @@
 #include "actioncontroller.h"
 #include "../ViewController/viewcontroller.h"
-#include "../../theme.h"
 #include "../../Utils/filehandler.h"
-#include "../../Utils/rootaction.h"
-#include <QDebug>
-#include "../../../modelcontroller/nodekinds.h"
 #include "../../../modelcontroller/modelcontroller.h"
+#include "../../../modelcontroller/keynames.h"
+
 #include <QShortcut>
 #include <QApplication>
-ActionController::ActionController(ViewController* vc) : QObject(vc)
+
+ActionController::ActionController(ViewController* vc)
+	: QObject(vc)
 {
-    
-
     viewController = vc;
-    shortcutDialog = 0;
-    recentProjectMapper = 0;
-
     selectionController = viewController->getSelectionController();
-
-    got_valid_jenkins = false;
-    got_java = false;
     setupActions();
 
     setupMainMenu();
@@ -28,10 +20,8 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
     setupRecentProjects();
 
-
     connect(SettingsController::settings(), &SettingsController::settingChanged, this, &ActionController::settingChanged);
     connect(Theme::theme(), &Theme::theme_Changed, this, &ActionController::themeChanged);
-
 
     themeChanged();
     connectViewController(vc);
@@ -141,14 +131,14 @@ void ActionController::connectSelectionController()
     }
 }
 
-RootAction *ActionController::createRootAction(QString category, QString name, QString hashKey, QString iconPath, QString aliasPath)
+RootAction* ActionController::createRootAction(const QString& category, const QString& name, const QString& hashKey, const QString& iconPath, const QString& aliasPath)
 {
-    RootAction* action = new RootAction(category, name, this);
+    auto action = new RootAction(category, name, this);
     action->setIconPath(iconPath, aliasPath);
-    if(hashKey != ""){
+    if (hashKey != "") {
         actionHash[hashKey] = action;
     }
-    if(!actionCategoryMap.contains(category, action)){
+    if (!actionCategoryMap.contains(category, action)) {
         actionCategoryMap.insertMulti(category, action);
     }
     allActions.append(action);
@@ -158,12 +148,12 @@ RootAction *ActionController::createRootAction(QString category, QString name, Q
 void ActionController::showShortcutDialog()
 {
     if(!shortcutDialog){
-        shortcutDialog = new ShortcutDialog(0);
+        shortcutDialog = new ShortcutDialog(nullptr);
 
         auto list = actionCategoryMap.uniqueKeys();
         std::sort(list.begin(), list.end());
         
-        for(auto key : list){
+        for(const auto& key : list){
             QList<RootAction*> actions; 
             
             for(auto action : actionCategoryMap.values(key)){
@@ -193,7 +183,6 @@ void ActionController::clearRecentProjects()
     SettingsController::settings()->setSetting(SETTINGS::GENERAL_RECENT_PROJECTS, QStringList());
 }
 
-
 void ActionController::addRecentProject(QString file_path)
 {
     FileHandler::sanitizeFilePath(file_path);
@@ -222,12 +211,11 @@ void ActionController::removeRecentProject(QString file_path)
     }
 }
 
-void ActionController::settingChanged(SETTINGS key, QVariant value)
+void ActionController::settingChanged(SETTINGS key, const QVariant& value)
 {
     bool boolVal = value.toBool();
 
     QAction* action = getSettingAction(key);
-
     if(action){
         action->setVisible(boolVal);
     }
@@ -261,7 +249,8 @@ void ActionController::gotRe(bool re)
     }
 }
 
-void ActionController::gotRegen(bool regen){
+void ActionController::gotRegen(bool regen)
+{
     if(got_regen != regen){
         got_regen = regen;
         updateReActions();
@@ -275,7 +264,6 @@ void ActionController::selectionChanged(int selection_size)
         QSet<SELECTION_PROPERTIES> selection_properties;
         auto selection = selectionController->getSelectionIDs();
         selection_size = selection.size();
-
         
         auto model_controller = viewController->getModelController();
         if(model_controller){
@@ -285,7 +273,6 @@ void ActionController::selectionChanged(int selection_size)
 
         bool controller_ready = viewController->isControllerReady();
         bool model_actions = controller_ready;
-
 
         bool got_selection = selection_size > 0;
         bool got_single_selection = selection_size == 1;
@@ -305,9 +292,6 @@ void ActionController::selectionChanged(int selection_size)
         edit_incrementRow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_CHANGE_ROW));
         edit_decrementRow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::CAN_CHANGE_ROW));
 
-
-        
-
         //Active selection based.
         view_centerOnDefn->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
         view_viewDefnInNewWindow->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_DEFINITION));
@@ -316,7 +300,6 @@ void ActionController::selectionChanged(int selection_size)
         view_viewConnections->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
         //view_viewInstances->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_EDGES));
         view_viewInstances->setEnabled(selection_properties.contains(SELECTION_PROPERTIES::GOT_INSTANCES));
-
     
         //Selection based.
         toolbar_wiki->setEnabled(got_selection);
@@ -327,7 +310,6 @@ void ActionController::selectionChanged(int selection_size)
         edit_clearSelection->setEnabled(got_selection);
         view_centerOn->setEnabled(got_selection);
 
-        
         //Single Selection
         edit_selectAll->setEnabled(got_single_selection);
         view_viewInNewWindow->setEnabled(got_single_selection);
@@ -344,7 +326,6 @@ void ActionController::selectionChanged(int selection_size)
         model_getCodeForComponent->setEnabled(got_java && got_regen && selection_properties.contains(SELECTION_PROPERTIES::CAN_GENERATE_CODE));
 
         auto active_item = selectionController->getActiveSelectedItem();
-        
         if(active_item && active_item->isNode()){
             auto node_item = (NodeViewItem*) active_item;
             auto node_kind = node_item->getNodeKind();
@@ -375,16 +356,12 @@ void ActionController::ModelControllerReady(bool)
 void ActionController::themeChanged()
 {
     Theme* theme = Theme::theme();
-
-    foreach(RootAction* action, allActions){
+    for (RootAction* action : allActions) {
         updateIcon(action, theme);
     }
-
-    foreach(RootAction* action, recentProjectActions.values()){
+    for (RootAction* action : recentProjectActions.values()){
         updateIcon(action, theme);
     }
-
-
     menu_file_recentProjects->setIcon(theme->getIcon("Icons", "clock"));
 }
 
@@ -404,11 +381,13 @@ void ActionController::updateJenkinsActions()
     model_validateModel->setEnabled(controller_ready && r);
 }
 
-bool ActionController::gotRegenAndJava(){
+bool ActionController::gotRegenAndJava()
+{
     return got_java && got_regen;
 }
 
-void ActionController::updateReActions(){
+void ActionController::updateReActions()
+{
     bool controller_ready = viewController->isControllerReady();
     model_executeLocalJob->setEnabled(controller_ready && got_re && got_java);
 }
@@ -460,7 +439,7 @@ QAction *ActionController::getSettingAction(SETTINGS key)
     case SETTINGS::TOOLBAR_VALIDATE:
         return toolbar_validate;
     default:
-        return 0;
+        return nullptr;
     }
 }
 
@@ -474,9 +453,6 @@ void ActionController::updateActions()
     file_closeProject->setEnabled(true);
 
     file_importGraphML->setEnabled(controller_ready);
-    
-    
-    
     file_saveProject->setEnabled(controller_ready);
     file_saveAsProject->setEnabled(controller_ready);
     file_closeProject->setEnabled(controller_ready);
@@ -502,10 +478,10 @@ void ActionController::updateActions()
     updateReActions();
 }
 
-void ActionController::createRecentProjectAction(QString fileName)
+void ActionController::createRecentProjectAction(const QString& fileName)
 {
     if(!recentProjectActions.contains(fileName)){
-        RootAction* action = new RootAction("Project", fileName, this);
+        auto action = new RootAction("Project", fileName, this);
         action->setIconPath("Icons", "file");
         updateIcon(action);
         recentProjectActions.insert(fileName, action);
@@ -516,50 +492,47 @@ void ActionController::createRecentProjectAction(QString fileName)
 
 void ActionController::recentProjectsChanged()
 {
-    if(!recentProjectMapper){
+	// NOTE: QSignalMapper is deprecated
+	// TODO: Refactor or find an alternative
+    if (!recentProjectMapper) {
         recentProjectMapper = new QSignalMapper(this);
         connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped), viewController, &ViewController::OpenExistingProject);
     }
 
     //Load in the defaults.
     QStringList list = SettingsController::settings()->getSetting(SETTINGS::GENERAL_RECENT_PROJECTS).toStringList();
-
     QStringList orderedKeys;
 
-    foreach(QString filepath, list){
+    for (QString filepath : list) {
         FileHandler::sanitizeFilePath(filepath);
         createRecentProjectAction(filepath);
         orderedKeys.append(filepath);
     }
-    foreach(QString oldKey, recentProjectKeys){
-        if(orderedKeys.contains(oldKey)){
+    for (const QString& oldKey : recentProjectKeys) {
+        if (orderedKeys.contains(oldKey)) {
             continue;
-        }else{
-            RootAction* action = recentProjectActions.value(oldKey, 0);
-            if(action){
+        } else {
+            RootAction* action = recentProjectActions.value(oldKey, nullptr);
+            if (action) {
                 recentProjectActions.remove(oldKey);
                 action->deleteLater();
             }
         }
     }
-    if(orderedKeys != recentProjectKeys){
-
+    if (orderedKeys != recentProjectKeys) {
         //Update Menus
         menu_file_recentProjects->clear();
-
-        foreach(QString key, orderedKeys){
-            RootAction* action = recentProjectActions.value(key, 0);
-            if(action){
+        for (const QString& key : orderedKeys) {
+            RootAction* action = recentProjectActions.value(key, nullptr);
+            if (action) {
                 menu_file_recentProjects->addAction(action);
             }
         }
-
         menu_file_recentProjects->addSeparator();
         menu_file_recentProjects->addAction(file_recentProjects_clearHistory);
         recentProjectKeys = orderedKeys;
         emit recentProjectsUpdated();
     }
-
 }
 
 void ActionController::updateIcon(RootAction *action, Theme *theme)
@@ -573,40 +546,37 @@ void ActionController::updateIcon(RootAction *action, Theme *theme)
     }
 }
 
-QList<RootAction *> ActionController::getRecentProjectActions()
+QList<RootAction*> ActionController::getRecentProjectActions()
 {
     QList<RootAction*> actions;
-
-    for(auto action : menu_file_recentProjects->actions()){
-        if(action->isSeparator()){
+    for (const auto& action : menu_file_recentProjects->actions()) {
+        if (action->isSeparator()) {
             continue;
         }
-        if(action == file_recentProjects_clearHistory){
+        if (action == file_recentProjects_clearHistory) {
             continue;
         }
-        RootAction* a = qobject_cast<RootAction*>(action);
-        if(a){
-            actions.append(a);
+        auto root_action = qobject_cast<RootAction*>(action);
+        if (root_action) {
+            actions.append(root_action);
         }
     }
-
     return actions;
 }
 
-
-QList<QAction*> ActionController::getAllActions(){
+QList<QAction*> ActionController::getAllActions()
+{
     QList<QAction*> actions;
-    for(auto action : allActions){
+    for (const auto& action : allActions) {
         actions.append(action);
     }
     return actions;
 }
 
-QList<QAction *> ActionController::getNodeViewActions()
+QList<QAction*> ActionController::getNodeViewActions()
 {
     return view_actions;
 }
-
 
 void ActionController::setupActions()
 {
@@ -687,9 +657,6 @@ void ActionController::setupActions()
     edit_goto->setToolTip("Goto a particular ID");
     edit_goto->setShortcutContext(Qt::ApplicationShortcut);
     edit_goto->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
-
-    //edit_sort = createRootAction("Edit", "Sort", "", "Icons", "letterAZ");
-    //edit_sort->setToolTip("Sort selection.");
 
     edit_alignVertical = createRootAction("Edit", "Align Vertically", "", "Icons", "alignVertical");
     edit_alignVertical->setToolTip("Align selection vertically.");
@@ -849,20 +816,12 @@ void ActionController::setupActions()
     file_exit = createRootAction("Project", "Exit", "", "Icons", "arrowIntoBox");
 
     toolbar_contextToolbar = createRootAction("Toolbar", "Show Context Toolbar", "", "Icons", "gearDark");
-
     toolbar_addChild = createRootAction("Toolbar", "Add Child Entity", "", "Icons", "plus");
-    toolbar_connect = createRootAction("Toolbar", "Connect Selection", "", "Icons", "connect");
-    toolbar_popOutDefn = createRootAction("Toolbar", "Popout Definition", "", "Icons", "popOut");
-    toolbar_popOutImpl = createRootAction("Toolbar", "Popout Implementation", "", "Icons", "popOut");
-
     toolbar_wiki = createRootAction("Toolbar", "View Wiki", "", "Icons", "book");
     toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Value", "", "Icons", "copyX");
     toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Icons", "dotsVertical");
-
     toolbar_addDDSQOSProfile = createRootAction("Toolbar", "Add Profile", "", "Icons", "plus");
     toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Icons", "bin");
-
-    toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Icons", "dotsVertical");
 
     view_actions.append(edit_cut);
     view_actions.append(edit_copy);
@@ -941,7 +900,6 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_goto);
     
     menu_edit->addSeparator();
-    //menu_edit->addAction(edit_sort);
     menu_edit->addAction(edit_alignHorizontal);
     menu_edit->addAction(edit_alignVertical);
     menu_edit->addSeparator();
@@ -976,7 +934,6 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_selectModel);
     menu_model->addAction(model_reloadWorkerDefinitions);
     
-    
     menu_model->addSeparator();
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
@@ -1009,29 +966,28 @@ void ActionController::setupApplicationToolbar()
 
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));
-    applicationToolbar->addSeperator();
+    applicationToolbar->addSeparator();
     toolbar_cut = applicationToolbar->addAction(edit_cut->constructSubAction(false));
     toolbar_copy = applicationToolbar->addAction(edit_copy->constructSubAction(false));
     toolbar_paste = applicationToolbar->addAction(edit_paste->constructSubAction(false));
     toolbar_replicate = applicationToolbar->addAction(edit_replicate->constructSubAction(false));
-    applicationToolbar->addSeperator();
+    applicationToolbar->addSeparator();
     toolbar_fitToScreen = applicationToolbar->addAction(view_fitView->constructSubAction(false));
     toolbar_centerOn = applicationToolbar->addAction(view_centerOn->constructSubAction(false));
     toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
-    applicationToolbar->addSeperator();
-    //toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
+    applicationToolbar->addSeparator();
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
     toolbar_contract = applicationToolbar->addAction(edit_contract->constructSubAction(false));
     toolbar_expand = applicationToolbar->addAction(edit_expand->constructSubAction(false));
-    applicationToolbar->addSeperator();
+    applicationToolbar->addSeparator();
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
     toolbar_validate = applicationToolbar->addAction(model_validateModel->constructSubAction(false));
     toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
 
     SettingsController* s = SettingsController::settings();
-    foreach(SETTINGS key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
+    for (SETTINGS key : s->getSettingsKeys("Toolbar", "Visible Buttons")) {
         settingChanged(key, s->getSetting(key));
     }
     applicationToolbar->updateSpacers();
@@ -1043,24 +999,20 @@ void ActionController::setupContextToolbar()
 
     contextToolbar->addAction(toolbar_addChild);
     contextToolbar->addAction(edit_delete->constructSubAction());
-    //contextToolbar->addAction(toolbar_hardware);
-    //contextToolbar->addAction(toolbar_disconnectHardware);
-    contextToolbar->addSeperator();
-    //contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
     contextToolbar->addAction(view_centerOnDefn->constructSubAction());
     contextToolbar->addAction(view_centerOnImpl->constructSubAction());
-    contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
     contextToolbar->addAction(toolbar_displayedChildrenOption);
     contextToolbar->addAction(toolbar_replicateCount);
-    
-    contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
     contextToolbar->addAction(view_viewInstances->constructSubAction());
     contextToolbar->addAction(model_getCodeForComponent->constructSubAction());
 
-    // add chart action here
+    // insert chart action here
     contextToolbar->addAction(chart_viewInChart);
-    contextToolbar->addSeperator();
+    contextToolbar->addSeparator();
 
     contextToolbar->addAction(view_viewInNewWindow->constructSubAction());
     contextToolbar->addAction(toolbar_wiki);
@@ -1068,7 +1020,6 @@ void ActionController::setupContextToolbar()
 
 void ActionController::setupRecentProjects()
 {
-    recentProjects = new ActionGroup(this);
     recentProjectsChanged();
 }
 

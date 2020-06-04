@@ -47,7 +47,6 @@ EdgeItem::EdgeItem(PortInstanceGraphicsItem* src, PortInstanceGraphicsItem* dst,
     themeChanged();
 }
 
-
 /**
  * @brief EdgeItem::getSourceGraphmlID
  * @return
@@ -56,7 +55,6 @@ const QString& EdgeItem::getSourceGraphmlID() const
 {
     return src_item_->getGraphmlID();
 }
-
 
 /**
  * @brief EdgeItem::getDestinationGraphmlID
@@ -67,7 +65,6 @@ const QString& EdgeItem::getDestinationGraphmlID() const
     return dst_item_->getGraphmlID();
 }
 
-
 /**
  * @brief EdgeItem::updateSourcePos
  */
@@ -77,7 +74,6 @@ void EdgeItem::updateSourcePos()
     updateEdgePath();
 }
 
-
 /**
  * @brief EdgeItem::updateDestinationPos
  */
@@ -86,7 +82,6 @@ void EdgeItem::updateDestinationPos()
     dst_point_ = dst_item_->getEdgePoint();
     updateEdgePath();
 }
-
 
 /**
  * @brief EdgeItem::boundingRect
@@ -98,7 +93,6 @@ QRectF EdgeItem::boundingRect() const
     auto half_pen_width = active_pen_.widthF();
     return rect.adjusted(-half_pen_width, -half_pen_width, half_pen_width, half_pen_width);
 }
-
 
 /**
  * @brief EdgeItem::paint
@@ -117,7 +111,6 @@ void EdgeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
     painter->drawPoint(src_point_);
     painter->drawPoint(dst_point_);
 }
-
 
 /**
  * @brief EdgeItem::flashEdge
@@ -148,7 +141,6 @@ void EdgeItem::flashEdge(qint64 from_time, int flash_duration_ms)
     });
 }
 
-
 /**
  * @brief EdgeItem::unflashEdge
  * @param flash_end_time
@@ -165,7 +157,6 @@ void EdgeItem::unflashEdge(qint64 flash_end_time)
     }
 }
 
-
 /**
  * @brief EdgeItem::themeChanged
  */
@@ -178,7 +169,6 @@ void EdgeItem::themeChanged()
     point_pen_ = QPen(default_pen_color_, pen_width * 3, Qt::SolidLine, Qt::SquareCap);
     update();
 }
-
 
 /**
  * @brief EdgeItem::updateEdgePath
@@ -212,7 +202,6 @@ void EdgeItem::updateEdgePath()
     prepareGeometryChange();
     update();
 }
-
 
 /**
  * @brief EdgeItem::updateVisibility
@@ -253,7 +242,6 @@ void EdgeItem::updateVisibility()
     }
 }
 
-
 /**
  * @brief EdgeItem::getCubicPath
  * @param p1
@@ -267,7 +255,6 @@ QPainterPath EdgeItem::getCubicPath(QPointF p1, QPointF p2) const
     QPointF ctrl_p2(mid_x, p2.y());
     return getCubicPath(p1, ctrl_p1, ctrl_p2, p2);
 }
-
 
 /**
  * @brief EdgeItem::getCubicPath

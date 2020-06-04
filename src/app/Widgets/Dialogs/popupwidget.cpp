@@ -10,34 +10,34 @@
  * @param type
  * @param parent
  */
-PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent) : QDialog(parent)
+PopupWidget::PopupWidget(PopupWidget::TYPE type, QWidget* parent)
+    : QDialog(parent)
 {
     setModal(false);
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);
 
     switch (type) {
-    case TYPE::DIALOG:
-        setWindowFlags(windowFlags() | Qt::Dialog);
-        setModal(true);
-        break;
-    case TYPE::TOOL:
-        setWindowFlags(windowFlags() | Qt::Tool);
-        break;
-    case TYPE::SPLASH: {
-        setAttribute(Qt::WA_ShowWithoutActivating);
-        setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowSystemMenuHint);
-        break;
-    }
-    case TYPE::POPUP:
-        setWindowFlags(windowFlags() | Qt::Popup);
-        break;
+        case TYPE::DIALOG:
+            setWindowFlags(windowFlags() | Qt::Dialog);
+            setModal(true);
+            break;
+        case TYPE::TOOL:
+            setWindowFlags(windowFlags() | Qt::Tool);
+            break;
+        case TYPE::SPLASH: {
+            setAttribute(Qt::WA_ShowWithoutActivating);
+            setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowSystemMenuHint);
+            break;
+        }
+        case TYPE::POPUP:
+            setWindowFlags(windowFlags() | Qt::Popup);
+            break;
     }
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &PopupWidget::themeChanged);
     themeChanged();
 }
-
 
 /**
  * @brief PopupWidget::getWidget
@@ -48,20 +48,18 @@ QWidget* PopupWidget::getWidget()
     return widget_;
 }
 
-
 /**
  * @brief PopupWidget::setWidget
  * @param widget
  */
 void PopupWidget::setWidget(QWidget* widget)
 {
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto layout = new QVBoxLayout(this);
     layout->setSpacing(0);
     layout->setMargin(7);
     layout->addWidget(widget);
     widget_ = widget;
 }
-
 
 /**
  * @brief PopupWidget::setBackgroundOpacity
@@ -74,7 +72,6 @@ void PopupWidget::setBackgroundOpacity(qreal opacity)
     border_color.setAlphaF(opacity);
     update();
 }
-
 
 /**
  * @brief PopupWidget::adjustSize

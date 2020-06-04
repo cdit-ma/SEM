@@ -8,13 +8,14 @@
 #include <QSplitter>
 #include <QSet>
 
-#include "../../Controllers/ViewController/viewitem.h"
 #include "searchitemwidget.h"
+#include "../../Controllers/ViewController/viewitem.h"
 #include "../../Widgets/optiongroupbox.h"
 
 class SearchDialog : public QFrame
 {
     Q_OBJECT
+    
 public:
     explicit SearchDialog(QWidget *parent = nullptr);
 
@@ -27,15 +28,15 @@ signals:
     void CenterOn(int ID);
     void Popup(int ID);
 
-private slots:
-    void themeChanged();
-    void filtersChanged();
-
 public slots:
-    void viewItemDestructed(int ID, ViewItem* item);
-    void viewItemSelected(ViewItem* item, bool selected);
-
+	void viewItemDestructed(int ID, ViewItem* item);
+	void viewItemSelected(ViewItem* item, bool selected);
+	
     void searchItemClicked(int ID);
+
+private slots:
+	void themeChanged();
+	void filtersChanged();
 
 private:
     void scrollBarValueChanged();

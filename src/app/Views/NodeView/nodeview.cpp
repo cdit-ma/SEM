@@ -1,19 +1,14 @@
 #include "nodeview.h"
-
 #include "SceneItems/Node/defaultnodeitem.h"
 #include "SceneItems/Node/stacknodeitem.h"
 #include "SceneItems/Node/compactnodeitem.h"
 #include "SceneItems/Node/hardwarenodeitem.h"
 #include "SceneItems/Node/membernodeitem.h"
 #include "SceneItems/Node/deploymentcontainernodeitem.h"
-#include "SceneItems/Edge/edgeitem.h"
-
 #include "../ContextMenu/contextmenu.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
-#include "../../theme.h"
 
-#include <QDebug>
 #include <QtMath>
 #include <QTimer>
 #include <QGraphicsItem>
@@ -29,15 +24,17 @@ const qreal centered_rect_scale = 1.1;
 
 const int invalid_node_id = -1;
 
+const QPointF NodeView::null_point_ = QPointF();
+
 /**
  * @brief NodeView::NodeView
  * @param view_controller
  * @param parent
  * @throws std::runtime_error
  */
-NodeView::NodeView(ViewController &view_controller, QWidget* parent)
-    : QGraphicsView(parent),
-      view_controller_(view_controller)
+NodeView::NodeView(ViewController& view_controller, QWidget* parent)
+	: QGraphicsView(parent),
+	  view_controller_(view_controller)
 {
     connectViewController();
 
@@ -68,7 +65,7 @@ NodeView::NodeView(ViewController &view_controller, QWidget* parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // Set the background font
-    background_font_.setPixelSize(70);
+    background_font_.setPixelSize(50);
     setFont(background_font_);
 
     rubberband_ = new QRubberBand(QRubberBand::Rectangle, this);
@@ -79,14 +76,13 @@ NodeView::NodeView(ViewController &view_controller, QWidget* parent)
     themeChanged();
 
     // Connect view zoom anchor setting
-    connect(SettingsController::settings(), &SettingsController::settingChanged, [this](SETTINGS key, QVariant value) {
+    connect(SettingsController::settings(), &SettingsController::settingChanged, [this](SETTINGS key, const QVariant& value) {
         if (key == SETTINGS::GENERAL_ZOOM_UNDER_MOUSE) {
             bool zoom_under_mouse = value.toBool();
             zoom_anchor_ = zoom_under_mouse ? ViewportAnchor::AnchorUnderMouse : ViewportAnchor::AnchorViewCenter;
         }
     });
 }
-
 
 /**
  * @brief NodeView::~NodeView
@@ -106,7 +102,6 @@ NodeView::~NodeView()
         }
     }
 }
-
 
 /**
  * @brief NodeView::connectViewController
@@ -143,7 +138,6 @@ void NodeView::connectViewController()
     connect(this, &NodeView::editData, &view_controller_, &ViewController::vc_editTableCell);
 }
 
-
 /**
  * @brief NodeView::fitViewToScreen
  * This slot is triggered by the fit to screen actions
@@ -166,7 +160,6 @@ void NodeView::fitToScreen()
     centerOnItems(getTopLevelEntityItems());
 }
 
-
 /**
  * @brief NodeView::translate
  * @param point
@@ -174,10 +167,9 @@ void NodeView::fitToScreen()
 void NodeView::translate(QPointF point)
 {
     // NOTE: View transformations move the scene (not the view)
-    // Hence, some stored scene positions may need to be remapped after any transform functions
+    //  Hence, some stored scene positions may need to be remapped after any transform functions
     QGraphicsView::translate(point.x(), point.y());
 }
-
 
 /**
  * @brief NodeView::setContainedViewAspect
@@ -195,7 +187,7 @@ void NodeView::setContainedViewAspect(VIEW_ASPECT aspect)
     select_on_construct_ = settings->getSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT).toBool();
 
     // Connect the select and center on construction settings - we only want these for aspect views
-    connect(settings, &SettingsController::settingChanged, [this](SETTINGS key, QVariant value) {
+    connect(settings, &SettingsController::settingChanged, [this](SETTINGS key, const QVariant& value) {
         if (key == SETTINGS::GENERAL_ON_CONSTRUCTION_CENTER) {
             center_on_construct_ = value.toBool();
         } else if (key == SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT) {
@@ -210,7 +202,6 @@ void NodeView::setContainedViewAspect(VIEW_ASPECT aspect)
     connect(&view_controller_, &ViewController::ConstructConnectedNodeAtIndex, this, &NodeView::addNodeTriggered);
     connect(&view_controller_, &ViewController::ActionFinished, this, &NodeView::actionFinished);
 }
-
 
 /**
  * @brief NodeView::setContainedNodeViewItem
@@ -238,7 +229,7 @@ void NodeView::setContainedNodeViewItem(NodeViewItem *item)
         // This sets the view's background text
         viewItem_LabelChanged(contained_node_view_item_->getData(KeyName::Label).toString());
 
-        // This NEEDS to be called before the code below or the NodeViewItem won't be setup correctly!
+        // NOTE: This NEEDS to be called before the code below or the NodeViewItem won't be setup correctly!
         contained_aspect_ = contained_node_view_item_->getViewAspect();
 
         // Only add the item to the scene if it's not an aspect item
@@ -253,7 +244,6 @@ void NodeView::setContainedNodeViewItem(NodeViewItem *item)
     clearSelection();
 }
 
-
 /**
  * @brief NodeView::getContainedViewItem
  * @return
@@ -263,7 +253,6 @@ ViewItem* NodeView::getContainedViewItem()
     return contained_node_view_item_;
 }
 
-
 /**
  * @brief NodeView::getBackgroundColor
  * @return
@@ -272,7 +261,6 @@ QColor NodeView::getBackgroundColor() const
 {
     return background_color_;
 }
-
 
 /**
  * @brief NodeView::viewItem_Constructed
@@ -288,7 +276,6 @@ void NodeView::viewItem_Constructed(ViewItem* view_item)
         }
     }
 }
-
 
 /**
  * @brief NodeView::viewItem_Destructed
@@ -312,7 +299,6 @@ void NodeView::viewItem_Destructed(int ID, ViewItem* view_item)
     }
 }
 
-
 /**
  * @brief NodeView::selectionHandler_ItemSelectionChanged
  * @param item
@@ -329,7 +315,6 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem* item, bool select
     }
 }
 
-
 /**
  * @brief NodeView::selectionHandler_ItemActiveSelectionChanged
  * @param item
@@ -344,7 +329,6 @@ void NodeView::selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool 
         }
     }
 }
-
 
 /**
  * @brief NodeView::selectAll
@@ -371,7 +355,6 @@ void NodeView::selectAll()
     }
 }
 
-
 /**
  * @brief NodeView::alignHorizontal
  */
@@ -397,13 +380,12 @@ void NodeView::alignHorizontal()
         item->setPos(pos);
 
         if (item->setMoveFinished()) {
-            pos = item->getNearestGridPoint();
+            pos = item->getNearestGridPoint(null_point_);
             emit setData(item->getID(), KeyName::X, pos.x());
             emit setData(item->getID(), KeyName::Y, pos.y());
         }
     }
 }
-
 
 /**
  * @brief NodeView::alignVertical
@@ -430,13 +412,12 @@ void NodeView::alignVertical()
         item->setPos(pos);
 
         if (item->setMoveFinished()) {
-            pos = item->getNearestGridPoint();
+            pos = item->getNearestGridPoint(null_point_);
             emit setData(item->getID(), KeyName::X, pos.x());
             emit setData(item->getID(), KeyName::Y, pos.y());
         }
     }
 }
-
 
 /**
  * @brief NodeView::clearSelection
@@ -456,7 +437,6 @@ void NodeView::clearSelection()
     }
 }
 
-
 /**
  * @brief NodeView::themeItem
  * @param entity
@@ -474,7 +454,6 @@ void NodeView::themeItem(EntityItem* entity)
         entity->setDefaultPen(default_pen_);
     }
 }
-
 
 /**
  * @brief NodeView::themeChanged
@@ -507,7 +486,6 @@ void NodeView::themeChanged()
     }
 }
 
-
 /**
  * @brief NodeView::node_ConnectEdgeMenu
  * This is called when a NodeItem's edge knob (button) has been clicked
@@ -523,7 +501,6 @@ void NodeView::node_ConnectEdgeMenu(QPointF scene_pos, EDGE_KIND kind, EDGE_DIRE
     view_controller_.getContextMenu()->popup_edge_menu(global_pos, kind, edge_direction);
 }
 
-
 /**
  * @brief NodeView::node_AddMenu
  * This is called when a NodeItem's plus/add button has been clicked
@@ -537,31 +514,28 @@ void NodeView::node_AddMenu(QPointF scene_pos, int index)
     view_controller_.getContextMenu()->popup_add_menu(global_pos, index);
 }
 
-
 /**
  * @brief NodeView::item_EditData
  * @param item
  * @param key_name
  */
-void NodeView::item_EditData(ViewItem* item, QString key_name)
+void NodeView::item_EditData(ViewItem* item, const QString& key_name)
 {
     getSelectionHandler().setActiveSelectedItem(item);
-    emit editData(item->getID(), key_name);
+	emit editData(item->getID(), key_name);
 }
-
 
 /**
  * @brief NodeView::item_RemoveData
  * @param item
  * @param key_name
  */
-void NodeView::item_RemoveData(ViewItem* item, QString key_name)
+void NodeView::item_RemoveData(ViewItem* item, const QString& key_name)
 {
     if (item) {
         emit removeData(item->getID(), key_name);
     }
 }
-
 
 /**
  * @brief NodeView::centerSelection
@@ -570,7 +544,6 @@ void NodeView::centerSelection()
 {
     centerOnItems(getSelectedItems());
 }
-
 
 /**
  * @brief NodeView::selectAndCenterConnections
@@ -625,7 +598,6 @@ void NodeView::selectAndCenterConnections(const QVector<ViewItem*>& items)
     }
 }
 
-
 /**
  * @brief NodeView::centerOnItemIDs
  * Center the view on the items with the provided ids
@@ -656,7 +628,6 @@ void NodeView::selectItemIDs(const QList<int>& ids)
     getSelectionHandler().toggleItemsSelection(view_items);
 }
 
-
 /**
  * @brief NodeView::item_Selected
  * @param item
@@ -667,7 +638,6 @@ void NodeView::item_Selected(ViewItem* item, bool append)
     getSelectionHandler().toggleItemsSelection(item, append);
 }
 
-
 /**
  * @brief NodeView::item_ActiveSelected
  * @param item
@@ -676,7 +646,6 @@ void NodeView::item_ActiveSelected(ViewItem* item)
 {
     getSelectionHandler().setActiveSelectedItem(item);
 }
-
 
 /**
  * @brief NodeView::item_SetExpanded
@@ -692,7 +661,6 @@ void NodeView::item_SetExpanded(EntityItem* item, bool expand)
     }
 }
 
-
 /**
  * @brief NodeView::minimap_Pan
  * @param delta
@@ -702,7 +670,6 @@ void NodeView::minimap_Pan(QPointF delta)
     translate(delta);
 }
 
-
 /**
  * @brief NodeView::minimap_Zoom
  * @param delta
@@ -711,7 +678,6 @@ void NodeView::minimap_Zoom(int delta)
 {
     zoom(delta);
 }
-
 
 /**
  * @brief NodeView::receiveMouseMove
@@ -733,7 +699,6 @@ void NodeView::receiveMouseMove(QMouseEvent *event)
     }
 }
 
-
 /**
  * @brief NodeView::centerOnItem
  * This centers the view on the item with the provided ID
@@ -751,7 +716,6 @@ void NodeView::centerOnItem(int ID)
     }
 }
 
-
 /**
  * @brief NodeView::highlightItem
  * @param ID
@@ -764,7 +728,6 @@ void NodeView::highlightItem(int ID, bool highlighted)
         item->setHighlighted(highlighted);
     }
 }
-
 
 /**
  * @brief NodeView::setupItemConnections
@@ -786,13 +749,12 @@ void NodeView::setupItemConnections(EntityItem* item)
     connect(item, &EntityItem::req_editData, this, &NodeView::item_EditData);
 
     if (item->isNodeItem()) {
-        NodeItem* node = qobject_cast<NodeItem*>(item);
+        auto node = qobject_cast<NodeItem*>(item);
         connect(node, &NodeItem::req_connectEdgeMode, this, &NodeView::setConnectingModeOn);
         connect(node, &NodeItem::req_connectEdgeMenu, this, &NodeView::node_ConnectEdgeMenu);
         connect(node, &NodeItem::req_addNodeMenu, this, &NodeView::node_AddMenu);
     }
 }
-
 
 /**
  * @brief NodeView::showItem
@@ -816,7 +778,6 @@ void NodeView::showItem(EntityItem* item)
     }
 }
 
-
 /**
  * @brief NodeView::centerOnItems
  * @param items
@@ -831,7 +792,6 @@ void NodeView::centerOnItems(const QList<EntityItem*>& items)
     centerRect(getSceneBoundingRectOfItems(items));
 }
 
-
 /**
  * @brief NodeView::centerOnItemInternal
  * This centers the view on the provided item
@@ -845,7 +805,6 @@ void NodeView::centerOnItemInternal(EntityItem* item)
     }
     centerRect(item->sceneBoundingRect());
 }
-
 
 /**
  * @brief NodeView::getSceneBoundingRectOfItems
@@ -862,7 +821,6 @@ QRectF NodeView::getSceneBoundingRectOfItems(const QList<EntityItem*>& items)
     }
     return itemsRect;
 }
-
 
 /**
  * @brief NodeView::centerRect
@@ -885,7 +843,6 @@ void NodeView::centerRect(QRectF rect_scene)
     }
 }
 
-
 /**
  * @brief NodeView::centerViewOn
  * Center the view on the given scene position
@@ -895,9 +852,7 @@ void NodeView::centerViewOn(QPointF scene_pos)
 {
     QPointF delta = viewportSceneRect().center() - scene_pos;
     translate(delta);
-    viewport_center_scene_ = viewportSceneRect().center();
 }
-
 
 /**
  * @brief NodeView::getSelectionHandler
@@ -913,7 +868,6 @@ SelectionHandler& NodeView::getSelectionHandler() const
     }
 }
 
-
 /**
  * @brief NodeView::topLevelItemMoved
  */
@@ -926,7 +880,6 @@ void NodeView::topLevelItemMoved()
     }
 }
 
-
 /**
  * @brief NodeView::update_minimap
  */
@@ -935,7 +888,6 @@ void NodeView::update_minimap()
     emit viewport_changed(viewportSceneRect(), transform().m11());
     emit scenerect_changed(current_scene_rect_);
 }
-
 
 /**
  * @brief NodeView::paintEvent
@@ -951,7 +903,6 @@ void NodeView::paintEvent(QPaintEvent* event)
         update_minimap();
     }
 }
-
 
 /**
  * @brief NodeView::event
@@ -973,12 +924,11 @@ bool NodeView::event(QEvent *event)
     return QGraphicsView::event(event);
 }
 
-
 /**
  * @brief NodeView::viewItem_LabelChanged
  * @param label
  */
-void NodeView::viewItem_LabelChanged(QString label)
+void NodeView::viewItem_LabelChanged(const QString& label)
 {
     auto text = label.toUpper();
     background_text_.setText(text);
@@ -991,12 +941,12 @@ void NodeView::viewItem_LabelChanged(QString label)
     resetCachedContent();
 }
 
-
 /**
  * @brief NodeView::activeViewDockChanged
  * @param dw
  */
-void NodeView::activeViewDockChanged(ViewDockWidget* dw){
+void NodeView::activeViewDockChanged(ViewDockWidget* dw)
+{
 
     bool active = dw && dw->widget() == this;
     if (active != is_active_) {
@@ -1004,7 +954,6 @@ void NodeView::activeViewDockChanged(ViewDockWidget* dw){
         update();
     }
 }
-
 
 /**
  * @brief NodeView::viewportSceneRect
@@ -1015,7 +964,6 @@ QRectF NodeView::viewportSceneRect()
 {
     return mapToScene(viewport()->rect()).boundingRect();
 }
-
 
 /**
  * @brief NodeView::nodeViewItem_Constructed
@@ -1218,10 +1166,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                 node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "tiles"}, true);
                 break;
             case NODE_KIND::FUNCTION_CALL:
-                node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
-                node_item->setSecondaryTextKey(KeyName::Class);
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "spanner"}, true);
-                break;
             case NODE_KIND::CALLBACK_FNC_INST:
                 node_item = new StackNodeItem(item, parent_node_item, Qt::Horizontal);
                 node_item->setSecondaryTextKey(KeyName::Class);
@@ -1522,7 +1466,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
     }
 }
 
-
 /**
  * @brief NodeView::edgeViewItem_Constructed
  * @param item
@@ -1546,29 +1489,26 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem* item)
     NodeItem* source = getParentNodeItem(item->getSource());
     NodeItem* destination = getParentNodeItem(item->getDestination());
 
-    if (source && destination) {
-        EdgeItem* edgeItem = new EdgeItem(item, parent, source, destination);
+	if (source && destination) {
+		auto edgeItem = new EdgeItem(item, parent, source, destination);
+		auto theme = Theme::theme();
 
-        if (edgeItem) {
-            auto theme = Theme::theme();
-            edgeItem->setBaseBodyColor(theme->getAltBackgroundColor());
-            edgeItem->setHeaderColor(theme->getBackgroundColor());
-            edgeItem->setTextColor(theme->getTextColor());
+		edgeItem->setBaseBodyColor(theme->getAltBackgroundColor());
+		edgeItem->setHeaderColor(theme->getBackgroundColor());
+		edgeItem->setTextColor(theme->getTextColor());
 
-            QPen defaultPen(theme->getTextColor(ColorRole::DISABLED));
-            defaultPen.setCosmetic(true);
-            edgeItem->setDefaultPen(defaultPen);
+		QPen defaultPen(theme->getTextColor(ColorRole::DISABLED));
+		defaultPen.setCosmetic(true);
+		edgeItem->setDefaultPen(defaultPen);
 
-            gui_items_[item->getID()] = edgeItem;
-            setupItemConnections(edgeItem);
+		gui_items_[item->getID()] = edgeItem;
+		setupItemConnections(edgeItem);
 
-            if (!scene()->items().contains(edgeItem)) {
-                scene()->addItem(edgeItem);
-            }
-        }
-    }
+		if (!scene()->items().contains(edgeItem)) {
+			scene()->addItem(edgeItem);
+		}
+	}
 }
-
 
 /**
  * @brief NodeView::getTopLevelViewItems
@@ -1582,7 +1522,6 @@ QList<ViewItem*> NodeView::getTopLevelViewItems() const
     }
     return items;
 }
-
 
 /**
  * @brief NodeView::getTopLevelEntityItems
@@ -1600,7 +1539,6 @@ QList<EntityItem*> NodeView::getTopLevelEntityItems() const
     return items;
 }
 
-
 /**
  * @brief NodeView::getSelectedItems
  * @return
@@ -1616,7 +1554,6 @@ QList<EntityItem*> NodeView::getSelectedItems() const
     }
     return items;
 }
-
 
 /**
  * @brief NodeView::getParentNodeItem
@@ -1636,7 +1573,6 @@ NodeItem* NodeView::getParentNodeItem(NodeViewItem* item)
      return nullptr;
 }
 
-
 /**
  * @brief NodeView::getEntityItem
  * @param ID
@@ -1650,7 +1586,6 @@ EntityItem* NodeView::getEntityItem(int ID) const
     return nullptr;
 }
 
-
 /**
  * @brief NodeView::getEntityItem
  * @param item
@@ -1663,7 +1598,6 @@ EntityItem* NodeView::getEntityItem(ViewItem *item) const
     }
     return nullptr;
 }
-
 
 /**
  * @brief NodeView::zoom
@@ -1703,7 +1637,6 @@ void NodeView::zoom(int delta, QPoint anchor_screen_pos)
     }
 }
 
-
 /**
  * @brief NodeView::cappedScale
  * This scales the view capped to the defined min/max zoom ratio
@@ -1725,7 +1658,6 @@ void NodeView::cappedScale(qreal scale)
     QGraphicsView::scale(scale, scale);
 }
 
-
 /**
  * @brief NodeView::selectItemsInRubberband
  * This is called when the state_rubberband_mode_ is active, and the mouseReleased signal was sent
@@ -1737,7 +1669,7 @@ void NodeView::selectItemsInRubberband()
     QList<ViewItem*> items_to_select;
 
     // I think this was needed to deselect the aspect/contained item if it was selected
-    // TODO - Find out if this is still needed since I changed the toggleItemsSelection's append parameter to false
+    // TODO: Find out if this is still needed since I changed the toggleItemsSelection's append parameter to false
     /*
     // Check for aspect selection.
     if (selection_handler_->getSelection().contains(contained_node_view_item_)) {
@@ -1754,7 +1686,6 @@ void NodeView::selectItemsInRubberband()
 
     getSelectionHandler().toggleItemsSelection(items_to_select, false);
 }
-
 
 /**
  * @brief NodeView::setConnectingModeOn
@@ -1792,7 +1723,6 @@ void NodeView::setConnectingModeOn(QPointF scene_pos, EDGE_KIND edge_kind, EDGE_
     emit connectModeTriggered();
 }
 
-
 /**
  * @brief NodeView::connectUsingConnectLine
  * This is triggered when the state_connecting_mode_ is exited, which is caused by a mouseReleased signal
@@ -1822,7 +1752,6 @@ void NodeView::connectUsingConnectLine()
     connect_line_->setVisible(false);
 }
 
-
 /**
  * @brief NodeView::distance
  * @param p1
@@ -1833,7 +1762,6 @@ qreal NodeView::distance(QPoint p1, QPoint p2)
 {
     return qSqrt(qPow(p2.x() - p1.x(), 2) + qPow(p2.y() - p1.y(), 2));
 }
-
 
 /**
  * @brief NodeView::setMovingModeOn
@@ -1849,7 +1777,6 @@ void NodeView::setMovingModeOn()
     }
 }
 
-
 /**
  * @brief NodeView::setMovingModeOff
  * This is called when the selection has finished moving
@@ -1858,7 +1785,6 @@ void NodeView::setMovingModeOn()
 void NodeView::setMovingModeOff()
 {
     bool any_moved = false;
-
     for (auto view_item : getSelectionHandler().getSelection()) {
         auto item = getEntityItem(view_item);
         if (!item || item->isIgnoringPosition()) {
@@ -1870,13 +1796,12 @@ void NodeView::setMovingModeOff()
         }
         if (any_moved) {
             // Send a signal to update the model (graphml) data
-            QPointF pos = item->getNearestGridPoint();
+            QPointF pos = item->getNearestGridPoint(null_point_);
             emit setData(item->getID(), KeyName::X, pos.x());
             emit setData(item->getID(), KeyName::Y, pos.y());
         }
     }
 }
-
 
 /**
  * @brief NodeView::moveSelection
@@ -1910,7 +1835,6 @@ void NodeView::moveSelection(QPointF delta)
         }
     }
 }
-
 
 /**
  * @brief NodeView::setupStateMachine
@@ -1964,7 +1888,6 @@ void NodeView::setupStateMachine()
     state_machine_->start();
 }
 
-
 /**
  * @brief NodeView::getEntityAtPos
  * @param scenePos
@@ -1981,7 +1904,6 @@ EntityItem* NodeView::getEntityAtPos(QPointF scenePos) const
     return nullptr;
 }
 
-
 /**
  * @brief NodeView::setRubberbandModeOn
  * This is called when the state_rubberband_mode_ is entered
@@ -1993,7 +1915,6 @@ void NodeView::setRubberbandModeOn()
     rubberband_->setVisible(true);
     update();
 }
-
 
 /**
  * @brief NodeView::setRubberbandModeOff
@@ -2008,7 +1929,6 @@ void NodeView::setRubberbandModeOff()
     update();
 }
 
-
 /**
  * @brief NodeView::addNodeTriggered
  * This is called when the add/plus button/menu is triggered
@@ -2022,7 +1942,6 @@ void NodeView::addNodeTriggered(int parent_id, NODE_KIND kind)
     Q_UNUSED(parent_id);
     clicked_node_kind_ = kind;
 }
-
 
 /**
  * @brief NodeView::actionFinished
@@ -2042,7 +1961,6 @@ void NodeView::actionFinished()
     }
 }
 
-
 /**
  * @brief NodeView::keyPressEvent
  * @param event
@@ -2056,7 +1974,6 @@ void NodeView::keyPressEvent(QKeyEvent* event)
         emit ctrlShiftPressed();
     }
 }
-
 
 /**
  * @brief NodeView::keyReleaseEvent
@@ -2084,7 +2001,6 @@ void NodeView::keyReleaseEvent(QKeyEvent* event)
         }
     }
 }
-
 
 /**
  * @brief NodeView::shiftOrderInParent
@@ -2144,7 +2060,6 @@ void NodeView::shiftOrderInParent(NodeItem* item, int key)
     }
 }
 
-
 /**
  * @brief NodeView::wheelEvent
  * @param event
@@ -2152,10 +2067,10 @@ void NodeView::shiftOrderInParent(NodeItem* item, int key)
 void NodeView::wheelEvent(QWheelEvent* event)
 {
     // TODO: Does this check have anything to do with zooming???
+    //  Ask Jackson if this can be removed
     //if (view_controller_.isControllerReady())
     zoom(event->delta(), event->pos());
 }
-
 
 /**
  * @brief NodeView::mousePressEvent
@@ -2191,7 +2106,6 @@ void NodeView::mousePressEvent(QMouseEvent* event)
         QGraphicsView::mousePressEvent(event);
     }
 }
-
 
 /**
  * @brief NodeView::mouseMoveEvent
@@ -2236,7 +2150,6 @@ void NodeView::mouseMoveEvent(QMouseEvent* event)
     QGraphicsView::mouseMoveEvent(event);
 }
 
-
 /**
  * @brief NodeView::mouseReleaseEvent
  * @param event
@@ -2270,7 +2183,6 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-
 /**
  * @brief NodeView::drawForeground
  * @param painter
@@ -2285,7 +2197,6 @@ void NodeView::drawForeground(QPainter *painter, const QRectF &r)
         painter->drawRect(r);
     }
 }
-
 
 /**
  * @brief NodeView::drawBackground
@@ -2314,7 +2225,6 @@ void NodeView::drawBackground(QPainter *painter, const QRectF & r)
     }
 }
 
-
 /**
  * @brief NodeView::resizeEvent
  * @param event
@@ -2324,4 +2234,3 @@ void NodeView::resizeEvent(QResizeEvent* event)
     QGraphicsView::resizeEvent(event);
     update_minimap();
 }
-

@@ -1,14 +1,15 @@
 #include "jenkinsmonitor.h"
 #include "../../theme.h"
 
-
 #include <QBoxLayout>
 #include <QDesktopServices>
 #include <QApplication>
 #include <QJsonArray>
 
-JenkinsMonitor::JenkinsMonitor(JenkinsManager* jenkins_manager, QString job_name, int build_number, QWidget * parent): Monitor(parent){
-    this->job_name = job_name;
+JenkinsMonitor::JenkinsMonitor(JenkinsManager* jenkins_manager, QString job_name, int build_number, QWidget * parent)
+    : Monitor(parent)
+{
+    this->job_name = std::move(job_name);
     this->build_number = build_number;
     this->jenkins_manager = jenkins_manager;
 
@@ -26,21 +27,17 @@ JenkinsMonitor::JenkinsMonitor(JenkinsManager* jenkins_manager, QString job_name
     connect(status_watcher, &QFutureWatcher<Jenkins_Job_Status>::finished, this, &JenkinsMonitor::StatusUpdated);
     connect(artifact_watcher, &QFutureWatcher<QJsonDocument>::finished, this, &JenkinsMonitor::JobFinished);
     
-    
     refresh_timer = new QTimer(this);
     refresh_timer->setSingleShot(true);
     connect(refresh_timer, &QTimer::timeout, this, &JenkinsMonitor::Refresh);
     Refresh();
 }
 
-JenkinsMonitor::~JenkinsMonitor(){
-//    refresh_timer->stop();
-}
-
-void JenkinsMonitor::ConsoleUpdated(){
+void JenkinsMonitor::ConsoleUpdated()
+{
     auto current_text = text_browser->toPlainText();
     auto new_text = console_watcher->result();
-    if(new_text.size() > current_text.size()){
+    if (new_text.size() > current_text.size()) {
         //Emit the live difference
         QString delta_data = new_text.mid(current_text.size());
         text_browser->moveCursor(QTextCursor::End);
@@ -50,14 +47,15 @@ void JenkinsMonitor::ConsoleUpdated(){
     Refresh();
 }
 
-void JenkinsMonitor::JobFinished(){
+void JenkinsMonitor::JobFinished()
+{
     //Get the Json document
     auto json = artifact_watcher->result();
 
     if(!json.isNull()){
         auto config = json.object();
-
-        for(auto artifact : config["artifacts"].toArray()){
+        // The toArray() tells JSON how to interpret the artifacts array inside config as an array rather than a string or an object etc
+        for(const auto& artifact : config["artifacts"].toArray()){
             auto relative_path = artifact.toObject()["relativePath"].toString();
             auto url_str = jenkins_manager->GetArtifactUrl(job_name, build_number, relative_path);
             QUrl url(url_str);
@@ -71,12 +69,12 @@ void JenkinsMonitor::JobFinished(){
     }
 }
 
-
-
-void JenkinsMonitor::Refresh(){
+void JenkinsMonitor::Refresh()
+{
     //If we haven't got a timer started, and our state is RUNNING request
     if(!refresh_timer->isActive() && getState() == Notification::Severity::RUNNING){
         refresh_timer->start(500);
+
         auto job_status = jenkins_manager->GetJobStatus(job_name, build_number);
         auto job_console = jenkins_manager->GetJobConsoleOutput(job_name, build_number);
 
@@ -85,7 +83,8 @@ void JenkinsMonitor::Refresh(){
     }
 }
 
-void JenkinsMonitor::StatusUpdated(){
+void JenkinsMonitor::StatusUpdated()
+{
     auto result = status_watcher->result();
 
     StateChanged(result.state);
@@ -96,7 +95,8 @@ void JenkinsMonitor::StatusUpdated(){
     Refresh();
 }
 
-void JenkinsMonitor::SetDuration(int current_duration){
+void JenkinsMonitor::SetDuration(int current_duration)
+{
     auto got_valid = current_duration > 0;
     if(got_valid){
         auto time_str = QDateTime::fromTime_t(current_duration/ 1000.0).toUTC().toString("hh:mm:ss");
@@ -106,7 +106,9 @@ void JenkinsMonitor::SetDuration(int current_duration){
     duration_label->setVisible(got_valid);
     duration_icon_label->setVisible(got_valid);
 }
-void JenkinsMonitor::SetUser(QString user){
+
+void JenkinsMonitor::SetUser(const QString& user)
+{
     auto got_valid = user != "";
     if(got_valid){
         user_label->setText(user);
@@ -115,7 +117,8 @@ void JenkinsMonitor::SetUser(QString user){
     user_icon_label->setVisible(got_valid);
 }
 
-void JenkinsMonitor::SetDescription(QString description){
+void JenkinsMonitor::SetDescription(const QString& description)
+{
     auto got_valid = description != "";
     if(got_valid){
         description_label->setText(description);
@@ -124,7 +127,8 @@ void JenkinsMonitor::SetDescription(QString description){
     description_icon_label->setVisible(got_valid);
 }
 
-void JenkinsMonitor::themeChanged(){
+void JenkinsMonitor::themeChanged()
+{
     auto theme = Theme::theme();
     auto icon_size = theme->getIconSize();
 
@@ -141,48 +145,43 @@ void JenkinsMonitor::themeChanged(){
     
     url_action->setIcon(theme->getIcon("Icons", "globe"));
 
-    {
-        auto pixmap = theme->getImage("Icons", "clock", icon_size, theme->getTextColor());
-        duration_icon_label->setFixedSize(icon_size);
-        duration_icon_label->setPixmap(pixmap);
+    auto pixmap = theme->getImage("Icons", "clock", icon_size, theme->getTextColor());
+    duration_icon_label->setFixedSize(icon_size);
+    duration_icon_label->setPixmap(pixmap);
 
-    }
-    {
-        auto pixmap = theme->getImage("Icons", "person", icon_size, theme->getTextColor());
-        user_icon_label->setFixedSize(icon_size);
-        user_icon_label->setPixmap(pixmap);
-    }
-    {
-        auto pixmap = theme->getImage("Icons", "label", icon_size, theme->getTextColor());
-        description_icon_label->setFixedSize(icon_size);
-        description_icon_label->setPixmap(pixmap);
-    }
+    pixmap = theme->getImage("Icons", "person", icon_size, theme->getTextColor());
+    user_icon_label->setFixedSize(icon_size);
+    user_icon_label->setPixmap(pixmap);
+
+    pixmap = theme->getImage("Icons", "label", icon_size, theme->getTextColor());
+    description_icon_label->setFixedSize(icon_size);
+    description_icon_label->setPixmap(pixmap);
+
     update_state_icon();
 }
 
-void JenkinsMonitor::update_state_icon(){
+void JenkinsMonitor::update_state_icon()
+{
     auto theme = Theme::theme();
     auto icon_size = theme->getLargeIconSize();
     auto state = getState();
 
-    if(state == Notification::Severity::RUNNING){
+    if (state == Notification::Severity::RUNNING) {
         auto movie = Theme::theme()->getGif("Icons", "loading");
         icon_label->setMovie(movie);
-    }else{
+    } else {
         auto pixmap = theme->getImage("Jenkins", Notification::getSeverityString(state), icon_size);
-        icon_label->setFixedSize(icon_size);
-        
-        if(pixmap.isNull()){
+        if (pixmap.isNull()) {
             pixmap = theme->getImage("Icons", "Help", icon_size);
         }
+        icon_label->setFixedSize(icon_size);
         icon_label->setPixmap(pixmap);
     }
 }
 
-
-void JenkinsMonitor::stateChanged(Notification::Severity state){
+void JenkinsMonitor::stateChanged(Notification::Severity state)
+{
     //Abortable
-    //abort_action->setEnabled(state == Notification::Severity::RUNNING);
     update_state_icon();
 
     //If our state is finished, get the list of artifacts
@@ -192,19 +191,21 @@ void JenkinsMonitor::stateChanged(Notification::Severity state){
     }
 }
 
-int JenkinsMonitor::getBuildNumber() const{
-    return this->build_number;
+int JenkinsMonitor::getBuildNumber() const
+{
+    return build_number;
 }
 
-QString JenkinsMonitor::GetJobName() const{
-    return this->job_name;
+QString JenkinsMonitor::GetJobName() const
+{
+    return job_name;
 }
 
-void JenkinsMonitor::setupLayout(){
+void JenkinsMonitor::setupLayout()
+{
     auto layout = new QVBoxLayout(this);
     layout->setMargin(2);
     layout->setSpacing(2);
-    
 
     text_label = new QLabel(this);
     text_label->setText(job_name + " #" + QString::number(build_number));
@@ -229,10 +230,6 @@ void JenkinsMonitor::setupLayout(){
     description_icon_label->setScaledContents(true);
     description_icon_label->setAlignment(Qt::AlignCenter);
 
-    
-
-    
-
     user_label->hide();
     duration_label->hide();
     description_label->hide();
@@ -246,13 +243,11 @@ void JenkinsMonitor::setupLayout(){
     top_toolbar = new QToolBar(this);
     bottom_toolbar = new QToolBar(this);
     bottom_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-
     
     url_action = bottom_toolbar->addAction("Open Jenkins");
     abort_action = bottom_toolbar->addAction("Abort Job");
     abort_action->setEnabled(false);
     close_action = top_toolbar->addAction("Close Tab");
-
        
     {
         auto h_layout = new QGridLayout();
@@ -288,8 +283,6 @@ void JenkinsMonitor::setupLayout(){
 
     layout->addWidget(text_browser, 1);
     layout->addWidget(artifacts_box, 0);
-    
-
     layout->addWidget(bottom_toolbar, 0, Qt::AlignRight);
 
     connect(abort_action, &QAction::triggered, this, &Monitor::Abort);
@@ -299,17 +292,16 @@ void JenkinsMonitor::setupLayout(){
     connect(artifacts_box, &OptionGroupBox::checkedOptionsChanged, this, &JenkinsMonitor::artifactPressed);
 }
 
-void JenkinsMonitor::artifactPressed(){
+void JenkinsMonitor::artifactPressed()
+{
     QString artifact_url;
-
-    if(artifacts_box){
-        auto artifact_selected = artifacts_box->getCheckedOptions<QString>().toSet();
-
-        if(!artifacts_box->isResetChecked()){
+    if (artifacts_box) {
+        auto artifact_selected = artifacts_box->getCheckedOptions<QString>();
+        if (!artifacts_box->isResetChecked()) {
             artifact_url = *artifact_selected.constBegin();
         }
     }
-    if(artifact_url.size() > 0){
+    if (!artifact_url.isEmpty()) {
         //Open the url
         QDesktopServices::openUrl(QUrl(artifact_url));
         artifacts_box->reset();

@@ -24,31 +24,31 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
 
     // Identify Port kind
     switch (port_data.getKind()) {
-    case AggServerResponse::Port::Kind::PERIODIC: {
-        icon_path.second = "clockCycle";
-        break;
-    }
-    case AggServerResponse::Port::Kind::PUBLISHER: {
-        icon_path.second = "arrowRightLong";
-        event_src_port_ = true;
-        break;
-    }
-    case AggServerResponse::Port::Kind::SUBSCRIBER: {
-        icon_path.second = "arrowIntoBox";
-        break;
-    }
-    case AggServerResponse::Port::Kind::REQUESTER: {
-        icon_path.second = "arrowTopRight";
-        event_src_port_ = true;
-        break;
-    }
-    case AggServerResponse::Port::Kind::REPLIER: {
-        icon_path.second = "arrowBottomRight";
-        event_src_port_ = true;
-        break;
-    }
-    case AggServerResponse::Port::Kind::NO_KIND:
-        throw std::invalid_argument("PortInstanceGraphicsItem::PortInstanceGraphicsItem - Port kind is unknown");
+        case AggServerResponse::Port::Kind::PERIODIC: {
+            icon_path.second = "clockCycle";
+            break;
+        }
+        case AggServerResponse::Port::Kind::PUBLISHER: {
+            icon_path.second = "arrowRightLong";
+            event_src_port_ = true;
+            break;
+        }
+        case AggServerResponse::Port::Kind::SUBSCRIBER: {
+            icon_path.second = "arrowIntoBox";
+            break;
+        }
+        case AggServerResponse::Port::Kind::REQUESTER: {
+            icon_path.second = "arrowTopRight";
+            event_src_port_ = true;
+            break;
+        }
+        case AggServerResponse::Port::Kind::REPLIER: {
+            icon_path.second = "arrowBottomRight";
+            event_src_port_ = true;
+            break;
+        }
+        case AggServerResponse::Port::Kind::NO_KIND:
+            throw std::invalid_argument("PortInstanceGraphicsItem::PortInstanceGraphicsItem - Port kind is unknown");
     }
 
     setupLayout();
@@ -60,7 +60,6 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
     themeChanged();
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::getGraphmlID
  * @return
@@ -69,7 +68,6 @@ const QString& PortInstanceGraphicsItem::getGraphmlID() const
 {
     return port_inst_data_.getGraphmlID();
 }
-
 
 /**
  * @brief PortInstanceGraphicsItem::getPortName
@@ -80,7 +78,6 @@ const QString& PortInstanceGraphicsItem::getPortName() const
     return port_inst_data_.getName();
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::getPortKind
  * @return
@@ -89,7 +86,6 @@ AggServerResponse::Port::Kind PortInstanceGraphicsItem::getPortKind() const
 {
     return port_inst_data_.getKind();
 }
-
 
 /**
  * @brief PortInstanceGraphicsItem::getEdgePoint
@@ -101,14 +97,15 @@ QPointF PortInstanceGraphicsItem::getEdgePoint() const
     bool left_point = true;
 
     switch (port_inst_data_.getKind()) {
-    case AggServerResponse::Port::Kind::PUBLISHER:
-    case AggServerResponse::Port::Kind::REQUESTER:
-        left_point = false;
-    case AggServerResponse::Port::Kind::SUBSCRIBER:
-    case AggServerResponse::Port::Kind::REPLIER:
-        break;
-    default:
-        return QPoint(0,0);
+        case AggServerResponse::Port::Kind::SUBSCRIBER:
+        case AggServerResponse::Port::Kind::REPLIER:
+            break;
+        case AggServerResponse::Port::Kind::PUBLISHER:
+        case AggServerResponse::Port::Kind::REQUESTER:
+            left_point = false;
+            break;
+        default:
+            return QPoint(0,0);
     }
 
     // If this item is invisible, use its parent item's scene bouding rect for the edge point
@@ -116,6 +113,7 @@ QPointF PortInstanceGraphicsItem::getEdgePoint() const
     if (isVisible()) {
         scene_rect = icon_pixmap_item_->sceneBoundingRect();
     } else if (parent_comp_inst_item_) {
+        // TODO: When we decide to connect ports from different nodes, the parent ComponentInstance item needs to have its own getEdgePoint
         scene_rect = parent_comp_inst_item_->sceneBoundingRect();
     }
 
@@ -127,7 +125,6 @@ QPointF PortInstanceGraphicsItem::getEdgePoint() const
     return QPointF(x, scene_rect.center().y());
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::getPreviousEventTime
  * @param time
@@ -138,7 +135,6 @@ qint64 PortInstanceGraphicsItem::getPreviousEventTime(qint64 time) const
     return port_inst_data_.getPreviousEventTime(time);
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::getNextEventTime
  * @param time
@@ -148,7 +144,6 @@ qint64 PortInstanceGraphicsItem::getNextEventTime(qint64 time) const
 {
     return port_inst_data_.getNextEventTime(time);
 }
-
 
 /**
  * @brief PortInstanceGraphicsItem::setAlignment
@@ -183,7 +178,6 @@ void PortInstanceGraphicsItem::setAlignment(Qt::Alignment alignment)
     themeChanged();
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::playEvents
  * @param from_time
@@ -216,7 +210,6 @@ void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
     }
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::flashPort
  * @param event_kind
@@ -248,7 +241,6 @@ void PortInstanceGraphicsItem::flashPort(MEDEA::ChartDataKind event_kind, qint64
     });
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::unflashPort
  * @param event_kind
@@ -271,7 +263,6 @@ void PortInstanceGraphicsItem::unflashPort(MEDEA::ChartDataKind event_kind, qint
     update();
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::boundingRect
  * @return
@@ -280,7 +271,6 @@ QRectF PortInstanceGraphicsItem::boundingRect() const
 {
     return QRectF(0, 0, getWidth(), getHeight());
 }
-
 
 /**
  * @brief PortInstanceGraphicsItem::sizeHint
@@ -302,7 +292,6 @@ QSizeF PortInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& cons
     return constraint;
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::paint
  * @param painter
@@ -322,7 +311,6 @@ void PortInstanceGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphi
     painter->drawEllipse(icon_pixmap_item_->geometry().center(), ellipse_size, ellipse_size);
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::getWidth
  * @return
@@ -332,7 +320,6 @@ qreal PortInstanceGraphicsItem::getWidth() const
     return main_layout_->geometry().width();
 }
 
-
 /**
  * @brief PortInstanceGraphicsItem::getHeight
  * @return
@@ -341,7 +328,6 @@ qreal PortInstanceGraphicsItem::getHeight() const
 {
     return main_layout_->minimumHeight();
 }
-
 
 /**
  * @brief PortInstanceGraphicsItem::themeChanged
@@ -373,7 +359,6 @@ void PortInstanceGraphicsItem::themeChanged()
     sub_label_text_item_->setDefaultTextColor(theme->getTextColor());
     */
 }
-
 
 /**
  * @brief PortInstanceGraphicsItem::setupLayout
@@ -417,7 +402,6 @@ void PortInstanceGraphicsItem::setupLayout()
     setLayout(main_layout_);
     //setupSubInfoLayout();
 }
-
 
 /**
  * @brief PortInstanceGraphicsItem::setupSubInfoLayout

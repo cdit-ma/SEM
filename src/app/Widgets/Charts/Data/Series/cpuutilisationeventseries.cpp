@@ -8,7 +8,6 @@
 CPUUtilisationEventSeries::CPUUtilisationEventSeries(const QString& ID, QObject* parent)
     : MEDEA::EventSeries(ID, MEDEA::ChartDataKind::CPU_UTILISATION, parent) {}
 
-
 /**
  * @brief CPUUtilisationEventSeries::addEvent
  * @param event

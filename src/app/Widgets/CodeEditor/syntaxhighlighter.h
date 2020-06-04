@@ -7,32 +7,27 @@
 #include <QTextCharFormat>
 #include <QRegularExpression>
 
-class QString;
-
 class QTextDocument;
-
 
 struct ParenthesisInfo
 {
-    char character;
-    int position;
-    int actualPosition;
-    bool isOpening() const;
-    char getMatching() const;
+	char character;
+	int position;
+	bool isOpening() const;
+	char getMatching() const;
 };
 
 class TextBlockData : public QTextBlockUserData
 {
 public:
-    TextBlockData();
-
-    QVector<ParenthesisInfo *> parentheses();
-    void insert(ParenthesisInfo *info);
+	TextBlockData() = default;
+	
+	QVector<ParenthesisInfo *> parentheses();
+	void insert(ParenthesisInfo *info);
 
 private:
-    QVector<ParenthesisInfo *> m_parentheses;
+	QVector<ParenthesisInfo *> m_parentheses;
 };
-
 
 
 class SyntaxHighlighter : public QSyntaxHighlighter
@@ -40,30 +35,31 @@ class SyntaxHighlighter : public QSyntaxHighlighter
     Q_OBJECT
 
 public:
-    SyntaxHighlighter(QTextDocument *parent = 0);
+	explicit SyntaxHighlighter(QTextDocument *parent = nullptr);
 
 protected:
-    void highlightBlock(const QString &text);
-    void highlightParenthesis(const QString &text);\
-
+	void highlightBlock(const QString &text) override;
+	void highlightParenthesis(const QString &text);
 
 private:
-    void themeChanged();
-    struct HighlightingRule
-    {
-        QRegularExpression pattern;
-        QTextCharFormat format;
-    };
+	void themeChanged();
+	void setupHighlightingRules();
+	
+	struct HighlightingRule
+	{
+		QRegularExpression pattern;
+		QTextCharFormat format;
+	};
+	
+	QVector<HighlightingRule> highlightingRules;
+	
+	QTextCharFormat keywordFormat;
+	QTextCharFormat commentFormat;
+	QTextCharFormat quotationFormat;
+	QTextCharFormat functionFormat;
+	QTextCharFormat templateFormat;
 
-    QVector<HighlightingRule> highlightingRules;
-
-    QTextCharFormat keywordFormat;
-    QTextCharFormat classFormat;
-    QTextCharFormat commentFormat;
-    QTextCharFormat quotationFormat;
-    QTextCharFormat functionFormat;
-    QTextCharFormat templateFormat;
-
+	static const QStringList keyword_patterns_;
 };
 
 #endif // SYNTAXHIGHLIGHTER_H

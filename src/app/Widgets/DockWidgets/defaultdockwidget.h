@@ -11,16 +11,15 @@ class DefaultDockWidget : public BaseDockWidget
     friend class WindowManager;
 
 protected:
-    DefaultDockWidget(QString title, QWidget* parent = nullptr, Qt::DockWidgetArea area = Qt::TopDockWidgetArea, DefaultDockType type = DefaultDockType::NONE);
+    explicit DefaultDockWidget(const QString& title, QWidget* parent = nullptr, Qt::DockWidgetArea area = Qt::TopDockWidgetArea, DefaultDockType type = DefaultDockType::NONE);
 
 public:
     DefaultDockType getDefaultDockType();
-    void themeChanged();
-    void setWidget(QWidget *widget);
+
+    void themeChanged() override;
 
 private:
     DefaultDockType type;
-
 };
 
 #endif // DOCKWIDGET_DEFAULTDOCKWIDGET_H

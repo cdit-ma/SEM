@@ -1,14 +1,21 @@
 #ifndef MEDEAEVENT_H
 #define MEDEAEVENT_H
 
-#include <QDebug>
 #include <QObject>
 #include "../protomessagestructs.h"
 
 namespace MEDEA {
 
-enum class ChartDataKind{DATA, PORT_LIFECYCLE, WORKLOAD, CPU_UTILISATION, MEMORY_UTILISATION, MARKER, PORT_EVENT, NETWORK_UTILISATION};
-
+enum class ChartDataKind {
+	DATA,
+	PORT_LIFECYCLE,
+	WORKLOAD,
+	CPU_UTILISATION,
+	MEMORY_UTILISATION,
+	MARKER,
+	PORT_EVENT,
+	NETWORK_UTILISATION
+};
 
 class Event : public QObject
 {
@@ -18,7 +25,7 @@ public:
     // time should be in milliseconds since epoch
     explicit Event(ChartDataKind kind,
                    qint64 time,
-                   const QString& name = "no_name",
+                   QString name = "no_name",
                    QObject* parent = nullptr);
 
     ChartDataKind getKind() const;
@@ -39,9 +46,9 @@ public:
     static const QString& GetChartDataKindStringSuffix(ChartDataKind kind);
 
 private:
-    ChartDataKind kind_;
-    qint64 time_;
-    QString series_name_;
+	ChartDataKind kind_;
+	qint64 time_;
+	QString series_name_;
 };
 
 inline uint qHash(ChartDataKind key, uint seed)
@@ -51,4 +58,5 @@ inline uint qHash(ChartDataKind key, uint seed)
 }
 
 Q_DECLARE_METATYPE(MEDEA::ChartDataKind)
+
 #endif // MEDEAEVENT_H

@@ -1,26 +1,21 @@
 #include "executionmanager.h"
-#include <QApplication>
-#include <QStringBuilder>
-#include <QDebug>
-#include <QXmlStreamReader>
-#include <QMutexLocker>
-
-
 #include "../../Utils/filehandler.h"
-#include "../NotificationManager/notificationmanager.h"
-#include "../NotificationManager/notificationobject.h"
 #include "../ViewController/viewcontroller.h"
 
+#include <QApplication>
+#include <QStringBuilder>
+#include <QXmlStreamReader>
 
+// NOTE (SEM-96): Not entirely sure if ViewController should be passed into the QObject's constructor as a parent
+//  This may cause issues; check/revert if that happens
 ExecutionManager::ExecutionManager(ViewController *view_controller)
+	: QObject(view_controller)
 {
-    view_controller_ = view_controller;
     transforms_path_ = QApplication::applicationDirPath() % "/Resources/re_gen/";
 
     connect(this, &ExecutionManager::GotJava, view_controller, &ViewController::GotJava);
     connect(this, &ExecutionManager::GotRe, view_controller, &ViewController::GotRe);
     connect(this, &ExecutionManager::GotRegen, view_controller, &ViewController::GotRegen);
-
 
     auto settings = SettingsController::settings();
     connect(settings, &SettingsController::settingChanged, this, &ExecutionManager::settingChanged);
@@ -35,26 +30,30 @@ ExecutionManager::ExecutionManager(ViewController *view_controller)
     settingChanged(SETTINGS::GENERAL_REGEN_PATH, settings->getSetting(SETTINGS::GENERAL_REGEN_PATH));
 }
 
-QString ExecutionManager::GetSaxonPath(){
+QString ExecutionManager::GetSaxonPath()
+{
     return transforms_path_ % "saxon.jar";
 }
 
-bool ExecutionManager::HasJava(){
+bool ExecutionManager::HasJava()
+{
     QReadLocker lock(&lock_);
     return got_java_;
 }
 
-bool ExecutionManager::HasRegen(){
+bool ExecutionManager::HasRegen()
+{
     QReadLocker lock(&lock_);
     return got_regen_;
 }
 
-bool ExecutionManager::HasRe(){
+bool ExecutionManager::HasRe()
+{
     QReadLocker lock(&lock_);
     return got_re_;
 }
 
-QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
+QString get_xml_attribute(QXmlStreamReader &xml, const QString& attribute_name)
 {
     QString val;
     //Get the Attributes of the current XML entity.
@@ -66,8 +65,7 @@ QString get_xml_attribute(QXmlStreamReader &xml, QString attribute_name)
     return val;
 }
 
-
-void ExecutionManager::ValidateModel(QString model_path)
+void ExecutionManager::ValidateModel(const QString& model_path)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -76,12 +74,12 @@ void ExecutionManager::ValidateModel(QString model_path)
     }
 }
 
-void ExecutionManager::ValidateModel_(QString model_path)
+void ExecutionManager::ValidateModel_(const QString& model_path)
 {
     auto manager =  NotificationManager::manager();
 
     // Clear previous validation notification items
-    for (auto notification : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
+    for (const auto& notification : manager->getNotificationsOfCategory(Notification::Category::VALIDATION)) {
         if(notification->getDescription().startsWith("model validation", Qt::CaseInsensitive)){
             continue;
         }
@@ -107,7 +105,6 @@ void ExecutionManager::ValidateModel_(QString model_path)
             if(xml.isStartElement()){
                 if(xml.name() == "result"){
                     auto result = get_xml_attribute(xml, "success");
-
                     if(result == "false"){
                         auto entity_id = get_xml_attribute(xml, "id").toInt();
                         auto is_warning = get_xml_attribute(xml, "warning") == "true";
@@ -127,7 +124,6 @@ void ExecutionManager::ValidateModel_(QString model_path)
         //All Warnings aren't errors
         failed_count -= warnings_count;
         auto finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        
 
         // Show the notification panel on validation failure
         if (passed_count < test_count) {
@@ -140,6 +136,7 @@ void ExecutionManager::ValidateModel_(QString model_path)
         auto failed_string = (failed_count > 0) ? ("Failed: " + QString::number(failed_count) + " Tests. ") : "";
         validation_noti->setTitle("Validation: " + passed_string + warning_string + failed_string);
         validation_noti->setSeverity(test_count == (passed_count + warnings_count) ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
+
     } else {
         ///Update the original notification
         validation_noti->setTitle("Model validation failed to execute");
@@ -148,25 +145,24 @@ void ExecutionManager::ValidateModel_(QString model_path)
     }
 }
 
-void ExecutionManager::GenerateCodeForWorkload(QString document_path, ViewItem* item)
+void ExecutionManager::GenerateCodeForWorkload(const QString& document_path, ViewItem* item)
 {
     auto id = item->getID();
-
     auto file_path = item->getData(KeyName::Label).toString() + "_" + QString::number(id) + ".cpp";
+
     //Get Temp Path
     auto path = FileHandler::getTempFileName("/");
     auto code = GenerateWorkload(document_path, path, id);
-
     if(code.length()){
         emit GotWorkloadCode(file_path, code);
     }
 }
 
-void ExecutionManager::ExecuteModel_(QString document_path, QString output_directory, int duration){
+void ExecutionManager::ExecuteModel_(const QString& document_path, const QString& output_directory, int duration)
+{
     if(HasRe() && HasJava() && HasRegen()){
         ProcessRunner runner;
         auto runner_ = &runner;
-
         
         connect(this, &ExecutionManager::CancelModelExecution, runner_, &ProcessRunner::Cancel, Qt::QueuedConnection);
         connect(runner_, &ProcessRunner::GotProcessStdOutLine, this, &ExecutionManager::GotProcessStdOutLine, Qt::QueuedConnection);
@@ -179,7 +175,6 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
         }
 
         auto re_path = env_var.value("RE_PATH") + "/bin/";
-
         auto generate = GenerateProject_(document_path, output_directory);
 
         auto notification = NotificationManager::manager()->AddNotification("Running CMake...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
@@ -209,7 +204,7 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
                     if(compile_results.success){
                         notification->setTitle("Running model");
                         auto execute_results =  runner_->RunProcess(re_path + "re_node_manager", {"-d", document_path, "-l", "." , "-m", "tcp://127.0.0.1:7000", "-s", "tcp://127.0.0.1:7001", "-t", QString::number(duration)}, lib_dir, env_var);
-    
+
                         if(execute_results.success){
                             notification->setTitle("Model successfully executed.");
                             failed = false;
@@ -233,7 +228,7 @@ void ExecutionManager::ExecuteModel_(QString document_path, QString output_direc
     }
 }
 
-bool ExecutionManager::GenerateProject_(QString document_path, QString output_directory)
+bool ExecutionManager::GenerateProject_(const QString& document_path, const QString& output_directory)
 {
     auto notification = NotificationManager::manager()->AddNotification("Generating Project C++ ...", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::MODEL, Notification::Category::FILE);
     auto results = RunSaxonTransform(transforms_path_ + "generate_project.xsl", document_path, output_directory, {});
@@ -247,11 +242,10 @@ bool ExecutionManager::GenerateProject_(QString document_path, QString output_di
     }
 
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
-
     return results.success;
 }
 
-QString ExecutionManager::GenerateWorkload(QString document_path, QString output_directory, int id)
+QString ExecutionManager::GenerateWorkload(const QString& document_path, const QString& output_directory, int id)
 {
     QString arg = "id=" + QString::number(id);
 
@@ -265,18 +259,19 @@ QString ExecutionManager::GenerateWorkload(QString document_path, QString output
     }else{
         notification->setTitle("Successfully generated workload C++");
     }
+
     notification->setSeverity(results.success ? Notification::Severity::SUCCESS : Notification::Severity::ERROR);
     return results.standard_output.join("\n");
 }
 
-void ExecutionManager::settingChanged(SETTINGS setting, QVariant value){
+void ExecutionManager::settingChanged(SETTINGS setting, const QVariant& value)
+{
     switch(setting){
         case SETTINGS::GENERAL_RE_CONFIGURE_PATH:{
             CheckForRe(value.toString());
             break;
         }
         case SETTINGS::GENERAL_REGEN_PATH:{
-
             QFileInfo info(value.toString() % "/");
             if(info.isAbsolute()){
                 transforms_path_ = info.absolutePath() % "/";
@@ -287,12 +282,11 @@ void ExecutionManager::settingChanged(SETTINGS setting, QVariant value){
             break;
         }
         default:
-        break;
+        	break;
     }
 }
 
-
-void ExecutionManager::CheckForRe(QString re_configure_path)
+void ExecutionManager::CheckForRe(const QString& re_configure_path)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -301,7 +295,7 @@ void ExecutionManager::CheckForRe(QString re_configure_path)
     }
 }
 
-void ExecutionManager::CheckForRegen(QString regen_path)
+void ExecutionManager::CheckForRegen(const QString& regen_path)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -310,8 +304,7 @@ void ExecutionManager::CheckForRegen(QString regen_path)
     }
 }
 
-
-bool ExecutionManager::ExecuteModel(QString document_path, QString output_directory, int runtime_duration)
+bool ExecutionManager::ExecuteModel(const QString& document_path, const QString& output_directory, int runtime_duration)
 {
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
@@ -322,7 +315,8 @@ bool ExecutionManager::ExecuteModel(QString document_path, QString output_direct
     return false;
 }
 
-void ExecutionManager::GenerateProject(QString document_path, QString output_directory){
+void ExecutionManager::GenerateProject(const QString& document_path, const QString& output_directory)
+{
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!generate_project_thread.isRunning()){
@@ -330,7 +324,8 @@ void ExecutionManager::GenerateProject(QString document_path, QString output_dir
     }
 }
 
-void ExecutionManager::CheckForJava(){
+void ExecutionManager::CheckForJava()
+{
     //Gain write lock so we can set the thread object
     QWriteLocker lock(&lock_);
     if(!java_thread.isRunning()){
@@ -339,7 +334,8 @@ void ExecutionManager::CheckForJava(){
 }
 
 //Designed to be run on a background thread
-void ExecutionManager::CheckForJava_(){
+void ExecutionManager::CheckForJava_()
+{
     auto notification = NotificationManager::manager()->AddNotification("Checking for Java", "Icons", "java", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     ProcessRunner runner;
     auto result = runner.RunProcess("java", {"-version"});
@@ -354,8 +350,7 @@ void ExecutionManager::CheckForJava_(){
     emit GotJava(result.success);
 }
 
-
-void ExecutionManager::CheckForRegen_(QString regen_path){
+void ExecutionManager::CheckForRegen_(const QString& regen_path){
     auto notification = NotificationManager::manager()->AddNotification("Checking for Regen", "Icons", "bracketsAngled", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     
     QFileInfo file(regen_path + "/saxon.jar");
@@ -374,15 +369,16 @@ void ExecutionManager::CheckForRegen_(QString regen_path){
 }
 
 //Designed to be run on a background thread
-void ExecutionManager::CheckForRe_(QString re_configure_path){
+void ExecutionManager::CheckForRe_(const QString& re_configure_path)
+{
     auto notification = NotificationManager::manager()->AddNotification("Checking for Re", "Icons", "servers", Notification::Severity::RUNNING, Notification::Type::APPLICATION, Notification::Category::NONE);
     
     bool success = false;
     QString status;
     QProcessEnvironment re_env;
     if(FileHandler::isFileReadable(re_configure_path)){
+
         ProcessRunner runner;
-        
         re_env = runner.RunEnvVarScript(re_configure_path);
         
         if(re_env.contains("RE_PATH")){
@@ -411,12 +407,13 @@ void ExecutionManager::CheckForRe_(QString re_configure_path){
     emit GotRe(got_re_);
 }
 
-ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments)
+ProcessResult ExecutionManager::RunSaxonTransform(const QString& transform_path, const QString& document, const QString& output_directory, const QStringList& arguments)
 {
-    ProcessRunner runner;
-    auto runner_ = &runner;
-    
-    QString program = "java";
+	bool got_directory = FileHandler::ensureDirectory(output_directory);
+    if (!got_directory) {
+        NotificationManager::manager()->AddNotification("RunSaxonTransform", "Icons", "octagonCriticalDark", Notification::Severity::ERROR, Notification::Type::APPLICATION, Notification::Category::NONE);
+        return ProcessResult();
+    }
 
     QStringList args;
     args << "-jar";
@@ -425,6 +422,8 @@ ProcessResult ExecutionManager::RunSaxonTransform(QString transform_path, QStrin
     args << "-s:" + document;
     args << arguments;
 
-    FileHandler::ensureDirectory(output_directory);
-    return runner_->RunProcess(program, args, output_directory);
+    QString&& program = "java";
+    ProcessRunner runner;
+
+    return runner.RunProcess(program, args, output_directory);
 }
