@@ -27,6 +27,10 @@ public:
 
 signals:
     void requestData(quint32 exp_run_id);
+    void experimentRunLastUpdateTimeChanged(quint32 exp_run_id, qint64 lat_update_time);
+
+private slots:
+    void experimentRunUpdated(qint64 last_updated_time);
 
 private:
     QString experiment_name_;

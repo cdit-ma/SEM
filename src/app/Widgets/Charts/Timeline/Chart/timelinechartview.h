@@ -23,6 +23,7 @@
 #include "../../Data/Series/markereventseries.h"
 #include "../../Data/Series/porteventseries.h"
 #include "../../Data/Series/networkutilisationeventseries.h"
+#include "../../Data/experimentrundata.h"
 
 #include <QWidget>
 #include <QToolBar>
@@ -43,21 +44,10 @@ public:
 
     bool eventFilter(QObject *watched, QEvent* event) override;
 
-    /*
-    void addPortInstanceDataCharts(const PortInstanceData& port_inst_data);
-    void addNodeInstanceDataCharts(const NodeData& node_data);
-    void addWorkerInstanceDataChart(const WorkerInstanceData& worker_inst_data);
-    void addMarkerSetDataChart(const MarkerSetData& marker_set_data);
-    */
-
     void addChart(QPointer<const MEDEA::EventSeries> series, const AggServerResponse::ExperimentRun& experiment_run);
-    void addPortLifecycleChart(PortLifecycleEventSeries* series, const AggServerResponse::ExperimentRun& experiment_run);
-    void addPortEventsChart(PortEventSeries* series);
-    void addWorkloadEventsChart(WorkloadEventSeries* series);
-    void addCPUUtilisationChart(CPUUtilisationEventSeries* series);
-    void addMemoryUtilisationChart(MemoryUtilisationEventSeries* series);
-    void addNetworkUtilisationChart(NetworkUtilisationEventSeries* series);
-    void addMarkerSetChart(MarkerEventSeries* series);
+
+    void addChart(QPointer<const MEDEA::EventSeries> series, const MEDEA::ExperimentRunData& exp_run_data);
+    //void removeChart(const QString& id, bool clearing_chart_list = false);
 
     void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent*>& events);
     void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent*>& events);
@@ -143,7 +133,8 @@ private:
     QHash<QString, MEDEA::Chart*> charts_;
     QMultiHash<QString, MEDEA::EventSeries*> seriesList_;
 
-    QMultiHash<QString, QPointer<const MEDEA::EventSeries>> series_pointers_;
+    QHash<QString, QPointer<const MEDEA::EventSeries>> series_pointers_;
+    static const MEDEA::ChartDataKind no_data_kind_;
 };
 
 #endif // TIMELINECHARTVIEW_H

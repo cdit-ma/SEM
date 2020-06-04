@@ -61,11 +61,11 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 	if (request_param.isNull() || !request_param.isValid()) {
 		throw std::invalid_argument("ExperimentDataManager::requestExperimentData - Provided request parameter is invalid.");
 	}
-	
+
 	try {
-		
+
 		bool valid = true;
-		
+
 		switch (request_type) {
 			case ExperimentDataRequestType::ExperimentRun: {
 				const auto& exp_name = request_param.toString();
@@ -142,7 +142,7 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 			auto&& request_str = QString::number(static_cast<int>(request_type)).toStdString() + request_param.toString().toStdString();
 			throw std::invalid_argument("Failed to request data (" + request_str + ") - Invalid request parameter.");
 		}
-		
+
 	} catch (const NoRequesterException& ex) {
 		toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.What(), "chart", Notification::Severity::ERROR);
 	} catch (const RequestException& ex) {
@@ -232,6 +232,7 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
     }
     return;
 
+    /*
     try {
         auto&& request_param = QVariant::fromValue<WorkloadRequest>(builder.getWorkloadRequest());
         requestExperimentData(ExperimentDataRequestType::WorkloadEvent, request_param);
@@ -253,21 +254,24 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
     try {
         auto&& request_param = QVariant::fromValue<MarkerRequest>(builder.getMarkerRequest());
         requestExperimentData(ExperimentDataRequestType::MarkerEvent, request_param);
-	} catch (const std::exception& ex) {
-		qInfo(ex.what());
-	}
+    } catch (const std::exception&) {
+        qInfo("No MarkerRequest");
+    }
+     */
     try {
         auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
         requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
     } catch (const std::exception& ex) {
 		qInfo(ex.what());
     }
+    /*
     try {
         auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
         requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
     } catch (const std::exception& ex) {
 		qInfo(ex.what());
     }
+     */
 
     // Reset the selected experiment run
     selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
@@ -291,17 +295,18 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
                 port_data_requester->addPortLifecycleEvents(events);
                 if (show_in_charts_) {
                     if (events.isEmpty()) {
+                        qDebug() << "No Port lifecycle events";
                         toastNotification("No port lifecycle events received for selection", "plug");
                     } else {
                         emit showChartsPanel();
-                        const auto& series = port_data_requester->getPortLifecycleSeriesPointer();
-                        //timelineChartView().addPortLifecycleChart(series, experimentRun);
-                        timelineChartView().addChart(series, experimentRun);
+                        const auto& series = port_data_requester->getPortLifecycleSeries();
+                        auto exp_data = getExperimentData(experimentRun.experiment_run_id);
+                        timelineChartView().addChart(series, exp_data->getExperimentRun(experimentRun.experiment_run_id));
                     }
                 }
-            } else {
+            } /*else {
                 processPortLifecycleEvents(experimentRun, events);
-            }
+            }*/
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -434,9 +439,18 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
             auto&& events = futureWatcher->result();
             if (port_data_requester != nullptr) {
                 port_data_requester->addPortEvents(events);
-            } else {
+                /*if (show_in_charts_) {
+                    if (events.isEmpty()) {
+                        toastNotification("No port events received for selection", "plug");
+                    } else {
+                        emit showChartsPanel();
+                        const auto& series = port_data_requester->getPortEventSeries();
+                        timelineChartView().addChart(series, experimentRun);
+                    }
+                }*/
+            } /*else {
                 processPortEvents(experimentRun, events);
-            }
+            }*/
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -543,13 +557,13 @@ void ExperimentDataManager::processExperimentState(const QString& experiment_nam
             getDataflowDialog().constructGraphicsItemsForExperimentRun(experiment_name, exp_run_data);
             emit showDataflowPanel();
         }
-        if (show_in_charts_) {
+        /*if (show_in_charts_) {
             // Updated the selected experiment run's last updated time - the selected run is passed on to the chartview
             auto&& last_updated_time = experiment_state.last_updated_time;
             selectedExperimentRun_.last_updated_time = last_updated_time;
             // Let the chartview know to update the time-range for the charts associated with the experiment_run_id
             timelineChartView().updateExperimentRunLastUpdatedTime(experiment_run_id, last_updated_time);
-        }
+        }*/
     }
 }
 
@@ -686,6 +700,7 @@ MEDEA::ExperimentData* ExperimentDataManager::constructExperimentData(const QStr
     connect(exp_data, &MEDEA::ExperimentData::requestData, [this, exp_data] (quint32 exp_run_id) {
         requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, exp_data);
     });
+    connect(exp_data, &MEDEA::ExperimentData::experimentRunLastUpdateTimeChanged, this, &ExperimentDataManager::experimentRunDataUpdated);
     return exp_data;
 }
 
@@ -944,6 +959,14 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
         requestExperimentData(ExperimentDataRequestType::ExperimentState, expRunID);
     }
 }
+
+
+void ExperimentDataManager::experimentRunDataUpdated(quint32 exp_run_id, qint64 last_updated_time)
+{
+    timelineChartView().updateExperimentRunLastUpdatedTime(exp_run_id, last_updated_time);
+}
+
+
 
 /**
  * @brief ExperimentDataManager::setupRequestsForExperimentRun

@@ -12,12 +12,15 @@ class ExperimentRunData : public QObject
     Q_OBJECT
 
 public:
-    ExperimentRunData(quint32 experiment_run_id,
+    ExperimentRunData(const QString& exp_name,
+                      quint32 experiment_run_id,
                       quint32 job_num,
                       qint64 start_time,
                       qint64 end_time = 0,
                       qint64 last_updated_time = 0,
                       QObject* parent = nullptr);
+
+    const QString& experiment_name() const;
 
     quint32 experiment_run_id() const;
     quint32 job_num() const;
@@ -43,6 +46,8 @@ private:
     void addMarkerSet(const QString& marker_name);
 
     // TODO? - Implement helper functions for getting specific series (include filters)
+
+    QString experiment_name_;
 
     quint32 experiment_run_id_;
     quint32 job_num_;

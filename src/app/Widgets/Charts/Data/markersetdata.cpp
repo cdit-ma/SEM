@@ -64,7 +64,7 @@ void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
  * @throws std::runtime_error
  * @return
  */
-const MarkerEventSeries& MarkerSetData::getMarkerEventSeries() const
+QPointer<const MEDEA::EventSeries> MarkerSetData::getMarkerEventSeries() const
 {
 	if (marker_event_series_ == nullptr) {
 		throw std::runtime_error("MarkerEventSeries& MarkerSetData::getMarkerEventSeries - Marker event series is null");

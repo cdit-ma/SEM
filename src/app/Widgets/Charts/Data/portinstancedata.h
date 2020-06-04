@@ -28,20 +28,17 @@ public:
 
     AggServerResponse::Port::Kind getKind() const;
 
-    QPointer<const MEDEA::EventSeries> getPortLifecycleSeriesPointer() const;
-    //PortLifecycleEventSeries* getPortLifecycleSeriesPointer() const;
-
     const PortLifecycleRequest& getPortLifecycleRequest() const;
     const PortEventRequest& getPortEventRequest() const;
+
+    QPointer<const MEDEA::EventSeries> getPortLifecycleSeries() const;
+    QPointer<const MEDEA::EventSeries> getPortEventSeries() const;
 
     qint64 getPreviousEventTime(qint64 time) const;
     qint64 getNextEventTime(qint64 time) const;
 
     void addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events);
-    const PortLifecycleEventSeries& getPortLifecycleEventSeries() const;
-
     void addPortEvents(const QVector<PortEvent*>& events);
-    const PortEventSeries& getPortEventSeries() const;
 
     void updateData(qint64 new_last_updated_time);
 
@@ -61,8 +58,6 @@ private:
 
     PortLifecycleRequest port_lifecycle_request_;
     PortEventRequest port_event_request_;
-
-    //QPointer<const PortLifecycleEventSeries> port_lifecycle_series_ = nullptr;
 
     PortLifecycleEventSeries* port_lifecycle_series_ = nullptr;
     PortEventSeries* port_event_series_ = nullptr;

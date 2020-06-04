@@ -185,14 +185,14 @@ void PortInstanceGraphicsItem::setAlignment(Qt::Alignment alignment)
  */
 void PortInstanceGraphicsItem::playEvents(qint64 from_time, qint64 to_time)
 {
-    const auto& port_lifecycle_event_series = port_inst_data_.getPortLifecycleEventSeries();
-    const auto& port_lifecycle_events = port_lifecycle_event_series.getEventsBetween(from_time, to_time);
+    const auto& port_lifecycle_event_series = port_inst_data_.getPortLifecycleSeries();
+    const auto& port_lifecycle_events = port_lifecycle_event_series->getEventsBetween(from_time, to_time);
     if (!port_lifecycle_events.isEmpty()) {
         flashPort(MEDEA::ChartDataKind::PORT_LIFECYCLE, from_time);
     }
 
     const auto& port_event_series = port_inst_data_.getPortEventSeries();
-    const auto& port_events = port_event_series.getEventsBetween(from_time, to_time);
+    const auto& port_events = port_event_series->getEventsBetween(from_time, to_time);
 
     bool has_port_events = false;
     for (const auto& event : port_events) {

@@ -12,12 +12,12 @@ std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
  * @param parent
  */
 MEDEA::EventSeries::EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent)
-	: QObject(parent),
-	  ID_(ID),
-	  label_(ID),
-	  kind_(kind),
-	  eventSeriesID_(eventSeries_ID++),
-	  eventSeriesIDStr_(QString::number(eventSeriesID_))
+    : QObject(parent),
+      ID_(ID),
+      label_(ID),
+      kind_(kind),
+      eventSeriesID_(eventSeries_ID++),
+      eventSeriesIDStr_(QString::number(eventSeriesID_))
 {
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;

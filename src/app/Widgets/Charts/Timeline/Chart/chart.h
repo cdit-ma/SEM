@@ -74,6 +74,7 @@ private:
     void displayDataMinMax(QPainter& painter);
 
     void paintPortLifecycleSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void paintPortEventSeries(QPainter& painter, const QPointer<const EventSeries>& series);
 
     void paintSeries(QPainter& painter, const ChartDataKind kind);
     void paintPortLifecycleEventSeries(QPainter& painter);

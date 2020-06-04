@@ -21,7 +21,7 @@ public:
     const MarkerRequest& getMarkerRequest() const;
 
     void addMarkerEvents(const QVector<MarkerEvent*>& events);
-    const MarkerEventSeries& getMarkerEventSeries() const;
+    QPointer<const MEDEA::EventSeries> getMarkerEventSeries() const;
 
     void updateData(qint64 new_last_updated_time);
 

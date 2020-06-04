@@ -64,6 +64,7 @@ public slots:
 
 private slots:
     void visualiseSelectedExperimentRun(const AggServerResponse::ExperimentRun& experimentRun, bool charts, bool pulse);
+    void experimentRunDataUpdated(quint32 exp_run_id, qint64 last_updated_time);
 
 protected:
     static void constructSingleton(ViewController* vc);

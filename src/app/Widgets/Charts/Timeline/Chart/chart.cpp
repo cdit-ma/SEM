@@ -521,7 +521,7 @@ void Chart::paintSeries(QPainter& painter, const QPointer<const EventSeries>& se
             paintMarkerEventSeries(painter);
             break;
         case ChartDataKind::PORT_EVENT:
-            paintPortEventSeries(painter);
+            paintPortEventSeries(painter, series);
             break;
         case ChartDataKind::NETWORK_UTILISATION:
             paintNetworkUtilisationEventSeries(painter);
@@ -661,6 +661,86 @@ void Chart::paintPortLifecycleSeries(QPainter& painter, const QPointer<const Eve
         } else {
             QString countStr = count > 99 ? "𝑛" : QString::number(count);
             drawTextRect(painter, rect, countStr, portLifecycleColor_.darker(100 + (50 * (count - 1))), ChartDataKind::PORT_LIFECYCLE);
+        }
+    }
+
+    painter.restore();
+}
+
+void Chart::paintPortEventSeries(QPainter& painter, const QPointer<const MEDEA::EventSeries>& series)
+{
+    if (series.isNull()) {
+        return;
+    }
+
+    double barWidth = BIN_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
+
+    QVector< QList<Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
+
+    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
+    double current_left = displayMin_;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
+
+    const auto& events = series->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > displayMin_) {
+            break;
+        }
+    }
+
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
+
+    painter.save();
+    painter.setOpacity(portEventSeriesOpacity_);
+
+    int y = rect().center().y() - barWidth / 2.0;
+
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            auto event = (PortEvent*) buckets[i][0];
+            if (rectHovered(ChartDataKind::PORT_EVENT, rect)) {
+                painter.fillRect(rect, highlightBrush_);
+            }
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.drawPixmap(rect.toRect(), portEventTypePixmaps_.value(event->getType()));
+            painter.setRenderHint(QPainter::Antialiasing, false);
+        } else {
+            QString countStr = count > 99 ? "𝑛" : QString::number(count);
+            drawTextRect(painter, rect, countStr, portEventColor_.darker(100 + (50 * (count - 1))), ChartDataKind::PORT_EVENT);
         }
     }
 
