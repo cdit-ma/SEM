@@ -14,7 +14,7 @@ std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
  */
 MEDEA::EventSeries::EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent)
     : QObject(parent),
-      ID_(ID + Event::GetChartDataKindString(kind)),
+      ID_(ID),
       label_(ID),
       kind_(kind),
       eventSeriesID_(eventSeries_ID++),

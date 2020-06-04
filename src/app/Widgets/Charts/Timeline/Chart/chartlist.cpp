@@ -230,7 +230,7 @@ void ChartList::mouseReleaseEvent(QMouseEvent* event)
         emit rubberbandUsed(rubberBandRect_.left(), rubberBandRect_.right());
     }
 
-    // this is only here to demo that the hover axis dislay's position can be set manually
+    // NOTE: This demos that the hover axis display's position can be set manually
     //emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
 
     emit panning(false);
@@ -372,24 +372,6 @@ void ChartList::paintEvent(QPaintEvent *event)
  */
 void ChartList::hoverRectUpdated(bool repaintRequired)
 {
-    /*
-    if (hoverLineRect_.isNull()) {
-        for (Chart* chart : charts_) {
-            chart->setHoveredRect(hoverLineRect_);
-        }
-    } else {
-        for (Chart* chart : charts_) {
-            if (!chart->isVisible()) {
-                continue;
-            }
-            QRect childRect(chart->x(), chart->y(), chart->width(), chart->height());
-            if (visibleRegion().contains(childRect)) {
-                chart->setHoveredRect(hoverLineRect_);
-            }
-        }
-    }
-     */
-
     for (auto chart : charts_) {
         if (chart->isVisible()) {
             if (visibleRegion().intersects(chart->geometry())) {

@@ -2,6 +2,8 @@
 #include "componentinstancedata.h"
 #include "../ExperimentDataManager/experimentdatamanager.h"
 
+using namespace MEDEA;
+
 /**
  * @brief PortInstanceData::PortInstanceData
  * @param exp_run_id
@@ -35,28 +37,26 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
     //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
 
-    // NOTE: graphml_id fromat = <medea_ID>_<first_replication_ID>_<second_replication_ID>
-    //    seriesLabel = port.name + "_ " + graphml_id
-    //    seriesLabel + MEDEA::Event::GetChartDataKindStringSuffix(kind));
-    //    auto seriesLabel = "[" + QString::number(experimentRunID) + "] " + label;
+    // NOTE: graphml_id format = <medea_ID>_<first_replication_ID>_<second_replication_ID>
 
     // Setup event series
     auto&& exp_run_id_str = QString::number(experiment_run_id_);
-    auto&& series_id = graphml_id_ + exp_run_id_str;
+    auto&& port_inst_id = graphml_id_ + exp_run_id_str;
     auto medea_id = graphml_id_.split('_').first();
-    auto port_lifecycle_label = name_ + "_" + medea_id; // + MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind::PORT_LIFECYCLE);
-    auto port_event_label = name_ + "_" + medea_id; // + MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind::PORT_EVENT);
+    auto port_lifecycle_label = name_ + "_" + medea_id;
+    auto port_event_label = name_ + "_" + medea_id;
 
-    port_lifecycle_series_ = new PortLifecycleEventSeries(series_id);
+    port_lifecycle_series_ = new PortLifecycleEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_LIFECYCLE));
     port_lifecycle_series_->setLabel("[" + exp_run_id_str + "] " + port_lifecycle_label);
+    port_lifecycle_series_->setParent(this);
 
-    port_event_series_ = new PortEventSeries(series_id);
+    port_event_series_ = new PortEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_EVENT));
     port_event_series_->setLabel("[" + exp_run_id_str + "] " + port_event_label);
+    port_event_series_->setParent(this);
 
     connect(this, &PortInstanceData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestPortInstanceEvents);
     emit requestData(*this);
 }
-
 
 /**
  * @brief PortInstanceData::getGraphmlID
@@ -108,12 +108,6 @@ AggServerResponse::Port::Kind PortInstanceData::getKind() const
 }
 
 
-QPointer<const MEDEA::EventSeries> PortInstanceData::getPortLifecycleSeriesPointer() const
-{
-    return port_lifecycle_series_;
-}
-
-
 /**
  * @brief PortInstanceData::getPortLifecycleRequest
  * @return
@@ -135,14 +129,43 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
 
 
 /**
+ * @brief PortInstanceData::getPortLifecycleSeries
+ * @throws std::runtime_error
+ * @return
+ */
+QPointer<const EventSeries> PortInstanceData::getPortLifecycleSeries() const
+{
+    // TODO: Ask Jackson if this throw (and the others like it) is necessary since we've moved to using QPointers
+    //  Or should you just always check if it's null wherever it's being called?
+    if (port_lifecycle_series_ == nullptr) {
+        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
+    }
+    return port_lifecycle_series_;
+}
+
+/**
+ * @brief PortInstanceData::getPortEventSeries
+ * @throws std::runtime_error
+ * @return
+ */
+QPointer<const EventSeries> PortInstanceData::getPortEventSeries() const
+{
+    if (port_event_series_ == nullptr) {
+        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortEventSeries - Port event series is null");
+    }
+    return port_event_series_;
+}
+
+
+/**
  * @brief PortInstanceData::getPreviousEventTime
  * @param time
  * @return
  */
 qint64 PortInstanceData::getPreviousEventTime(qint64 time) const
 {
-    const auto& prev_port_lifecycle_event_time = getPortLifecycleEventSeries().getPreviousTime(time);
-    const auto& prev_port_event_time = getPortEventSeries().getPreviousTime(time);
+    const auto& prev_port_lifecycle_event_time = getPortLifecycleSeries()->getPreviousTime(time);
+    const auto& prev_port_event_time = getPortEventSeries()->getPreviousTime(time);
 
     if (prev_port_lifecycle_event_time == time) {
         return prev_port_event_time;
@@ -162,8 +185,8 @@ qint64 PortInstanceData::getPreviousEventTime(qint64 time) const
  */
 qint64 PortInstanceData::getNextEventTime(qint64 time) const
 {
-    const auto& next_port_lifecycle_event_time = getPortLifecycleEventSeries().getNextTime(time);
-    const auto& next_port_event_time = getPortEventSeries().getNextTime(time);
+    const auto& next_port_lifecycle_event_time = getPortLifecycleSeries()->getNextTime(time);
+    const auto& next_port_event_time = getPortEventSeries()->getNextTime(time);
 
     if (next_port_lifecycle_event_time == time) {
         return next_port_event_time;
@@ -187,39 +210,12 @@ void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>
 
 
 /**
- * @brief PortInstanceData::getPortLifecycleEventSeries
- * @return
- */
-const PortLifecycleEventSeries& PortInstanceData::getPortLifecycleEventSeries() const
-{
-    if (port_lifecycle_series_ == nullptr) {
-        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
-    }
-    return *port_lifecycle_series_;
-}
-
-
-/**
  * @brief PortInstanceData::addPortEvents
  * @param events
  */
 void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
     port_event_series_->addEvents(events);
-}
-
-
-/**
- * @brief PortInstanceData::getPortEventSeries
- * @throws std::runtime_error
- * @return
- */
-const PortEventSeries& PortInstanceData::getPortEventSeries() const
-{
-    if (port_event_series_ == nullptr) {
-        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortEventSeries - Port event series is null");
-    }
-    return *port_event_series_;
 }
 
 

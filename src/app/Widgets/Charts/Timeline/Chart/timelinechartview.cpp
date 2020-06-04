@@ -4,16 +4,6 @@
 #include "../Axis/axiswidget.h"
 #include "../../../../theme.h"
 
-/*
-#include "../../Data/Series/portlifecycleeventseries.h"
-#include "../../Data/Series/workloadeventseries.h"
-#include "../../Data/Series/cpuutilisationeventseries.h"
-#include "../../Data/Series/memoryutilisationeventseries.h"
-#include "../../Data/Series/markereventseries.h"
-#include "../../Data/Series/porteventseries.h"
-#include "../../Data/Series/networkutilisationeventseries.h"
-*/
-
 #include <QScrollBar>
 #include <QHBoxLayout>
 #include <QDebug>
@@ -33,6 +23,8 @@
 #define EXPERIMENT_RUN_START_TIME "experimentRunStartTime"
 
 using namespace MEDEA;
+
+const ChartDataKind TimelineChartView::no_data_kind_ = ChartDataKind::DATA;
 
 /**
  * @brief TimelineChartView::TimelineChartView
@@ -65,7 +57,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
     if (event->type() == QEvent::HoverEnter || event->type() == QEvent::HoverLeave) {
         if (!watched->property("checked").toBool())
             return false;
-        auto kind = MEDEA::ChartDataKind::DATA;
+        auto kind = no_data_kind_;
         if (event->type() == QEvent::HoverEnter) {
             kind = static_cast<MEDEA::ChartDataKind>(watched->property(CHART_DATA_KIND).toUInt());
         }
@@ -74,6 +66,7 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
     }
     return QWidget::eventFilter(watched, event);
 }
+
 
 void TimelineChartView::addChart(QPointer<const MEDEA::EventSeries> series, const AggServerResponse::ExperimentRun& experiment_run)
 {
@@ -88,6 +81,7 @@ void TimelineChartView::addChart(QPointer<const MEDEA::EventSeries> series, cons
 
     series_pointers_.insert(series_id, series);
     experimentRunSeriesCount_[exp_run_id]++;
+    experimentRunTimeRange_[exp_run_id] = {exp_start_time, experiment_run.last_updated_time};
 
     auto exp_run_info = "Experiment name:\t" + experiment_run.experiment_name +
                         "\nJob number#:\t" + QString::number(experiment_run.job_num) +
@@ -127,27 +121,29 @@ void TimelineChartView::addChart(QPointer<const MEDEA::EventSeries> series, cons
         emptyLabel_->hide();
     }
 
-    updateRangeForExperimentRun(exp_run_id, exp_start_time, experiment_run.last_updated_time);
+    qDebug() << "addChart:: update range to: " << QDateTime::fromMSecsSinceEpoch(exp_start_time).toString("hh:mm:ss.zzz")
+    << ", " << QDateTime::fromMSecsSinceEpoch(experiment_run.last_updated_time).toString("hh:mm:ss.zzz");
+
+    //updateRangeForExperimentRun(exp_run_id, exp_start_time, experiment_run.last_updated_time);
 }
 
-
-void TimelineChartView::addPortLifecycleChart(PortLifecycleEventSeries* series, const AggServerResponse::ExperimentRun& experiment_run)
+void TimelineChartView::addChart(QPointer<const MEDEA::EventSeries> series, const MEDEA::ExperimentRunData& exp_run_data)
 {
-    // NOTE: Need experiment run info for the tooltip and the last_updated_time for the chart's range
-    if (series == nullptr) {
-        throw std::invalid_argument("TimelineChartView::addPortLifecycleChart - series is null.");
+    if (series.isNull()) {
+        throw std::invalid_argument("TimelineChartView::addChart - series is null.");
     }
 
-    const auto exp_run_id = experiment_run.experiment_run_id;
-    const auto exp_start_time = experiment_run.start_time;
+    const auto exp_run_id = exp_run_data.experiment_run_id();
+    const auto exp_start_time = exp_run_data.start_time();
     const auto& series_id = series->getID();
     const auto& series_label = series->getLabel();
 
-    seriesList_.insert(series_id, series);
+    series_pointers_.insert(series_id, series);
     experimentRunSeriesCount_[exp_run_id]++;
+    experimentRunTimeRange_[exp_run_id] = {exp_start_time, exp_run_data.last_updated_time()};
 
-    auto exp_run_info = "Experiment name:\t" + experiment_run.experiment_name +
-                        "\nJob number#:\t" + QString::number(experiment_run.job_num) +
+    auto exp_run_info = "Experiment name:\t" + exp_run_data.experiment_name() +
+                        "\nJob number#:\t" + QString::number(exp_run_data.job_num()) +
                         "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(exp_start_time).toString(DATE_TIME_FORMAT);
 
     auto chart = new Chart(exp_run_id, exp_start_time, this);
@@ -184,17 +180,62 @@ void TimelineChartView::addPortLifecycleChart(PortLifecycleEventSeries* series, 
         emptyLabel_->hide();
     }
 
-    updateRangeForExperimentRun(exp_run_id, exp_start_time, experiment_run.last_updated_time);
+    qDebug() << "addChart:: update range to: " << QDateTime::fromMSecsSinceEpoch(exp_start_time).toString("hh:mm:ss.zzz")
+    << ", " << QDateTime::fromMSecsSinceEpoch(exp_run_data.last_updated_time()).toString("hh:mm:ss.zzz");
+
+    updateRangeForExperimentRun(exp_run_id, exp_start_time, exp_run_data.last_updated_time());
 }
 
-void TimelineChartView::addPortEventsChart(PortEventSeries* series){};
-void TimelineChartView::addWorkloadEventsChart(WorkloadEventSeries* series){};
-void TimelineChartView::addCPUUtilisationChart(CPUUtilisationEventSeries* series){};
-void TimelineChartView::addMemoryUtilisationChart(MemoryUtilisationEventSeries* series){};
-void TimelineChartView::addNetworkUtilisationChart(NetworkUtilisationEventSeries* series){};
-void TimelineChartView::addMarkerSetChart(MarkerEventSeries* series){};
+/*
+void TimelineChartView::removeChart(const QString& id, bool clearing_chart_list)
+{
+    // TODO: This needs to change if multiple series are allowed to be displayed in one chart
+    // NOTE: At the moment there should be a chart per series, hence a chart should only have one series
 
+    // Remove the series
+    series_pointers_.remove(id);
 
+    // Remove the chart
+    auto chart = charts_.value(id, nullptr);
+    if (chart) {
+        if (!clearing_chart_list) {
+            // This checks if the timeline range needs updating
+            removedDataFromExperimentRun(chart->getExperimentRunID());
+            charts_.remove(id);
+        }
+        chartList_->removeChart(chart);
+        chart->deleteLater();
+    }
+
+    // Remove the chart label
+    auto chart_label = chartLabels_.value(id, nullptr);
+    if (chart_label) {
+        /*
+        // TODO: Un-comment this out if ever we decide to group/parent ChartLabels
+        auto childrenLabels = chart_label->getChildrenChartLabels();
+        if (!childrenLabels.isEmpty()) {
+            // remove/delete chart chart_label's children labels
+            auto childItr = childrenLabels.begin();
+            while (childItr != childrenLabels.end()) {
+                (*childItr)->deleteLater();
+                childItr = childrenLabels.erase(childItr);
+            }
+        }
+        *
+        chartLabels_.remove(id);
+        chartLabelList_->removeChartLabel(chart_label);
+        chart_label->deleteLater();
+    }
+
+    if (!clearing_chart_list) {
+        // If there are no more charts, show the empty chart_label
+        if (charts_.isEmpty()) {
+            mainWidget_->hide();
+            emptyLabel_->show();
+        }
+    }
+}
+*/
 
 /**
  * @brief TimelineChartView::addPortLifecycleEvents
@@ -309,6 +350,7 @@ void TimelineChartView::addNetworkUtilisationEvents(const AggServerResponse::Exp
 void TimelineChartView::updateExperimentRunLastUpdatedTime(const quint32 experimentRunID, const qint64 time)
 {
     if (experimentRunTimeRange_.contains(experimentRunID)) {
+        qDebug() << "updateExperimentRunLastUpdatedTime: " << QDateTime::fromMSecsSinceEpoch(time).toString("hh:mm:ss.zzz");
         updateRangeForExperimentRun(experimentRunID, experimentRunTimeRange_[experimentRunID].first, time);
     }
 }
@@ -416,7 +458,7 @@ void TimelineChartView::themeChanged()
             buttonIcon = theme->getIcon("ToggleIcons", "networkHover");
             break;
         default:
-            if (kind != MEDEA::ChartDataKind::DATA) {
+            if (kind != no_data_kind_) {
                 qWarning("TimelineChartView::themeChanged - May be missing an icon for a ChartDataKind.");
             }
             continue;
@@ -458,6 +500,25 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
         return;
 
     auto kind = (MEDEA::ChartDataKind) sender()->property(CHART_DATA_KIND).toUInt();
+    for (const auto& series : series_pointers_) {
+        if (!series.isNull()) {
+            const auto series_kind = series->getKind();
+            if (series_kind != kind) {
+                continue;
+            }
+            const auto& series_id = series->getID();
+            auto chart = charts_.value(series_id, nullptr);
+            if (chart) {
+                chart->setVisible(checked);
+            }
+            auto chart_label = chartLabels_.value(series_id, nullptr);
+            if (chart_label) {
+                chart_label->setVisible(checked);
+            }
+        }
+    }
+
+    /*
     for (auto series : seriesList_) {
         if (series->getKind() == kind) {
             auto ID = series->getEventSeriesID();
@@ -481,9 +542,10 @@ void TimelineChartView::toggledSeriesLegend(bool checked)
             }
         }
     }
+     */
 
     sender()->setProperty("checked", checked);
-    emit seriesLegendHovered(checked ? kind : MEDEA::ChartDataKind::DATA);
+    emit seriesLegendHovered(checked ? kind : no_data_kind_);
 }
 
 
@@ -733,6 +795,10 @@ void TimelineChartView::addedEvents(const AggServerResponse::ExperimentRun& expe
             "\nJob number#:\t" + QString::number(experimentRun.job_num) +
             "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(experimentRun.start_time).toString(DATE_TIME_FORMAT);
 
+
+    qDebug() << "addedEvents:: update range to: " << QDateTime::fromMSecsSinceEpoch(experimentRunStartTime).toString("hh:mm:ss.zzz")
+             << ", " << QDateTime::fromMSecsSinceEpoch(experimentRun.last_updated_time).toString("hh:mm:ss.zzz");
+
     updateRangeForExperimentRun(experimentRunID, experimentRunStartTime, experimentRun.last_updated_time);
 
     // Set the experiment info as the chart's tooltip
@@ -886,7 +952,7 @@ Chart* TimelineChartView::constructChartForSeries(MEDEA::EventSeries *series, co
 
     // set the initial visibility state of the chart/chart label
     for (auto& action : legendActions_.values()) {
-        auto kind = legendActions_.key(action, MEDEA::ChartDataKind::DATA);
+        auto kind = legendActions_.key(action, no_data_kind_);
         if (kind == series->getKind()) {
             chart->setSeriesKindVisible(kind, true);
             chart->setVisible(action->isChecked());
@@ -957,7 +1023,6 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
         // check if the timeline range needs updating
         auto expRunID = chart->getExperimentRunID();
         if (experimentRunSeriesCount_.contains(expRunID)) {
-            experimentRunSeriesCount_[expRunID]--;
             removedDataFromExperimentRun(expRunID);
         }
         // if there are no more charts, show empty label
@@ -971,6 +1036,7 @@ void TimelineChartView::removeChart(const QString &ID, bool clearing)
     //chartList_->clearHovered();
     //chartList_->setChartHovered(nullptr, false);
 }
+
 
 
 /**
@@ -1003,9 +1069,18 @@ void TimelineChartView::updateRangeForExperimentRun(const quint32 experimentRunI
  */
 void TimelineChartView::removedDataFromExperimentRun(const quint32 experimentRunID)
 {
-    auto seriesCount =  experimentRunSeriesCount_.value(experimentRunID, 0);
-    if (seriesCount > 0)
+    if (!experimentRunSeriesCount_.contains(experimentRunID)) {
         return;
+    }
+
+    experimentRunSeriesCount_[experimentRunID]--;
+    int seriesCount = experimentRunSeriesCount_[experimentRunID];
+
+    // decrement the series count; if it's not the last one, do nothing
+    //int seriesCount = --experimentRunSeriesCount_[experimentRunID];
+    if (seriesCount > 0) {
+        return;
+    }
 
     experimentRunSeriesCount_.remove(experimentRunID);
     experimentRunTimeRange_.remove(experimentRunID);
@@ -1150,9 +1225,9 @@ void TimelineChartView::setupLayout()
      * HOVER AND LEGEND CHART DATA KIND WIDGETS
      */
     for (auto kind : MEDEA::Event::GetChartDataKinds()) {
-        if (kind == MEDEA::ChartDataKind::DATA)
+        if (kind == no_data_kind_) {
             continue;
-
+        }
         // construct legend widgets
         QAction* action = legendToolbar_->addAction(MEDEA::Event::GetChartDataKindString(kind));
         legendActions_[kind] = action;

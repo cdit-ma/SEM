@@ -18,11 +18,10 @@ public:
     int getID() const;
 
     const QString& getMarkerName() const;
-
     const MarkerRequest& getMarkerRequest() const;
 
     void addMarkerEvents(const QVector<MarkerEvent*>& events);
-    MarkerEventSeries* getMarkerEventSeries() const;
+    QPointer<const MEDEA::EventSeries> getMarkerEventSeries();
 
     void updateData(qint64 new_last_updated_time);
 

@@ -5,6 +5,8 @@ const int invalid_experiment_run_id = -1;
 
 using namespace MEDEA;
 
+#include <QDateTime>
+
 /**
  * @brief ExperimentData::ExperimentData
  * @param experiment_name
@@ -37,14 +39,18 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
         throw std::invalid_argument("ExperimentData::addExperimentRun - Invalid experiment run.");
     }
 
-    auto&& exp_run_data = std::unique_ptr<ExperimentRunData>(new ExperimentRunData(exp_run_id,
-                                                              exp_run.job_num,
-                                                              exp_run.start_time,
-                                                              exp_run.end_time,
-                                                              exp_run.last_updated_time));
+    auto exp_run_data = std::unique_ptr<ExperimentRunData>(new ExperimentRunData(experiment_name_,
+                                                                                 exp_run_id,
+                                                                                 exp_run.job_num,
+                                                                                 exp_run.start_time,
+                                                                                 exp_run.end_time,
+                                                                                 exp_run.last_updated_time));
 
     // TODO: We should figure out what the emplace/insert functions actually do
     experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));
+
+    auto& d = getExperimentRun(exp_run_id);
+    connect(&d, &ExperimentRunData::dataUpdated, this, &ExperimentData::experimentRunUpdated);
 }
 
 
@@ -70,4 +76,16 @@ MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) c
 void ExperimentData::updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state)
 {
     getExperimentRun(exp_run_id).updateData(exp_state);
+}
+
+
+/**
+ * @brief ExperimentData::experimentRunUpdated
+ * @param last_updated_time
+ */
+void ExperimentData::experimentRunUpdated(qint64 last_updated_time)
+{
+    qDebug() << "experimentRunUpdated: " << QDateTime::fromMSecsSinceEpoch(last_updated_time).toString("hh:mm:ss.zzz");
+    auto exp_run = qobject_cast<ExperimentRunData*>(sender());
+    emit experimentRunLastUpdateTimeChanged(exp_run->experiment_run_id(), last_updated_time);
 }

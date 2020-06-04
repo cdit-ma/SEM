@@ -12,14 +12,23 @@
  * @param last_updated_time
  * @param parent
  */
-MEDEA::ExperimentRunData::ExperimentRunData(quint32 experiment_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time, QObject *parent)
+MEDEA::ExperimentRunData::ExperimentRunData(const QString& exp_name, quint32 experiment_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time, QObject *parent)
     : QObject(parent),
+      experiment_name_(exp_name),
       experiment_run_id_(experiment_run_id),
       job_num_(job_num),
       start_time_(start_time),
       end_time_(end_time),
       last_updated_time_(last_updated_time) {}
 
+/**
+ * @brief MEDEA::ExperimentRunData::experiment_name
+ * @return
+ */
+const QString& MEDEA::ExperimentRunData::experiment_name() const
+{
+    return experiment_name_;
+}
 
 /**
  * @brief MEDEA::ExperimentRunData::experiment_run_id
@@ -133,6 +142,7 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
         for (const auto& p_c : exp_state.port_connections) {
             addPortConnection(p_c);
         }
+        qDebug() << "exp run data updated";
         emit dataUpdated(last_updated_time_);
 
         // If the experiment run was live, send a signal to let listeners know if it has finished

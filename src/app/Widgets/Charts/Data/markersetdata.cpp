@@ -63,16 +63,14 @@ void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
     marker_event_series_->addEvents(events);
 }
 
-
 /**
  * @brief MarkerSetData::getMarkerEventSeries
  * @return
  */
-MarkerEventSeries* MarkerSetData::getMarkerEventSeries() const
+QPointer<const MEDEA::EventSeries> MarkerSetData::getMarkerEventSeries()
 {
     return marker_event_series_;
 }
-
 
 /**
  * @brief MarkerSetData::updateData
