@@ -50,6 +50,7 @@ public:
     void addMarkerSetDataChart(const MarkerSetData& marker_set_data);
     */
 
+    void addChart(QPointer<const MEDEA::EventSeries> series, const AggServerResponse::ExperimentRun& experiment_run);
     void addPortLifecycleChart(PortLifecycleEventSeries* series, const AggServerResponse::ExperimentRun& experiment_run);
     void addPortEventsChart(PortEventSeries* series);
     void addWorkloadEventsChart(WorkloadEventSeries* series);
@@ -141,6 +142,8 @@ private:
     QHash<QString, MEDEA::ChartLabel*> chartLabels_;
     QHash<QString, MEDEA::Chart*> charts_;
     QMultiHash<QString, MEDEA::EventSeries*> seriesList_;
+
+    QMultiHash<QString, QPointer<const MEDEA::EventSeries>> series_pointers_;
 };
 
 #endif // TIMELINECHARTVIEW_H

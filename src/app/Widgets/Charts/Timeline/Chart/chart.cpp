@@ -28,21 +28,14 @@ using namespace MEDEA;
  * @param parent
  */
 Chart::Chart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent)
-	: QWidget(parent)
+    : QWidget(parent),
+      experimentRunID_(experimentRunID),
+      experimentRunStartTime_(experimentStartTime)
 {
 	setMouseTracking(true);
 
-	experimentRunID_ = experimentRunID;
-	experimentRunStartTime_ = experimentStartTime;
-	hoveredSeriesKind_ = ChartDataKind::DATA;
-
-	dataMinX_ = DBL_MAX;
-	dataMaxX_ = DBL_MIN;
-	dataMinY_ = DBL_MAX;
-	dataMaxY_ = DBL_MIN;
-
-	connect(Theme::theme(), &Theme::theme_Changed, this, &Chart::themeChanged);
-	themeChanged();
+    connect(Theme::theme(), &Theme::theme_Changed, this, &Chart::themeChanged);
+    themeChanged();
 }
 
 /**
@@ -53,6 +46,28 @@ quint32 Chart::getExperimentRunID() const
 {
 	return experimentRunID_;
 }
+
+
+void Chart::addSeries(const QPointer<const MEDEA::EventSeries>& series)
+{
+    if (!series.isNull()) {
+        if (series->getKind() == ChartDataKind::CPU_UTILISATION ||
+            series->getKind() == ChartDataKind::MEMORY_UTILISATION ||
+            series->getKind() == ChartDataKind::NETWORK_UTILISATION) {
+            containsYRange_ = true;
+            connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
+            connect(series, &EventSeries::maxYValueChanged, this, &Chart::updateVerticalMax);
+        }
+        series_pointers_[series->getKind()] = series;
+        qDebug() << "Added series";
+    }
+}
+
+const QHash<ChartDataKind, QPointer<const EventSeries>>& Chart::getSeriesPointers() const
+{
+    return series_pointers_;
+}
+
 
 /**
  * @brief Chart::addSeries
@@ -71,6 +86,18 @@ void Chart::addSeries(EventSeries* series)
         }
     }
 }
+
+
+/**
+ * @brief Chart::removeSeries
+ * @param kind
+ */
+void Chart::removeSeries(ChartDataKind kind)
+{
+    seriesList_.remove(kind);
+    series_pointers_.remove(kind);
+}
+
 
 /**
  * @brief Chart::getSeries
@@ -430,84 +457,214 @@ void Chart::paintEvent(QPaintEvent* event)
 {
 	Q_UNUSED(event);
 
-	/*
-	 * NOTE: This assumes that the data is ordered in ascending order time-wise
-	 */
+    // NOTE: This assumes that the data is ordered in ASCENDING order time-wise
 
 	auto start = QDateTime::currentMSecsSinceEpoch();
 
-	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
-	painter.setFont(font());
-
-	painter.fillRect(rect(), backgroundColor_);
+    QPainter painter(this);
+    painter.setFont(font());
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
+    painter.fillRect(rect(), backgroundColor_);
 
 	clearHoveredLists();
 
-	// NOTE: If we decide to display multiple kinds of event series in one chart, we'll need to render the hovered one last
-	for (const auto& seriesKind : seriesList_.keys()) {
-		paintSeries(painter, seriesKind);
-	}
-	painter.setOpacity(1.0);
+    // NOTE: If we decide to display multiple kinds of event series in one chart, we'll need to render the hovered one last
+    /*for (const auto& seriesKind : seriesList_.keys()) {
+        paintSeries(painter, seriesKind);
+    }*/
+    for (const auto& series : series_pointers_) {
+        paintSeries(painter, series);
+    }
 
-	// outline the highlighted rects - for event series
-	painter.setPen(highlightPen_);
-	painter.setBrush(Qt::NoBrush);
-	for (auto rect : hoveredRects_) {
-		rect.adjust(-1, -1, 1, 1);
-		painter.drawRect(rect);
-	}
+    outlineHoveredData(painter);
 
-	// outline the highlighted ellipses - for utilisation series
-	painter.setRenderHint(QPainter::Antialiasing, true);
-	painter.setBrush(highlightBrush_);
-	for (auto rect : hoveredEllipseRects_) {
-		rect.adjust(-BORDER_WIDTH, -BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-		painter.drawEllipse(rect);
-	}
-
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	painter.setPen(defaultRectPen_);
-
-    // display the y-range and send the series points that were hovered over
     if (hovered_) {
-        if (containsYRange_) {
-            QString minStr = QString::number(floor(dataMinY_ * 100)) + "%";
-            QString maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
-
-            bool contains_network_utilisation = seriesList_.keys().contains(ChartDataKind::NETWORK_UTILISATION);
-            if (contains_network_utilisation) {
-                minStr = NetworkUtilisationEventSeries::getByteString(dataMinY_);
-                maxStr = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
-            }
-
-            int h = fontMetrics().height();
-            int w = qMax(fontMetrics().horizontalAdvance(minStr), fontMetrics().horizontalAdvance(maxStr)) + 5;
-
-            QRectF maxRect(width() - w, 0, w, h);
-            QRectF minRect(width() - w, height() - h, w, h);
-            painter.setPen(textColor_);
-            painter.setBrush(hoveredRectColor_);
-            painter.drawRect(maxRect);
-            painter.drawRect(minRect);
-            painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
-            painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
-        }
+        displayDataMinMax(painter);
         painter.setPen(QPen(textColor_, 2.0));
         painter.drawEllipse(mapFromGlobal(cursor().pos()), 4, 4);
     }
 
-	// NOTE: Don't use rect.bottom (rect.bottom = rect.top + rect.height - 1)
-	// draw horizontal grid lines
-	painter.drawLine(0, 0, rect().right(), 0);
-	painter.drawLine(0, height(), rect().right(), height());
+    // NOTE: Don't use rect.bottom (rect.bottom = rect.top + rect.height - 1)
+    // Draw horizontal grid lines
+    painter.setPen(defaultRectPen_);
+    painter.drawLine(0, 0, rect().right(), 0);
+    painter.drawLine(0, height(), rect().right(), height());
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES) {
-		qDebug() << "Total Render Took: " << finish - start << "ms";
-		qDebug() << "------------------------------------------------";
-	}
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES) {
+        qDebug() << "Total Render Took: " << finish - start << "ms";
+        qDebug() << "------------------------------------------------";
+    }
+}
+
+void Chart::paintSeries(QPainter& painter, const QPointer<const EventSeries>& series)
+{
+    if (series.isNull()) {
+        return;
+    }
+    const auto series_kind = series->getKind();
+    switch (series_kind) {
+        case ChartDataKind::PORT_LIFECYCLE:
+            paintPortLifecycleSeries(painter, series);
+            break;
+        case ChartDataKind::WORKLOAD:
+            paintWorkloadEventSeries(painter);
+            break;
+        case ChartDataKind::CPU_UTILISATION:
+            paintCPUUtilisationEventSeries(painter);
+            break;
+        case ChartDataKind::MEMORY_UTILISATION:
+            paintMemoryUtilisationEventSeries(painter);
+            break;
+        case ChartDataKind::MARKER:
+            paintMarkerEventSeries(painter);
+            break;
+        case ChartDataKind::PORT_EVENT:
+            paintPortEventSeries(painter);
+            break;
+        case ChartDataKind::NETWORK_UTILISATION:
+            paintNetworkUtilisationEventSeries(painter);
+            break;
+        default:
+            qWarning("Chart::paintSeries - Series kind not handled");
+            break;
+    }
+}
+
+
+void Chart::outlineHoveredData(QPainter& painter)
+{
+    painter.save();
+
+    // Outline the highlighted rects - for event series
+    painter.setPen(highlightPen_);
+    painter.setBrush(Qt::NoBrush);
+    for (const auto& rect : hoveredRects_) {
+        painter.drawRect(rect.adjusted(-1, -1, 1, 1));
+    }
+
+    // Outline the highlighted ellipses - for utilisation series
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setBrush(highlightBrush_);
+    for (const auto& rect : hoveredEllipseRects_) {
+        painter.drawEllipse(rect.adjusted(-BORDER_WIDTH, -BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
+    }
+
+    painter.restore();
+}
+
+void Chart::displayDataMinMax(QPainter& painter)
+{
+    if (containsYRange_) {
+        painter.save();
+
+        auto minStr = QString::number(floor(dataMinY_ * 100)) + "%";
+        auto maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
+
+        bool&& contains_network_util = seriesList_.keys().contains(ChartDataKind::NETWORK_UTILISATION);
+        if (contains_network_util) {
+            minStr = NetworkUtilisationEventSeries::getByteString(dataMinY_);
+            maxStr = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
+        }
+
+        static const int padding = 5;
+        int h = fontMetrics().height() + padding;
+        int w = qMax(fontMetrics().horizontalAdvance(minStr), fontMetrics().horizontalAdvance(maxStr)) + padding;
+
+        painter.setPen(textColor_);
+        painter.setBrush(hoveredRectColor_);
+
+        QRectF maxRect(width() - w, 0, w, h);
+        painter.drawRect(maxRect);
+        painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
+
+        QRectF minRect(width() - w, height() - h, w, h);
+        painter.drawRect(minRect);
+        painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
+
+        painter.restore();
+    }
+}
+
+void Chart::paintPortLifecycleSeries(QPainter& painter, const QPointer<const EventSeries>& series)
+{
+    if (series.isNull()) {
+        return;
+    }
+
+    double barWidth = BIN_WIDTH;
+    double barCount = ceil((double)width() / barWidth);
+
+    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
+    barWidth = (double) width() / barCount;
+
+    QVector< QList<Event*> > buckets(barCount);
+    QVector<double> bucket_endTimes;
+    bucket_endTimes.reserve(barCount);
+
+    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
+    double current_left = displayMin_;
+    for (int i = 0; i < barCount; i++) {
+        bucket_endTimes.append(current_left + barTimeWidth);
+        current_left = bucket_endTimes.last();
+    }
+
+    const auto& events = series->getEvents();
+    auto current = events.constBegin();
+    auto upper = events.constEnd();
+    for (; current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        if (current_time > displayMin_) {
+            break;
+        }
+    }
+
+    auto current_bucket = 0;
+    auto current_bucket_ittr = bucket_endTimes.constBegin();
+    auto end_bucket_ittr = bucket_endTimes.constEnd();
+
+    // put the data in the correct bucket
+    for (;current != upper; current++) {
+        const auto& current_time = (*current)->getTimeMS();
+        while (current_bucket_ittr != end_bucket_ittr) {
+            if (current_time > (*current_bucket_ittr)) {
+                current_bucket_ittr ++;
+                current_bucket ++;
+            } else {
+                break;
+            }
+        }
+        if (current_bucket < barCount) {
+            buckets[current_bucket].append(*current);
+        }
+    }
+
+    painter.save();
+    painter.setOpacity(portLifecycleSeriesOpacity_);
+
+    int y = rect().center().y() - barWidth / 2.0;
+
+    for (int i = 0; i < barCount; i++) {
+        int count = buckets[i].count();
+        if (count == 0)
+            continue;
+        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        if (count == 1) {
+            auto event = (PortLifecycleEvent*) buckets[i][0];
+            if (rectHovered(ChartDataKind ::PORT_LIFECYCLE, rect)) {
+                painter.fillRect(rect, highlightBrush_);
+            }
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
+            painter.setRenderHint(QPainter::Antialiasing, false);
+        } else {
+            QString countStr = count > 99 ? "𝑛" : QString::number(count);
+            drawTextRect(painter, rect, countStr, portLifecycleColor_.darker(100 + (50 * (count - 1))), ChartDataKind::PORT_LIFECYCLE);
+        }
+    }
+
+    painter.restore();
 }
 
 /**
@@ -621,8 +778,10 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
 		}
 	}
 
-    int y = rect().center().y() - barWidth / 2.0;
+    painter.save();
     painter.setOpacity(portLifecycleSeriesOpacity_);
+
+    int y = rect().center().y() - barWidth / 2.0;
 
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
@@ -643,9 +802,11 @@ void Chart::paintPortLifecycleEventSeries(QPainter &painter)
         }
     }
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "PORT LIFECYCLE Render Took: " << finish - start << "ms";
+    painter.restore();
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "PORT LIFECYCLE Render Took: " << finish - start << "ms";
 }
 
 /**
@@ -707,8 +868,10 @@ void Chart::paintWorkloadEventSeries(QPainter &painter)
 		}
 	}
 
-    int y = rect().center().y() - barWidth / 2.0;
+    painter.save();
     painter.setOpacity(workloadSeriesOpacity_);
+
+    int y = rect().center().y() - barWidth / 2.0;
 
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
@@ -729,9 +892,11 @@ void Chart::paintWorkloadEventSeries(QPainter &painter)
         }
     }
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "WORKLOAD Render Took: " << finish - start << "ms";
+    painter.restore();
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "WORKLOAD Render Took: " << finish - start << "ms";
 }
 
 /**
@@ -1069,9 +1234,9 @@ void Chart::paintMarkerEventSeries(QPainter &painter)
 		currentLeft = binEndTimes.last();
 	}
 
-	auto markerEventSeries = (MarkerEventSeries*) eventSeries;
-	const auto& startTimesMap = markerEventSeries->getMarkerIDsMappedByStartTimes();
-	const auto& idSetDuration = markerEventSeries->getMarkerIDSetDurations();
+    auto markerEventSeries = (MarkerEventSeries*) eventSeries;
+    const auto& startTimesMap = markerEventSeries->getMarkerIDsMappedByStartTimes();
+    const auto& idSetDuration = markerEventSeries->getMarkerIDSetDurations();
 
 	auto currentBinIndex = 0;
 	auto currentBinItr = binEndTimes.constBegin();
@@ -1129,8 +1294,10 @@ void Chart::paintMarkerEventSeries(QPainter &painter)
 	QColor brushColor = seriesColor;
 	QPen textPen(textColor_, 2.0);
 
-	auto availableHeight = height() - BORDER_WIDTH;
-	painter.setOpacity(markerSeriesOpacity_);
+    painter.save();
+    painter.setOpacity(markerSeriesOpacity_);
+
+    auto availableHeight = height() - BORDER_WIDTH;
 
 	for (int i = 0; i < binCount; i++) {
 		auto durationMS = bins[i];
@@ -1155,9 +1322,11 @@ void Chart::paintMarkerEventSeries(QPainter &painter)
 		}
 	}
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "MARKER Render Took: " << finish - start << "ms";
+    painter.restore();
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "MARKER Render Took: " << finish - start << "ms";
 }
 
 /**
@@ -1220,8 +1389,10 @@ void Chart::paintPortEventSeries(QPainter& painter)
 		}
 	}
 
-    int y = rect().center().y() - barWidth / 2.0;
+    painter.save();
     painter.setOpacity(portEventSeriesOpacity_);
+
+    int y = rect().center().y() - barWidth / 2.0;
 
     for (int i = 0; i < barCount; i++) {
         int count = buckets[i].count();
@@ -1242,9 +1413,11 @@ void Chart::paintPortEventSeries(QPainter& painter)
         }
     }
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "PORT EVENT Render Took: " << finish - start << "ms";
+    painter.restore();
+
+    auto finish = QDateTime::currentMSecsSinceEpoch();
+    if (PRINT_RENDER_TIMES)
+        qDebug() << "PORT EVENT Render Took: " << finish - start << "ms";
 }
 
 
@@ -1429,6 +1602,8 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
  */
 void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, QColor color, ChartDataKind series_kind)
 {
+    painter.save();
+
     if (rectHovered(series_kind, rect)) {
         painter.fillRect(rect, highlightBrush_);
         painter.setPen(defaultTextPen_);
@@ -1440,6 +1615,7 @@ void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& t
     }
 
     painter.drawText(rect, text, QTextOption(Qt::AlignCenter));
+    painter.restore();
 }
 
 
@@ -1456,6 +1632,7 @@ void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QCo
         return;
     }
 
+    painter.save();
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setOpacity(opacity);
     painter.setPen(defaultEllipsePen_);
@@ -1480,7 +1657,7 @@ void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QCo
         }
     }
 
-    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.restore();
 }
 
 

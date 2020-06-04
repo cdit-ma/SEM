@@ -230,6 +230,8 @@ void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
     } catch (const std::exception& ex) {
         qInfo(ex.what());
     }
+    return;
+
     try {
         auto&& request_param = QVariant::fromValue<WorkloadRequest>(builder.getWorkloadRequest());
         requestExperimentData(ExperimentDataRequestType::WorkloadEvent, request_param);
@@ -293,7 +295,8 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
                     } else {
                         emit showChartsPanel();
                         const auto& series = port_data_requester->getPortLifecycleSeriesPointer();
-                        timelineChartView().addPortLifecycleChart(series, experimentRun);
+                        //timelineChartView().addPortLifecycleChart(series, experimentRun);
+                        timelineChartView().addChart(series, experimentRun);
                     }
                 }
             } else {

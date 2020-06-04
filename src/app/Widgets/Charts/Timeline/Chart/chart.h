@@ -28,7 +28,9 @@ public:
 
     quint32 getExperimentRunID() const;
 
-    void addSeries(QPointer<const MEDEA::EventSeries> series);
+    void addSeries(const QPointer<const MEDEA::EventSeries>& series);
+    const QHash<ChartDataKind, QPointer<const EventSeries>>& getSeriesPointers() const;
+
     void addSeries(EventSeries *series);
     void removeSeries(ChartDataKind kind);
 
@@ -67,7 +69,13 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    void paintSeries(QPainter& painter, ChartDataKind kind);
+    void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void outlineHoveredData(QPainter& painter);
+    void displayDataMinMax(QPainter& painter);
+
+    void paintPortLifecycleSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+
+    void paintSeries(QPainter& painter, const ChartDataKind kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
     void paintWorkloadEventSeries(QPainter& painter);
     void paintCPUUtilisationEventSeries(QPainter& painter);
@@ -100,12 +108,12 @@ private:
     bool containsYRange_ = false;
     bool hovered_ = false;
 
+    double dataMinX_ = DBL_MAX;
+    double dataMaxX_ = DBL_MIN;
+    double dataMinY_ = DBL_MAX;
+    double dataMaxY_ = DBL_MIN;
     double displayMin_ = 0.0;
     double displayMax_ = 1.0;
-    double dataMinX_;
-    double dataMaxX_;
-    double dataMinY_;
-    double dataMaxY_;
 
     double minRatio_ = 0.0;
     double maxRatio_ = 1.0;
@@ -161,8 +169,9 @@ private:
     double networkSeriesOpacity_ = 1.0;
 
     QHash<ChartDataKind, bool> seriesKindVisible_;
-    QHash<ChartDataKind, EventSeries*> seriesList_2;
-    QHash<ChartDataKind, QPointer<const MEDEA::EventSeries>> seriesList_;
+    QHash<ChartDataKind, EventSeries*> seriesList_;
+
+    QHash<ChartDataKind, QPointer<const MEDEA::EventSeries>> series_pointers_;
 
     QVector<QList<Event*>> portLifecycleBinnedData_;
     QVector<QList<Event*>> workloadBinnedData_;
@@ -174,7 +183,7 @@ private:
     QVector<QList<Event*>> emptyBinnedData_;
 
     QHash<ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
-    ChartDataKind hoveredSeriesKind_;
+    ChartDataKind hoveredSeriesKind_ = ChartDataKind::DATA;
     QList<QRectF> hoveredEllipseRects_;
     QList<QRectF> hoveredRects_;
 
