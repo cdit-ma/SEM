@@ -42,9 +42,6 @@ ContextMenu::ContextMenu(ViewController *vc)
     connect_node_edge_kinds[NODE_KIND::PORT_REPLIER_IMPL] = EDGE_KIND::DEFINITION;
     connect_node_edge_kinds[NODE_KIND::TRIGGER_INST] = EDGE_KIND::DEFINITION;
 
-    connect_node_edge_kinds[NODE_KIND::TRIGGER_INST] = EDGE_KIND::DEFINITION;
-
-
     action_controller = view_controller->getActionController();
 
     setupMenus();
@@ -828,11 +825,11 @@ void ContextMenu::update_trigger_edge_menu()
         auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::TRIGGER);
         trigger_edge_menu->setProperty("load_all", true);
         update_edge_menu(
-        nullptr,
-        trigger_edge_menu,
-        connect_map.values(EDGE_DIRECTION::SOURCE),
-        connect_map.values(EDGE_DIRECTION::TARGET),
-        disconnect_map.values()
+            nullptr,
+            trigger_edge_menu,
+            connect_map.values(EDGE_DIRECTION::SOURCE),
+            connect_map.values(EDGE_DIRECTION::TARGET),
+            disconnect_map.values()
         );
     }
 }
@@ -840,16 +837,13 @@ void ContextMenu::update_trigger_edge_menu()
 void ContextMenu::update_deploy_menu()
 {
     if (deploy_menu && dock_deploy_menu) {
-    auto edge_kind = EDGE_KIND::DEPLOYMENT;
-    auto edge_direction = EDGE_DIRECTION::TARGET;
-    auto connect_map = view_controller->getValidEdges(EDGE_KIND::DEPLOYMENT);
-    auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::DEPLOYMENT);
-    auto menus = {dock_deploy_menu, deploy_menu};
-    for (auto menu : menus) {
-        menu->setProperty("load_all", true);
-        update_edge_menu(nullptr, menu, connect_map.values(EDGE_DIRECTION::SOURCE), connect_map.values(EDGE_DIRECTION::TARGET), disconnect_map.values());
-    }
-}
+        auto connect_map = view_controller->getValidEdges(EDGE_KIND::DEPLOYMENT);
+        auto disconnect_map = view_controller->getExistingEndPointsOfSelection(EDGE_KIND::DEPLOYMENT);
+        auto menus = {dock_deploy_menu, deploy_menu};
+        for (auto menu : menus) {
+            menu->setProperty("load_all", true);
+            update_edge_menu(nullptr, menu, connect_map.values(EDGE_DIRECTION::SOURCE), connect_map.values(EDGE_DIRECTION::TARGET), disconnect_map.values());
+        }
     }
 }
 
@@ -1079,8 +1073,6 @@ void ContextMenu::setupMenus()
     //Put our custom deploy menu into the edge hash
     add_edge_menu_direct_hash[{EDGE_DIRECTION::SOURCE, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
     add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::DEPLOYMENT}] = deploy_menu;
-    add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::TRIGGER}] = trigger_edge_menu;
-
     add_edge_menu_direct_hash[{EDGE_DIRECTION::TARGET, EDGE_KIND::TRIGGER}] = trigger_edge_menu;
 
     // setup chart menu
