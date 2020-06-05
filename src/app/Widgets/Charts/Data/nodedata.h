@@ -12,6 +12,7 @@
 #include "Series/cpuutilisationeventseries.h"
 #include "Series/memoryutilisationeventseries.h"
 #include "Series/networkutilisationeventseries.h"
+#include <QSet>
 
 class NodeData : public QObject
 {
@@ -25,18 +26,22 @@ public:
 
     QList<ContainerInstanceData*> getContainerInstanceData() const;
 
+    const QSet<QPointer<const MEDEA::EventSeries>>& getPortLifecycleSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getPortEventSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getWorkloadEventSeries() const;
+
     const UtilisationRequest& getCPUUtilisationRequest() const;
     const UtilisationRequest& getMemoryUtilisationRequest() const;
     const UtilisationRequest& getNetworkUtilisationRequest() const;
 
     void addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events);
-    const CPUUtilisationEventSeries& getCPUUtilisationSeries() const;
+    QPointer<const MEDEA::EventSeries> getCPUUtilisationSeries() const;
 
     void addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events);
-    const MemoryUtilisationEventSeries& getMemoryUtilisationSeries() const;
+    QPointer<const MEDEA::EventSeries> getMemoryUtilisationSeries() const;
 
     void addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events);
-    NetworkUtilisationEventSeries* getNetworkUtilisationSeries() const;
+    QPointer<const MEDEA::EventSeries> getNetworkUtilisationSeries() const;
 
     void updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time);
 
@@ -53,6 +58,10 @@ private:
     QString ip_;
 
     QHash<QString, ContainerInstanceData*> container_inst_data_hash_;
+
+    QSet<QPointer<const MEDEA::EventSeries>> port_lifecycle_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> port_event_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> workload_event_series_;
 
     UtilisationRequest cpu_utilisation_request_;
     UtilisationRequest memory_utilisation_request_;

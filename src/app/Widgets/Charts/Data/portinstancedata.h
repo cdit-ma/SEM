@@ -31,14 +31,14 @@ public:
     const PortLifecycleRequest& getPortLifecycleRequest() const;
     const PortEventRequest& getPortEventRequest() const;
 
+    void addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events);
     QPointer<const MEDEA::EventSeries> getPortLifecycleSeries() const;
+
+    void addPortEvents(const QVector<PortEvent*>& events);
     QPointer<const MEDEA::EventSeries> getPortEventSeries() const;
 
     qint64 getPreviousEventTime(qint64 time) const;
     qint64 getNextEventTime(qint64 time) const;
-
-    void addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events);
-    void addPortEvents(const QVector<PortEvent*>& events);
 
     void updateData(qint64 new_last_updated_time);
 

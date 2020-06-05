@@ -6,6 +6,7 @@
 #include "workerinstancedata.h"
 
 #include <QHash>
+#include <QSet>
 
 class ComponentInstanceData : public QObject
 {
@@ -21,6 +22,10 @@ public:
 
     QList<PortInstanceData*> getPortInstanceData() const;
     QList<WorkerInstanceData*> getWorkerInstanceData() const;
+
+    const QSet<QPointer<const MEDEA::EventSeries>>& getPortLifecycleSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getPortEventSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getWorkloadEventSeries() const;
 
     void updateData(const AggServerResponse::ComponentInstance& component_instance, qint64 new_last_updated_time);
 
@@ -41,6 +46,10 @@ private:
 
     QHash<QString, PortInstanceData*> port_inst_data_hash_;
     QHash<QString, WorkerInstanceData*> worker_inst_data_hash_;
+
+    QSet<QPointer<const MEDEA::EventSeries>> port_lifecycle_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> port_event_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> workload_event_series_;
 };
 
 #endif // COMPONENTINSTANCEDATA_H

@@ -92,12 +92,12 @@ void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events
  * @throws std::runtime_error
  * @return
  */
-const WorkloadEventSeries& WorkerInstanceData::getWorkloadEventSeries() const
+QPointer<const MEDEA::EventSeries> WorkerInstanceData::getWorkloadEventSeries() const
 {
 	if (workload_event_series_ == nullptr) {
-		throw std::runtime_error("WorkloadEventSeries& WorkerInstanceData::getWorkloadEventSeries - Workload event series is null");
+		throw std::runtime_error("WorkerInstanceData::getWorkloadEventSeries - Workload event series is null");
 	}
-	return *workload_event_series_;
+	return workload_event_series_;
 }
 
 /**

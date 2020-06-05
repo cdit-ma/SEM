@@ -132,6 +132,7 @@ bool ChartList::isPanning() const
 void ChartList::themeChanged()
 {
 	Theme* theme = Theme::theme();
+    ellipseColor_ = theme->getTextColor(ColorRole::SELECTED);
 	highlightColor_ = theme->getHighlightColor();
 
 	backgroundColor_ = theme->getAltBackgroundColor();
@@ -334,6 +335,12 @@ void ChartList::paintEvent(QPaintEvent *event)
 		// paint the hover line
 		painter.setPen(hoverLinePen_);
 		painter.drawLine(cursorPoint_.x(), rect().top(), cursorPoint_.x(), rect().bottom());
+		/*
+        // paint the cursor
+        painter.setBrush(ellipseColor_);
+        painter.setPen(QPen(hoverLinePen_.color(), 2.0));
+        painter.drawEllipse(cursorPoint_, 4, 4);
+        */
 	}
 }
 

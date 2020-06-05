@@ -134,7 +134,7 @@ QPointer<const EventSeries> PortInstanceData::getPortLifecycleSeries() const
     // TODO: Ask Jackson if this throw (and the others like it) is necessary since we've moved to using QPointers
     //  Or should you just always check if it's null wherever it's being called?
     if (port_lifecycle_series_ == nullptr) {
-        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
+        throw std::runtime_error("PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
     }
     return port_lifecycle_series_;
 }
@@ -147,7 +147,7 @@ QPointer<const EventSeries> PortInstanceData::getPortLifecycleSeries() const
 QPointer<const EventSeries> PortInstanceData::getPortEventSeries() const
 {
     if (port_event_series_ == nullptr) {
-        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortEventSeries - Port event series is null");
+        throw std::runtime_error("PortInstanceData::getPortEventSeries - Port event series is null");
     }
     return port_event_series_;
 }

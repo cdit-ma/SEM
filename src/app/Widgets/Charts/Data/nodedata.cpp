@@ -71,6 +71,9 @@ void NodeData::addContainerInstanceData(const AggServerResponse::Container& cont
     if (container_data == nullptr) {
         container_data = new ContainerInstanceData(experiment_run_id_, container, this);
         container_inst_data_hash_.insert(container_data->getGraphmlID(), container_data);
+        port_lifecycle_series_ += container_data->getPortLifecycleSeries();
+        port_event_series_ += container_data->getPortEventSeries();
+        workload_event_series_ += container_data->getWorkloadEventSeries();
     } else {
         container_data->updateData(container, last_updated_time_);
     }
@@ -83,6 +86,21 @@ void NodeData::addContainerInstanceData(const AggServerResponse::Container& cont
 QList<ContainerInstanceData*> NodeData::getContainerInstanceData() const
 {
     return container_inst_data_hash_.values();
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& NodeData::getPortLifecycleSeries() const
+{
+    return port_lifecycle_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& NodeData::getPortEventSeries() const
+{
+    return port_event_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& NodeData::getWorkloadEventSeries() const
+{
+    return workload_event_series_;
 }
 
 /**
@@ -127,12 +145,12 @@ void NodeData::addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& even
  * @throws std::runtime_error
  * @return
  */
-const CPUUtilisationEventSeries& NodeData::getCPUUtilisationSeries() const
+QPointer<const MEDEA::EventSeries> NodeData::getCPUUtilisationSeries() const
 {
 	if (cpu_utilisation_series_ == nullptr) {
-		throw std::runtime_error("CPUUtilisationEventSeries& NodeData::getCPUUtilisationSeries - CPU utilisation event series is null");
+		throw std::runtime_error("NodeData::getCPUUtilisationSeries - CPU utilisation series is null");
 	}
-	return *cpu_utilisation_series_;
+	return cpu_utilisation_series_;
 }
 
 /**
@@ -149,12 +167,12 @@ void NodeData::addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>
  * @throws std::runtime_error
  * @return
  */
-const MemoryUtilisationEventSeries& NodeData::getMemoryUtilisationSeries() const
+QPointer<const MEDEA::EventSeries> NodeData::getMemoryUtilisationSeries() const
 {
 	if (memory_utilisation_series_ == nullptr) {
-		throw std::runtime_error("MemoryUtilisationEventSeries& NodeData::getMemoryUtilisationSeries - Memory utilisation event series is null");
+		throw std::runtime_error("NodeData::getMemoryUtilisationSeries - Memory utilisation series is null");
 	}
-	return *memory_utilisation_series_;
+	return memory_utilisation_series_;
 }
 
 /**
@@ -169,10 +187,14 @@ void NodeData::addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent
 
 /**
  * @brief NodeData::getNetworkUtilisationSeries
+ * @throws std::runtime_error
  * @return
  */
-NetworkUtilisationEventSeries* NodeData::getNetworkUtilisationSeries() const
+QPointer<const MEDEA::EventSeries> NodeData::getNetworkUtilisationSeries() const
 {
+    if (network_utilisation_series_ == nullptr) {
+        throw std::runtime_error("NodeData::getNetworkUtilisationSeries - Network utilisation series is null");
+    }
     return network_utilisation_series_;
 }
 

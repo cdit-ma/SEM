@@ -1,8 +1,6 @@
 #include "markersetdata.h"
 #include "../ExperimentDataManager/experimentdatamanager.h"
 
-std::atomic<int> MarkerSetData::marker_set_id(0);
-
 /**
  * @brief MarkerSetData::MarkerSetData
  * @param exp_run_id
@@ -13,23 +11,13 @@ MarkerSetData::MarkerSetData(quint32 exp_run_id, const QString& marker_name, QOb
     : QObject(parent),
       experiment_run_id_(exp_run_id),
       last_updated_time_(0),
-      marker_name_(marker_name),
-      marker_set_id_(marker_set_id++)
+      marker_name_(marker_name)
 {
     marker_event_series_ = new MarkerEventSeries(marker_name);
     marker_event_series_->setLabel(marker_name);
 
     connect(this, &MarkerSetData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestMarkerSetEvents);
     emit requestData(*this);
-}
-
-/**
- * @brief MarkerSetData::getID
- * @return
- */
-int MarkerSetData::getID() const
-{
-    return marker_set_id_;
 }
 
 /**
@@ -67,9 +55,9 @@ void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
 QPointer<const MEDEA::EventSeries> MarkerSetData::getMarkerEventSeries() const
 {
 	if (marker_event_series_ == nullptr) {
-		throw std::runtime_error("MarkerEventSeries& MarkerSetData::getMarkerEventSeries - Marker event series is null");
+		throw std::runtime_error("MarkerSetData::getMarkerEventSeries - Marker event series is null");
 	}
-	return *marker_event_series_;
+	return marker_event_series_;
 }
 
 /**

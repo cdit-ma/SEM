@@ -1,5 +1,7 @@
 #include "experimentrundata.h"
 
+#include <QDebug>
+
 /**
  * @brief MEDEA::ExperimentRunData::ExperimentRunData
  * @param experiment_run_id
@@ -9,9 +11,9 @@
  * @param last_updated_time
  * @param parent
  */
-MEDEA::ExperimentRunData::ExperimentRunData(const QString& exp_name, quint32 experiment_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time, QObject *parent)
+MEDEA::ExperimentRunData::ExperimentRunData(QString exp_name, quint32 experiment_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time, QObject *parent)
     : QObject(parent),
-      experiment_name_(exp_name),
+      experiment_name_(std::move(exp_name)),
       experiment_run_id_(experiment_run_id),
       job_num_(job_num),
       start_time_(start_time),
@@ -105,13 +107,43 @@ QList<PortConnectionData*> MEDEA::ExperimentRunData::getPortConnectionData(const
  * @param id
  * @return
  */
-QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(int id) const
+QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(const QString& id) const
 {
-    if (id == -1) {
+    if (id.isEmpty()) {
         return marker_set_hash_.values();
     } else {
         return marker_set_hash_.values(id);
     }
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getPortLifecycleSeries() const
+{
+    return port_lifecycle_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getPortEventSeries() const
+{
+    return port_event_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getWorkloadEventSeries() const
+{
+    return workload_event_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getCPUUtilisationSeries() const
+{
+    return cpu_utilisation_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getMemoryUtilisationSeries() const
+{
+    return memory_utilisation_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getNetworkUtilisationSeries() const
+{
+    return network_utilisation_series_;
 }
 
 /**
@@ -122,6 +154,7 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
 {
     auto&& state_last_updated_time = exp_state.last_updated_time;
     if (state_last_updated_time > last_updated_time_) {
+
         // NOTE: last_updated_time_ is passed through to update the children data
         //  Therefore, it needs to be updated before calling addNodeData and addPortConnection
         last_updated_time_ = state_last_updated_time;
@@ -131,7 +164,6 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
         for (const auto& p_c : exp_state.port_connections) {
             addPortConnection(p_c);
         }
-        qDebug() << "exp run data updated";
         emit dataUpdated(last_updated_time_);
 
         // If the experiment run was live, send a signal to let listeners know if it has finished
@@ -153,6 +185,12 @@ void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
     if (node_data == nullptr) {
         node_data = new NodeData(experiment_run_id_, node, this);
         node_data_hash_.insert(node_data->getHostname(), node_data);
+        cpu_utilisation_series_.insert(node_data->getCPUUtilisationSeries());
+        memory_utilisation_series_.insert(node_data->getMemoryUtilisationSeries());
+        network_utilisation_series_.insert(node_data->getNetworkUtilisationSeries());
+        port_lifecycle_series_ += node_data->getPortLifecycleSeries();
+        port_event_series_ += node_data->getPortEventSeries();
+        workload_event_series_ += node_data->getWorkloadEventSeries();
     } else {
         node_data->updateData(node, last_updated_time_);
     }
@@ -177,7 +215,9 @@ void MEDEA::ExperimentRunData::addPortConnection(const AggServerResponse::PortCo
  */
 void MEDEA::ExperimentRunData::addMarkerSet(const QString& marker_name)
 {
-    // TODO: Figure out where to construct this and what key to store it by
-    auto marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);
-    marker_set_hash_.insert(marker_set_data->getID(), marker_set_data);
+    auto&& marker_set_id = marker_name + QString::number(experiment_run_id());
+    if (!marker_set_hash_.contains(marker_set_id)) {
+        auto marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);
+        marker_set_hash_.insert(marker_set_id, marker_set_data);
+    }
 }

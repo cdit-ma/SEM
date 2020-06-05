@@ -56,6 +56,9 @@ void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::Co
     if (comp_inst_data == nullptr) {
         comp_inst_data = new ComponentInstanceData(experiment_run_id_, comp_inst, this);
         comp_inst_data_hash_.insert(comp_inst_data->getGraphmlID(), comp_inst_data);
+        port_lifecycle_series_ += comp_inst_data->getPortLifecycleSeries();
+        port_event_series_ += comp_inst_data->getPortEventSeries();
+        workload_event_series_ += comp_inst_data->getWorkloadEventSeries();
     } else {
         comp_inst_data->updateData(comp_inst, last_updated_time_);
     }
@@ -68,6 +71,21 @@ void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::Co
 QList<ComponentInstanceData*> ContainerInstanceData::getComponentInstanceData() const
 {
     return comp_inst_data_hash_.values();
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& ContainerInstanceData::getPortLifecycleSeries() const
+{
+    return port_lifecycle_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& ContainerInstanceData::getPortEventSeries() const
+{
+    return port_event_series_;
+}
+
+const QSet<QPointer<const MEDEA::EventSeries>>& ContainerInstanceData::getWorkloadEventSeries() const
+{
+    return workload_event_series_;
 }
 
 /**

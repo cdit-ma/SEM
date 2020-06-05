@@ -12,7 +12,7 @@ class ExperimentRunData : public QObject
     Q_OBJECT
 
 public:
-    ExperimentRunData(const QString& exp_name,
+    ExperimentRunData(QString exp_name,
                       quint32 experiment_run_id,
                       quint32 job_num,
                       qint64 start_time,
@@ -31,7 +31,15 @@ public:
 
     QList<NodeData*> getNodeData(const QString& hostname = "") const;
     QList<PortConnectionData*> getPortConnectionData(const QString& id = "") const;
-    QList<MarkerSetData*> getMarkerSetData(int id = -1) const;
+    QList<MarkerSetData*> getMarkerSetData(const QString& id = "") const;
+
+    const QSet<QPointer<const MEDEA::EventSeries>>& getPortLifecycleSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getPortEventSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getWorkloadEventSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getCPUUtilisationSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getMemoryUtilisationSeries() const;
+    const QSet<QPointer<const MEDEA::EventSeries>>& getNetworkUtilisationSeries() const;
+    //const QSet<QPointer<const MEDEA::EventSeries>>& getMarkerEventSeries() const;
 
     void updateData(const AggServerResponse::ExperimentState& exp_state);
 
@@ -58,7 +66,15 @@ private:
 
     QHash<QString, NodeData*> node_data_hash_;
     QHash<QString, PortConnectionData*> port_connection_hash_;
-    QHash<int, MarkerSetData*> marker_set_hash_;
+    QHash<QString, MarkerSetData*> marker_set_hash_;
+
+    QSet<QPointer<const MEDEA::EventSeries>> port_lifecycle_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> port_event_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> workload_event_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> cpu_utilisation_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> memory_utilisation_series_;
+    QSet<QPointer<const MEDEA::EventSeries>> network_utilisation_series_;
+    //QSet<QPointer<const MEDEA::EventSeries>> marker_event_series_;
 };
 
 }

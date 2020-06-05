@@ -82,6 +82,10 @@ private:
 
     void setupRequestsForExperimentRun(quint32 experimentRunID);
 
+    void showChartsForSelectedEntities(quint32 exp_run_id);
+    void showChartForSeries(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data);
+    void showPulseForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data);
+
     void requestEvents(const RequestBuilder &builder);
     void requestPortLifecycleEvents(const PortLifecycleRequest& request, const AggServerResponse::ExperimentRun& experimentRun, PortInstanceData* port_data_requester = nullptr);
     void requestWorkloadEvents(const WorkloadRequest& request, const AggServerResponse::ExperimentRun& experimentRun, WorkerInstanceData* worker_inst_data_requester = nullptr);
@@ -101,8 +105,10 @@ private:
     void processPortEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortEvent*>& events);
     void processNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<NetworkUtilisationEvent*>& events);
 
+
     MEDEA::ExperimentData* constructExperimentData(const QString& experiment_name);
-    MEDEA::ExperimentData* getExperimentData(quint32 exp_run_id) const;
+    MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
+    const MEDEA::ExperimentRunData& getExperimentRunData(const QString& exp_name, quint32 exp_run_id) const;
 
     QString getItemLabel(const ViewItem* item) const;
 

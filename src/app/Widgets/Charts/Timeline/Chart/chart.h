@@ -29,16 +29,15 @@ public:
     quint32 getExperimentRunID() const;
 
     void addSeries(const QPointer<const MEDEA::EventSeries>& series);
-    const QHash<ChartDataKind, QPointer<const EventSeries>>& getSeriesPointers() const;
-
-    void addSeries(EventSeries *series);
     void removeSeries(ChartDataKind kind);
 
-    bool isHovered();
+    QPointer<const EventSeries> getSeries(ChartDataKind kind) const;
+    const QHash<ChartDataKind, QPointer<const EventSeries>>& getSeries() const;
 
     void addSeries(EventSeries *series);
 
-    const QHash<ChartDataKind, EventSeries*>& getSeries() const;
+    bool isHovered() const;
+
     QList<ChartDataKind> getHoveredSeriesKinds() const;
     QPair<qint64, qint64> getHoveredTimeRange(ChartDataKind kind) const;
 
@@ -69,12 +68,33 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
+    template<class T>
+    struct EventSeriesPaintVals {
+        //EventSeriesPaintVals(ChartDataKind kind) : series_kind(kind) {}
+        ChartDataKind series_kind;
+        QHash<T, QPixmap> pixmaps;
+        QColor series_color;
+    };
+
+    template<class T>
+    void paintEventChart(QPainter& painter, const QVector<QList<Event*>>& bins, const EventSeriesPaintVals<T>& paint_vals);
+    void paintLineChart();
+    void paintBarChart();
+
     void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
     void outlineHoveredData(QPainter& painter);
+
     void displayDataMinMax(QPainter& painter);
 
     void paintPortLifecycleSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void paintWorkloadEventSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void paintMarkerEventSeries(QPainter& painter, const QPointer<const EventSeries>& series);
     void paintPortEventSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void paintCPUUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void paintMemoryUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void paintNetworkUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+
+    QVector<QList<Event*>> binEvents(const QList<Event*>& events) const;
 
     void paintSeries(QPainter& painter, const ChartDataKind kind);
     void paintPortLifecycleEventSeries(QPainter& painter);
@@ -94,11 +114,13 @@ private:
     void clearHoveredLists();
     void updateSeriesPixmaps();
 
+    int getBinCount() const;
+    double getBinWidth() const;
+
     int getBinIndexForTime(double time);
-
 	QVector<QList<Event*>>& getBinnedData(ChartDataKind kind);
-    qint64 mapPixelToTime(double x);
 
+    qint64 mapPixelToTime(double x);
 	double mapTimeToPixel(double time);
 
 	static QColor getContrastingColor(const QColor& color);
@@ -191,6 +213,10 @@ private:
     QHash<AggServerResponse::LifecycleType, QPixmap> lifeCycleTypePixmaps_;
     QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;
     QHash<PortEvent::PortEventType, QPixmap> portEventTypePixmaps_;
+
+    EventSeriesPaintVals<AggServerResponse::LifecycleType> port_lifecycle_paint_vals = {ChartDataKind::PORT_LIFECYCLE};
+    EventSeriesPaintVals<WorkloadEvent::WorkloadEventType> workload_event_paint_vals;
+    EventSeriesPaintVals<AggServerResponse::LifecycleType> port_event_paint_vals;
 };
 
 }

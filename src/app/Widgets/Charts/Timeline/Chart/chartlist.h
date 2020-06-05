@@ -90,6 +90,7 @@ private:
 
     QColor backgroundColor_;
     QColor highlightColor_;
+    QColor ellipseColor_;
 
     QPen axisLinePen_;
     QPen hoverLinePen_;
