@@ -1,5 +1,7 @@
 #include "componentinstancedata.h"
 
+#include <QDebug>
+
 /**
  * @brief ComponentInstanceData::ComponentInstanceData
  * @param exp_run_id
@@ -69,8 +71,6 @@ void ComponentInstanceData::addPortInstanceData(const AggServerResponse::Port& p
     if (port_data == nullptr) {
         port_data = new PortInstanceData(experiment_run_id_, *this, port, this);
         port_inst_data_hash_.insert(port_data->getGraphmlID(), port_data);
-        port_lifecycle_series_.insert(port_data->getPortLifecycleSeries());
-        port_event_series_.insert(port_data->getPortEventSeries());
     } else {
         port_data->updateData(last_updated_time_);
     }
@@ -95,7 +95,6 @@ void ComponentInstanceData::addWorkerInstanceData(const AggServerResponse::Worke
     if (worker_inst_data == nullptr) {
         worker_inst_data = new WorkerInstanceData(experiment_run_id_, *this, worker_instance, this);
         worker_inst_data_hash_.insert(worker_inst_data->getGraphmlID(), worker_inst_data);
-        workload_event_series_.insert(worker_inst_data->getWorkloadEventSeries());
     } else {
         worker_inst_data->updateData(last_updated_time_);
     }
@@ -110,19 +109,43 @@ QList<WorkerInstanceData*> ComponentInstanceData::getWorkerInstanceData() const
     return worker_inst_data_hash_.values();
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& ComponentInstanceData::getPortLifecycleSeries() const
+/**
+ * @brief ComponentInstanceData::getPortLifecycleSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ComponentInstanceData::getPortLifecycleSeries() const
 {
-    return port_lifecycle_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& port_inst : getPortInstanceData()) {
+        series.append(port_inst->getPortLifecycleSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& ComponentInstanceData::getPortEventSeries() const
+/**
+ * @brief ComponentInstanceData::getPortEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ComponentInstanceData::getPortEventSeries() const
 {
-    return port_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& port_inst : getPortInstanceData()) {
+        series.append(port_inst->getPortEventSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& ComponentInstanceData::getWorkloadEventSeries() const
+/**
+ * @brief ComponentInstanceData::getWorkloadEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ComponentInstanceData::getWorkloadEventSeries() const
 {
-    return workload_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& worker_inst : getWorkerInstanceData()) {
+        series.append(worker_inst->getWorkloadEventSeries());
+    }
+    return series;
 }
 
 /**

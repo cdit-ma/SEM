@@ -26,9 +26,9 @@ public:
 
     QList<ContainerInstanceData*> getContainerInstanceData() const;
 
-    const QSet<QPointer<const MEDEA::EventSeries>>& getPortLifecycleSeries() const;
-    const QSet<QPointer<const MEDEA::EventSeries>>& getPortEventSeries() const;
-    const QSet<QPointer<const MEDEA::EventSeries>>& getWorkloadEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
 
     const UtilisationRequest& getCPUUtilisationRequest() const;
     const UtilisationRequest& getMemoryUtilisationRequest() const;
@@ -51,6 +51,9 @@ signals:
 private:
     void addContainerInstanceData(const AggServerResponse::Container& container);
 
+    void setupRequests();
+    void setupSeries();
+
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
 
@@ -58,10 +61,6 @@ private:
     QString ip_;
 
     QHash<QString, ContainerInstanceData*> container_inst_data_hash_;
-
-    QSet<QPointer<const MEDEA::EventSeries>> port_lifecycle_series_;
-    QSet<QPointer<const MEDEA::EventSeries>> port_event_series_;
-    QSet<QPointer<const MEDEA::EventSeries>> workload_event_series_;
 
     UtilisationRequest cpu_utilisation_request_;
     UtilisationRequest memory_utilisation_request_;

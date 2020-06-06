@@ -15,7 +15,6 @@
 #include "../../Data/Events/portevent.h"
 #include "../../Data/Events/networkutilisationevent.h"
 
-//#include "../../Data/experimentdata.h"
 #include "../../Data/Series/portlifecycleeventseries.h"
 #include "../../Data/Series/workloadeventseries.h"
 #include "../../Data/Series/cpuutilisationeventseries.h"
@@ -48,6 +47,7 @@ public:
 
     void addChart(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data);
     void removeChart(const QString& id, bool clearing_chart_list = false);
+
     void clearChartList();
 
 signals:

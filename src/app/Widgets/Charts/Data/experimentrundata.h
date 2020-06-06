@@ -33,13 +33,13 @@ public:
     QList<PortConnectionData*> getPortConnectionData(const QString& id = "") const;
     QList<MarkerSetData*> getMarkerSetData(const QString& id = "") const;
 
-    const QSet<QPointer<const MEDEA::EventSeries>>& getPortLifecycleSeries() const;
-    const QSet<QPointer<const MEDEA::EventSeries>>& getPortEventSeries() const;
-    const QSet<QPointer<const MEDEA::EventSeries>>& getWorkloadEventSeries() const;
-    const QSet<QPointer<const MEDEA::EventSeries>>& getCPUUtilisationSeries() const;
-    const QSet<QPointer<const MEDEA::EventSeries>>& getMemoryUtilisationSeries() const;
-    const QSet<QPointer<const MEDEA::EventSeries>>& getNetworkUtilisationSeries() const;
-    //const QSet<QPointer<const MEDEA::EventSeries>>& getMarkerEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getCPUUtilisationSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getMemoryUtilisationSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries() const;
+    //QList<QPointer<const MEDEA::EventSeries>> getMarkerEventSeries() const;
 
     void updateData(const AggServerResponse::ExperimentState& exp_state);
 
@@ -53,10 +53,7 @@ private:
     void addPortConnection(const AggServerResponse::PortConnection& port_connection);
     void addMarkerSet(const QString& marker_name);
 
-    // TODO? - Implement helper functions for getting specific series (include filters)
-
     QString experiment_name_;
-
     quint32 experiment_run_id_;
     quint32 job_num_;
 
@@ -67,14 +64,6 @@ private:
     QHash<QString, NodeData*> node_data_hash_;
     QHash<QString, PortConnectionData*> port_connection_hash_;
     QHash<QString, MarkerSetData*> marker_set_hash_;
-
-    QSet<QPointer<const MEDEA::EventSeries>> port_lifecycle_series_;
-    QSet<QPointer<const MEDEA::EventSeries>> port_event_series_;
-    QSet<QPointer<const MEDEA::EventSeries>> workload_event_series_;
-    QSet<QPointer<const MEDEA::EventSeries>> cpu_utilisation_series_;
-    QSet<QPointer<const MEDEA::EventSeries>> memory_utilisation_series_;
-    QSet<QPointer<const MEDEA::EventSeries>> network_utilisation_series_;
-    //QSet<QPointer<const MEDEA::EventSeries>> marker_event_series_;
 };
 
 }

@@ -5,9 +5,6 @@ const int invalid_experiment_run_id = -1;
 
 using namespace MEDEA;
 
-#include <QDateTime>
-#include <QDebug>
-
 /**
  * @brief ExperimentData::ExperimentData
  * @param experiment_name
@@ -47,7 +44,8 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
 
     connect(&(*exp_run_data), &ExperimentRunData::dataUpdated, this, &ExperimentData::experimentRunDataUpdated);
 
-    // TODO: We should figure out what the emplace/insert functions actually do
+    // NOTE: emplace() - Inserts a new element into the container constructed in-place with the given args
+    //  if there is no element with the key in the container
     experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));
 }
 
@@ -80,11 +78,11 @@ void ExperimentData::updateData(quint32 exp_run_id, const AggServerResponse::Exp
 
 /**
  * @brief ExperimentData::experimentRunDataUpdated
- * @param last_updated_time
+ * This is called when the sender ExperimentRunData's last updated time has changed
+ * @param last_updated_time - updated ExperimentRunData's last_updated_time
  */
 void ExperimentData::experimentRunDataUpdated(qint64 last_updated_time)
 {
-    qDebug() << "ExperimentData::experimentRunDataUpdated: " << QDateTime::fromMSecsSinceEpoch(last_updated_time).toString("hh:mm:ss.zzz");
     auto exp_run = qobject_cast<ExperimentRunData*>(sender());
     emit dataUpdated(exp_run->experiment_run_id(), last_updated_time);
 }

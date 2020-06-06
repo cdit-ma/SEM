@@ -13,8 +13,7 @@ MarkerSetData::MarkerSetData(quint32 exp_run_id, const QString& marker_name, QOb
       last_updated_time_(0),
       marker_name_(marker_name)
 {
-    marker_event_series_ = new MarkerEventSeries(marker_name);
-    marker_event_series_->setLabel(marker_name);
+    setupSeries();
 
     connect(this, &MarkerSetData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestMarkerSetEvents);
     emit requestData(*this);
@@ -73,4 +72,16 @@ void MarkerSetData::updateData(qint64 new_last_updated_time)
     marker_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
     last_updated_time_ = new_last_updated_time;
     emit requestData(*this);
+}
+
+/**
+ * @brief NodeData::setupSeries
+ */
+void MarkerSetData::setupSeries()
+{
+    auto&& exp_run_id_str = QString::number(experiment_run_id_);
+
+    marker_event_series_ = new MarkerEventSeries(marker_name_ + exp_run_id_str);
+    marker_event_series_->setLabel("[" + exp_run_id_str + "] " + marker_name_);
+    marker_event_series_->setParent(this);
 }

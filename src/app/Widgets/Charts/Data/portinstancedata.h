@@ -46,6 +46,9 @@ signals:
     void requestData(PortInstanceData& port);
 
 private:
+    void setupRequests();
+    void setupSeries();
+
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
 

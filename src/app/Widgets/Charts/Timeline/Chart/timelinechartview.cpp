@@ -14,8 +14,6 @@
 #define HOVER_DISPLAY_ITEM_COUNT 10
 
 #define CHART_DATA_KIND "ChartDataKind"
-#define EXPERIMENT_RUN_ID "experimentRunID"
-#define EXPERIMENT_RUN_START_TIME "experimentRunStartTime"
 
 using namespace MEDEA;
 
@@ -70,7 +68,6 @@ bool TimelineChartView::eventFilter(QObject *watched, QEvent *event)
  */
 void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data)
 {
-    qDebug() << "TimelineChartView::addChart";
     if (series.isNull()) {
         throw std::invalid_argument("TimelineChartView::addChart - Series is null.");
     }
@@ -78,13 +75,13 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
     // If a chart already exists for the series, replace the series within the chart
     auto chart = charts_.value(series->getID(), nullptr);
     if (chart) {
-        qDebug() << "Replace series in chart";
+        //qDebug() << "Replace series for " << Event::GetChartDataKindString(series->getKind()) << ": " << series->getID();;
         chart->removeSeries(series->getKind());
         chart->addSeries(series);
         return;
     }
 
-    qDebug() << "Construct new chart";
+    //qDebug() << "Construct new chart for " << Event::GetChartDataKindString(series->getKind()) << ": " << series->getID();
 
     const auto exp_run_id = exp_run_data.experiment_run_id();
     const auto exp_start_time = exp_run_data.start_time();
@@ -93,6 +90,9 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
 
     experimentRunSeriesCount_[exp_run_id]++;
     setTimeRangeForExperimentRun(exp_run_id, exp_start_time, exp_run_data.last_updated_time());
+
+    connect(series, &MEDEA::EventSeries::eventAdded, [this]{ update(); });
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, [this]{ update(); });
 
     auto exp_run_info = "Experiment name:\t" + exp_run_data.experiment_name() +
                         "\nJob number#:\t" + QString::number(exp_run_data.job_num()) +

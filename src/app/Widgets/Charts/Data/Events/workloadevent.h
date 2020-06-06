@@ -29,6 +29,8 @@ public:
 
     QString toString(const QString& dateTimeFormat) const override;
 
+    const QString& getWorkerInstPath() const;
+
     const QString& getSeriesID() const override;
     const QString& getID() const override;
 
@@ -50,6 +52,7 @@ private:
     QString id_;
     QString functionName_;
     QString args_;
+    QString worker_inst_path_;
 };
 
 #endif // WORKLOADEVENT_H

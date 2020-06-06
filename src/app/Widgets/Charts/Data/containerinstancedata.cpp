@@ -1,4 +1,5 @@
 #include "containerinstancedata.h"
+#include <QDebug>
 
 /**
  * @brief ContainerInstanceData::ContainerInstanceData
@@ -56,9 +57,6 @@ void ContainerInstanceData::addComponentInstanceData(const AggServerResponse::Co
     if (comp_inst_data == nullptr) {
         comp_inst_data = new ComponentInstanceData(experiment_run_id_, comp_inst, this);
         comp_inst_data_hash_.insert(comp_inst_data->getGraphmlID(), comp_inst_data);
-        port_lifecycle_series_ += comp_inst_data->getPortLifecycleSeries();
-        port_event_series_ += comp_inst_data->getPortEventSeries();
-        workload_event_series_ += comp_inst_data->getWorkloadEventSeries();
     } else {
         comp_inst_data->updateData(comp_inst, last_updated_time_);
     }
@@ -73,19 +71,43 @@ QList<ComponentInstanceData*> ContainerInstanceData::getComponentInstanceData() 
     return comp_inst_data_hash_.values();
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& ContainerInstanceData::getPortLifecycleSeries() const
+/**
+ * @brief ContainerInstanceData::getPortLifecycleSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ContainerInstanceData::getPortLifecycleSeries() const
 {
-    return port_lifecycle_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& comp_inst : getComponentInstanceData()) {
+        series.append(comp_inst->getPortLifecycleSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& ContainerInstanceData::getPortEventSeries() const
+/**
+ * @brief ContainerInstanceData::getPortEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ContainerInstanceData::getPortEventSeries() const
 {
-    return port_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& comp_inst : getComponentInstanceData()) {
+        series.append(comp_inst->getPortEventSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& ContainerInstanceData::getWorkloadEventSeries() const
+/**
+ * @brief ContainerInstanceData::getWorkloadEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ContainerInstanceData::getWorkloadEventSeries() const
 {
-    return workload_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& comp_inst : getComponentInstanceData()) {
+        series.append(comp_inst->getWorkloadEventSeries());
+    }
+    return series;
 }
 
 /**

@@ -14,6 +14,9 @@ public:
 
     void addEvent(MEDEA::Event* event) override;
 
+    double getMinUtilisation() const;
+    double getMaxUtilisation() const;
+
 private:
     double minUtilisation_ = DBL_MAX;
     double maxUtilisation_ = 0.0;

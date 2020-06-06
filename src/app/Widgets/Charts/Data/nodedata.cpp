@@ -19,25 +19,8 @@ NodeData::NodeData(quint32 exp_run_id, const AggServerResponse::Node& node, QObj
         addContainerInstanceData(container);
     }
 
-    // Setup the requests
-    cpu_utilisation_request_.setExperimentRunID(exp_run_id);
-    cpu_utilisation_request_.setNodeHostnames({hostname_});
-
-    memory_utilisation_request_.setExperimentRunID(exp_run_id);
-    memory_utilisation_request_.setNodeHostnames({hostname_});
-
-    network_utilisation_request_.setExperimentRunID(exp_run_id);
-    network_utilisation_request_.setNodeHostnames({hostname_});
-
-    // Setup event series
-    cpu_utilisation_series_ = new CPUUtilisationEventSeries(hostname_);
-    cpu_utilisation_series_->setLabel(hostname_ + "_cpu");
-
-    memory_utilisation_series_ = new MemoryUtilisationEventSeries(hostname_);
-    memory_utilisation_series_->setLabel(hostname_ + "_mem");
-
-    network_utilisation_series_ = new NetworkUtilisationEventSeries(hostname_);
-    network_utilisation_series_->setLabel(hostname_ + "_net");
+    setupRequests();
+    setupSeries();
 
     connect(this, &NodeData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestNodeEvents);
     emit requestData(*this);
@@ -71,9 +54,6 @@ void NodeData::addContainerInstanceData(const AggServerResponse::Container& cont
     if (container_data == nullptr) {
         container_data = new ContainerInstanceData(experiment_run_id_, container, this);
         container_inst_data_hash_.insert(container_data->getGraphmlID(), container_data);
-        port_lifecycle_series_ += container_data->getPortLifecycleSeries();
-        port_event_series_ += container_data->getPortEventSeries();
-        workload_event_series_ += container_data->getWorkloadEventSeries();
     } else {
         container_data->updateData(container, last_updated_time_);
     }
@@ -88,19 +68,43 @@ QList<ContainerInstanceData*> NodeData::getContainerInstanceData() const
     return container_inst_data_hash_.values();
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& NodeData::getPortLifecycleSeries() const
+/**
+ * @brief NodeData::getPortLifecycleSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortLifecycleSeries() const
 {
-    return port_lifecycle_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& container_inst : getContainerInstanceData()) {
+        series.append(container_inst->getPortLifecycleSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& NodeData::getPortEventSeries() const
+/**
+ * @brief NodeData::getPortEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortEventSeries() const
 {
-    return port_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& container_inst : getContainerInstanceData()) {
+        series.append(container_inst->getPortEventSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& NodeData::getWorkloadEventSeries() const
+/**
+ * @brief NodeData::getWorkloadEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getWorkloadEventSeries() const
 {
-    return workload_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& container_inst : getContainerInstanceData()) {
+        series.append(container_inst->getWorkloadEventSeries());
+    }
+    return series;
 }
 
 /**
@@ -220,4 +224,42 @@ void NodeData::updateData(const AggServerResponse::Node& node, qint64 new_last_u
     for (const auto& container : node.containers) {
         addContainerInstanceData(container);
     }
+}
+
+/**
+ * @brief NodeData::setupRequests
+ */
+void NodeData::setupRequests()
+{
+    cpu_utilisation_request_.setExperimentRunID(experiment_run_id_);
+    cpu_utilisation_request_.setNodeHostnames({hostname_});
+
+    memory_utilisation_request_.setExperimentRunID(experiment_run_id_);
+    memory_utilisation_request_.setNodeHostnames({hostname_});
+
+    network_utilisation_request_.setExperimentRunID(experiment_run_id_);
+    network_utilisation_request_.setNodeHostnames({hostname_});
+}
+
+/**
+ * @brief NodeData::setupSeries
+ */
+void NodeData::setupSeries()
+{
+    using namespace MEDEA;
+    auto&& exp_run_id_str = QString::number(experiment_run_id_);
+    auto&& node_id = hostname_ + exp_run_id_str;
+    auto&& label = "[" + exp_run_id_str + "] " + hostname_;
+
+    cpu_utilisation_series_ = new CPUUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::CPU_UTILISATION));
+    cpu_utilisation_series_->setLabel(label);
+    cpu_utilisation_series_->setParent(this);
+
+    memory_utilisation_series_ = new MemoryUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::MEMORY_UTILISATION));
+    memory_utilisation_series_->setLabel(label);
+    memory_utilisation_series_->setParent(this);
+
+    network_utilisation_series_ = new NetworkUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::NETWORK_UTILISATION));
+    network_utilisation_series_->setLabel(label);
+    network_utilisation_series_->setParent(this);
 }

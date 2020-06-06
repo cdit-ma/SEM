@@ -116,34 +116,82 @@ QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(const QString& 
     }
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getPortLifecycleSeries() const
+/**
+ * @brief MEDEA::ExperimentRunData::getPortLifecycleSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortLifecycleSeries() const
 {
-    return port_lifecycle_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getPortLifecycleSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getPortEventSeries() const
+/**
+ * @brief MEDEA::ExperimentRunData::getPortEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortEventSeries() const
 {
-    return port_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getPortEventSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getWorkloadEventSeries() const
+/**
+ * @brief MEDEA::ExperimentRunData::getWorkloadEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getWorkloadEventSeries() const
 {
-    return workload_event_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getWorkloadEventSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getCPUUtilisationSeries() const
+/**
+ * @brief MEDEA::ExperimentRunData::getCPUUtilisationSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getCPUUtilisationSeries() const
 {
-    return cpu_utilisation_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getCPUUtilisationSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getMemoryUtilisationSeries() const
+/**
+ * @brief MEDEA::ExperimentRunData::getMemoryUtilisationSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getMemoryUtilisationSeries() const
 {
-    return memory_utilisation_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getMemoryUtilisationSeries());
+    }
+    return series;
 }
 
-const QSet<QPointer<const MEDEA::EventSeries>>& MEDEA::ExperimentRunData::getNetworkUtilisationSeries() const
+/**
+ * @brief MEDEA::ExperimentRunData::getNetworkUtilisationSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getNetworkUtilisationSeries() const
 {
-    return network_utilisation_series_;
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getNetworkUtilisationSeries());
+    }
+    return series;
 }
 
 /**
@@ -185,12 +233,6 @@ void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
     if (node_data == nullptr) {
         node_data = new NodeData(experiment_run_id_, node, this);
         node_data_hash_.insert(node_data->getHostname(), node_data);
-        cpu_utilisation_series_.insert(node_data->getCPUUtilisationSeries());
-        memory_utilisation_series_.insert(node_data->getMemoryUtilisationSeries());
-        network_utilisation_series_.insert(node_data->getNetworkUtilisationSeries());
-        port_lifecycle_series_ += node_data->getPortLifecycleSeries();
-        port_event_series_ += node_data->getPortEventSeries();
-        workload_event_series_ += node_data->getWorkloadEventSeries();
     } else {
         node_data->updateData(node, last_updated_time_);
     }

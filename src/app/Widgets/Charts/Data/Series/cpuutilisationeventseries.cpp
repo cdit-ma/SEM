@@ -34,3 +34,21 @@ void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
         addEventToList(*event);
     }
 }
+
+/**
+ * @brief CPUUtilisationEventSeries::getMinUtilisation
+ * @return
+ */
+double CPUUtilisationEventSeries::getMinUtilisation() const
+{
+    return minUtilisation_;
+}
+
+/**
+ * @brief CPUUtilisationEventSeries::getMaxUtilisation
+ * @return
+ */
+double CPUUtilisationEventSeries::getMaxUtilisation() const
+{
+    return maxUtilisation_;
+}

@@ -7,6 +7,14 @@
 #include "../../Data/Events/portevent.h"
 #include "../../../../Controllers/ViewController/viewitem.h"
 
+#include "../../Data/Series/portlifecycleeventseries.h"
+#include "../../Data/Series/porteventseries.h"
+#include "../../Data/Series/workloadeventseries.h"
+#include "../../Data/Series/markereventseries.h"
+#include "../../Data/Series/cpuutilisationeventseries.h"
+#include "../../Data/Series/memoryutilisationeventseries.h"
+#include "../../Data/Series/networkutilisationeventseries.h"
+
 #include <QWidget>
 #include <QPen>
 #include <QBrush>
@@ -34,8 +42,6 @@ public:
     QPointer<const EventSeries> getSeries(ChartDataKind kind) const;
     const QHash<ChartDataKind, QPointer<const EventSeries>>& getSeries() const;
 
-    void addSeries(EventSeries *series);
-
     bool isHovered() const;
 
     QList<ChartDataKind> getHoveredSeriesKinds() const;
@@ -58,7 +64,6 @@ public slots:
     void setHovered(bool hovered);
     void setHoveredRect(QRectF rect);
     void seriesKindHovered(ChartDataKind kind);
-    void setSeriesKindVisible(ChartDataKind kind, bool visible);
 
 private slots:
     void themeChanged();
@@ -83,30 +88,26 @@ private:
 
     void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
     void outlineHoveredData(QPainter& painter);
-
     void displayDataMinMax(QPainter& painter);
 
-    void paintPortLifecycleSeries(QPainter& painter, const QPointer<const EventSeries>& series);
-    void paintWorkloadEventSeries(QPainter& painter, const QPointer<const EventSeries>& series);
-    void paintMarkerEventSeries(QPainter& painter, const QPointer<const EventSeries>& series);
-    void paintPortEventSeries(QPainter& painter, const QPointer<const EventSeries>& series);
-    void paintCPUUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series);
-    void paintMemoryUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series);
-    void paintNetworkUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series);
+    void paintPortLifecycleSeries(QPainter& painter, const QPointer<const PortLifecycleEventSeries>& series);
+    void paintPortEventSeries(QPainter& painter, const QPointer<const PortEventSeries>& series);
+    void paintWorkloadEventSeries(QPainter& painter, const QPointer<const WorkloadEventSeries>& series);
+    void paintMarkerEventSeries(QPainter& painter, const QPointer<const MarkerEventSeries>& series);
+    void paintCPUUtilisationSeries(QPainter& painter, const QPointer<const CPUUtilisationEventSeries>& series);
+    void paintMemoryUtilisationSeries(QPainter& painter, const QPointer<const MemoryUtilisationEventSeries>& series);
+    void paintNetworkUtilisationSeries(QPainter& painter, const QPointer<const NetworkUtilisationEventSeries>& series);
 
-    QVector<QList<Event*>> binEvents(const QList<Event*>& events) const;
+    QPair<QPair<int, int>, QPair<QList<Event*>::const_iterator, QList<Event*>::const_iterator>>
+    getOuterDisplayIterators(const QList<Event*>& events, double target_bin_width) const;
 
-    void paintSeries(QPainter& painter, const ChartDataKind kind);
-    void paintPortLifecycleEventSeries(QPainter& painter);
-    void paintWorkloadEventSeries(QPainter& painter);
-    void paintCPUUtilisationEventSeries(QPainter& painter);
-    void paintMemoryUtilisationEventSeries(QPainter& painter);
-    void paintMarkerEventSeries(QPainter& painter);
-    void paintPortEventSeries(QPainter& painter);
-    void paintNetworkUtilisationEventSeries(QPainter& painter);
+    QVector<QList<Event*>> binEvents(const QList<Event*>& events,
+                                     int bin_count,
+                                     QList<Event*>::const_iterator first,
+                                     QList<Event*>::const_iterator last) const;
 
-    void drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, QColor color, ChartDataKind series_kind);
-    void drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QColor color, double opacity, ChartDataKind series_kind);
+    void drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, const QColor& color, ChartDataKind series_kind);
+    void drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, const QColor& color, double opacity, ChartDataKind series_kind);
 
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
@@ -114,11 +115,11 @@ private:
     void clearHoveredLists();
     void updateSeriesPixmaps();
 
-    int getBinCount() const;
-    double getBinWidth() const;
+    int getBinCount(double target_bin_width) const;
+    double getBinWidth(double target_bin_width) const;
 
-    int getBinIndexForTime(double time);
-	QVector<QList<Event*>>& getBinnedData(ChartDataKind kind);
+    double getDisplayMin() const;
+    double getDisplayMax() const;
 
     qint64 mapPixelToTime(double x);
 	double mapTimeToPixel(double time);
@@ -135,15 +136,9 @@ private:
     double dataMaxX_ = DBL_MIN;
     double dataMinY_ = DBL_MAX;
     double dataMaxY_ = DBL_MIN;
-    double displayMin_ = 0.0;
-    double displayMax_ = 1.0;
 
     double minRatio_ = 0.0;
     double maxRatio_ = 1.0;
-
-    int binCount_ = 0;
-    double binPixelWidth_ = 0.0;
-    double binTimeWidth_ = 0.0;
 
     QRectF hoveredRect_;
 
@@ -191,19 +186,7 @@ private:
     double portEventSeriesOpacity_ = 1.0;
     double networkSeriesOpacity_ = 1.0;
 
-    QHash<ChartDataKind, bool> seriesKindVisible_;
-    QHash<ChartDataKind, EventSeries*> seriesList_;
-
     QHash<ChartDataKind, QPointer<const MEDEA::EventSeries>> series_pointers_;
-
-    QVector<QList<Event*>> portLifecycleBinnedData_;
-    QVector<QList<Event*>> workloadBinnedData_;
-    QVector<QList<Event*>> cpuUtilisationBinnedData_;
-    QVector<QList<Event*>> memoryUtilisationBinnedData_;
-    QVector<QList<Event*>> markerBinnedData_;
-    QVector<QList<Event*>> portEventBinnedData_;
-    QVector<QList<Event*>> networkUtilisationBinnedData_;
-    QVector<QList<Event*>> emptyBinnedData_;
 
     QHash<ChartDataKind, QPair<qint64, qint64>> hoveredSeriesTimeRange_;
     ChartDataKind hoveredSeriesKind_ = ChartDataKind::DATA;

@@ -28,7 +28,6 @@ enum class ExperimentDataRequestType
     NetworkUtilisationEvent
 };
 
-class RequestBuilder;
 class ExperimentDataManager : public QObject
 {
     Q_OBJECT
@@ -80,13 +79,11 @@ private:
     void requestExperimentRuns(const QString& experimentName, MEDEA::ExperimentData* exp_data_requester = nullptr);
     void requestExperimentState(quint32 experimentRunID, MEDEA::ExperimentData* exp_data_requester = nullptr);
 
-    void setupRequestsForExperimentRun(quint32 experimentRunID);
-
-    void showChartsForSelectedEntities(quint32 exp_run_id);
+    void showDataForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
+    void showPulseForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
+    void showChartsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
     void showChartForSeries(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data);
-    void showPulseForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data);
 
-    void requestEvents(const RequestBuilder &builder);
     void requestPortLifecycleEvents(const PortLifecycleRequest& request, const AggServerResponse::ExperimentRun& experimentRun, PortInstanceData* port_data_requester = nullptr);
     void requestWorkloadEvents(const WorkloadRequest& request, const AggServerResponse::ExperimentRun& experimentRun, WorkerInstanceData* worker_inst_data_requester = nullptr);
     void requestCPUUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
@@ -96,21 +93,10 @@ private:
     void requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester = nullptr);
 
     void processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs);
-    void processExperimentState(const QString &experiment_name, quint32 experiment_run_id, const AggServerResponse::ExperimentState& experiment_state);
-    void processPortLifecycleEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortLifecycleEvent*>& events);
-    void processWorkloadEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<WorkloadEvent*>& events);
-    void processCPUUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<CPUUtilisationEvent*>& events);
-    void processMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MemoryUtilisationEvent*>& events);
-    void processMarkerEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MarkerEvent*>& events);
-    void processPortEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortEvent*>& events);
-    void processNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<NetworkUtilisationEvent*>& events);
-
 
     MEDEA::ExperimentData* constructExperimentData(const QString& experiment_name);
     MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
     const MEDEA::ExperimentRunData& getExperimentRunData(const QString& exp_name, quint32 exp_run_id) const;
-
-    QString getItemLabel(const ViewItem* item) const;
 
     DataflowDialog* dataflowDialog_ = nullptr;
     ChartDialog* chartDialog_ = nullptr;

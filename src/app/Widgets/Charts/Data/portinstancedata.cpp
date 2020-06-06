@@ -21,39 +21,8 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
       middleware_(port.middleware),
       kind_(port.kind)
 {
-    // Setup the requests
-    port_lifecycle_request_.setExperimentRunID(exp_run_id);
-    port_lifecycle_request_.setPortIDs({graphml_id_});
-    port_lifecycle_request_.setPortPaths({path_});
-    //port_lifecycle_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
-    //port_lifecycle_request_.setComponentInstancePaths({comp_inst.getPath()});
-
-    port_event_request_.setExperimentRunID(exp_run_id);
-    port_event_request_.setPortIDs({graphml_id_});
-    port_event_request_.setPortPaths({path_});
-
-    // INSPECT: This extra request fields are returning unexpected events
-    //  When they are added, they also return port events from other children ports of the parenting ComponentInstance
-	// TODO: Find out what is causing this
-	//port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
-    //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
-
-    // NOTE: graphml_id format = <medea_ID>_<first_replication_ID>_<second_replication_ID>
-
-    // Setup event series
-    auto&& exp_run_id_str = QString::number(experiment_run_id_);
-    auto&& port_inst_id = graphml_id_ + exp_run_id_str;
-    auto medea_id = graphml_id_.split('_').first();
-    auto port_lifecycle_label = name_ + "_" + medea_id;
-    auto port_event_label = name_ + "_" + medea_id;
-
-    port_lifecycle_series_ = new PortLifecycleEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_LIFECYCLE));
-    port_lifecycle_series_->setLabel("[" + exp_run_id_str + "] " + port_lifecycle_label);
-    port_lifecycle_series_->setParent(this);
-
-    port_event_series_ = new PortEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_EVENT));
-    port_event_series_->setLabel("[" + exp_run_id_str + "] " + port_event_label);
-    port_event_series_->setParent(this);
+    setupRequests();
+    setupSeries();
 
     connect(this, &PortInstanceData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestPortInstanceEvents);
     emit requestData(*this);
@@ -104,7 +73,6 @@ AggServerResponse::Port::Kind PortInstanceData::getKind() const
     return kind_;
 }
 
-
 /**
  * @brief PortInstanceData::getPortLifecycleRequest
  * @return
@@ -123,7 +91,6 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
     return port_event_request_;
 }
 
-
 /**
  * @brief PortInstanceData::getPortLifecycleSeries
  * @throws std::runtime_error
@@ -131,8 +98,6 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
  */
 QPointer<const EventSeries> PortInstanceData::getPortLifecycleSeries() const
 {
-    // TODO: Ask Jackson if this throw (and the others like it) is necessary since we've moved to using QPointers
-    //  Or should you just always check if it's null wherever it's being called?
     if (port_lifecycle_series_ == nullptr) {
         throw std::runtime_error("PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
     }
@@ -151,7 +116,6 @@ QPointer<const EventSeries> PortInstanceData::getPortEventSeries() const
     }
     return port_event_series_;
 }
-
 
 /**
  * @brief PortInstanceData::getPreviousEventTime
@@ -202,7 +166,6 @@ void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>
     port_lifecycle_series_->addEvents(events);
 }
 
-
 /**
  * @brief PortInstanceData::addPortEvents
  * @param events
@@ -211,7 +174,6 @@ void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
     port_event_series_->addEvents(events);
 }
-
 
 /**
  * @brief PortInstanceData::updateData
@@ -227,4 +189,46 @@ void PortInstanceData::updateData(qint64 new_last_updated_time)
     port_event_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
     last_updated_time_ = new_last_updated_time;
     emit requestData(*this);
+}
+
+/**
+ * @brief PortInstanceData::setupRequests
+ */
+void PortInstanceData::setupRequests()
+{
+    port_lifecycle_request_.setExperimentRunID(experiment_run_id_);
+    port_lifecycle_request_.setPortIDs({graphml_id_});
+    port_lifecycle_request_.setPortPaths({path_});
+
+    port_event_request_.setExperimentRunID(experiment_run_id_);
+    port_event_request_.setPortIDs({graphml_id_});
+    port_event_request_.setPortPaths({path_});
+
+    // INSPECT: These extra request fields are returning unexpected events
+    //  When they are added, they also return port events from other children ports of the parenting ComponentInstance
+    // TODO: Find out what is causing this
+    //port_lifecycle_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    //port_lifecycle_request_.setComponentInstancePaths({comp_inst.getPath()});
+    //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
+}
+
+/**
+ * @brief PortInstanceData::setupSeries
+ */
+void PortInstanceData::setupSeries()
+{
+    // NOTE: graphml_id format = <medea_ID>_<first_replication_ID>_<second_replication_ID>
+
+    auto&& exp_run_id_str = QString::number(experiment_run_id_);
+    auto&& port_inst_id = graphml_id_ + exp_run_id_str;
+    auto&& label = "[" + exp_run_id_str + "] " + name_ + "_" + graphml_id_;
+
+    port_lifecycle_series_ = new PortLifecycleEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_LIFECYCLE));
+    port_lifecycle_series_->setLabel(label);
+    port_lifecycle_series_->setParent(this);
+
+    port_event_series_ = new PortEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_EVENT));
+    port_event_series_->setLabel(label);
+    port_event_series_->setParent(this);
 }

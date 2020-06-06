@@ -27,6 +27,8 @@ signals:
     void requestData(MarkerSetData& marker_set);
 
 private:
+    void setupSeries();
+
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
 
