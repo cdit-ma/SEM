@@ -31,12 +31,6 @@ struct PortConnection {
     ConnectionType type;
     QString from_port_graphml;
     QString to_port_graphml;
-    // REVIEW (Jackson): this field doesn't make sense by itself (connections are usually between
-    //  two different nodes?), needs more documentation as to what it is, why its here and
-    //  potentially why not in another class
-    // NOTE: This struct, like its data/event/series counterparts, is not finalised yet; it will very likely change
-    //  This member is currently not being used
-    QString node_hostname;
 };
 
 struct Port {

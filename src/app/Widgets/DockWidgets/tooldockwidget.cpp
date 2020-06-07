@@ -13,8 +13,6 @@ ToolDockWidget::ToolDockWidget(const QString& title, QWidget* parent)
 
 void ToolDockWidget::themeChanged()
 {
-    qDebug() << "ToolDockWidget::themeChanged";
-
     Theme* theme = Theme::theme();
     setStyleSheet(theme->getDockWidgetStyleSheet());
     if (getTitleBar()) {

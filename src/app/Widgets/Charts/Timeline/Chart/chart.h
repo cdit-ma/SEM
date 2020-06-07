@@ -6,6 +6,7 @@
 #include "../../Data/Events/workloadevent.h"
 #include "../../Data/Events/portevent.h"
 #include "../../../../Controllers/ViewController/viewitem.h"
+#include "../../../../theme.h"
 
 #include "../../Data/Series/portlifecycleeventseries.h"
 #include "../../Data/Series/porteventseries.h"
@@ -52,8 +53,8 @@ public:
 
     void updateVerticalMin(double min);
     void updateVerticalMax(double max);
-    void updateRange(double startTime, double duration);
 
+    void updateRange(double startTime, double duration);
     void setRange(double min, double max);
 
     void setDisplayMinRatio(double ratio);
@@ -73,30 +74,44 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    template<class T>
-    struct EventSeriesPaintVals {
-        //EventSeriesPaintVals(ChartDataKind kind) : series_kind(kind) {}
-        ChartDataKind series_kind;
-        QHash<T, QPixmap> pixmaps;
+    struct SeriesPaintValues {
         QColor series_color;
+        double opacity = 1.0;
+    };
+
+    struct NetworkSeriesPaintValues {
+        QColor sent_color;
+        QColor received_color;
+        QColor combined_color;
+        double opacity = 1.0;
     };
 
     template<class T>
-    void paintEventChart(QPainter& painter, const QVector<QList<Event*>>& bins, const EventSeriesPaintVals<T>& paint_vals);
-    void paintLineChart();
-    void paintBarChart();
+    struct EventSeriesPaintValues {
+        QHash<T, QPixmap> pixmaps;
+        SeriesPaintValues paint_val;
+    };
 
-    void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
     void outlineHoveredData(QPainter& painter);
     void displayDataMinMax(QPainter& painter);
 
-    void paintPortLifecycleSeries(QPainter& painter, const QPointer<const PortLifecycleEventSeries>& series);
-    void paintPortEventSeries(QPainter& painter, const QPointer<const PortEventSeries>& series);
-    void paintWorkloadEventSeries(QPainter& painter, const QPointer<const WorkloadEventSeries>& series);
+    void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
     void paintMarkerEventSeries(QPainter& painter, const QPointer<const MarkerEventSeries>& series);
-    void paintCPUUtilisationSeries(QPainter& painter, const QPointer<const CPUUtilisationEventSeries>& series);
-    void paintMemoryUtilisationSeries(QPainter& painter, const QPointer<const MemoryUtilisationEventSeries>& series);
     void paintNetworkUtilisationSeries(QPainter& painter, const QPointer<const NetworkUtilisationEventSeries>& series);
+
+    template<class DerivedEvent>
+    DerivedEvent* convertEvent(const Event* event) const { return (DerivedEvent*) event; };
+
+    template<class DerivedEvent, class EventEnumType,
+        std::enable_if_t<std::is_same<DerivedEvent, PortLifecycleEvent>::value ||
+                         std::is_same<DerivedEvent, PortEvent>::value ||
+                         std::is_same<DerivedEvent, WorkloadEvent>::value, int> = 1>
+    void paintEventSeries(QPainter& painter, const QPointer<const EventSeries>& series, const EventSeriesPaintValues<EventEnumType>& paint_vals);
+
+    template<class DerivedEvent,
+        std::enable_if_t<std::is_same<DerivedEvent, CPUUtilisationEvent>::value ||
+                         std::is_same<DerivedEvent, MemoryUtilisationEvent>::value, int> = 1>
+    void paintUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series, const SeriesPaintValues& paint_vals);
 
     QPair<QPair<int, int>, QPair<QList<Event*>::const_iterator, QList<Event*>::const_iterator>>
     getOuterDisplayIterators(const QList<Event*>& events, double target_bin_width) const;
@@ -112,9 +127,6 @@ private:
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
     bool rectHovered(const QRectF& hitRect);
 
-    void clearHoveredLists();
-    void updateSeriesPixmaps();
-
     int getBinCount(double target_bin_width) const;
     double getBinWidth(double target_bin_width) const;
 
@@ -125,6 +137,11 @@ private:
 	double mapTimeToPixel(double time);
 
 	static QColor getContrastingColor(const QColor& color);
+
+    void setupPaintValues(Theme& theme);
+    void setupPixmaps(Theme& theme);
+
+    void clearHoveredLists();
 
     quint32 experimentRunID_;
     qint64 experimentRunStartTime_;
@@ -148,43 +165,12 @@ private:
     QPen highlightPen_;
     QBrush highlightBrush_;
 
-    QColor gridColor_;
     QColor textColor_;
-    QColor highlightColor_;
     QColor hoveredRectColor_;
 
     QColor backgroundColor_;
     QColor backgroundDefaultColor_;
     QColor backgroundHighlightColor_;
-
-    QColor defaultPortLifecycleColor_ = Qt::gray;
-    QColor defaultWorkloadColor_ = Qt::gray;
-    QColor defaultUtilisationColor_ = Qt::lightGray;
-    QColor defaultMemoryColor_ = Qt::lightGray;
-    QColor defaultMarkerColor_ = Qt::gray;
-    QColor defaultPortEventColor_ = Qt::gray;
-
-    QColor defaultNetworkColor_sent_ = Qt::lightGray;
-    QColor defaultNetworkColor_received_ = Qt::lightGray;
-
-    QColor portLifecycleColor_ = defaultUtilisationColor_;
-    QColor workloadColor_ = defaultWorkloadColor_;
-    QColor utilisationColor_ = defaultUtilisationColor_;
-    QColor memoryColor_ = defaultMemoryColor_;
-    QColor markerColor_ = defaultMarkerColor_;
-    QColor portEventColor_ = defaultPortEventColor_;
-
-    QColor networkColor_sent_ = defaultNetworkColor_sent_;
-    QColor networkColor_received_ = defaultNetworkColor_received_;
-    QColor networkColor_combined_ = Qt::blue;
-
-    double portLifecycleSeriesOpacity_ = 1.0;
-    double workloadSeriesOpacity_ = 1.0;
-    double cpuSeriesOpacity_ = 1.0;
-    double memorySeriesOpacity_ = 1.0;
-    double markerSeriesOpacity_ = 1.0;
-    double portEventSeriesOpacity_ = 1.0;
-    double networkSeriesOpacity_ = 1.0;
 
     QHash<ChartDataKind, QPointer<const MEDEA::EventSeries>> series_pointers_;
 
@@ -193,13 +179,13 @@ private:
     QList<QRectF> hoveredEllipseRects_;
     QList<QRectF> hoveredRects_;
 
-    QHash<AggServerResponse::LifecycleType, QPixmap> lifeCycleTypePixmaps_;
-    QHash<WorkloadEvent::WorkloadEventType, QPixmap> workloadEventTypePixmaps_;
-    QHash<PortEvent::PortEventType, QPixmap> portEventTypePixmaps_;
-
-    EventSeriesPaintVals<AggServerResponse::LifecycleType> port_lifecycle_paint_vals = {ChartDataKind::PORT_LIFECYCLE};
-    EventSeriesPaintVals<WorkloadEvent::WorkloadEventType> workload_event_paint_vals;
-    EventSeriesPaintVals<AggServerResponse::LifecycleType> port_event_paint_vals;
+    SeriesPaintValues marker_event_paint_vals_;
+    SeriesPaintValues cpu_util_paint_vals_;
+    SeriesPaintValues memory_util_paint_vals_;
+    NetworkSeriesPaintValues network_util_paint_vals_;
+    EventSeriesPaintValues<AggServerResponse::LifecycleType> port_lifecycle_paint_vals_;
+    EventSeriesPaintValues<PortEvent::PortEventType> port_event_paint_vals_;
+    EventSeriesPaintValues<WorkloadEvent::WorkloadEventType> workload_event_paint_vals_;
 };
 
 }
