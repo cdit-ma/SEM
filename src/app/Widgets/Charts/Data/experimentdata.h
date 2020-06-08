@@ -21,12 +21,11 @@ public:
     const QString& experiment_name() const;
 
     void addExperimentRun(const AggServerResponse::ExperimentRun& exp_run);
-    const ExperimentRunData& getExperimentRun(quint32 exp_run_id) const;
+    ExperimentRunData& getExperimentRun(quint32 exp_run_id) const;
 
     void updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state);
 
 signals:
-    void requestData(quint32 exp_run_id);
     void dataUpdated(quint32 exp_run_id, qint64 last_updated_time);
 
 private slots:

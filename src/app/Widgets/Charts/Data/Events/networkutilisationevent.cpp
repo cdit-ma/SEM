@@ -16,9 +16,8 @@ NetworkUtilisationEvent::NetworkUtilisationEvent(const QString& hostname,
                                                qint64 bytes_received,
                                                qint64 time,
                                                QObject* parent)
-    : MEDEA::Event(MEDEA::ChartDataKind::NETWORK_UTILISATION, time, hostname, parent),
-      series_id_(hostname + interface_mac_addr),
-      id_(series_id_ + QString::number(time)),
+    : MEDEA::Event(MEDEA::ChartDataKind::NETWORK_UTILISATION, time, parent),
+      id_(hostname + interface_mac_addr + QString::number(time)),
       hostname_(hostname),
       packets_sent_(packets_sent),
       packets_received_(packets_received),
@@ -39,17 +38,6 @@ QString NetworkUtilisationEvent::toString(const QString& dateTimeFormat) const
            "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
 
-
-/**
- * @brief NetworkUtilisationEvent::getSeriesID
- * @return
- */
-const QString& NetworkUtilisationEvent::getSeriesID() const
-{
-    return series_id_;
-}
-
-
 /**
  * @brief NetworkUtilisationEvent::getID
  * @return
@@ -58,7 +46,6 @@ const QString& NetworkUtilisationEvent::getID() const
 {
     return id_;
 }
-
 
 /**
  * @brief NetworkUtilisationEvent::getHostname
@@ -69,7 +56,6 @@ const QString& NetworkUtilisationEvent::getHostname() const
     return hostname_;
 }
 
-
 /**
  * @brief NetworkUtilisationEvent::getInterfaceMacAddress
  * @return
@@ -78,7 +64,6 @@ const QString& NetworkUtilisationEvent::getInterfaceMacAddress() const
 {
     return interface_mac_address_;
 }
-
 
 /**
  * @brief NetworkUtilisationEvent::getPacketsSent
@@ -89,7 +74,6 @@ qint64 NetworkUtilisationEvent::getPacketsSent() const
     return packets_sent_;
 }
 
-
 /**
  * @brief NetworkUtilisationEvent::getPacketsReceived
  * @return
@@ -99,7 +83,6 @@ qint64 NetworkUtilisationEvent::getPacketsReceived() const
     return bytes_received_;
 }
 
-
 /**
  * @brief NetworkUtilisationEvent::getBytesSent
  * @return
@@ -108,7 +91,6 @@ qint64 NetworkUtilisationEvent::getBytesSent() const
 {
     return bytes_sent_;
 }
-
 
 /**
  * @brief NetworkUtilisationEvent::getBytesReceived

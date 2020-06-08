@@ -16,15 +16,13 @@ public:
 
     QString toString(const QString& dateTimeFormat) const override;
 
-    const QString& getSeriesID() const override;
     const QString& getID() const override;
 
     qint64 getMarkerID() const;
 
 private:
-    // The series_id_ is formed by what is required to group events together into a series
-    QString series_id_;
     QString id_;
+    QString marker_name_;
 
     qint64 markerID_;
 };

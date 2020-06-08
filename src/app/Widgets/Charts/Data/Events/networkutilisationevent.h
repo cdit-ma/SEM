@@ -18,7 +18,6 @@ public:
                                     QObject* parent = nullptr);
 
     QString toString(const QString& dateTimeFormat) const override;
-    const QString& getSeriesID() const override;
     const QString& getID() const override;
 
     const QString& getHostname() const;
@@ -30,7 +29,6 @@ public:
     qint64 getBytesReceived() const;
 
 private:
-    QString series_id_;
     QString id_;
     QString hostname_;
     QString interface_mac_address_;

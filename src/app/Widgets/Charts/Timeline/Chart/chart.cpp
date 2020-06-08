@@ -7,18 +7,15 @@
 #include "../../Data/Series/networkutilisationeventseries.h"
 
 #include <QPainter>
-
 #include <algorithm>
 #include <iostream>
 
-#define BACKGROUND_OPACITY 0.25
-#define BORDER_WIDTH 2.0
-
-#define PEN_WIDTH 1.0
-#define BIN_WIDTH 22.0
-#define POINT_WIDTH 8.0
-
 using namespace MEDEA;
+
+const double Chart::background_opacity_ = 0.25;
+const double Chart::border_width_ = 0.5;
+const double Chart::default_bin_width_ = 22.0;
+const double Chart::default_ellipse_width_ = 8.0;
 
 /**
  * @brief Chart::Chart
@@ -156,6 +153,7 @@ void Chart::setRange(double min, double max)
 void Chart::setDisplayMinRatio(double ratio)
 {
 	minRatio_ = ratio;
+	updateBinnedData();
 	update();
 }
 
@@ -166,7 +164,8 @@ void Chart::setDisplayMinRatio(double ratio)
 void Chart::setDisplayMaxRatio(double ratio)
 {
 	maxRatio_ = ratio;
-	update();
+    updateBinnedData();
+    update();
 }
 
 /**
@@ -178,7 +177,8 @@ void Chart::setDisplayRangeRatio(double minRatio, double maxRatio)
 {
 	minRatio_ = minRatio;
 	maxRatio_ = maxRatio;
-	update();
+    updateBinnedData();
+    update();
 }
 
 /**
@@ -340,18 +340,18 @@ void Chart::themeChanged()
 	setFont(theme->getSmallFont());
 
     backgroundDefaultColor_ = theme->getAltBackgroundColor();
-    backgroundDefaultColor_.setAlphaF(BACKGROUND_OPACITY);
+    backgroundDefaultColor_.setAlphaF(background_opacity_);
     backgroundHighlightColor_ = theme->getActiveWidgetBorderColor();
-    backgroundHighlightColor_.setAlphaF(BACKGROUND_OPACITY * 2.0);
+    backgroundHighlightColor_.setAlphaF(background_opacity_ * 2.0);
 
     textColor_ = theme->getTextColor();
     backgroundColor_ = backgroundDefaultColor_;
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
     defaultTextPen_ = QPen(textColor_, 2.0);
-    defaultRectPen_ = QPen(theme->getAltTextColor(), 0.5);
-    defaultEllipsePen_ = QPen(theme->getAltTextColor(), 2.0);
-    highlightPen_ = QPen(theme->getHighlightColor(), 2.0);
+    defaultRectPen_ = QPen(theme->getAltTextColor(), border_width_);
+    defaultEllipsePen_ = QPen(theme->getAltTextColor(), 1.0);
+    highlightPen_ = QPen(theme->getHighlightColor(), 1.5);
     highlightBrush_ = QBrush(getContrastingColor(textColor_));
 
     setupPaintValues(*theme);
@@ -467,19 +467,21 @@ void Chart::paintEvent(QPaintEvent* event)
 void Chart::outlineHoveredData(QPainter& painter)
 {
     painter.save();
+    painter.setPen(highlightPen_);
+
+    double delta = highlightPen_.widthF() / 2;
 
     // Outline the highlighted rects - for event series
-    painter.setPen(highlightPen_);
     painter.setBrush(Qt::NoBrush);
     for (const auto& rect : hoveredRects_) {
-        painter.drawRect(rect.adjusted(-1, -1, 1, 1));
+        painter.drawRect(rect.adjusted(-delta, -delta, delta, delta));
     }
 
     // Outline the highlighted ellipses - for utilisation series
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setBrush(highlightBrush_);
     for (const auto& rect : hoveredEllipseRects_) {
-        painter.drawEllipse(rect.adjusted(-BORDER_WIDTH, -BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH));
+        painter.drawEllipse(rect.adjusted(-delta, -delta, delta, delta));
     }
 
     painter.restore();
@@ -579,8 +581,8 @@ void Chart::paintEventSeries(QPainter& painter,
         return;
     }
 
-    double bin_width = getBinWidth(BIN_WIDTH);
-    int bin_count = getBinCount(BIN_WIDTH);
+    double bin_width = getBinWidth(default_bin_width_);
+    int bin_count = getBinCount(default_bin_width_);
     int y = rect().center().y() - bin_width / 2.0;
 
     const auto& events = series->getEvents();
@@ -642,7 +644,7 @@ void Chart::paintUtilisationSeries(QPainter& painter,
 
     const auto series_kind = series->getKind();
     const auto& events = series->getEvents();
-    const auto& outer_bounds = getOuterDisplayIterators(events, POINT_WIDTH);
+    const auto& outer_bounds = getOuterDisplayIterators(events, default_ellipse_width_);
 
     const auto& outer_bound_itrs = outer_bounds.second;
     auto first_event_itr = outer_bound_itrs.first;
@@ -654,11 +656,15 @@ void Chart::paintUtilisationSeries(QPainter& painter,
     }
 
     const auto& outer_bin_counts = outer_bounds.first;
-    auto bin_width = getBinWidth(POINT_WIDTH);
-    int bin_count = outer_bin_counts.first + getBinCount(POINT_WIDTH) + outer_bin_counts.second;
+    auto bin_width = getBinWidth(default_ellipse_width_);
+    int bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;
     auto bins = binEvents(events, bin_count, first_event_itr, last_event_itr);
 
-    auto availableHeight = height() - bin_width - BORDER_WIDTH / 2.0;
+    // TODO: If we don't care about seeing the full ellipse, remove (- bin_width) from available_height
+    //  This will paint 0% utilisation along the border instead of half the ellipse size up
+    auto availableHeight = height() - border_width_ * 2 - bin_width;
+    auto y_offset = border_width_;
+
     QList<QRectF> rects;
 
     for (int i = 0; i < bins.size(); i++) {
@@ -675,7 +681,7 @@ void Chart::paintUtilisationSeries(QPainter& painter,
         }
         utilisation /= count;
 
-        auto&& y = (1 - utilisation) * availableHeight;
+        auto&& y = y_offset + (1 - utilisation) * availableHeight;
         auto&& x = (i - outer_bin_counts.first) * bin_width;
         rects.append(QRectF(x, y, bin_width, bin_width));
     }
@@ -698,7 +704,7 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
         return;
     }
 
-    int bin_count = getBinCount(BIN_WIDTH);
+    int bin_count = getBinCount(default_bin_width_);
     QVector<double> bins(bin_count);
     QVector<double> bin_end_times;
     bin_end_times.reserve(bin_count);
@@ -739,8 +745,8 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
                 break;
             }
             // Calculate average duration
-            const auto& IDSetsAtStartTime = start_times_map.value(start_time);
-            for (auto ID : IDSetsAtStartTime) {
+            const auto& id_sets_at_start_time = start_times_map.value(start_time);
+            for (auto ID : id_sets_at_start_time) {
                 total_duration += id_set_duration.value(ID);
                 number_of_id_sets++;
             }
@@ -761,7 +767,7 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
         }
     }
 
-    // get the maximum duration
+    // Get the maximum duration
     auto maxDuration = 0.0;
     for (int i = 0; i < bins.count(); i++) {
         maxDuration = qMax(bins[i], maxDuration);
@@ -772,8 +778,10 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
 
     const auto& marker_color = marker_event_paint_vals_.series_color;
     QColor brushColor = marker_color;
-    auto bin_width = getBinWidth(BIN_WIDTH);
-    auto availableHeight = height() - BORDER_WIDTH;
+
+    auto bin_width = getBinWidth(default_bin_width_);
+    auto availableHeight = height() - border_width_ * 2;
+    auto y_offset = border_width_;
 
     for (int i = 0; i < bins.size(); i++) {
         auto durationMS = bins[i];
@@ -784,7 +792,7 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
         if (durationMS == -1) {
             rectHeight = 2.0;
         }
-        auto y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
+        auto y = y_offset + availableHeight - rectHeight;
         QRectF rect(i * bin_width, y, bin_width, rectHeight);
         if (rectHovered(ChartDataKind::MARKER, rect)) {
             painter.fillRect(rect, highlightBrush_);
@@ -811,7 +819,7 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     }
 
     const auto& events = series->getEvents();
-    const auto& outer_bounds = getOuterDisplayIterators(events, POINT_WIDTH);
+    const auto& outer_bounds = getOuterDisplayIterators(events, default_ellipse_width_);
 
     const auto& outer_bound_itrs = outer_bounds.second;
     auto first_event_itr = outer_bound_itrs.first;
@@ -823,13 +831,17 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     }
 
     const auto& outer_bin_counts = outer_bounds.first;
-    auto bin_width = getBinWidth(POINT_WIDTH);
-    int bin_count = outer_bin_counts.first + getBinCount(POINT_WIDTH) + outer_bin_counts.second;
+    auto bin_width = getBinWidth(default_ellipse_width_);
+    int bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;
     auto bins = binEvents(events, bin_count, first_event_itr, last_event_itr);
 
+    // TODO: If we don't care about seeing the full ellipse, remove (- bin_width) from available_height
+    //  This will paint 0% utilisation along the border instead of half the ellipse size up
+    auto availableHeight = height() - border_width_ * 2 - bin_width;
+    auto y_offset = border_width_;
+    auto y_range = dataMaxY_ - dataMinY_;
+
     QList<QRectF> rects_sent, rects_received;
-    auto availableHeight = height() - bin_width - BORDER_WIDTH / 2.0;
-    double y_range = dataMaxY_ - dataMinY_;
 
     for (int i = 0; i < bin_count; i++) {
         int count = bins[i].count();
@@ -849,8 +861,8 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
         bytes_received /= count;
 
         auto x = (i - outer_bin_counts.first) * bin_width;
-        auto y_sent = availableHeight - (bytes_sent - dataMinY_) / y_range * availableHeight;
-        auto y_received = availableHeight - (bytes_received - dataMinY_) / y_range * availableHeight;
+        auto y_sent = y_offset + availableHeight - (bytes_sent - dataMinY_) / y_range * availableHeight;
+        auto y_received = y_offset + availableHeight - (bytes_received - dataMinY_) / y_range * availableHeight;
         rects_sent.append(QRectF(x, y_sent, bin_width, bin_width));
         rects_received.append(QRectF(x, y_received, bin_width, bin_width));
     }
@@ -1065,18 +1077,18 @@ void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, con
     painter.save();
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setOpacity(opacity);
-    painter.setPen(defaultEllipsePen_);
     painter.setBrush(color);
 
     if (rects.size() == 1) {
         auto rect = rects.first();
+        painter.setPen(defaultEllipsePen_);
         painter.drawEllipse(rect);
         rectHovered(series_kind, rect);
     } else {
         QPen linePen(color, 3.0);
-        for (int i = 1; i < rects.count(); i++) {
-            auto rect1 = rects.at(i - 1);
-            auto rect2 = rects.at(i);
+        for (int i = 0; i < rects.count() - 1; i++) {
+            auto rect1 = rects.at(i);
+            auto rect2 = rects.at(i + 1);
             painter.setPen(linePen);
             painter.drawLine(rect1.center(), rect2.center());
             painter.setPen(defaultEllipsePen_);
@@ -1098,8 +1110,7 @@ void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, con
  */
 bool Chart::rectHovered(ChartDataKind kind, const QRectF& hitRect)
 {
-    auto painterRect = hitRect.adjusted(-PEN_WIDTH / 2.0, 0, PEN_WIDTH / 2.0, 0);
-    if (rectHovered(painterRect)) {
+    if (hoveredRect_.intersects(hitRect)) {
         // If the hit rect is hovered, store/update the hovered time range for the provided series kind
         QPair<qint64, qint64> timeRange = {mapPixelToTime(hitRect.left()), mapPixelToTime(hitRect.right())};
         if (hoveredSeriesTimeRange_.contains(kind)) {
@@ -1114,16 +1125,6 @@ bool Chart::rectHovered(ChartDataKind kind, const QRectF& hitRect)
         return true;
     }
     return false;
-}
-
-/**
- * @brief Chart::rectHovered
- * @param hitRect
- * @return
- */
-bool Chart::rectHovered(const QRectF &hitRect)
-{
-	return hoveredRect_.intersects(hitRect);
 }
 
 /**

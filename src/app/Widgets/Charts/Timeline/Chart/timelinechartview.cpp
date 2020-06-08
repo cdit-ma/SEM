@@ -72,16 +72,15 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
         throw std::invalid_argument("TimelineChartView::addChart - Series is null.");
     }
 
-    // If a chart already exists for the series, replace the series within the chart
+    // If a chart already exists for the series, simply replace the series within the chart
     auto chart = charts_.value(series->getID(), nullptr);
     if (chart) {
-        //qDebug() << "Replace series for " << Event::GetChartDataKindString(series->getKind()) << ": " << series->getID();;
+        // TODO: If the charts don't get updated live, and the exp run was live when the chart was constructed,
+        //  we will need to update the stored range for the exp run and then update the timeline range
         chart->removeSeries(series->getKind());
         chart->addSeries(series);
         return;
     }
-
-    //qDebug() << "Construct new chart for " << Event::GetChartDataKindString(series->getKind()) << ": " << series->getID();
 
     const auto exp_run_id = exp_run_data.experiment_run_id();
     const auto exp_start_time = exp_run_data.start_time();
@@ -132,7 +131,7 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
         emptyLabel_->hide();
     }
 
-    updateTimelineRange(true);
+    updateTimelineRange();
 }
 
 /**
@@ -151,6 +150,9 @@ void TimelineChartView::removeChart(const QString& id, bool clearing_chart_list)
         if (!clearing_chart_list) {
             decrementSeriesCountForExperimentRun(chart->getExperimentRunID());
             charts_.remove(id);
+            if (charts_.isEmpty()) {
+                chartsEmptied();
+            }
         }
         chartList_->removeChart(chart);
         chart->deleteLater();
@@ -159,8 +161,7 @@ void TimelineChartView::removeChart(const QString& id, bool clearing_chart_list)
     // Remove the chart label
     auto chart_label = chartLabels_.value(id, nullptr);
     if (chart_label) {
-        /*
-        // TODO: Un-comment this out if ever we decide to group/parent ChartLabels
+        /* TODO: Un-comment this out if ever we decide to group/parent ChartLabels
         auto childrenLabels = chart_label->getChildrenChartLabels();
         if (!childrenLabels.isEmpty()) {
             // remove/delete chart chart_label's children labels
@@ -169,19 +170,10 @@ void TimelineChartView::removeChart(const QString& id, bool clearing_chart_list)
                 (*childItr)->deleteLater();
                 childItr = childrenLabels.erase(childItr);
             }
-        }
-        */
+        } */
         chartLabels_.remove(id);
         chartLabelList_->removeChartLabel(chart_label);
         chart_label->deleteLater();
-    }
-
-    if (!clearing_chart_list) {
-        // If there are no more charts, show the empty chart_label
-        if (charts_.isEmpty()) {
-            mainWidget_->hide();
-            emptyLabel_->show();
-        }
     }
 }
 
@@ -194,6 +186,7 @@ void TimelineChartView::updateExperimentRunLastUpdatedTime(const quint32 experim
 {
     if (experimentRunTimeRange_.contains(experimentRunID)) {
         setTimeRangeForExperimentRun(experimentRunID, experimentRunTimeRange_[experimentRunID].first, time);
+        updateTimelineRange();
     }
 }
 
@@ -209,16 +202,7 @@ void TimelineChartView::clearChartList()
 		removeChart(chartID, true);
 		chartItr = charts_.erase(chartItr);
 	}
-
-	// show empty label
-	mainWidget_->hide();
-	emptyLabel_->show();
-
-	// clear stored ranges
-	totalTimeRange_ = {INT64_MAX, INT64_MIN};
-	longestExperimentRunDuration_ = {0, INT64_MIN};
-	experimentRunTimeRange_.clear();
-	experimentRunSeriesCount_.clear();
+	chartsEmptied();
 }
 
 /**
@@ -231,7 +215,7 @@ void TimelineChartView::setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format)
 	timeDisplayFormat_ = format;
 
     // PART OF REFACTOR - TEST THIS!
-    updateTimelineRange();
+    updateTimelineRange(false);
 }
 
 /**
@@ -417,48 +401,18 @@ void TimelineChartView::updateHoverDisplay()
         for (const auto& kind : chart->getHoveredSeriesKinds()) {
             const auto& hovered_range = chart->getHoveredTimeRange(kind);
             const auto& series = chart->getSeries(kind);
-            if (!series.isNull()) {
-                const auto &hovered_info = series->getHoveredDataString(hovered_range.first,
-                                                                        hovered_range.second,
-                                                                        HOVER_DISPLAY_ITEM_COUNT,
-                                                                        getDateTimeDisplayFormat(kind));
-                if (!hovered_info.isEmpty()) {
-                    hoveredData[kind] += hovered_info + "\n";
-                }
+            if (series.isNull()) {
+                continue;
+            }
+            const auto &hovered_info = series->getHoveredDataString(hovered_range.first,
+                                                                    hovered_range.second,
+                                                                    HOVER_DISPLAY_ITEM_COUNT,
+                                                                    getDateTimeDisplayFormat(kind));
+            if (!hovered_info.isEmpty()) {
+                hoveredData[kind] += hovered_info + "\n";
             }
         }
     }
-
-    /*
-        for (const auto& series : chart->getSeries()) {
-            if (!series.isNull()) {
-                const auto series_kind = series->getKind();
-                const auto& hovered_range = chart->getHoveredTimeRange(series_kind);
-                const auto& hovered_info = series->getHoveredDataString(hovered_range.first,
-                                                                        hovered_range.second,
-                                                                        HOVER_DISPLAY_ITEM_COUNT,
-                                                                        getDateTimeDisplayFormat(series_kind));
-                if (!hovered_info.isEmpty()) {
-                    hoveredData[series_kind] += hovered_info + "\n";
-                }
-            }
-        }
-
-
-        const auto& series_id = charts_.key(chart);
-        auto series = series_pointers_.value(series_id, nullptr);
-        if (series != nullptr) {
-            const auto series_kind = series->getKind();
-            const auto& hovered_range = chart->getHoveredTimeRange(series_kind);
-            const auto& hovered_info = series->getHoveredDataString(hovered_range.first,
-                                                                    hovered_range.second,
-                                                                    HOVER_DISPLAY_ITEM_COUNT,
-                                                                    getDateTimeDisplayFormat(series_kind));
-            if (!hovered_info.isEmpty()) {
-                hoveredData[series_kind] += hovered_info + "\n";
-            }
-        }
-    }*/
 
     if (hoveredData.isEmpty()) {
         return;
@@ -504,7 +458,6 @@ void TimelineChartView::minSliderMoved(const double ratio)
 {
 	for (auto chart : charts_) {
 		chart->setDisplayMinRatio(ratio);
-		chart->updateBinnedData();
 	}
 }
 
@@ -516,7 +469,6 @@ void TimelineChartView::maxSliderMoved(const double ratio)
 {
 	for (auto chart : charts_) {
 		chart->setDisplayMaxRatio(ratio);
-		chart->updateBinnedData();
 	}
 }
 
@@ -578,99 +530,25 @@ void TimelineChartView::timelineRubberbandUsed(double left, double right)
 	maxRatio = actualDist > 0 ? (max - actualRange.first) / actualDist : 0.0;
 	for (auto chart : charts_) {
 		chart->setDisplayRangeRatio(minRatio, maxRatio);
-		chart->updateBinnedData();
 	}
 }
-
-/**
- * @brief TimelineChartView::removeChart
- * This removes the chart with the specified ID from the timeline
- * It also removes the corresponding axis item from the timeline and contained series from their hashes
- * @param ID
- * @param clearing
- */
- /*
-void TimelineChartView::removeChart(const QString &ID, bool clearing)
-{
-	// TODO: This needs to change if multiple series are allowed to be displayed in one entity chart
-	// NOTE: At the moment there should be a chart per series; hence a chart should only have one series
-	//  ID is the chart's key, which is also the event series ID of the series it contains
-
-	// remove chart series
-	for (auto series : seriesList_) {
-		if (series->getEventSeriesID() == ID) {
-			const auto& key = seriesList_.key(series);
-			seriesList_.remove(key, series);
-			series->deleteLater();
-			break;
-		}
-	}
-
-	// remove chart
-	auto chart = charts_.value(ID, nullptr);
-	if (chart) {
-		chartList_->removeChart(chart);
-		chart->deleteLater();
-		if (!clearing) {
-			charts_.remove(ID);
-		}
-	}
-
-	// remove chart label
-	auto label = chartLabels_.value(ID, nullptr);
-	if (label) {
-		auto childrenLabels = label->getChildrenChartLabels();
-		if (!childrenLabels.isEmpty()) {
-			// remove/delete chart label's children labels
-			auto childItr = childrenLabels.begin();
-			while (childItr != childrenLabels.end()) {
-				(*childItr)->deleteLater();
-				childItr = childrenLabels.erase(childItr);
-			}
-		}
-		chartLabelList_->removeChartLabel(label);
-		chartLabels_.remove(ID);
-		label->deleteLater();
-	}
-
-    if (!clearing) {
-        // check if the timeline range needs updating
-        auto expRunID = chart->getExperimentRunID();
-        if (experimentRunSeriesCount_.contains(expRunID)) {
-            decrementSeriesCountForExperimentRun(expRunID);
-        }
-        // if there are no more charts, show empty label
-        if (charts_.isEmpty()) {
-            mainWidget_->hide();
-            emptyLabel_->show();
-        }
-    }
-
-    // clear the timeline chart's hovered rect
-    //chartList_->clearHovered();
-    //chartList_->setChartHovered(nullptr, false);
-}
-  */
-
 
 /**
  * @brief TimelineChartView::setTimeRangeForExperimentRun
  * This is called when new experiment data is received
- * It checks if the timeline range needs updating
+ * It checks if the stored timeline range needs updating
  * @param experimentRunID
  * @param startTime
  * @param lastUpdatedTime
  */
 void TimelineChartView::setTimeRangeForExperimentRun(quint32 experimentRunID, qint64 startTime, qint64 lastUpdatedTime)
 {
-	experimentRunTimeRange_[experimentRunID] = {startTime, lastUpdatedTime};
-
-	auto duration = lastUpdatedTime - startTime;
-	if (duration > longestExperimentRunDuration_.second) {
-		longestExperimentRunDuration_= {experimentRunID, duration};
-	}
-
-	totalTimeRange_ = {qMin(startTime, totalTimeRange_.first), qMax(lastUpdatedTime, totalTimeRange_.second)};
+    auto duration = lastUpdatedTime - startTime;
+    if (duration > longestExperimentRunDuration_.second) {
+        longestExperimentRunDuration_= {experimentRunID, duration};
+    }
+    totalTimeRange_ = {qMin(startTime, totalTimeRange_.first), qMax(lastUpdatedTime, totalTimeRange_.second)};
+    experimentRunTimeRange_[experimentRunID] = {startTime, lastUpdatedTime};
 }
 
 /**
@@ -684,9 +562,6 @@ void TimelineChartView::decrementSeriesCountForExperimentRun(quint32 experimentR
     if (!experimentRunSeriesCount_.contains(experimentRunID)) {
         return;
     }
-
-    //experimentRunSeriesCount_[experimentRunID]--;
-    //int seriesCount = experimentRunSeriesCount_[experimentRunID];
 
     // decrement the series count; if it's not the last one, do nothing
     int seriesCount = --experimentRunSeriesCount_[experimentRunID];
@@ -742,6 +617,24 @@ void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
 
 	timelineAxis_->setRange(startTime, startTime + duration, updateDisplayRange);
 	update();
+}
+
+/**
+ * @brief TimelineChartView::chartsEmptied
+ */
+void TimelineChartView::chartsEmptied()
+{
+    // Show empty label
+    mainWidget_->hide();
+    emptyLabel_->show();
+
+    // Clear stored ranges
+    totalTimeRange_ = {INT64_MAX, INT64_MIN};
+    longestExperimentRunDuration_ = {0, INT64_MIN};
+    experimentRunTimeRange_.clear();
+    experimentRunSeriesCount_.clear();
+
+    timelineAxis_->setRange(0, 1);
 }
 
 /**

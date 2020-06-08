@@ -257,6 +257,8 @@ void MEDEA::ExperimentRunData::addPortConnection(const AggServerResponse::PortCo
  */
 void MEDEA::ExperimentRunData::addMarkerSet(const QString& marker_name)
 {
+    // NOTE: Marker events used to be grouped by CompInst.graphml_id + marker_name
+    // TODO: Ask Jackson what they should be grouped by
     auto&& marker_set_id = marker_name + QString::number(experiment_run_id());
     if (!marker_set_hash_.contains(marker_set_id)) {
         auto marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);

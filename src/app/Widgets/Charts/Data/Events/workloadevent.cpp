@@ -19,12 +19,11 @@ WorkloadEvent::WorkloadEvent(const AggServerResponse::WorkerInstance& inst,
                              QString args,
                              quint32 logLevel,
                              QObject *parent)
-	: MEDEA::Event(MEDEA::ChartDataKind::WORKLOAD, time, inst.name, parent),
+	: MEDEA::Event(MEDEA::ChartDataKind::WORKLOAD, time, parent),
 	  type_(type),
 	  workloadID_(workloadID),
 	  logLevel_(logLevel),
-	  series_id_(inst.graphml_id + QString::number(workloadID)),
-	  id_(series_id_ + QString::number(time)),
+	  id_(inst.graphml_id + QString::number(workloadID) + QString::number(time)),
 	  functionName_(std::move(functionName)),
 	  args_(std::move(args)),
       worker_inst_path_(inst.path) {}
@@ -42,24 +41,6 @@ QString WorkloadEvent::toString(const QString &dateTimeFormat) const
     }
     dataString += "\n";
     return dataString;
-}
-
-/**
- * @brief WorkloadEvent::getWorkerInstPath
- * @return
- */
-const QString& WorkloadEvent::getWorkerInstPath() const
-{
-    return worker_inst_path_;
-}
-
-/**
- * @brief WorkloadEvent::getSeriesID
- * @return
- */
-const QString& WorkloadEvent::getSeriesID() const
-{
-    return series_id_;
 }
 
 /**
@@ -87,6 +68,15 @@ const QString& WorkloadEvent::getArgs() const
 const QString& WorkloadEvent::getFunctionName() const
 {
     return functionName_;
+}
+
+/**
+ * @brief WorkloadEvent::getWorkerInstPath
+ * @return
+ */
+const QString& WorkloadEvent::getWorkerInstPath() const
+{
+    return worker_inst_path_;
 }
 
 /**

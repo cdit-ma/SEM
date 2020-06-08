@@ -76,7 +76,9 @@ private slots:
 private:
     void setTimeRangeForExperimentRun(quint32 experimentRunID, qint64 startTime, qint64 lastUpdatedTime);
     void decrementSeriesCountForExperimentRun(quint32 experimentRunID);
-    void updateTimelineRange(bool updateDisplayRange = false);
+    void updateTimelineRange(bool updateDisplayRange = true);
+
+    void chartsEmptied();
 
     const QString& getDateTimeDisplayFormat(const MEDEA::ChartDataKind& kind) const;
 

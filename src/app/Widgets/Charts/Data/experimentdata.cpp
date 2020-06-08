@@ -55,7 +55,7 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
  * @throws std::invalid_argument
  * @return
  */
-const MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) const
+MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) const
 {
     auto&& exp_run = experiment_run_map_.at(exp_run_id);
     if (exp_run == nullptr) {

@@ -29,7 +29,6 @@ namespace MEDEA {
  */
 class Chart : public QWidget
 {
-    friend class ChartList;
     Q_OBJECT
 
 public:
@@ -47,9 +46,6 @@ public:
 
     QList<ChartDataKind> getHoveredSeriesKinds() const;
     QPair<qint64, qint64> getHoveredTimeRange(ChartDataKind kind) const;
-
-    void updateBinnedData(ChartDataKind kind);
-    void updateBinnedData(const QSet<ChartDataKind>& kinds = QSet<ChartDataKind>());
 
     void updateVerticalMin(double min);
     void updateVerticalMax(double max);
@@ -125,23 +121,24 @@ private:
     void drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, const QColor& color, double opacity, ChartDataKind series_kind);
 
     bool rectHovered(ChartDataKind kind, const QRectF& hitRect);
-    bool rectHovered(const QRectF& hitRect);
+    void clearHoveredLists();
+
+    void updateBinnedData(ChartDataKind kind);
+    void updateBinnedData(const QSet<ChartDataKind>& kinds = QSet<ChartDataKind>());
 
     int getBinCount(double target_bin_width) const;
     double getBinWidth(double target_bin_width) const;
 
-    double getDisplayMin() const;
-    double getDisplayMax() const;
-
     qint64 mapPixelToTime(double x);
 	double mapTimeToPixel(double time);
+
+    double getDisplayMin() const;
+    double getDisplayMax() const;
 
 	static QColor getContrastingColor(const QColor& color);
 
     void setupPaintValues(Theme& theme);
     void setupPixmaps(Theme& theme);
-
-    void clearHoveredLists();
 
     quint32 experimentRunID_;
     qint64 experimentRunStartTime_;
@@ -153,9 +150,13 @@ private:
     double dataMaxX_ = DBL_MIN;
     double dataMinY_ = DBL_MAX;
     double dataMaxY_ = DBL_MIN;
-
     double minRatio_ = 0.0;
     double maxRatio_ = 1.0;
+
+    static const double background_opacity_;
+    static const double border_width_;
+    static const double default_bin_width_;
+    static const double default_ellipse_width_;
 
     QRectF hoveredRect_;
 

@@ -82,7 +82,7 @@ void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events
             qDebug() << "Event belongs to a different worker instance: " << worker_inst_path;
             continue;
         }
-        const auto& series_id = event->getSeriesID();
+        const auto& series_id = graphml_id_ + QString::number(event->getWorkloadID());
         auto series = workload_event_series_.value(series_id, nullptr);
         if (series == nullptr) {
             qDebug() << "---";

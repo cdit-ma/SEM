@@ -11,8 +11,7 @@ CPUUtilisationEvent::CPUUtilisationEvent(const QString& hostname,
                                          double utilisation,
                                          qint64 time,
                                          QObject *parent)
-    : MEDEA::Event(MEDEA::ChartDataKind::CPU_UTILISATION, time, hostname, parent),
-      series_id_(hostname),
+    : MEDEA::Event(MEDEA::ChartDataKind::CPU_UTILISATION, time, parent),
       id_(hostname + QString::number(time)),
       hostname_(hostname),
       utilisation_(utilisation) {}
@@ -27,15 +26,6 @@ QString CPUUtilisationEvent::toString(const QString& dateTimeFormat) const
     return "Host: " + hostname_ + "\n" +
            "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
 		   "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
-}
-
-/**
- * @brief CPUUtilisationEvent::getSeriesID
- * @return
- */
-const QString& CPUUtilisationEvent::getSeriesID() const
-{
-    return series_id_;
 }
 
 /**
