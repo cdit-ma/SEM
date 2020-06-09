@@ -19,11 +19,11 @@ NetworkUtilisationEvent::NetworkUtilisationEvent(const QString& hostname,
     : MEDEA::Event(MEDEA::ChartDataKind::NETWORK_UTILISATION, time, parent),
       id_(hostname + interface_mac_addr + QString::number(time)),
       hostname_(hostname),
+      interface_mac_address_(interface_mac_addr),
       packets_sent_(packets_sent),
       packets_received_(packets_received),
       bytes_sent_(bytes_sent),
       bytes_received_(bytes_received) {}
-
 
 /**
  * @brief NetworkUtilisationEvent::toString

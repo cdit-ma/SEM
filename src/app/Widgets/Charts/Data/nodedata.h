@@ -41,7 +41,7 @@ public:
     QPointer<const MEDEA::EventSeries> getMemoryUtilisationSeries() const;
 
     void addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events);
-    QPointer<const MEDEA::EventSeries> getNetworkUtilisationSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries() const;
 
     void updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time);
 
@@ -53,6 +53,7 @@ private:
 
     void setupRequests();
     void setupSeries();
+    NetworkUtilisationEventSeries& setupNetworkUtilisationSeries(const QString& series_id, const QString& series_name);
 
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
@@ -68,7 +69,7 @@ private:
 
     CPUUtilisationEventSeries* cpu_utilisation_series_ = nullptr;
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;
-    NetworkUtilisationEventSeries* network_utilisation_series_ = nullptr;
+    QHash<QString, NetworkUtilisationEventSeries*> network_utilisation_series_;
 };
 
 #endif // NODEDATA_H

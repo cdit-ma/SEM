@@ -185,23 +185,36 @@ QPointer<const MEDEA::EventSeries> NodeData::getMemoryUtilisationSeries() const
  */
 void NodeData::addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events)
 {
-    network_utilisation_series_->addEvents(events);
-}
+    if (events.isEmpty()) {
+        return;
+    }
 
+    for (const auto& event : events) {
+        const auto& series_id = hostname_ + event->getInterfaceMacAddress();
+        auto series = network_utilisation_series_.value(series_id, nullptr);
+        if (series == nullptr) {
+            series = &setupNetworkUtilisationSeries(series_id, hostname_);
+        }
+        series->addEvent(event);
+    }
+}
 
 /**
  * @brief NodeData::getNetworkUtilisationSeries
  * @throws std::runtime_error
  * @return
  */
-QPointer<const MEDEA::EventSeries> NodeData::getNetworkUtilisationSeries() const
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getNetworkUtilisationSeries() const
 {
-    if (network_utilisation_series_ == nullptr) {
-        throw std::runtime_error("NodeData::getNetworkUtilisationSeries - Network utilisation series is null");
+    QList<QPointer<const MEDEA::EventSeries>> series_list;
+    for (auto series : network_utilisation_series_.values()) {
+        if (series == nullptr) {
+            throw std::runtime_error("NodeData::getNetworkUtilisationSeries - Network utilisation series is null");
+        }
+        series_list.append(series);
     }
-    return network_utilisation_series_;
+    return series_list;
 }
-
 
 /**
  * @brief NodeData::updateData
@@ -258,8 +271,22 @@ void NodeData::setupSeries()
     memory_utilisation_series_ = new MemoryUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::MEMORY_UTILISATION));
     memory_utilisation_series_->setLabel(label);
     memory_utilisation_series_->setParent(this);
+}
 
-    network_utilisation_series_ = new NetworkUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::NETWORK_UTILISATION));
-    network_utilisation_series_->setLabel(label);
-    network_utilisation_series_->setParent(this);
+/**
+ * @brief NodeData::setupNetworkUtilisationSeries
+ * @param series_id
+ * @param series_name
+ * @return
+ */
+NetworkUtilisationEventSeries& NodeData::setupNetworkUtilisationSeries(const QString& series_id, const QString& series_name)
+{
+    auto&& exp_run_id_str = QString::number(experiment_run_id_);
+
+    auto series = new NetworkUtilisationEventSeries(series_id + exp_run_id_str);
+    series->setLabel("[" + exp_run_id_str + "] " + series_name);
+    series->setParent(this);
+
+    network_utilisation_series_.insert(series_id, series);
+    return *series;
 }

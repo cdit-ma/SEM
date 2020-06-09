@@ -245,8 +245,7 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
             auto&& events = futureWatcher->result();
             if (requester != nullptr) {
                 requester->addWorkloadEvents(events);
-                // NOTE: Unlike the other series, this needs to be called here
-                //  This is because the workload event series aren't constructed until the workload events are received
+                // NOTE: This needs to be here because the workload event series aren't constructed until the workload events are received
                 //  This also means that the events need to have been added before showing the workload charts
                 const auto& exp_run_data = getExperimentRunData(selectedExperimentRun_.experiment_name,
                                                                 selectedExperimentRun_.experiment_run_id);
@@ -373,6 +372,13 @@ void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationReq
             auto&& events = futureWatcher->result();
             if (requester != nullptr) {
                 requester->addNetworkUtilisationEvents(events);
+                // NOTE: This needs to be here because the network event series aren't constructed until the network events are received
+                //  This also means that the events need to have been added before showing the workload charts
+                const auto& exp_run_data = getExperimentRunData(selectedExperimentRun_.experiment_name,
+                                                                selectedExperimentRun_.experiment_run_id);
+                for (const auto& series : requester->getNetworkUtilisationSeries()) {
+                    showChartForSeries(series, exp_run_data);
+                }
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);

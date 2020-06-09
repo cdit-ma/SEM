@@ -124,12 +124,16 @@ void WorkerInstanceData::addWorkloadEvents(const QMultiHash<QString, WorkloadEve
 
 /**
  * @brief WorkerInstanceData::getWorkloadEventSeries
+ * @throws std::runtime_error
  * @return
  */
 QList<QPointer<const MEDEA::EventSeries>> WorkerInstanceData::getWorkloadEventSeries() const
 {
     QList<QPointer<const MEDEA::EventSeries>> series_list;
     for (auto series : workload_event_series_.values()) {
+        if (series == nullptr) {
+            throw std::runtime_error("WorkerInstanceData::getWorkloadEventSeries - Workload event series is null");
+        }
         series_list.append(series);
     }
     return series_list;

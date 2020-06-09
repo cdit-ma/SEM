@@ -387,7 +387,6 @@ QMultiHash<QString, WorkloadEvent*> AggregationProxy::GetWorkloadEvents2(const W
             const auto& log_level = item.log_level();
             auto event = new WorkloadEvent(worker_instance, type, workload_id, time, function_name, args, log_level);
             events.insert(worker_instance.path, event);
-            //qDebug() << "workload event time: " << QDateTime::fromMSecsSinceEpoch(time).toString("hh:mm:ss.zzz");
         }
 
         return events;
@@ -601,7 +600,9 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
 
         //auto results = DummyResponseBuilder::getMultiEventsResponse();
         const auto& results = requester_->GetNetworkUtilisation(agg_request);
-        
+
+        // TODO: The NodeNetworkEvents returns a list of InterfaceNetworkEvents per NetworkUtilisationEvent
+        //  Ask Jackson - Shouldn't the NetworkUtilisationEvents be grouped by InterfaceNetworkEvent?
         for (const auto& node_network_event : results->node_network_events()) {
             const auto& hostname = ConstructQString(node_network_event.node_info().hostname());
             for (const auto& interface_network_event : node_network_event.events()) {

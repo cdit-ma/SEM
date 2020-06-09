@@ -644,25 +644,65 @@ void Chart::paintUtilisationSeries(QPainter& painter,
 
     const auto series_kind = series->getKind();
     const auto& events = series->getEvents();
+
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
+
+    int bin_count = getBinCount(default_ellipse_width_);
+    auto bin_width = getBinWidth(default_ellipse_width_);
+    auto bin_time_width = (display_max - display_min) / bin_count;
+
     const auto& outer_bounds = getOuterDisplayIterators(events, default_ellipse_width_);
-
     const auto& outer_bound_itrs = outer_bounds.second;
-    auto first_event_itr = outer_bound_itrs.first;
-    auto last_event_itr = outer_bound_itrs.second;
-
-    // If the first iterator is the same as the last iterator, it means that all the events are out of range; return
-    if (first_event_itr == last_event_itr) {
-        return;
-    }
+    auto first_contributing_event = outer_bound_itrs.first;
+    auto last_contributing_event = outer_bound_itrs.second;
 
     const auto& outer_bin_counts = outer_bounds.first;
-    auto bin_width = getBinWidth(default_ellipse_width_);
-    int bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;
-    auto bins = binEvents(events, bin_count, first_event_itr, last_event_itr);
+    int pre_bin_count = outer_bin_counts.first;
+    int total_bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;;
+
+    auto first_end_time = display_min - pre_bin_count * bin_time_width;
+    auto current_bin_start_time = first_end_time;
+
+    QVector< QList<Event*> > bins(total_bin_count);
+    QVector<double> bin_end_times;
+    bin_end_times.reserve(total_bin_count);
+
+    // calculate the bin end times
+    for (int i = 0; i < total_bin_count; i++) {
+        bin_end_times.append(current_bin_start_time + bin_time_width);
+        current_bin_start_time = bin_end_times.last();
+    }
+
+    int current_bin_index = 0;
+    auto current_bin_itr = bin_end_times.constBegin();
+    auto end_bin_itr = bin_end_times.constEnd();
+
+    // put the data in the correct bucket
+    while (first_contributing_event != events.constEnd()) {
+        const auto& event = (*first_contributing_event);
+        const auto& event_time = event->getTimeMS();
+        while (current_bin_itr != end_bin_itr) {
+            const auto& bin_end_time = *current_bin_itr;
+            if (event_time >= bin_end_time) {
+                current_bin_itr++;
+                current_bin_index++;
+            } else {
+                break;
+            }
+        }
+        if (current_bin_index < total_bin_count) {
+            bins[current_bin_index].append(event);
+        }
+        if (first_contributing_event == last_contributing_event) {
+            break;
+        }
+        first_contributing_event++;
+    }
 
     // TODO: If we don't care about seeing the full ellipse, remove (- bin_width) from available_height
     //  This will paint 0% utilisation along the border instead of half the ellipse size up
-    auto availableHeight = height() - border_width_ * 2 - bin_width;
+    auto available_height = height() - border_width_ * 2 - bin_width;
     auto y_offset = border_width_;
 
     QList<QRectF> rects;
@@ -681,7 +721,7 @@ void Chart::paintUtilisationSeries(QPainter& painter,
         }
         utilisation /= count;
 
-        auto&& y = y_offset + (1 - utilisation) * availableHeight;
+        auto&& y = y_offset + (1 - utilisation) * available_height;
         auto&& x = (i - outer_bin_counts.first) * bin_width;
         rects.append(QRectF(x, y, bin_width, bin_width));
     }
@@ -780,7 +820,7 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
     QColor brushColor = marker_color;
 
     auto bin_width = getBinWidth(default_bin_width_);
-    auto availableHeight = height() - border_width_ * 2;
+    auto available_height = height() - border_width_ * 2;
     auto y_offset = border_width_;
 
     for (int i = 0; i < bins.size(); i++) {
@@ -788,11 +828,11 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
         if (durationMS == 0) {
             continue;
         }
-        auto rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight;
+        auto rectHeight = (maxDuration <= 0) ? available_height : durationMS / maxDuration * available_height;
         if (durationMS == -1) {
             rectHeight = 2.0;
         }
-        auto y = y_offset + availableHeight - rectHeight;
+        auto y = y_offset + available_height - rectHeight;
         QRectF rect(i * bin_width, y, bin_width, rectHeight);
         if (rectHovered(ChartDataKind::MARKER, rect)) {
             painter.fillRect(rect, highlightBrush_);
@@ -819,50 +859,85 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     }
 
     const auto& events = series->getEvents();
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
+
+    int bin_count = getBinCount(default_ellipse_width_);
+    auto bin_width = getBinWidth(default_ellipse_width_);
+    auto bin_time_width = (display_max - display_min) / bin_count;
+
     const auto& outer_bounds = getOuterDisplayIterators(events, default_ellipse_width_);
-
     const auto& outer_bound_itrs = outer_bounds.second;
-    auto first_event_itr = outer_bound_itrs.first;
-    auto last_event_itr = outer_bound_itrs.second;
-
-    // If the first iterator is the same as the last iterator, it means that all the events are out of range; return
-    if (first_event_itr == last_event_itr) {
-        return;
-    }
+    auto first_contributing_event = outer_bound_itrs.first;
+    auto last_contributing_event = outer_bound_itrs.second;
 
     const auto& outer_bin_counts = outer_bounds.first;
-    auto bin_width = getBinWidth(default_ellipse_width_);
-    int bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;
-    auto bins = binEvents(events, bin_count, first_event_itr, last_event_itr);
+    int pre_bin_count = outer_bin_counts.first;
+    int total_bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;;
 
-    // TODO: If we don't care about seeing the full ellipse, remove (- bin_width) from available_height
-    //  This will paint 0% utilisation along the border instead of half the ellipse size up
-    auto availableHeight = height() - border_width_ * 2 - bin_width;
+    auto first_end_time = display_min - pre_bin_count * bin_time_width;
+    auto current_bin_start_time = first_end_time;
+
+    QVector< QList<NetworkUtilisationEvent*> > bins(total_bin_count);
+    QVector<double> bin_end_times;
+    bin_end_times.reserve(total_bin_count);
+
+    // calculate the bin end times
+    for (int i = 0; i < total_bin_count; i++) {
+        bin_end_times.append(current_bin_start_time + bin_time_width);
+        current_bin_start_time = bin_end_times.last();
+    }
+
+    int current_bin_index = 0;
+    auto current_bin_itr = bin_end_times.constBegin();
+    auto end_bin_itr = bin_end_times.constEnd();
+
+    // put the data in the correct bucket
+    while (first_contributing_event != events.constEnd()) {
+        auto event = (NetworkUtilisationEvent*)(*first_contributing_event);
+        const auto& currentTime = event->getTimeMS();
+        while (current_bin_itr != end_bin_itr) {
+            if (currentTime >= (*current_bin_itr)) {
+                current_bin_itr++;
+                current_bin_index++;
+            } else {
+                break;
+            }
+        }
+        if (current_bin_index < total_bin_count) {
+            bins[current_bin_index].append(event);
+        }
+        if (first_contributing_event == last_contributing_event) {
+            break;
+        }
+        first_contributing_event++;
+    }
+
+    auto available_height = height() - border_width_ * 2 - bin_width;
     auto y_offset = border_width_;
     auto y_range = dataMaxY_ - dataMinY_;
 
     QList<QRectF> rects_sent, rects_received;
 
-    for (int i = 0; i < bin_count; i++) {
+    for (int i = 0; i < total_bin_count; i++) {
         int count = bins[i].count();
         if (count == 0) {
             continue;
         }
 
-        // Calculate the bucket's average bytes sent/received
+        // calculate the bucket's average bytes sent/received
         auto bytes_sent = 0.0;
         auto bytes_received = 0.0;
         for (auto e : bins[i]) {
-            auto n_e = (NetworkUtilisationEvent*) e;
-            bytes_sent += n_e->getBytesSent();
-            bytes_received += n_e->getBytesReceived();
+            bytes_sent += e->getBytesSent();
+            bytes_received += e->getBytesReceived();
         }
         bytes_sent /= count;
         bytes_received /= count;
 
-        auto x = (i - outer_bin_counts.first) * bin_width;
-        auto y_sent = y_offset + availableHeight - (bytes_sent - dataMinY_) / y_range * availableHeight;
-        auto y_received = y_offset + availableHeight - (bytes_received - dataMinY_) / y_range * availableHeight;
+        double x = (i - pre_bin_count) * bin_width;
+        double y_sent = y_offset + available_height - (bytes_sent - dataMinY_) / y_range * available_height;
+        double y_received = y_offset + available_height - (bytes_received - dataMinY_) / y_range * available_height;
         rects_sent.append(QRectF(x, y_sent, bin_width, bin_width));
         rects_received.append(QRectF(x, y_received, bin_width, bin_width));
     }
@@ -870,7 +945,7 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     if (rects_sent == rects_received) {
         drawLineFromRects(painter,
                           rects_sent,
-                          network_util_paint_vals_.combined_color,
+                          Qt::blue,
                           network_util_paint_vals_.opacity,
                           ChartDataKind::NETWORK_UTILISATION);
     } else {
@@ -916,51 +991,63 @@ Chart::getOuterDisplayIterators(const QList<Event*>& events, double target_bin_w
     int bin_count = getBinCount(target_bin_width);
     double bin_time_width = (display_max - display_min) / bin_count;
 
-    // Get the iterator of the leftmost event within the first bin that contributes to drawing
+    // Since lower_bound returns >= value, try to move back one if we can
     if (first_itr != events.constBegin()) {
         first_itr -= 1;
     }
 
     int pre_bin_count = 0;
-    auto firstEventTime = (*first_itr)->getTimeMS();
+    auto first_event_time = (*first_itr)->getTimeMS();
+    bool first_itr_is_to_the_left_of_display = (first_event_time < display_min);
+    if (first_itr_is_to_the_left_of_display) {
+        pre_bin_count = ceil((display_min - first_event_time) / bin_time_width);
+    }
 
-    if (firstEventTime < display_min) {
-        pre_bin_count = ceil((display_min - firstEventTime) / bin_time_width);
-        auto firstEndTime = display_min - pre_bin_count * bin_time_width;
-        for (; first_itr != events.constBegin(); --first_itr) {
-            const auto& current_time = (*first_itr)->getTimeMS();
+    // Get the iterator of the leftmost event within the first bin that contributes to drawing
+    auto first_contributing_event = first_itr;
+    auto first_end_time = display_min - pre_bin_count * bin_time_width;
+    if (first_itr_is_to_the_left_of_display) {
+        for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
+            const auto& current_time = (*first_contributing_event)->getTimeMS();
             // Keep going until we overshoot, then move back if we can
-            if (current_time < firstEndTime) {
-                first_itr++;
+            if (current_time < first_end_time) {
+                first_contributing_event++;
                 break;
             }
         }
     }
 
-    // Get the iterator of the rightmost event within the last bin that contributes to drawing
     if (last_itr == events.constEnd()) {
-        return {{pre_bin_count, 0}, {first_itr, last_itr}};
+        return {{pre_bin_count, 0}, {first_contributing_event, last_itr}};
     }
 
     int post_bin_count = 0;
-    auto lastEventTime = (*last_itr)->getTimeMS();
+    bool last_itr_is_to_the_right_of_display = false;
+    if (last_itr != events.constEnd()) {
+        auto last_event_time = (*last_itr)->getTimeMS();
+        last_itr_is_to_the_right_of_display = (last_event_time >= display_max);
+        if (last_itr_is_to_the_right_of_display) {
+            post_bin_count = ceil((last_event_time - display_max) / bin_time_width);
+        }
+    }
 
-    if (lastEventTime > display_max) {
-        post_bin_count = ceil((lastEventTime - display_max) / bin_time_width);
-        auto lastEndTime = display_max + post_bin_count * bin_time_width;
-        for (; last_itr != events.constEnd(); ++last_itr) {
-            const auto& current_time = (*last_itr)->getTimeMS();
+    // Get the iterator of the rightmost event within the last bin that contributes to drawing
+    auto last_contributing_event = last_itr;
+    if (last_itr_is_to_the_right_of_display) {
+        auto last_end_time = display_max + post_bin_count * bin_time_width;
+        for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
+            const auto& current_time = (*last_contributing_event)->getTimeMS();
             // Keep going until we overshoot, then move back if we can
-            if (current_time >= lastEndTime) {
-                if (last_itr != events.constBegin()) {
-                    last_itr--;
+            if (current_time >= last_end_time) {
+                if (last_contributing_event != events.constBegin()) {
+                    last_contributing_event--;
                     break;
                 }
             }
         }
     }
 
-    return {{pre_bin_count, post_bin_count}, {first_itr, last_itr}};
+    return {{pre_bin_count, post_bin_count}, {first_contributing_event, last_contributing_event}};
 }
 
 /**
@@ -997,7 +1084,7 @@ QVector<QList<Event*>> Chart::binEvents(const QList<Event*>& events,
     }
 
     // Put the event in the correct bin
-    auto current_bin = 0;
+    int current_bin_index = 0;
     auto current_bin_itr = bin_end_times.constBegin();
     auto end_bin_itr = bin_end_times.constEnd();
     for (auto current = first; current != events.constEnd(); current++) {
@@ -1010,13 +1097,13 @@ QVector<QList<Event*>> Chart::binEvents(const QList<Event*>& events,
             const auto& bin_end_time = *current_bin_itr;
             if (event_time >= bin_end_time) {
                 current_bin_itr++;
-                current_bin++;
+                current_bin_index++;
             } else {
                 break;
             }
         }
-        if (current_bin < bin_count) {
-            bins[current_bin].append(event);
+        if (current_bin_index < bin_count) {
+            bins[current_bin_index].append(event);
         }
         if (current == last) {
             break;
@@ -1059,7 +1146,6 @@ void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& t
     painter.drawText(rect, text, QTextOption(Qt::AlignCenter));
     painter.restore();
 }
-
 
 /**
  * @brief Chart::drawLineFromRects
