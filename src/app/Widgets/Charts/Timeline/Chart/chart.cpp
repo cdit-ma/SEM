@@ -386,29 +386,35 @@ void Chart::setupPaintValues(Theme& theme)
  */
 void Chart::setupPixmaps(Theme& theme)
 {
+    auto&& path = "Icons";
+    QSize scale;
+
     using lifecycle_type = AggServerResponse::LifecycleType;
-    port_lifecycle_paint_vals_.pixmaps[lifecycle_type::NO_TYPE] = theme.getImage("Icons", "circleQuestion", QSize(), theme.getAltTextColor());
-    port_lifecycle_paint_vals_.pixmaps[lifecycle_type::CONFIGURE] = theme.getImage("Icons", "gear", QSize(), theme.getTextColor());
-    port_lifecycle_paint_vals_.pixmaps[lifecycle_type::ACTIVATE] = theme.getImage("Icons", "power", QSize(), theme.getSeverityColor(Notification::Severity::SUCCESS));
-    port_lifecycle_paint_vals_.pixmaps[lifecycle_type::PASSIVATE] = theme.getImage("Icons", "bed", QSize(), QColor(255, 179, 102));
-    port_lifecycle_paint_vals_.pixmaps[lifecycle_type::TERMINATE] = theme.getImage("Icons", "cancel", QSize(), theme.getSeverityColor(Notification::Severity::ERROR));
+    auto& lifecycle_map = port_lifecycle_paint_vals_.pixmaps;
+    lifecycle_map[lifecycle_type::NO_TYPE] = theme.getImage(path, "circleQuestion", scale, theme.getAltTextColor());
+    lifecycle_map[lifecycle_type::CONFIGURE] = theme.getImage(path, "gear", scale, theme.getTextColor());
+    lifecycle_map[lifecycle_type::ACTIVATE] = theme.getImage(path, "power", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    lifecycle_map[lifecycle_type::PASSIVATE] = theme.getImage(path, "bed", scale, QColor(255, 179, 102));
+    lifecycle_map[lifecycle_type::TERMINATE] = theme.getImage(path, "cancel", scale, theme.getSeverityColor(Notification::Severity::ERROR));
 
     using workload_type = WorkloadEvent::WorkloadEventType;
-    workload_event_paint_vals_.pixmaps[workload_type::STARTED] = theme.getImage("Icons", "play", QSize(), theme.getSeverityColor(Notification::Severity::SUCCESS));
-    workload_event_paint_vals_.pixmaps[workload_type::FINISHED] = theme.getImage("Icons", "avStop", QSize(), theme.getSeverityColor(Notification::Severity::ERROR));
-    workload_event_paint_vals_.pixmaps[workload_type::MESSAGE] = theme.getImage("Icons", "speechBubbleFilled", QSize(), QColor(72, 151, 189));
-    workload_event_paint_vals_.pixmaps[workload_type::WARNING] = theme.getImage("Icons", "triangleCritical", QSize(), theme.getSeverityColor(Notification::Severity::WARNING));
-    workload_event_paint_vals_.pixmaps[workload_type::ERROR_EVENT] = theme.getImage("Icons", "circleCrossDark", QSize(), theme.getSeverityColor(Notification::Severity::ERROR));
-    workload_event_paint_vals_.pixmaps[workload_type::MARKER] = theme.getImage("Icons", "bookmarkTwoTone", QSize(), QColor(72, 151, 199));
+    auto& workload_map = workload_event_paint_vals_.pixmaps;
+    workload_map[workload_type::STARTED] = theme.getImage(path, "play", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    workload_map[workload_type::FINISHED] = theme.getImage(path, "avStop", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    workload_map[workload_type::MESSAGE] = theme.getImage(path, "speechBubbleFilled", scale, QColor(72, 151, 189));
+    workload_map[workload_type::WARNING] = theme.getImage(path, "triangleCritical", scale, theme.getSeverityColor(Notification::Severity::WARNING));
+    workload_map[workload_type::ERROR_EVENT] = theme.getImage(path, "circleCrossDark", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    workload_map[workload_type::MARKER] = theme.getImage(path, "bookmarkTwoTone", scale, QColor(72, 151, 199));
 
     using port_event_type = PortEvent::PortEventType;
-    port_event_paint_vals_.pixmaps[port_event_type::SENT] = theme.getImage("Icons", "arrowTopRight", QSize(), theme.getSeverityColor(Notification::Severity::SUCCESS));
-    port_event_paint_vals_.pixmaps[port_event_type::RECEIVED] = theme.getImage("Icons", "arrowBottomRight", QSize(), theme.getSeverityColor(Notification::Severity::ERROR));
-    port_event_paint_vals_.pixmaps[port_event_type::STARTED_FUNC] = theme.getImage("Icons", "arrowLineLeft", QSize(), theme.getSeverityColor(Notification::Severity::SUCCESS));
-    port_event_paint_vals_.pixmaps[port_event_type::FINISHED_FUNC] = theme.getImage("Icons", "arrowToLineRight", QSize(), theme.getSeverityColor(Notification::Severity::ERROR));
-    port_event_paint_vals_.pixmaps[port_event_type::IGNORED] = theme.getImage("Icons", "circleCross");
-    port_event_paint_vals_.pixmaps[port_event_type::EXCEPTION] = theme.getImage("Icons", "circleCritical");
-    port_event_paint_vals_.pixmaps[port_event_type::MESSAGE] = theme.getImage("Icons", "speechBubbleMessage");
+    auto& port_map = port_event_paint_vals_.pixmaps;
+    port_map[port_event_type::SENT] = theme.getImage(path, "arrowTopRight", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    port_map[port_event_type::RECEIVED] = theme.getImage(path, "arrowBottomRight", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    port_map[port_event_type::STARTED_FUNC] = theme.getImage(path, "arrowLineLeft", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    port_map[port_event_type::FINISHED_FUNC] = theme.getImage(path, "arrowToLineRight", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    port_map[port_event_type::IGNORED] = theme.getImage(path, "circleCross");
+    port_map[port_event_type::EXCEPTION] = theme.getImage(path, "circleCritical");
+    port_map[port_event_type::MESSAGE] = theme.getImage(path, "speechBubbleMessage");
 }
 
 /**
@@ -657,9 +663,14 @@ void Chart::paintUtilisationSeries(QPainter& painter,
     auto first_contributing_event = outer_bound_itrs.first;
     auto last_contributing_event = outer_bound_itrs.second;
 
+    // Exit early if there are no events within the display range
+    if (first_contributing_event == events.constEnd()) {
+        return;
+    }
+
     const auto& outer_bin_counts = outer_bounds.first;
     int pre_bin_count = outer_bin_counts.first;
-    int total_bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;;
+    int total_bin_count = pre_bin_count + bin_count + outer_bin_counts.second;;
 
     auto first_end_time = display_min - pre_bin_count * bin_time_width;
     auto current_bin_start_time = first_end_time;
@@ -668,7 +679,7 @@ void Chart::paintUtilisationSeries(QPainter& painter,
     QVector<double> bin_end_times;
     bin_end_times.reserve(total_bin_count);
 
-    // calculate the bin end times
+    // Calculate the bin end times
     for (int i = 0; i < total_bin_count; i++) {
         bin_end_times.append(current_bin_start_time + bin_time_width);
         current_bin_start_time = bin_end_times.last();
@@ -678,7 +689,7 @@ void Chart::paintUtilisationSeries(QPainter& painter,
     auto current_bin_itr = bin_end_times.constBegin();
     auto end_bin_itr = bin_end_times.constEnd();
 
-    // put the data in the correct bucket
+    // Put the event in the correct bin
     while (first_contributing_event != events.constEnd()) {
         const auto& event = (*first_contributing_event);
         const auto& event_time = event->getTimeMS();
@@ -713,7 +724,7 @@ void Chart::paintUtilisationSeries(QPainter& painter,
             continue;
         }
 
-        // Calculate the bucket's average utilisation
+        // Calculate the bins's average utilisation
         auto utilisation = 0.0;
         for (const auto& event : bins[i]) {
             const auto& converted_event = convertEvent<DerivedEvent>(event);
@@ -722,7 +733,7 @@ void Chart::paintUtilisationSeries(QPainter& painter,
         utilisation /= count;
 
         auto&& y = y_offset + (1 - utilisation) * available_height;
-        auto&& x = (i - outer_bin_counts.first) * bin_width;
+        auto&& x = (i - pre_bin_count) * bin_width;
         rects.append(QRectF(x, y, bin_width, bin_width));
     }
 
@@ -871,9 +882,14 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     auto first_contributing_event = outer_bound_itrs.first;
     auto last_contributing_event = outer_bound_itrs.second;
 
+    // Exit early if there are no events within the display range
+    if (first_contributing_event == events.constEnd()) {
+        return;
+    }
+
     const auto& outer_bin_counts = outer_bounds.first;
     int pre_bin_count = outer_bin_counts.first;
-    int total_bin_count = outer_bin_counts.first + getBinCount(default_ellipse_width_) + outer_bin_counts.second;;
+    int total_bin_count = pre_bin_count + bin_count + outer_bin_counts.second;;
 
     auto first_end_time = display_min - pre_bin_count * bin_time_width;
     auto current_bin_start_time = first_end_time;
@@ -882,7 +898,7 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     QVector<double> bin_end_times;
     bin_end_times.reserve(total_bin_count);
 
-    // calculate the bin end times
+    // Calculate the bin end times
     for (int i = 0; i < total_bin_count; i++) {
         bin_end_times.append(current_bin_start_time + bin_time_width);
         current_bin_start_time = bin_end_times.last();
@@ -892,7 +908,7 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     auto current_bin_itr = bin_end_times.constBegin();
     auto end_bin_itr = bin_end_times.constEnd();
 
-    // put the data in the correct bucket
+    // Put the event in the correct bin
     while (first_contributing_event != events.constEnd()) {
         auto event = (NetworkUtilisationEvent*)(*first_contributing_event);
         const auto& currentTime = event->getTimeMS();
@@ -925,7 +941,7 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
             continue;
         }
 
-        // calculate the bucket's average bytes sent/received
+        // Calculate the bin's average bytes sent/received
         auto bytes_sent = 0.0;
         auto bytes_received = 0.0;
         for (auto e : bins[i]) {
@@ -945,7 +961,7 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
     if (rects_sent == rects_received) {
         drawLineFromRects(painter,
                           rects_sent,
-                          Qt::blue,
+                          network_util_paint_vals_.combined_color,
                           network_util_paint_vals_.opacity,
                           ChartDataKind::NETWORK_UTILISATION);
     } else {
@@ -988,13 +1004,21 @@ Chart::getOuterDisplayIterators(const QList<Event*>& events, double target_bin_w
         return time < e->getTimeMS();
     });
 
-    int bin_count = getBinCount(target_bin_width);
-    double bin_time_width = (display_max - display_min) / bin_count;
-
     // Since lower_bound returns >= value, try to move back one if we can
     if (first_itr != events.constBegin()) {
         first_itr -= 1;
     }
+
+    // Return if there are no events within the display
+    if (first_itr == events.constEnd()) {
+        return {{0,0}, {events.constEnd(), events.constEnd()}};
+    }
+    if ((*first_itr)->getTimeMS() >= display_max) {
+        return {{0,0}, {events.constEnd(), events.constEnd()}};
+    }
+
+    int bin_count = getBinCount(target_bin_width);
+    double bin_time_width = (display_max - display_min) / bin_count;
 
     int pre_bin_count = 0;
     auto first_event_time = (*first_itr)->getTimeMS();
