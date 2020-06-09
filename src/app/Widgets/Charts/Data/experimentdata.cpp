@@ -70,10 +70,7 @@ MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) c
  */
 void ExperimentData::updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state)
 {
-    auto&& exp_run = experiment_run_map_.at(exp_run_id);
-    if (exp_run != nullptr) {
-        exp_run->updateData(exp_state);
-    }
+    getExperimentRun(exp_run_id).updateData(exp_state);
 }
 
 /**

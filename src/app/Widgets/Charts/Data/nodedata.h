@@ -5,14 +5,12 @@
 #include "containerinstancedata.h"
 
 #include "Requests/utilisationrequest.h"
-
 #include "Events/cpuutilisationevent.h"
 #include "Events/memoryutilisationevent.h"
 #include "Events/networkutilisationevent.h"
 #include "Series/cpuutilisationeventseries.h"
 #include "Series/memoryutilisationeventseries.h"
 #include "Series/networkutilisationeventseries.h"
-#include <QSet>
 
 class NodeData : public QObject
 {
@@ -52,8 +50,7 @@ private:
     void addContainerInstanceData(const AggServerResponse::Container& container);
 
     void setupRequests();
-    void setupSeries();
-    NetworkUtilisationEventSeries& setupNetworkUtilisationSeries(const QString& series_id, const QString& series_name);
+    void setupSeries(const QVector<AggServerResponse::NetworkInterface>& interfaces);
 
     quint32 experiment_run_id_;
     qint64 last_updated_time_;

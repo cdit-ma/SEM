@@ -84,10 +84,21 @@ struct Container {
     QVector<ComponentInstance> component_instances;
 };
 
+struct NetworkInterface {
+    QString name;
+    QString type; // eg "Ethernet" or "Local Loopback"
+    QString description;
+    QString ipv4;
+    QString ipv6;
+    QString mac_address;
+    qint64 speed;
+};
+
 struct Node {
     QString hostname;
     QString ip;
     QVector<Container> containers;
+    QVector<NetworkInterface> interfaces;
 };
 
 struct ExperimentState {

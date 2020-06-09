@@ -14,13 +14,12 @@ NodeData::NodeData(quint32 exp_run_id, const AggServerResponse::Node& node, QObj
       hostname_(node.hostname),
       ip_(node.ip)
 {
-    // Construct Container data
     for (const auto& container : node.containers) {
         addContainerInstanceData(container);
     }
 
     setupRequests();
-    setupSeries();
+    setupSeries(node.interfaces);
 
     connect(this, &NodeData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestNodeEvents);
     emit requestData(*this);
@@ -182,18 +181,15 @@ QPointer<const MEDEA::EventSeries> NodeData::getMemoryUtilisationSeries() const
 /**
  * @brief NodeData::addNetworkUtilisationEvents
  * @param events
+ * @throws std::runtime_error
  */
 void NodeData::addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events)
 {
-    if (events.isEmpty()) {
-        return;
-    }
-
     for (const auto& event : events) {
-        const auto& series_id = hostname_ + event->getInterfaceMacAddress();
-        auto series = network_utilisation_series_.value(series_id, nullptr);
+        const auto& mac_addr = event->getInterfaceMacAddress();
+        auto series = network_utilisation_series_.value(mac_addr, nullptr);
         if (series == nullptr) {
-            series = &setupNetworkUtilisationSeries(series_id, hostname_);
+            throw std::runtime_error("NodeData::addNetworkUtilisationEvents - There is no series for the provided interface mac address");
         }
         series->addEvent(event);
     }
@@ -256,8 +252,9 @@ void NodeData::setupRequests()
 
 /**
  * @brief NodeData::setupSeries
+ * @param interfaces
  */
-void NodeData::setupSeries()
+void NodeData::setupSeries(const QVector<AggServerResponse::NetworkInterface>& interfaces)
 {
     using namespace MEDEA;
     auto&& exp_run_id_str = QString::number(experiment_run_id_);
@@ -271,22 +268,13 @@ void NodeData::setupSeries()
     memory_utilisation_series_ = new MemoryUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::MEMORY_UTILISATION));
     memory_utilisation_series_->setLabel(label);
     memory_utilisation_series_->setParent(this);
-}
 
-/**
- * @brief NodeData::setupNetworkUtilisationSeries
- * @param series_id
- * @param series_name
- * @return
- */
-NetworkUtilisationEventSeries& NodeData::setupNetworkUtilisationSeries(const QString& series_id, const QString& series_name)
-{
-    auto&& exp_run_id_str = QString::number(experiment_run_id_);
-
-    auto series = new NetworkUtilisationEventSeries(series_id + exp_run_id_str);
-    series->setLabel("[" + exp_run_id_str + "] " + series_name);
-    series->setParent(this);
-
-    network_utilisation_series_.insert(series_id, series);
-    return *series;
+    for (const auto& interface : interfaces) {
+        const auto& mac_addr = interface.mac_address;
+        auto&& series_id = hostname_ + mac_addr;
+        auto series = new NetworkUtilisationEventSeries(series_id + exp_run_id_str);
+        series->setLabel(label + "_" + interface.name);
+        series->setParent(this);
+        network_utilisation_series_.insert(mac_addr, series);
+    }
 }

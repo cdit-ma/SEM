@@ -97,6 +97,7 @@ private:
     static AggServerResponse::Worker ConvertWorker(const AggServer::Worker& proto_worker);
     static AggServerResponse::Port ConvertPort(const AggServer::Port& proto_port);
     static AggServerResponse::Container ConvertContainer(const AggServer::Container& proto_container);
+    static AggServerResponse::NetworkInterface ConvertNetworkInterface(const AggServer::NetworkInterface& proto_network_interface);
     static AggServerResponse::WorkerInstance ConvertWorkerInstance(const AggServer::WorkerInstance& proto_worker_instance);
     static AggServerResponse::ComponentInstance ConvertComponentInstance(const AggServer::ComponentInstance& proto_component_instance);
     static AggServerResponse::PortConnection ConvertPortConnection(const AggServer::PortConnection& proto_port_connection);

@@ -14,6 +14,7 @@
 #include <QPointer>
 
 class ComponentInstanceData;
+
 class PortInstanceData : public QObject
 {
     Q_OBJECT

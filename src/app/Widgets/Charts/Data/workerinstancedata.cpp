@@ -79,10 +79,9 @@ void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events
         if (event->getWorkerInstPath() != path_) {
             continue;
         }
-        auto&& series_id = graphml_id_ + event->getWorkloadID() + event->getFunctionName();
+        auto&& series_id = graphml_id_ + event->getFunctionName();
         auto series = workload_event_series_.value(series_id, nullptr);
         if (series == nullptr) {
-            // TODO: Ask Jackson what these events should be grouped by - Is the workload_id tied to the function_name?
             auto&& series_name = name_ + "_" + graphml_id_ + "_" + event->getFunctionName();
             series = &setupSeries(series_id, series_name);
         }
