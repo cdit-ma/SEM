@@ -109,8 +109,6 @@ private:
                          std::is_same<DerivedEvent, MemoryUtilisationEvent>::value, int> = 1>
     void paintUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series, const SeriesPaintValues& paint_vals);
 
-    QVector<QList<Event*>> getUtilisationPaintBins(const QPointer<const EventSeries>& series);
-
     QPair<QPair<int, int>, QPair<QList<Event*>::const_iterator, QList<Event*>::const_iterator>>
     getOuterDisplayIterators(const QList<Event*>& events, double target_bin_width) const;
 
