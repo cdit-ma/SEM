@@ -1,7 +1,5 @@
 #include "componentinstancedata.h"
 
-#include <QDebug>
-
 /**
  * @brief ComponentInstanceData::ComponentInstanceData
  * @param exp_run_id

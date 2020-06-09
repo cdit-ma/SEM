@@ -1,5 +1,4 @@
 #include "containerinstancedata.h"
-#include <QDebug>
 
 /**
  * @brief ContainerInstanceData::ContainerInstanceData

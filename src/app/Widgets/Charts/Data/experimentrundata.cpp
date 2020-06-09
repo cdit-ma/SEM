@@ -1,7 +1,5 @@
 #include "experimentrundata.h"
 
-#include <QDebug>
-
 /**
  * @brief MEDEA::ExperimentRunData::ExperimentRunData
  * @param experiment_run_id
