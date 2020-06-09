@@ -234,13 +234,10 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
  */
 void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request, WorkerInstanceData* requester)
 {
-    //auto future = aggregationProxy().RequestWorkloadEvents(request);
-    //auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
-    auto future = aggregationProxy().RequestWorkloadEvents2(request);
-    auto futureWatcher = new QFutureWatcher<QMultiHash<QString, WorkloadEvent*>>(this);
+    auto future = aggregationProxy().RequestWorkloadEvents(request);
+    auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
 
-    //connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [this, futureWatcher, experimentRun, worker_inst_data_requester, request]() {
-    connect(futureWatcher, &QFutureWatcher<QMultiHash<QString, WorkloadEvent*>>::finished, [this, futureWatcher, requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
             if (requester != nullptr) {

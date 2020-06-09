@@ -81,10 +81,6 @@ QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetWorkloadEvents, request);
 }
-QFuture< QMultiHash<QString, WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents2(const WorkloadRequest& request) const
-{
-    return QtConcurrent::run(this, &AggregationProxy::GetWorkloadEvents2, request);
-}
 
 
 /**
@@ -335,58 +331,6 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadReques
             const auto& args = ConstructQString(item.args());
             const auto& log_level = item.log_level();
             events.append(new WorkloadEvent(worker_instance, type, workload_id, time, function_name, args, log_level));
-        }
-
-        return events;
-
-    } catch (const std::exception& ex) {
-        throw RequestException(ex.what());
-    }
-}
-
-
-/**
- * @brief AggregationProxy::GetWorkloadEvents
- * @param request
- * @throws RequestException
- * @return
- */
-QMultiHash<QString, WorkloadEvent*> AggregationProxy::GetWorkloadEvents2(const WorkloadRequest &request) const
-{
-    CheckRequester();
-
-    try {
-        QMultiHash<QString, WorkloadEvent*> events;
-        AggServer::WorkloadRequest agg_request;
-        agg_request.set_experiment_run_id(request.experiment_run_id());
-
-        for (const auto& name : request.component_names()) {
-            agg_request.add_component_names(name.toStdString());
-        }
-        for (const auto& id : request.component_instance_ids()) {
-            agg_request.add_component_instance_ids(id.toStdString());
-        }
-        for (const auto& path : request.component_instance_paths()) {
-            agg_request.add_component_instance_paths(path.toStdString());
-        }
-        for (const auto& id : request.worker_instance_ids()) {
-            agg_request.add_worker_instance_ids(id.toStdString());
-        }
-        for (const auto& path : request.worker_instance_paths()) {
-            agg_request.add_worker_paths(path.toStdString());
-        }
-
-        const auto& results = requester_->GetWorkload(agg_request);
-        for (const auto& item : results->events()) {
-            const auto& worker_instance = ConvertWorkerInstance(item.worker_inst());
-            const auto& type = ConvertWorkloadEventType(item.type());
-            const auto& workload_id = item.workload_id();
-            const auto& time = ConstructQDateTime(item.time()).toMSecsSinceEpoch();
-            const auto& function_name = ConstructQString(item.function_name());
-            const auto& args = ConstructQString(item.args());
-            const auto& log_level = item.log_level();
-            auto event = new WorkloadEvent(worker_instance, type, workload_id, time, function_name, args, log_level);
-            events.insert(worker_instance.path, event);
         }
 
         return events;

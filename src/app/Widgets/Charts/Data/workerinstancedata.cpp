@@ -75,43 +75,11 @@ const WorkloadRequest& WorkerInstanceData::getWorkloadRequest() const
  */
 void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events)
 {
-    qDebug() << "Add workload events to worker inst data: " << path_;
     for (const auto& event : events) {
-        const auto& worker_inst_path = event->getWorkerInstPath();
-        if (worker_inst_path != path_) {
-            qDebug() << "Event belongs to a different worker instance: " << worker_inst_path;
+        if (event->getWorkerInstPath() != path_) {
             continue;
         }
-        const auto& series_id = graphml_id_ + QString::number(event->getWorkloadID());
-        auto series = workload_event_series_.value(series_id, nullptr);
-        if (series == nullptr) {
-            qDebug() << "---";
-            series = &setupSeries(series_id, name_);
-            qDebug() << "---";
-        }
-        series->addEvent(event);
-    }
-    qDebug() <<  "--------------------------------------------------------------------------";
-}
-
-/**
- * @brief WorkerInstanceData::addWorkloadEvents
- * @param events
- */
-void WorkerInstanceData::addWorkloadEvents(const QMultiHash<QString, WorkloadEvent*>& events)
-{
-    if (!events.uniqueKeys().contains(path_)) {
-        return;
-    }
-
-    // NOTE: The events lose their order when inserted into the multihash; need to re-sort
-    auto valid_events = events.values(path_);
-    std::sort(valid_events.begin(), valid_events.end(), [](const MEDEA::Event* a, const MEDEA::Event* b) {
-        return a->getTimeMS() < b->getTimeMS();
-    });
-
-    for (const auto& event : valid_events) {
-        const auto& series_id = graphml_id_ + event->getWorkloadID() + event->getFunctionName();
+        auto&& series_id = graphml_id_ + event->getWorkloadID() + event->getFunctionName();
         auto series = workload_event_series_.value(series_id, nullptr);
         if (series == nullptr) {
             // TODO: Ask Jackson what these events should be grouped by - Is the workload_id tied to the function_name?
