@@ -13,6 +13,8 @@
 
 class Component;
 
+// REVIEW (Mitch): Should periodic port inherit from SubscriberPort?
+//  Should probably implement `task` interface (see port.h)
 class PeriodicPort : public ::SubscriberPort<BaseMessage>{
     public:
         PeriodicPort(std::weak_ptr<Component> component, const std::string& name, const CallbackWrapper<void, BaseMessage>& callback, int milliseconds = 1000);
@@ -30,9 +32,11 @@ class PeriodicPort : public ::SubscriberPort<BaseMessage>{
         void TickLoop();
         
         std::mutex tick_mutex_;
+        // REVIEW (Mitch): interrupt_
         bool interupt_ = false;
         std::condition_variable tick_condition_;
 
+        // REVIEW (Mitch): thread_ready_ and thread_ready_mutex_ never used
         std::mutex thread_ready_mutex_;
         bool thread_ready_ = false;
         std::condition_variable thread_ready_condition_;

@@ -2,11 +2,16 @@ cmake_minimum_required(VERSION 3.0)
 project(re_top_level_project)
 
 project("re"
-        VERSION 3.3.9
+        VERSION 3.4.0
         LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+# Extern dependency builds on mac require at least cpp11
+# Sub-projects can (and should) set requirements for newer cpp versions as they need to
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_CXX_STANDARD 11)
 
 if (APPLE)
     set(CMAKE_MACOSX_RPATH ON)
@@ -57,6 +62,15 @@ endif ()
 # Configure cmakevars.h to have correct string replaced vars
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/cmakevars.h @ONLY)
 
+if (BUILD_TEST)
+    set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
+    set(GOOGLE_MOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googlemock)
+
+    # Only add googlemock as googlemock builds googletest.
+    # Adding googletest subdirectory leads to multiple definition error
+    add_subdirectory(${GOOGLE_MOCK_DIR})
+endif (BUILD_TEST)
+
 # Build re_common
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
@@ -71,15 +85,11 @@ if (BUILD_DOCS)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/docs")
 endif ()
 
+# Build Docker client library
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/DockerClient")
+
 if (BUILD_TEST)
-    message(STATUS "Building re tests")
-    set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
-    set(GOOGLE_MOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googlemock)
-
-    # Only add googlemock as googlemock builds googletest.
-    # Adding googletest subdirectory leads to multiple definition error
-    add_subdirectory(${GOOGLE_MOCK_DIR})
-
     #Build tests
+    message(STATUS "Building re tests")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif (BUILD_TEST)

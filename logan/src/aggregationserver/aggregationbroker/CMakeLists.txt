@@ -26,6 +26,9 @@ set(HEADERS
 # Construct an aggregation_server binary
 add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
+if (CMAKE_CXX_COMPILER_ID MATCHES "[cC][lL][aA][nN][gG]") #Case insensitive match
+	target_compile_options(${PROJECT_NAME} PRIVATE -Wdocumentation )
+endif()
 
 if (MSVC)
     # Windows requires protobuf in DLLs
@@ -41,21 +44,15 @@ endif()
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
-#target_include_directories(${PROJ_NAME} PRIVATE "C:/git/libpqxx/include")
-#target_include_directories(${PROJ_NAME} PRIVATE "/usr/include/pqxx")
 
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
 target_link_libraries(${PROJ_NAME} zmq_protoreplier)
-#target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
-#target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_aggregation_message)
-#target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
-#target_link_libraries(${PROJ_NAME} re_common_proto_control)
-#target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
 target_link_libraries(${PROJ_NAME} ${PQXX_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})

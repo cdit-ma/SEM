@@ -14,6 +14,7 @@
 
 #include "../nodemanager/executionparser/protobufmodelparser.h"
 
+// REVIEW (Mitch): What is this and why is it still here?
 int main(int argc, char **argv){
 
 

@@ -6,7 +6,7 @@
 
 TEST(Re_Logan_Aggregation, DatabaseClient_Create_CommonArgs)
 {
-    EXPECT_NO_THROW(DatabaseClient dbc("dbname = postgres user = postgres password = ***REMOVED*** "
+    EXPECT_NO_THROW(DatabaseClient dbc("dbname = postgres user = postgres password = db_test_pass "
                                        "hostaddr = 192.168.111.231 port = 5432"));
 }
 

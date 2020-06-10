@@ -6,13 +6,17 @@
 #include <proto/systemevent/systemevent.pb.h>
 
 #include <map>
+#include <utility>
 
 class SystemEventProtoHandler : public AggregationProtoHandler {
 public:
-    SystemEventProtoHandler(std::shared_ptr<DatabaseClient> db_client, ExperimentTracker& exp_tracker, int experiment_run_id) 
-        : AggregationProtoHandler(db_client, exp_tracker), experiment_run_id_(experiment_run_id) {};
+    SystemEventProtoHandler(std::shared_ptr<DatabaseClient> db_client,
+                            ExperimentTracker& exp_tracker,
+                            int experiment_run_id) :
+        AggregationProtoHandler(std::move(db_client), exp_tracker),
+        experiment_run_id_(experiment_run_id){};
 
-    void BindCallbacks(zmq::ProtoReceiver& ProtoReceiver);
+    void BindCallbacks(zmq::ProtoReceiver& ProtoReceiver) final;
 
 private:
     // Hardware callbacks
@@ -49,9 +53,12 @@ private:
     );
 
     // ID lookup key generator helper functions
-    std::string GetInterfaceKey(const std::string& hostname, const std::string& if_name) const;
-    std::string GetFileSystemKey(const std::string& hostname, const std::string& fs_name) const;
-    std::string GetProcessKey(const std::string& hostname, int pid, const std::string& starttime) const;
+    [[nodiscard]] std::string
+    GetInterfaceKey(const std::string& hostname, const std::string& if_name) const;
+    [[nodiscard]] std::string
+    GetFileSystemKey(const std::string& hostname, const std::string& fs_name) const;
+    [[nodiscard]] std::string
+    GetProcessKey(const std::string& hostname, int pid, const std::string& starttime) const;
 
     // Experiment info
     int experiment_run_id_;

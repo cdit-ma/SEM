@@ -30,6 +30,7 @@ class RequesterPort<void, BaseRequestType> : public Port{
         virtual void ProcessRequest(const BaseRequestType& type, std::chrono::milliseconds timeout) = 0;
 };
 
+// REVIEW (Mitch): This comment is a lie. This is the specialisation for a void request type
 //Specialised templated RequesterPort for void returning
 template <class BaseReplyType>
 class RequesterPort<BaseReplyType, void> : public Port{

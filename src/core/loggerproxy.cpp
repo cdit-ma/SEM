@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 
+// REVIEW (Mitch): =default?
 LoggerProxy::LoggerProxy(): Logger(){
 
 }

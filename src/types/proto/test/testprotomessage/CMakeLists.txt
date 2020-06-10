@@ -1,0 +1,25 @@
+project(re_types_proto_testmessage VERSION ${PROJECT_VERSION})
+
+find_package(Protobuf REQUIRED)
+
+if (NOT PROTOBUF_FOUND)
+    # Find package Protobuf
+    find_package(Protobuf REQUIRED)
+endif ()
+
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/testmessage.proto)
+
+add_library(${PROJECT_NAME} STATIC ${SOURCE} ${HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
+
+# Include Directories
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+
+if (MSVC)
+    #Windows requires protobuf in DLLs
+    target_compile_definitions(${PROJ_NAME} PRIVATE -DPROTOBUF_USE_DLLS)
+    #Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+endif ()
+
+# Link Libraries
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIBRARIES})

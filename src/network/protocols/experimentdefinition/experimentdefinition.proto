@@ -1,0 +1,296 @@
+syntax = "proto3";
+
+package re.network.protocol.experimentdefinition;
+
+message ExperimentDefinition {
+    string uuid = 1;
+    string experiment_name = 2;
+
+    // all map entries are uuid -> entity definition
+    map<string, ComponentDefinition> component_definitions = 3;
+    map<string, ComponentInstance> component_instances = 4;
+
+    map<string, ComponentAssembly> component_assemblies = 5;
+
+    map<string, PeriodicPortDefinition> periodic_port_definitions = 6;
+    map<string, PeriodicPortInstance> periodic_port_instances = 7;
+
+    map<string, MiddlewarePortDefinition> middleware_port_definitions = 8;
+    map<string, MiddlewarePortInstance> middleware_port_instances = 9;
+
+    map<string, AttributeDefinition> attribute_definitions = 10;
+    map<string, AttributeInstance> attribute_instances = 11;
+
+    map<string, Container> containers = 12;
+
+    map<string, WorkerDefinition> worker_definitions = 13;
+    map<string, WorkerInstance> worker_instances = 14;
+
+    map<string, TriggerDefinitionPrototype> trigger_definitions = 15;
+    map<string, TriggerInstancePrototype> trigger_instances = 16;
+
+    map<string, StrategyPrototype> strategies = 17;
+
+    map<string, PortDelegateInstance> port_delegates = 18;
+
+    map<string, Node> nodes = 19;
+    map<string, Cluster> clusters = 20;
+
+    map<string, LoggingClientDefinition> logging_client_definitions = 21;
+    map<string, LoggingServerDefinition> logging_server_definitions = 22;
+
+    map<string, DeploymentAttribute> deployment_attributes = 23;
+}
+
+message CoreData {
+    string uuid = 1;
+    string medea_name = 2;
+    string medea_id = 3;
+}
+
+message ComponentDefinition {
+    CoreData core_data = 1;
+    repeated string medea_namespaces = 5;
+
+    repeated string port_definition_uuids = 6;
+    repeated string worker_definition_uuids = 7;
+    repeated string attribute_definition_uuids = 8;
+    repeated string trigger_definition_uuids = 9;
+}
+
+// Periodic port definition.
+// Frequency stored in attribute.
+message PeriodicPortDefinition {
+    CoreData core_data = 1;
+    string frequency_attribute_definition_uuid = 2;
+}
+
+message PeriodicPortInstance {
+    CoreData core_data = 1;
+
+    string definition_uuid = 5;
+    string frequency_attribute_instance_uuid = 6;
+}
+
+enum MiddlewarePortKind {
+    Publisher = 0;
+    Subscriber = 1;
+    Requester = 2;
+    Replier = 3;
+}
+
+enum PortMiddleware {
+    Tao = 0;
+    Zmq = 1;
+    OsplDds = 2;
+    RtiDds = 3;
+    Qpid = 4;
+}
+
+message MiddlewarePortDefinition {
+
+    CoreData core_data = 1;
+    string medea_aggregate_type = 2;
+    repeated string attribute_definition_uuids = 4;
+
+    MiddlewarePortKind kind = 5;
+
+}
+
+message MiddlewarePortInstance {
+
+    CoreData core_data = 1;
+    PortMiddleware middleware = 4;
+    string definition_uuid = 5;
+
+    repeated string internal_connected_port_uuids = 6;
+    repeated string external_connected_port_uuids = 7;
+    repeated string connected_port_delegate_uuids = 8;
+}
+
+enum AttributeType {
+    String = 0;
+    Integer = 1;
+    Character = 2;
+    Boolean = 3;
+    Double = 4;
+    Float = 5;
+    StringList = 6;
+}
+message AttributeDefinition {
+    CoreData core_data = 1;
+    AttributeType type = 4;
+}
+
+message AttributeInstance {
+    CoreData core_data = 1;
+
+    string definition_uuid = 4;
+    AttributeType type = 5;
+
+    string connected_attribute_proxy_uuid = 6;
+
+    // We can't put a repeated field in a oneof, treat this repeated string like it's in the oneof
+    repeated string string_list = 7;
+    oneof Value {
+        int64 i = 8;
+        double d = 9;
+        float f = 10;
+        bool b = 11;
+        string s = 12;
+        int32 c = 13;
+    }
+}
+
+// An attribute instance and definition rolled into one.
+// Generally linked through to attribute instances.
+message DeploymentAttribute {
+    CoreData core_data = 1;
+
+    AttributeType type = 2;
+
+    string connected_attribute_proxy_uuid = 3;
+
+    // We can't put a repeated field in a oneof, treat this repeated string like it's in the oneof
+    repeated string string_list = 7;
+    oneof Value {
+        int64 i = 8;
+        double d = 9;
+        float f = 10;
+        bool b = 11;
+        string s = 12;
+        int32 c = 13;
+    }
+}
+
+message Container {
+    enum ContainerType {
+        OsProcess = 0;
+        Docker = 1;
+    }
+    CoreData core_data = 1;
+
+    ContainerType container_type = 5;
+    repeated string component_assembly_uuids = 6;
+    repeated string component_instance_uuids = 7;
+    repeated string logger_definition_uuids = 8;
+}
+
+message ComponentAssembly {
+    CoreData core_data = 1;
+    uint64 replication_count = 4;
+
+    repeated string component_instance_uuids = 5;
+    repeated string component_assembly_uuids = 6;
+    repeated string port_delegate_uuids = 7;
+}
+
+message PortDelegateInstance {
+    CoreData core_data = 1;
+    string medea_aggregate_type = 4;
+
+    repeated string connected_port_delegate_uuids = 5;
+    repeated string connected_port_instance_uuids = 6;
+}
+
+message ComponentInstance {
+    CoreData core_data = 1;
+    string medea_type = 4;
+    string definition_uuid = 5;
+
+    repeated string middleware_port_instance_uuids = 6;
+    repeated string periodic_port_instance_uuids = 7;
+    repeated string worker_instance_uuids = 8;
+    repeated string attribute_instance_uuids = 9;
+    repeated string trigger_instance_uuids = 10;
+
+}
+
+message Node {
+    CoreData core_data = 1;
+    string ip_address = 2;
+    repeated string deployed_component_instance_uuids = 3;
+    repeated string deployed_container_uuids = 4;
+    repeated string deployed_logging_client_uuids = 5;
+    repeated string deployed_logging_server_uuids = 6;
+}
+
+message Cluster {
+    CoreData core_data = 1;
+    string jenkins_master_ip = 2;
+    repeated string node_uuids = 3;
+}
+
+message WorkerDefinition {
+    CoreData core_data = 1;
+    string cpp_class_name = 4;
+
+    repeated string attribute_definition_uuids = 5;
+}
+
+message WorkerInstance {
+    CoreData core_data = 1;
+    string definition_uuid = 2;
+    repeated string attribute_instance_uuids = 3;
+}
+
+enum TriggerMetric {
+    CPU_UTIL = 0; // Prototype will be based on CPU as a whole rather than a specific core
+    MEM_UTIL = 1;
+}
+
+enum TriggerComparator {
+    EQUAL = 0;
+    GREATER = 1;
+    LESS = 2;
+    GREATER_OR_EQUAL = 3;
+    LESS_OR_EQUAL = 4;
+    NOT_EQUAL = 5;
+}
+
+message TriggerDefinitionPrototype {
+    CoreData core_data = 1;
+
+    TriggerMetric metric = 2;
+    TriggerComparator comparator = 3;
+    double value = 4;
+
+    // Is the trigger unable to be activated again if it has been activated once already?
+    bool single_activation = 5;
+
+    // If able to be reactivated, what is the minimum amount of time (milliseconds) between
+    //  activations ?
+    uint64 reactivation_disabled_ms = 6;
+}
+
+message TriggerInstancePrototype {
+    CoreData core_data = 1;
+    string definition_uuid = 2;
+    string strategy_uuid = 7;
+}
+
+message StrategyPrototype {
+    CoreData core_data = 1;
+    string container_medea_id = 2;
+    string container_medea_name = 3;
+}
+
+message LoggingServerDefinition {
+    CoreData core_data = 1;
+    repeated string logging_client_uuids = 2;
+    string db_file_name = 3;
+}
+
+enum LoggingMode {
+    Off = 0;
+    Live = 1;
+    Cached = 2;
+}
+message LoggingClientDefinition {
+    CoreData core_data = 1;
+
+    LoggingMode mode = 2;
+    double frequency = 3;
+    repeated string logged_process_names = 4;
+}
+

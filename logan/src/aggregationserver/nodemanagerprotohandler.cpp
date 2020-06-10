@@ -9,11 +9,13 @@
 
 #include <proto/controlmessage/helper.h>
 
+#include <google/protobuf/util/time_util.h>
+
 #include <functional>
 
 #include <zmq/zmqutils.hpp>
 
-void NodeManagerProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver)
+using google::protobuf::util::TimeUtil;void NodeManagerProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver)
 {
     receiver.RegisterProtoCallback<NodeManager::EnvironmentMessage>(std::bind(
         &NodeManagerProtoHandler::ProcessEnvironmentMessage, this, std::placeholders::_1));
@@ -56,6 +58,9 @@ void NodeManagerProtoHandler::ProcessConfigureControlMessage(
             }
 
             ProcessPortConnections(exp_info);
+
+            const auto&& timestamp = TimeUtil::ToString(message.timestamp());
+            database_->UpdateLastSampleTime(exp_info.experiment_run_id, timestamp);
             break;
         }
         default:
@@ -69,9 +74,10 @@ void NodeManagerProtoHandler::ProcessShutdownControlMessage(
     const NodeManager::ControlMessage& message)
 {
     switch(message.type()) {
-        case NodeManager::ControlMessage::NO_TYPE:
+        case NodeManager::ControlMessage::NO_TYPE: {
             experiment_tracker_.ShutdownExperimentRun(message.experiment_id(), message.timestamp());
             break;
+        }
         default:
             throw std::logic_error("No handling implemented during SHUTDOWN_EXPERIMENT for "
                                    "ControlMessage of type "
@@ -83,7 +89,7 @@ void NodeManagerProtoHandler::ProcessNode(const NodeManager::Node& message,
                                           ExpStateCreationInfo& exp_info)
 {
     std::string hostname = message.info().name();
-    std::string ip = message.ip_address();
+    const std::string& ip = message.ip_address();
     std::string graphml_id = message.info().id();
 
     int node_id = database_->InsertValuesUnique(
@@ -126,11 +132,12 @@ void NodeManagerProtoHandler::ProcessLogger(const NodeManager::Logger& message,
             experiment_tracker_.RegisterSystemEventProducer(exp_info.experiment_run_id, endpoint);
             break;
         }
-        case NodeManager::Logger::MODEL: { // Logger_Type::Logger_Type_MODEL:{
+        case NodeManager::Logger::MODEL: {
             experiment_tracker_.RegisterModelEventProducer(exp_info.experiment_run_id, endpoint);
             break;
         }
         default:
+            // REVIEW(Jackson): Investigate the use of NONE type
             std::cout << "Disregarding logger of type "
                       << NodeManager::Logger::Type_Name(message.type()) << std::endl;
             break;
@@ -182,8 +189,6 @@ void NodeManagerProtoHandler::ProcessPort(const NodeManager::Port& message,
                                           int component_instance_id,
                                           const std::string& component_instance_location)
 {
-    // const std::string&& location = GetFullLocation(message.location(),
-    // message.replication_indices());
     const std::string port_path = component_instance_location + "/" + message.info().name();
     const std::string& port_kind = NodeManager::Port_Kind_Name(message.kind());
     const std::string& port_type = message.info().type();
@@ -195,6 +200,8 @@ void NodeManagerProtoHandler::ProcessPort(const NodeManager::Port& message,
          port_type, middleware, message.info().id()},
         {"Name", "ComponentInstanceID"});
 
+    // REVIEW(Jackson): Handle the unhandled cases
+    // Dont handle the receiving side of each port in order to avoid duplicates
     switch(message.kind()) {
         case NodeManager::Port::PUBLISHER:
             // case NodeManager::Port::SUBSCRIBER:
@@ -209,9 +216,6 @@ void NodeManagerProtoHandler::ProcessPort(const NodeManager::Port& message,
             }
             break;
     }
-    /*for(const auto& connected_port : message.connected_ports()) {
-        ProcessPortConnections(port_id, exp_info, connected_port);
-    }*/
 }
 
 void NodeManagerProtoHandler::ProcessWorker(const NodeManager::Worker& message,
@@ -226,9 +230,9 @@ void NodeManagerProtoHandler::ProcessWorker(const NodeManager::Worker& message,
 
     std::string worker_path = component_path + "/" + message.info().name();
 
-    int worker_instance_id = database_->InsertValuesUnique(
-        "WorkerInstance", {"Name", "WorkerID", "ComponentInstanceID", "Path", "GraphmlID"},
-        {message.info().name(), std::to_string(worker_id), std::to_string(component_id),
+    database_->InsertValuesUnique("WorkerInstance",
+                                  {"Name", "WorkerID", "ComponentInstanceID", "Path", "GraphmlID"},
+                                  {message.info().name(), std::to_string(worker_id), std::to_string(component_id),
          worker_path, message.info().id()},
         {"Name", "ComponentInstanceID"});
 }
@@ -248,8 +252,6 @@ void NodeManagerProtoHandler::ProcessPubSubConnection(int from_port_id,
                                                       int experiment_run_id,
                                                       const std::string& to_port_graphml)
 {
-    std::string to_port_lookup = "getPortFromGraphml(" + database_->quote(experiment_run_id) + ","
-                                 + database_->quote(to_port_graphml) + ")";
     try {
         database_->InsertPubSubValues(from_port_id, to_port_graphml, experiment_run_id);
     } catch(const std::runtime_error& rte) {

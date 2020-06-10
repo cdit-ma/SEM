@@ -1,25 +1,36 @@
 #include <iostream>
 #include <vector>
 #include <string>
+// REVIEW (Mitch): use <csignal>
 #include <signal.h>
 #include <boost/program_options.hpp>
 
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 
+// REVIEW (Mitch): Refactor cmakevars.h.in to supply RE_VERSION as a type safe std::string_view
+//  rather than a #define
 #include "cmakevars.h"
 #include <util/execution.hpp>
 #include <comms/environmentrequester/environmentrequester.h>
 
+// REVIEW (Mitch): No reason for this string to have static storage duration.
+//  Also doesn't need to be a big ol' global
+//  Also isn't actually a version name
 std::string VERSION_NAME = "re_node_manager";
 
+// REVIEW (Mitch): Investigate wrapping this in a unique_ptr
 Execution execution;
 
+// REVIEW (Mitch): Consider removing signal handling entirely once shutdown through other channels
+//  has been proven to be effective
 void signal_handler(int sig)
 {
     execution.Interrupt();
 }
 
+// REVIEW (Mitch): These verbosity and duration unary predicates should be, at least, namespaced.
+//  Rename to Valid* (remove Got)
 void GotValidVerbosity(int v){
     if(v < 0 || v > 10){
         throw std::invalid_argument("Verbosity " + std::to_string(v) + " invalid (Valid range 0 to 10)");
@@ -32,11 +43,15 @@ void GotValidDuration(int d){
     }
 }
 
+// REVIEW (Mitch): Break up this function.
+//  This can be done by splitting master/slave functionality, see wiki page.
 int main(int argc, char **argv){
     //Connect the SIGINT/SIGTERM signals to our handler.
-	signal(SIGINT, signal_handler);
-	signal(SIGTERM, signal_handler);
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
 
+    // REVIEW (Mitch): Argument parsing should be broken into a function.
+    //  ParseArguments(int argc, char **argv) -> NodeManagerConfig
     //Shared arguments
     std::string environment_manager_endpoint;
     std::string experiment_name;
@@ -92,9 +107,11 @@ int main(int argc, char **argv){
     //Set the verbosity
     Print::Logger::get_logger().SetLogLevel(log_verbosity);
 
+    // REVIEW (Mitch): Break this whole try block into a function that returns an ExperimentConfig
     try{
         auto reply = EnvironmentRequest::TryRegisterNodeManager(environment_manager_endpoint, experiment_name, ip_address, container_id);
-            
+
+        // REVIEW (Mitch): Can we be both master and slave? Unclear from just this block
         for(const auto& type : reply->types()){
             switch(type){
                 case NodeManager::NodeManagerRegistrationReply::SLAVE:{
@@ -126,6 +143,8 @@ int main(int argc, char **argv){
         return 1;
     }
 
+    // REVIEW (Mitch): This should just be a pretty print func
+    // REVIEW (Mitch): Pretty printing should be achieved through a logger with a print sink?
     std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
     if(is_master){
         std::cout << "* Master:" << std::endl;
@@ -141,13 +160,14 @@ int main(int argc, char **argv){
         std::cout << "** Endpoint: " << ip_address << std::endl;
         std::cout << "** Library Path: " << dll_path << std::endl;
     }
-        
 
+    // REVIEW (Mitch): Long running code exists from here to the end of main()
     std::unique_ptr<DeploymentManager> deployment_manager;
     std::unique_ptr<ExecutionManager> execution_manager;
 
     if(is_master){
         try{
+            // REVIEW (Mitch): std::make_unique
             execution_manager = std::unique_ptr<ExecutionManager>(new ExecutionManager(execution, execution_duration, experiment_name, master_publisher_endpoint, master_registration_endpoint, master_heartbeat_endpoint, experiment_logger_endpoint));
         }catch(const std::exception& ex){
             std::cerr << "* Failed to construct ExecutionManager: " << ex.what() << std::endl;

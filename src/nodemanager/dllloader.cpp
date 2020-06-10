@@ -23,6 +23,7 @@ DllLoader::~DllLoader()
     loaded_libraries_.clear();
 }
 
+// REVIEW (Mitch): constexpr
 std::string DllLoader::GetLibrarySuffix()
 {
 #ifdef _WIN32
@@ -32,6 +33,7 @@ std::string DllLoader::GetLibrarySuffix()
 #endif
 }
 
+// REVIEW (Mitch): constexpr
 std::string DllLoader::GetLibraryPrefix()
 {
 #ifdef _WIN32
@@ -41,6 +43,7 @@ std::string DllLoader::GetLibraryPrefix()
 #endif
 }
 
+// REVIEW (Mitch): const static
 std::string DllLoader::GetLibraryError()
 {
     std::string message;
@@ -69,6 +72,7 @@ std::string DllLoader::GetLibraryError()
     return message;
 }
 
+// REVIEW (Mitch): use std::filesystem path
 void* DllLoader::GetLibrary(const std::string& dll_path)
 {
     void* library = nullptr;
@@ -131,6 +135,7 @@ void* DllLoader::GetLibraryFunction_(const std::string& dll_path, const std::str
             function = dlsym(lib_handle, function_name.c_str());
 #endif
 
+            // REVIEW (Mitch): remove timing
             auto end = std::chrono::steady_clock::now();
             auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 

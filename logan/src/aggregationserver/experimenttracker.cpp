@@ -1,6 +1,7 @@
 #include "experimenttracker.h"
 
 #include <iostream>
+#include <memory>
 #include <sstream>
 
 #include <proto/controlmessage/controlmessage.pb.h>
@@ -27,6 +28,7 @@ ExperimentTracker::ExperimentTracker(std::shared_ptr<DatabaseClient> db_client) 
 int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
                                              const google::protobuf::Timestamp& timestamp)
 {
+    // REVIEW(Jackson): Is the following still the case
     // TODO: quick fix for demo, should drive time value off of message once it is being populated
     using google::protobuf::util::TimeUtil;
     // std::string start_time = TimeUtil::ToString(TimeUtil::GetCurrentTime());
@@ -57,6 +59,7 @@ int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
     } else {
         const auto& max_val = database_->GetMaxValue(
             "ExperimentRun", "JobNum", "ExperimentID=" + database_->quote(experiment_id));
+        // REVIEW(Jackson): Make this a constructor/factory builder pattern
         ExperimentRunInfo new_run;
         new_run.name = experiment_name;
         if(max_val.has_value()) {
@@ -66,36 +69,38 @@ int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
         }
         new_run.running = true;
 
-        new_run.experiment_run_id = database_->InsertValues(
+        autoexperiment_run_id = database_->InsertValues(
             "ExperimentRun", {"ExperimentID", "JobNum", "StartTime"},
             {database_->quote(experiment_id), database_->quote(new_run.job_num), start_time});
+        new_run.experiment_run_id = experiment_run_id;
 
-        new_run.receiver = std::unique_ptr<zmq::ProtoReceiver>(new zmq::ProtoReceiver());
-        new_run.system_handler = std::unique_ptr<SystemEventProtoHandler>(
-            new SystemEventProtoHandler(database_, *this, new_run.experiment_run_id));
-        new_run.model_handler = std::unique_ptr<ModelEventProtoHandler>(
-            new ModelEventProtoHandler(database_, *this, new_run.experiment_run_id));
+        new_run.receiver = std::make_unique<zmq::ProtoReceiver>();
+        new_run.system_handler =
+            std::make_unique<SystemEventProtoHandler>(database_, *this, new_run.experiment_run_id);
+        new_run.model_handler = std::make_unique<ModelEventProtoHandler>(database_, *this,
+                                                                         new_run.experiment_run_id);
         new_run.system_handler->BindCallbacks(*new_run.receiver);
         new_run.model_handler->BindCallbacks(*new_run.receiver);
         new_run.receiver->Filter("");
 
         experiment_run_map_.emplace(new_run.experiment_run_id, std::move(new_run));
-        active_experiment_ids_.emplace(std::make_pair(experiment_id, new_run.experiment_run_id));
+        active_experiment_ids_.emplace(std::make_pair(experiment_id, experiment_run_id));
 
-        return new_run.experiment_run_id;
+        return experiment_run_id;
     }
 }
 
 void ExperimentTracker::ShutdownExperimentRun(const std::string& experiment_name,
                                               const google::protobuf::Timestamp& timestamp)
 {
-    std::cout << "Shuting down experiment with name " << experiment_name << std::endl;
+    std::cout << "Shutting down experiment with name " << experiment_name << std::endl;
     int experiment_id = GetExperimentID(experiment_name);
     int experiment_run_id = GetCurrentRunID(experiment_id);
 
     using google::protobuf::util::TimeUtil;
     std::string end_time = TimeUtil::ToString(timestamp);
     database_->UpdateShutdownTime(experiment_run_id, end_time);
+    database_->UpdateLastSampleTime(experiment_run_id, end_time);
 
     active_experiment_ids_.erase(experiment_id);
     auto& run = GetExperimentRunInfo(experiment_run_id);

@@ -10,7 +10,7 @@ find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 find_package(PQXX)
 
 if(NOT PQXX_FOUND)
-	message("Could not find pqxx, not building aggregation broker and server")
+	message(WARNING "Could not find pqxx, not building aggregation broker and server")
 	return()
 endif()
 
@@ -61,10 +61,11 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/systemeventprotohandler.h
 	${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.h
     ${CMAKE_CURRENT_SOURCE_DIR}/experimenttracker.h
-		${CMAKE_CURRENT_SOURCE_DIR}/experimentruninfo.h
+	${CMAKE_CURRENT_SOURCE_DIR}/experimentruninfo.h
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/sqlstrings.h.in
-		${CMAKE_CURRENT_SOURCE_DIR}/experimentruninfo.h
+	${CMAKE_CURRENT_SOURCE_DIR}/unboundedtimerange.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/prototimerange.hpp
 
     ${CMAKE_CURRENT_BINARY_DIR}/sqlstrings.h
 		)

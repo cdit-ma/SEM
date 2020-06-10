@@ -11,6 +11,8 @@
 
 #include <iostream>
 
+#include "unboundedtimerange.hpp"
+
 // Hack for backwards compatibility with pqxx 4.0 and earlier where row was named tuple
 #ifndef PQXX_H_ROW
 namespace pqxx {
@@ -20,11 +22,16 @@ using row = tuple;
 
 class DatabaseClient {
 public:
+    using port_graphml_pair = std::pair<std::string, std::string>;
+
+    // REVIEW(Mitch): consider a ConnectionConfig struct, also string_view
     explicit DatabaseClient(const std::string& connection_details);
     ~DatabaseClient();
-    // void Connect(const std::string& connection_string){};
+
+    // Remove at earliest convenience
     void Test();
 
+    // REVIEW(Jackson): Should this be virtual?  NO
     virtual void InitSchemaFrom(const std::string& sql_string);
 
     void CreateTable(const std::string& table_name,
@@ -45,13 +52,9 @@ public:
     void
     InsertReqRepValues(int from_port_id, const std::string& to_port_graphml, int experiment_run_id);
 
-    const pqxx::result GetValues(const std::string table_name,
-                                 const std::vector<std::string>& columns,
-                                 const std::string& query = "");
-
-    const pqxx::result GetValuesLike(const std::string table_name,
-                                     const std::vector<std::string>& columns,
-                                     const std::string& query = "");
+    pqxx::result GetValues(const std::string& table_name,
+                           const std::vector<std::string>& columns,
+                                 std::optional<std::string_view> query = std::nullopt);
 
     int GetID(const std::string& table_name, const std::string& query);
 
@@ -59,41 +62,49 @@ public:
                                    const std::string& column,
                                    const std::string& where_query);
 
-    const pqxx::result GetPortLifecycleEventInfo(int experiment_run_id,
-                                                 std::string start_time,
-                                                 std::string end_time,
+    pqxx::result GetPortLifecycleEventInfo(int experiment_run_id,
+                                           const std::string& start_time,
+                                                 const std::string& end_time,
                                                  const std::vector<std::string>& condition_columns,
                                                  const std::vector<std::string>& condition_values);
 
-    const pqxx::result GetPortEventInfo(int experiment_run_id,
-                                        std::string start_time,
-                                        std::string end_time,
-                                        const std::vector<std::string>& condition_columns,
+    pqxx::result GetPortEventInfo(int experiment_run_id,
+                                  const std::string& start_time,
+                                  const std::string& end_time,
+                                  const std::vector<std::string>& condition_columns,
                                         const std::vector<std::string>& condition_values);
 
-    const pqxx::result GetWorkloadEventInfo(int experiment_run_id,
-                                            std::string start_time,
-                                            std::string end_time,
+    pqxx::result GetWorkloadEventInfo(int experiment_run_id,
+                                      const std::string& start_time,
+                                            const std::string& end_time,
                                             const std::vector<std::string>& condition_columns,
                                             const std::vector<std::string>& condition_values);
 
-    const pqxx::result GetMarkerInfo(int experiment_run_id,
-                                     std::string start_time = "",
-                                     std::string end_time = "",
+    pqxx::result GetMarkerInfo(int experiment_run_id,
+                               const std::string& start_time = "",
+                                     const std::string& end_time = "",
                                      const std::vector<std::string>& condition_columns = {},
                                      const std::vector<std::string>& condition_values = {});
 
-    const pqxx::result GetCPUUtilInfo(int experiment_run_id,
-                                      std::string start_time,
-                                      std::string end_time,
+    pqxx::result GetCPUUtilInfo(int experiment_run_id,
+                                const std::string& start_time,
+                                      const std::string& end_time,
                                       const std::vector<std::string>& condition_columns,
                                       const std::vector<std::string>& condition_values);
 
-    const pqxx::result GetMemUtilInfo(int experiment_run_id,
-                                      std::string start_time,
-                                      std::string end_time,
+    pqxx::result GetMemUtilInfo(int experiment_run_id,
+                                const std::string& start_time,
+                                      const std::string& end_time,
                                       const std::vector<std::string>& condition_columns,
                                       const std::vector<std::string>& condition_values);
+
+    pqxx::result GetNetworkUtilInfo(int experiment_run_id,
+                                    const re::types::UnboundedTimeRange<re::types::time_point>& time_range,
+                                    const std::vector<std::string>& condition_columns,
+                                    const std::vector<std::string>& condition_values);
+
+    std::vector<port_graphml_pair> GetPubSubConnectionIDs(int experiment_run_id);
+    std::vector<port_graphml_pair> GetReqRepConnectionIDs(int experiment_run_id);
 
     void UpdateShutdownTime(int experiment_run_id, const std::string& end_time);
 
@@ -104,17 +115,17 @@ public:
     static std::string StringToPSQLTimestamp(const std::string& str);
 
 private:
-    const std::string BuildWhereAllEqualClause(const std::vector<std::string>& cols,
-                                               const std::vector<std::string>& vals);
-    const std::string BuildWhereAnyEqualClause(const std::vector<std::string>& cols,
-                                               const std::vector<std::string>& vals);
-    const std::string BuildWhereLikeClause(const std::vector<std::string>& cols,
-                                           const std::vector<std::string>& vals);
-    const std::string BuildColTuple(const std::vector<std::string>& cols);
+    static std::string BuildWhereAllEqualClause(const std::vector<std::string>& cols,
+                                                const std::vector<std::string>& vals);
+    static std::string BuildWhereAnyEqualClause(const std::vector<std::string>& cols,
+                                                const std::vector<std::string>& vals);
+    static std::string BuildWhereLikeClause(const std::vector<std::string>& cols,
+                                            const std::vector<std::string>& vals);
+    static std::string BuildColTuple(const std::vector<std::string>& cols);
 
-    pqxx::work& AquireBatchedTransaction();
+    pqxx::work& AcquireBatchedTransaction();
     void ReleaseBatchedTransaction();
-    // Aquire batch transaction lock before flushing
+    // Acquire batch transaction lock before flushing
     void FlushBatchedTransaction();
     void AbortBatchedTransaction();
 
@@ -122,7 +133,7 @@ private:
     pqxx::connection batched_connection_;
 
     std::unique_ptr<pqxx::work> batched_transaction_;
-    unsigned int batched_write_count_;
+    unsigned int batched_write_count_ = 0;
 
     std::mutex conn_mutex_;
     std::mutex batched_transaction_mutex_;

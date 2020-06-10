@@ -6,13 +6,16 @@
 #include <queue>
 #include <set>
 #include <vector>
-
+// REVIEW (Mitch): Move to utils namespace and directory
+// REVIEW (Mitch): Take second hit at this class
+//  Perfect forwarding should be considered
 template <typename T>
 class unique_queue {
 private:
     std::queue<T> m_queue;
     std::set<T> m_set;
 public:
+    // REVIEW (Mitch): Nodiscard?
     bool push(const T& t) {
         if (m_set.insert(t).second) {
             m_queue.push(t);

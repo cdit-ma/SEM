@@ -13,7 +13,15 @@
 #include <core/statemachine.h>
 
 class Activatable{
+    // REVIEW: Ultimately this should be an interface, specifying the behaviour expected of
+    //  anything inheriting from activatable
 public:
+    // REVIEW: This enum should remain part of this interface. Activatable implementing classes
+    //   must implement a get_class (probably rename to avoid ambiguity with C++ classes) method
+    //   that must return a valid Class(rename) enum.
+
+    // REVIEW (Mitch): This enum doesn't include LoganClient as a valid class type. (LoganClient in
+    //  src/nodemanager inherits from Activatable)
     enum class Class{
         UNKNOWN,
         COMPONENT,
@@ -25,9 +33,14 @@ public:
     public:
         Activatable(Class c = Class::UNKNOWN);
         virtual ~Activatable(){};
-        
+
+        // REVIEW: Const refs/string_views on these params
         void set_name(std::string name);
+        // REVIEW: This will be changed in the near future to be uuid based
         void set_id(std::string id);
+
+        // REVIEW: Resolve ambiguity with class, currently represents the (label && type) of the
+        //  interface implemented by the component or message type of port
         void set_type(std::string type);
 
         Class get_class() const; 
@@ -36,20 +49,25 @@ public:
         std::string get_id() const;
         std::string get_type() const;
 
+        // REVIEW (Mitch): This function is a check while it reads like an action, potential rename
+        // to "can_process_event"
         bool process_event();
+
+        // REVIEW (Mitch): This should be moved to a pure abstract function once this class is
+        // changed to being an interface
         LoggerProxy& logger() const;
 
         StateMachine::State get_state();
-
 
         bool Configure();
         bool Activate();
         bool Passivate();
         bool Terminate();
 
+        // REVIEW (Mitch): Attribute getter/setter/constructor moved to pure virtual
+        //  Investigate using std::variant instead of own hand-rolled `Attribute` class
         std::weak_ptr<Attribute> GetAttribute(const std::string& name);
-        
-
+        // REVIEW (Mitch): ConstructAttribute actually tries a get before building a new attribute.
         std::weak_ptr<Attribute> ConstructAttribute(const ATTRIBUTE_TYPE type, const std::string name);
 
         template<class PrimitiveType>

@@ -71,6 +71,8 @@ uint64_t zmq::ProtoWriter::GetTxCount() const{
     return tx_count_;
 }
 
+// REVIEW (Mitch): [[nodiscard]]?
+// REVIEW (Mitch): Follow the bools all the way down and fix...
 bool zmq::ProtoWriter::PushMessage(const std::string& topic, std::unique_ptr<google::protobuf::MessageLite> message){
     bool success = false;
     if(message){

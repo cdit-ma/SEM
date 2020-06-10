@@ -103,5 +103,5 @@ void Tcp_Worker::HandleConfigure(){
     if(delimiter_) {
        impl_->SetDelimiter(delimiter_->get_Character());
     }
-    Worker::HandleTerminate();
+    Worker::HandleConfigure();
 }

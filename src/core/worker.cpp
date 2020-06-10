@@ -28,7 +28,8 @@ std::string Worker::get_worker_name() const{
 };
 
 int Worker::get_new_work_id(){
-    std::unique_lock<std::mutex>(mutex_);
+    // REVIEW (Mitch): Standard unique lock typo. Fixing during review.
+    std::unique_lock<std::mutex> lock(mutex_);
     return work_id_ ++;
 };
 

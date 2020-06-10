@@ -28,6 +28,8 @@ void ModelEventProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver)
 
 void ModelEventProtoHandler::ProcessLifecycleEvent(const ModelEvent::LifecycleEvent& message)
 {
+    // REVIEW(Jackson): Rework this function once we've reworked lifecycle event protobuf protocol
+    // REVIEW(Jackson): Add worker lifecycle support
     if(message.has_component()) {
         if(message.has_port()) {
             try {
@@ -45,15 +47,15 @@ void ModelEventProtoHandler::ProcessLifecycleEvent(const ModelEvent::LifecycleEv
 
 void ModelEventProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEvent& message)
 {
-    // std::cerr << "ProcessWorkloadEvent" << std::endl;
-
     std::string worker_instance_id = database_->quote(
         GetWorkerInstanceID(message.component(), message.worker()));
     std::string function = database_->quote(message.function_name());
-    std::string workload_id = database_->quote(message.workload_id());
+     std::string workload_id = database_->quote(message.workload_id());
     std::string type = database_->quote(ModelEvent::WorkloadEvent::Type_Name(message.event_type()));
     std::string args = database_->quote(message.args());
     std::string log_level = database_->quote(message.log_level());
+    // REVIEW(Jackson): What is the status with the requirement to not quote timestamps for
+    //  formatting reasons
     std::string sample_time = database_->quote(TimeUtil::ToString(message.info().timestamp()));
 
     database_->InsertValues("WorkloadEvent",
@@ -66,11 +68,9 @@ void ModelEventProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEven
 
 void ModelEventProtoHandler::ProcessUtilizationEvent(const ModelEvent::UtilizationEvent& message)
 {
-    auto start = std::chrono::steady_clock::now();
-
     std::string port_id = database_->quote(GetPortID(message.port(), message.component()));
 
-    auto port_id_aquired_time = std::chrono::steady_clock::now();
+    auto port_id_acquired_time = std::chrono::steady_clock::now();
 
     std::string seq_num = database_->quote(message.port_event_id());
     std::string type = database_->quote(ModelEvent::UtilizationEvent::Type_Name(message.type()));
@@ -81,14 +81,6 @@ void ModelEventProtoHandler::ProcessUtilizationEvent(const ModelEvent::Utilizati
                             {"PortID", "PortEventSequenceNum", "Type", "Message", "SampleTime"},
                             {port_id, seq_num, type, msg, sample_time});
     database_->UpdateLastSampleTime(experiment_run_id_, sample_time);
-
-    auto finish = std::chrono::steady_clock::now();
-    auto id_delay = std::chrono::duration_cast<std::chrono::microseconds>(port_id_aquired_time
-                                                                          - start);
-    auto total_delay = std::chrono::duration_cast<std::chrono::microseconds>(finish - start);
-
-    // std::cerr << "PortEvent delay = " << total_delay.count() << " (" << id_delay.count() << "
-    // spent fetching port_id)";
 }
 
 void ModelEventProtoHandler::InsertComponentLifecycleEvent(

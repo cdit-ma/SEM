@@ -96,7 +96,7 @@ void SystemEventProtoHandler::ProcessFileSystemStatus(const SystemEvent::FileSys
         filesystem_id = database_->quote(
             filesystem_id_cache_.at(GetFileSystemKey(hostname, fs_status.name())));
     } catch(const std::out_of_range& oor_ex) {
-        std::cerr << "Failed to insert FileSytemStatus for hostname '" << hostname << "', "
+        std::cerr << "Failed to insert FileSystemStatus for hostname '" << hostname << "', "
                   << oor_ex.what() << "\n";
         throw;
     }

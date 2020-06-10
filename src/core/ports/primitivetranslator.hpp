@@ -7,6 +7,9 @@
 
 #include <limits>
 
+// REVIEW (Mitch): There must be a better way of doing these conversions and checks.
+//  See test file in tests/middleware/base/primitivetranslations/tests.cpp for usage pattern.
+//  Generally used to convert TAO types....
 template <class FromType, class ToType>
 ToType TranslatePrimitive(const FromType& value){
     ToType translated_type = value;

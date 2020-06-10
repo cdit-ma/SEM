@@ -5,18 +5,21 @@
 
 #include <proto/controlmessage/controlmessage.pb.h>
 
+#include <utility>
+
 class NodeManagerProtoHandler : public AggregationProtoHandler {
 public:
     NodeManagerProtoHandler(std::shared_ptr<DatabaseClient> db_client,
                             ExperimentTracker& exp_tracker) :
-        AggregationProtoHandler(db_client, exp_tracker){};
+        AggregationProtoHandler(std::move(db_client), exp_tracker){};
 
-    void BindCallbacks(zmq::ProtoReceiver& ProtoReceiver);
+    void BindCallbacks(zmq::ProtoReceiver& ProtoReceiver) final;
 
 private:
     struct ExpStateCreationInfo {
         int experiment_id;
         int experiment_run_id;
+        // REVIEW(Jackson): Make a proper named type for these pairs
         std::vector<std::pair<int, std::string>> pubsub_connections;
         std::vector<std::pair<int, std::string>> reqrep_connections;
     };

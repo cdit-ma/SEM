@@ -24,6 +24,7 @@ DeploymentManager::DeploymentManager(Execution& execution,
     library_path_(library_path),
     is_master_node_(is_master_node)
 {
+    // REVIEW (Mitch): Lambda here?
     execution_.AddTerminateCallback(std::bind(&DeploymentManager::Terminate, this));
 
     // Construct a live receiever
@@ -31,6 +32,9 @@ DeploymentManager::DeploymentManager(Execution& execution,
     proto_requester_ = std::unique_ptr<zmq::ProtoRequester>(
         new zmq::ProtoRequester(master_registration_endpoint));
 
+    // REVIEW (Mitch): Convention reversal, zmq callbacks are genrally called Handle*
+    //  in this case the Handle function is called in our "process" thread once we notify our
+    //  condition variable
     // Subscribe to NodeManager::ControlMessage Types
     proto_receiever_->RegisterProtoCallback<NodeManager::ControlMessage>(
         std::bind(&DeploymentManager::GotExperimentUpdate, this, std::placeholders::_1));
@@ -188,6 +192,15 @@ void DeploymentManager::ProcessControlQueue()
     std::queue<std::unique_ptr<NodeManager::ControlMessage>> queue;
 
     while(true) {
+        // REVIEW (Mitch): Should we break this construct out into a utility function/class?
+        //  This pattern is used very frequently:
+        /*
+         * {
+         *      gain mutex
+         *      wait on condition variable with predicate
+         *      execute locked behaviour
+         * }
+         */
         {
             // Gain Mutex
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -210,6 +223,7 @@ void DeploymentManager::ProcessControlQueue()
             auto type = control_message->type();
 
             switch(type) {
+                // REVIEW (Mitch): Why is Configure different to Activate, passivate, terminate?
                 case NodeManager::ControlMessage::CONFIGURE:
                 case NodeManager::ControlMessage::STARTUP:
                 case NodeManager::ControlMessage::SET_ATTRIBUTE: {
@@ -243,6 +257,7 @@ void DeploymentManager::ProcessControlQueue()
                     InteruptControlQueue();
                     break;
                 }
+                // REVIEW (Mitch): All usages of switch case default should be reviewed.
                 default:
                     break;
             }

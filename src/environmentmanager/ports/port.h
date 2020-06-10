@@ -86,6 +86,7 @@ class Port{
         
 
         Experiment& experiment_;
+        // REVIEW (Mitch): nullptr
         Component* parent_ = 0;
 
         std::string id_;
