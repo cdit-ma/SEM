@@ -67,14 +67,14 @@ wget https://github.com/cdit-ma/sigar/archive/sigar-1.6.4B.tar.gz -q && \
 
 # Install pqxx
 wget http://192.168.111.1/raid/software_share/UtilityLibraries/libpqxx7-0-0.tar.gz && \
-  tar xf libpqxx7-0-0.tar.gz && \
-  cd libpqxx && \
-  mkdir build && \
-  cd build && \
-  cmake -G Ninja .. && \
-  sudo cmake --build . --target install && \
-  cd ~ && \
-  rm libpqxx7-0-0.tar.gz libpqxx -rf \
+    tar xf libpqxx7-0-0.tar.gz && \
+    cd libpqxx && \
+    mkdir build && \
+    cd build && \
+    cmake -G Ninja .. && \
+    sudo cmake --build . --target install && \
+    cd ~ && \
+    rm libpqxx7-0-0.tar.gz libpqxx -rf
 
 # Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \
