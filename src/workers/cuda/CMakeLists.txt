@@ -14,8 +14,13 @@ if (NOT CUDAToolkit_FOUND)
     return()
 endif ()
 
+# Libraries
 add_subdirectory(common)
 add_subdirectory(fft)
+
+# Executables
+add_subdirectory(list_devices)
+
 if (BUILD_TEST)
     add_subdirectory(test)
 endif ()
@@ -38,7 +43,6 @@ target_link_libraries(${CUDA_WORKER_LIB}
         PUBLIC
             CUDA::cudart
             cuda_worker_fft
-            cuda_worker_common
             re_core)
 
 

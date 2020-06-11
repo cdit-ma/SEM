@@ -62,6 +62,13 @@ endif ()
 # Configure cmakevars.h to have correct string replaced vars
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/cmakevars.h @ONLY)
 
+# Build CUDA cpp wrapper library
+include(CheckLanguage)
+check_language(CUDA)
+if (CMAKE_CUDA_COMPILER)
+    add_subdirectory(extern/cuda-api-wrappers)
+endif()
+
 if (BUILD_TEST)
     set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
     set(GOOGLE_MOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googlemock)
