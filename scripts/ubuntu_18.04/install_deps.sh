@@ -9,6 +9,7 @@ sudo apt-get update && sudo apt-get install -y \
   openjdk-11-jre-headless \
   ccache \
   libpq-dev postgresql-server-dev-all \
+  libcurl4-openssl-dev \
   chrony
 
 # Install Docker
@@ -84,14 +85,14 @@ rm sigar-1.6.4B.tar.gz sigar-sigar-1.6.4B -rf
 
 # Install pqxx
 wget http://192.168.111.1/raid/software_share/UtilityLibraries/libpqxx7-0-0.tar.gz -q && \
-  tar xf libpqxx7-0-0.tar.gz && \
-  cd libpqxx && \
-  mkdir build && \
-  cd build && \
-  cmake -G Ninja .. && \
-  sudo cmake --build . --target install && \
-  cd ~ && \
-  rm libpqxx7-0-0.tar.gz libpqxx -rf
+tar xf libpqxx7-0-0.tar.gz && \
+cd libpqxx && \
+mkdir build && \
+cd build && \
+cmake -G Ninja .. && \
+sudo cmake --build . --target install && \
+cd ~ && \
+rm libpqxx7-0-0.tar.gz libpqxx -rf
 
 # Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \

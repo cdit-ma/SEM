@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
         wget \
         ninja-build \
         libpq-dev postgresql-server-dev-all \
+        libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 #Install Boost

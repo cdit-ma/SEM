@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <condition_variable>
 
 class TcpWorkerImpl : public std::enable_shared_from_this<TcpWorkerImpl> {
 public:
@@ -39,7 +40,7 @@ private:
         // Implement Lockable interface
         void lock() { mutex_.lock(); };
         void unlock() { mutex_.unlock(); };
-        bool try_lock() { mutex_.try_lock(); }
+        bool try_lock() { return mutex_.try_lock(); }
 
         void terminate() { terminate_ = true; }
         bool terminated() { return terminate_.load(); }
@@ -49,12 +50,12 @@ private:
         }
 
         // Implement queue interface
-        bool empty() { queue_.empty(); }
-        size_t size() { queue_.size(); }
+        bool empty() { return queue_.empty(); }
+        size_t size() { return queue_.size(); }
         void push(Message&& message) { queue_.push(message); }
         void pop() { queue_.pop(); }
         void swap(std::queue<Message>& other) { queue_.swap(other); }
-        Message front() const { queue_.front(); }
+        Message front() const { return queue_.front(); }
         void emplace(Message message)
         {
             std::cout << "asd" << std::endl;

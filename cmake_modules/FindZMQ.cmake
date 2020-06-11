@@ -18,28 +18,48 @@
 #  ZMQ_LIBRARIES          The ZMQ libraries
 #  ZMQ_INCLUDE_DIRS       The location of ZMQ headers
 
-find_path(ZMQ_ROOT_DIR
-    NAMES include/zmq.h
-)
+# This method for finding ZMQ is not a cross platform solution, the officially provided option is the better choice
 
-find_library(ZMQ_LIBRARIES
-    NAMES zmq libzmq
-    HINTS ${ZMQ_ROOT_DIR}/lib
-)
+find_package(ZeroMQ)
 
-find_path(ZMQ_INCLUDE_DIRS
-    NAMES zmq.h
-    HINTS ${ZMQ_ROOT_DIR}/include
-)
+set(ZMQ_FOUND ${ZeroMQ_FOUND})
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(ZMQ DEFAULT_MSG
-    ZMQ_LIBRARIES
-    ZMQ_INCLUDE_DIRS
-)
+if (ZeroMQ_FOUND)
+    message("ZeroMQ found, using the configurations to override those previously populated by FindZMQ.cmake")
+
+    set(ZMQ_INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIR})
+
+    set(ZMQ_LIBRARIES
+            libzmq)
+
+else()
+    message(WARNING "Use of find_package(ZMQ) is deprecated, recommend replacing with find_package(ZeroMQ)")
+
+    find_path(ZMQ_ROOT_DIR
+            NAMES include/zmq.h
+            )
+
+    find_library(ZMQ_LIBRARIES
+            NAMES zmq libzmq
+            HINTS ${ZMQ_ROOT_DIR}/lib
+            )
+
+    find_path(ZMQ_INCLUDE_DIRS
+            NAMES zmq.h
+            HINTS ${ZMQ_ROOT_DIR}/include
+            )
+
+    include(FindPackageHandleStandardArgs)
+    find_package_handle_standard_args(ZMQ DEFAULT_MSG
+            ZMQ_LIBRARIES
+            ZMQ_INCLUDE_DIRS
+            )
+endif()
+
+
 
 mark_as_advanced(
-    ZMQ_ROOT_DIR
+#    ZMQ_ROOT_DIR
     ZMQ_LIBRARIES
     ZMQ_INCLUDE_DIRS
 )

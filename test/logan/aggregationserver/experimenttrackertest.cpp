@@ -11,7 +11,7 @@ using testing::Return;
 class MockDatabaseClient : public DatabaseClient {
 public:
     explicit MockDatabaseClient(const std::string& db_params = "dbname = postgres user = postgres "
-                                                               "password = ***REMOVED*** hostaddr = "
+                                                               "password = test_agg_password hostaddr = "
                                                                "192.168.111.231 port = 5432") :
         DatabaseClient(db_params){};
     // MOCK_METHOD(void, Test, ());

@@ -112,7 +112,9 @@ void OpenCL_Worker::HandleTerminate()
 {
     auto work_id = get_new_work_id();
     try {
-        fft_provider_->Teardown();
+        if (fft_provider_ != nullptr) {
+            fft_provider_->Teardown();
+        }
     } catch(const std::exception& e) {
         Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id,
             std::string("Failed to tear down FFT provider component; ") + e.what());

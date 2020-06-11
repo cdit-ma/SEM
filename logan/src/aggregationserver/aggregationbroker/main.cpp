@@ -11,6 +11,8 @@
 
 Execution execution;
 
+using namespace re::logging::aggregation::broker;
+
 void signal_handler(int signal_value)
 {
     execution.Interrupt();
@@ -19,6 +21,12 @@ void signal_handler(int signal_value)
 const int success_return_val = 0;
 const int error_return_val = 1;
 
+/**
+ *
+ * @param argc Number of cmd line arguments
+ * @param argv Array of cmd line argument char pointers
+ * @return Program exits with 1 if an error occurs, 0 otherwise
+ */
 int main(int argc, char** argv)
 {
     // Handle the SIGINT/SIGTERM signal
@@ -56,11 +64,11 @@ int main(int argc, char** argv)
     } catch(boost::program_options::error& e) {
         std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
         std::cout << desc << std::endl;
-        return 1;
+        return error_return_val;
     }
 
-    AggServer::AggregationBroker aggbroker(replier_endpoint, database_ip, password);
+    AggregationBroker aggbroker(replier_endpoint, database_ip, password);
     execution.Start();
 
-    return 0;
+    return success_return_val;
 }

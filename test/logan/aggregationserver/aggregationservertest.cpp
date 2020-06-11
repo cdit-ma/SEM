@@ -8,7 +8,7 @@
 TEST(Re_Logan_Aggregation, DISABLED_AggregationServer_Create_CommonArgs)
 {
     EXPECT_NO_THROW(
-        AggregationServer as("192.168.111.231", "***REMOVED***", "tcp://192.168.111.231:20000"));
+        AggregationServer as("192.168.111.231", "agg_test_pass", "tcp://192.168.111.231:20000"));
 
     // Need to send interrupt to the AggregationServer here
 }

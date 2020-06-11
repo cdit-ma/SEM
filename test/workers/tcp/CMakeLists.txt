@@ -1,6 +1,11 @@
 set(PROJ_NAME test_tcpworker)
 project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
+# See TCP Worker page on the wiki for reasoning behind Apple builds
+if (NOT tcp_worker)
+    message(WARNING "TCP worker library not found - skipping TCP Worker tests")
+    return()
+endif()
 
 add_executable(${PROJ_NAME} "")
 target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
