@@ -69,7 +69,7 @@ int ExperimentTracker::RegisterExperimentRun(const std::string& experiment_name,
         }
         new_run.running = true;
 
-        autoexperiment_run_id = database_->InsertValues(
+        auto experiment_run_id = database_->InsertValues(
             "ExperimentRun", {"ExperimentID", "JobNum", "StartTime"},
             {database_->quote(experiment_id), database_->quote(new_run.job_num), start_time});
         new_run.experiment_run_id = experiment_run_id;

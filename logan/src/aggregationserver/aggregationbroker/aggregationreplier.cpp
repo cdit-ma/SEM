@@ -322,11 +322,6 @@ AggregationReplier::ProcessPortLifecycleRequest(const PortLifecycleRequest& mess
                                                                       start, end,
                                                                       conditions.getColumns(),
                                                                       conditions.getValues());
-        const pqxx::result res = database_->GetPortLifecycleEventInfo(
-            message.experiment_run_id(), start, end, conditions.getColumns(), conditions.getValues()
-            // condition_cols,
-            // condition_vals
-        );
 
         for(const auto& row : res) {
             auto event = response->add_events();
