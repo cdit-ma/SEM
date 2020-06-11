@@ -15,6 +15,15 @@
 #include "../../Data/Events/portevent.h"
 #include "../../Data/Events/networkutilisationevent.h"
 
+#include "../../Data/Series/portlifecycleeventseries.h"
+#include "../../Data/Series/workloadeventseries.h"
+#include "../../Data/Series/cpuutilisationeventseries.h"
+#include "../../Data/Series/memoryutilisationeventseries.h"
+#include "../../Data/Series/markereventseries.h"
+#include "../../Data/Series/porteventseries.h"
+#include "../../Data/Series/networkutilisationeventseries.h"
+#include "../../Data/experimentrundata.h"
+
 #include <QWidget>
 #include <QToolBar>
 #include <QPushButton>
@@ -34,17 +43,10 @@ public:
 
     bool eventFilter(QObject *watched, QEvent* event) override;
 
-    void addPortLifecycleEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortLifecycleEvent*>& events);
-    void addWorkloadEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<WorkloadEvent*>& events);
-    void addCPUUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<CPUUtilisationEvent*>& events);
-    void addMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MemoryUtilisationEvent*>& events);
-    void addMarkerEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<MarkerEvent*>& events);
-    void addPortEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<PortEvent*>& events);
-    void addNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& experimentRun, const QVector<NetworkUtilisationEvent*>& events);
-
-    void updateExperimentRunLastUpdatedTime(quint32 experimentRunID, qint64 time);
-
     void setTimeDisplayFormat( TIME_DISPLAY_FORMAT format);
+
+    void addChart(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data);
+    void removeChart(const QString& id, bool clearing_chart_list = false);
 
     void clearChartList();
 
@@ -61,6 +63,7 @@ public slots:
     void chartClosed();
 
     void updateHoverDisplay();
+    void updateExperimentRunLastUpdatedTime(quint32 experimentRunID, qint64 time);
 
 private slots:
     void minSliderMoved(double ratio);
@@ -71,18 +74,11 @@ private slots:
     void timelineRubberbandUsed(double left, double right);
     
 private:
-    void addEvent(MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun, MEDEA::Event* event);
-    void addedEvents(const AggServerResponse::ExperimentRun& experimentRun);
-
-    MEDEA::EventSeries* getSeriesForEventKind(MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun, const QString& eventSeriesID) const;
-    MEDEA::EventSeries* constructSeriesForEventKind(MEDEA::ChartDataKind kind, const AggServerResponse::ExperimentRun& experimentRun, const QString& eventSeriesID, const QString& label);
-
-    MEDEA::Chart* constructChartForSeries(MEDEA::EventSeries *series, const QString& ID, const QString& label);
-    void removeChart(const QString& ID, bool clearing = false);
-
-    void updateRangeForExperimentRun(quint32 experimentRunID, qint64 startTime, qint64 lastUpdatedTime);
-    void removedDataFromExperimentRun(quint32 experimentRunID);
+    void setTimeRangeForExperimentRun(quint32 experimentRunID, qint64 startTime, qint64 lastUpdatedTime);
+    void decrementSeriesCountForExperimentRun(quint32 experimentRunID);
     void updateTimelineRange(bool updateDisplayRange = true);
+
+    void chartsEmptied();
 
     const QString& getDateTimeDisplayFormat(const MEDEA::ChartDataKind& kind) const;
 
@@ -113,10 +109,10 @@ private:
     QPair<quint32, qint64> longestExperimentRunDuration_;
     QPair<qint64, qint64> totalTimeRange_;
 
-    // MEDEA::Event related widgets/series
     QHash<QString, MEDEA::ChartLabel*> chartLabels_;
     QHash<QString, MEDEA::Chart*> charts_;
-    QMultiHash<QString, MEDEA::EventSeries*> seriesList_;
+
+    static const MEDEA::ChartDataKind no_data_kind_;
 };
 
 #endif // TIMELINECHARTVIEW_H

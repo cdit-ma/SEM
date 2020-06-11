@@ -32,7 +32,6 @@ public:
     explicit ChartInputPopup(QWidget* parent = nullptr);
 
     void enforceChartsOnly();
-
     void enableFilters();
 
     bool eventFilter(QObject *watched, QEvent *event) override;

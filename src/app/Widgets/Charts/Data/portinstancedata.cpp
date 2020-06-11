@@ -2,6 +2,8 @@
 #include "componentinstancedata.h"
 #include "../ExperimentDataManager/experimentdatamanager.h"
 
+using namespace MEDEA;
+
 /**
  * @brief PortInstanceData::PortInstanceData
  * @param exp_run_id
@@ -19,29 +21,8 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
       middleware_(port.middleware),
       kind_(port.kind)
 {
-    // Setup the requests
-    port_lifecycle_request_.setExperimentRunID(exp_run_id);
-    port_lifecycle_request_.setPortIDs({graphml_id_});
-    port_lifecycle_request_.setPortPaths({path_});
-    //port_lifecycle_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
-    //port_lifecycle_request_.setComponentInstancePaths({comp_inst.getPath()});
-
-    port_event_request_.setExperimentRunID(exp_run_id);
-    port_event_request_.setPortIDs({graphml_id_});
-    port_event_request_.setPortPaths({path_});
-
-    // INSPECT: This extra request fields are returning unexpected events
-    //  When they are added, they also return port events from other children ports of the parenting ComponentInstance
-	// TODO: Find out what is causing this
-	//port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
-    //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
-
-    // Setup event series
-    port_lifecycle_series_ = new PortLifecycleEventSeries(graphml_id_);
-    port_lifecycle_series_->setLabel(name_);
-
-    port_event_series_ = new PortEventSeries(graphml_id_);
-    port_event_series_->setLabel(name_);
+    setupRequests();
+    setupSeries();
 
     connect(this, &PortInstanceData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestPortInstanceEvents);
     emit requestData(*this);
@@ -111,14 +92,40 @@ const PortEventRequest& PortInstanceData::getPortEventRequest() const
 }
 
 /**
+ * @brief PortInstanceData::getPortLifecycleSeries
+ * @throws std::runtime_error
+ * @return
+ */
+QPointer<const EventSeries> PortInstanceData::getPortLifecycleSeries() const
+{
+    if (port_lifecycle_series_ == nullptr) {
+        throw std::runtime_error("PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
+    }
+    return port_lifecycle_series_;
+}
+
+/**
+ * @brief PortInstanceData::getPortEventSeries
+ * @throws std::runtime_error
+ * @return
+ */
+QPointer<const EventSeries> PortInstanceData::getPortEventSeries() const
+{
+    if (port_event_series_ == nullptr) {
+        throw std::runtime_error("PortInstanceData::getPortEventSeries - Port event series is null");
+    }
+    return port_event_series_;
+}
+
+/**
  * @brief PortInstanceData::getPreviousEventTime
  * @param time
  * @return
  */
 qint64 PortInstanceData::getPreviousEventTime(qint64 time) const
 {
-    const auto& prev_port_lifecycle_event_time = getPortLifecycleEventSeries().getPreviousTime(time);
-    const auto& prev_port_event_time = getPortEventSeries().getPreviousTime(time);
+    const auto& prev_port_lifecycle_event_time = getPortLifecycleSeries()->getPreviousTime(time);
+    const auto& prev_port_event_time = getPortEventSeries()->getPreviousTime(time);
 
     if (prev_port_lifecycle_event_time == time) {
         return prev_port_event_time;
@@ -137,8 +144,8 @@ qint64 PortInstanceData::getPreviousEventTime(qint64 time) const
  */
 qint64 PortInstanceData::getNextEventTime(qint64 time) const
 {
-    const auto& next_port_lifecycle_event_time = getPortLifecycleEventSeries().getNextTime(time);
-    const auto& next_port_event_time = getPortEventSeries().getNextTime(time);
+    const auto& next_port_lifecycle_event_time = getPortLifecycleSeries()->getNextTime(time);
+    const auto& next_port_event_time = getPortEventSeries()->getNextTime(time);
 
     if (next_port_lifecycle_event_time == time) {
         return next_port_event_time;
@@ -160,38 +167,12 @@ void PortInstanceData::addPortLifecycleEvents(const QVector<PortLifecycleEvent*>
 }
 
 /**
- * @brief PortInstanceData::getPortLifecycleEventSeries
- * @throws std::runtime_error
- * @return
- */
-const PortLifecycleEventSeries& PortInstanceData::getPortLifecycleEventSeries() const
-{
-    if (port_lifecycle_series_ == nullptr) {
-        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortLifecycleEventSeries - Port lifecycle event series is null");
-    }
-    return *port_lifecycle_series_;
-}
-
-/**
  * @brief PortInstanceData::addPortEvents
  * @param events
  */
 void PortInstanceData::addPortEvents(const QVector<PortEvent*>& events)
 {
     port_event_series_->addEvents(events);
-}
-
-/**
- * @brief PortInstanceData::getPortEventSeries
- * @throws std::runtime_error
- * @return
- */
-const PortEventSeries& PortInstanceData::getPortEventSeries() const
-{
-    if (port_event_series_ == nullptr) {
-        throw std::runtime_error("PortEventSeries& PortInstanceData::getPortEventSeries - Port event series is null");
-    }
-    return *port_event_series_;
 }
 
 /**
@@ -208,4 +189,46 @@ void PortInstanceData::updateData(qint64 new_last_updated_time)
     port_event_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
     last_updated_time_ = new_last_updated_time;
     emit requestData(*this);
+}
+
+/**
+ * @brief PortInstanceData::setupRequests
+ */
+void PortInstanceData::setupRequests()
+{
+    port_lifecycle_request_.setExperimentRunID(experiment_run_id_);
+    port_lifecycle_request_.setPortIDs({graphml_id_});
+    port_lifecycle_request_.setPortPaths({path_});
+
+    port_event_request_.setExperimentRunID(experiment_run_id_);
+    port_event_request_.setPortIDs({graphml_id_});
+    port_event_request_.setPortPaths({path_});
+
+    // INSPECT: These extra request fields are returning unexpected events
+    //  When they are added, they also return port events from other children ports of the parenting ComponentInstance
+    // TODO: Find out what is causing this
+    //port_lifecycle_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    //port_lifecycle_request_.setComponentInstancePaths({comp_inst.getPath()});
+    //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
+    //port_event_request_.setComponentInstancePaths({comp_inst.getPath()});
+}
+
+/**
+ * @brief PortInstanceData::setupSeries
+ */
+void PortInstanceData::setupSeries()
+{
+    // NOTE: graphml_id format = <medea_ID>_<first_replication_ID>_<second_replication_ID>
+
+    auto&& exp_run_id_str = QString::number(experiment_run_id_);
+    auto&& port_inst_id = graphml_id_ + exp_run_id_str;
+    auto&& label = "[" + exp_run_id_str + "] " + name_ + "_" + graphml_id_;
+
+    port_lifecycle_series_ = new PortLifecycleEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_LIFECYCLE));
+    port_lifecycle_series_->setLabel(label);
+    port_lifecycle_series_->setParent(this);
+
+    port_event_series_ = new PortEventSeries(port_inst_id + Event::GetChartDataKindString(ChartDataKind::PORT_EVENT));
+    port_event_series_->setLabel(label);
+    port_event_series_->setParent(this);
 }

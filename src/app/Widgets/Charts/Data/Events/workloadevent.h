@@ -29,11 +29,11 @@ public:
 
     QString toString(const QString& dateTimeFormat) const override;
 
-    const QString& getSeriesID() const override;
     const QString& getID() const override;
 
     const QString& getArgs() const;
     const QString& getFunctionName() const;
+    const QString& getWorkerInstPath() const;
 
     WorkloadEventType getType() const;
     quint32 getWorkloadID() const;
@@ -45,11 +45,10 @@ private:
     quint32 workloadID_;
     quint32 logLevel_;
 
-    // The series_id_ is formed by what is required to group events together into a series
-    QString series_id_;
     QString id_;
     QString functionName_;
     QString args_;
+    QString worker_inst_path_;
 };
 
 #endif // WORKLOADEVENT_H

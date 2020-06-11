@@ -18,6 +18,13 @@ public:
     static QString getByteString(qint64 bytes);
     static double trimDecimalPlaces(double number, int desired_decimal_places);
     static void rightPad(QString& str, int intended_length, char pad_char);
+
+    double getMinUtilisation() const;
+    double getMaxUtilisation() const;
+
+private:
+    double minUtilisation_ = DBL_MAX;
+    double maxUtilisation_ = 0.0;
 };
 
 #endif // NETWORKUTILISATIONEVENTSERIES_H

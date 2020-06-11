@@ -11,9 +11,8 @@ PortLifecycleEvent::PortLifecycleEvent(const AggServerResponse::Port& port,
                                        AggServerResponse::LifecycleType type,
                                        qint64 time,
                                        QObject* parent)
-	: MEDEA::Event(MEDEA::ChartDataKind::PORT_LIFECYCLE, time, port.name, parent),
+	: MEDEA::Event(MEDEA::ChartDataKind::PORT_LIFECYCLE, time, parent),
 	  type_(type),
-	  series_id_(port.graphml_id),
 	  id_(port.graphml_id + getTypeString(type) + QString::number(time)) {}
 
 /**
@@ -24,15 +23,6 @@ PortLifecycleEvent::PortLifecycleEvent(const AggServerResponse::Port& port,
 QString PortLifecycleEvent::toString(const QString& dateTimeFormat) const
 {
     return getTypeString(type_) + " - " + getDateTimeString(dateTimeFormat) + "\n";
-}
-
-/**
- * @brief PortLifecycleEvent::getSeriesID
- * @return
- */
-const QString& PortLifecycleEvent::getSeriesID() const
-{
-    return series_id_;
 }
 
 /**

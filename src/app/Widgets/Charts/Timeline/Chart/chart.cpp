@@ -10,16 +10,12 @@
 #include <algorithm>
 #include <iostream>
 
-#define BACKGROUND_OPACITY 0.25
-#define BORDER_WIDTH 2.0
-
-#define PEN_WIDTH 1.0
-#define BIN_WIDTH 22.0
-#define POINT_WIDTH 8.0
-
-#define PRINT_RENDER_TIMES false
-
 using namespace MEDEA;
+
+const double Chart::background_opacity_ = 0.25;
+const double Chart::border_width_ = 0.5;
+const double Chart::default_bin_width_ = 22.0;
+const double Chart::default_ellipse_width_ = 8.0;
 
 /**
  * @brief Chart::Chart
@@ -28,21 +24,14 @@ using namespace MEDEA;
  * @param parent
  */
 Chart::Chart(quint32 experimentRunID, qint64 experimentStartTime, QWidget* parent)
-	: QWidget(parent)
+    : QWidget(parent),
+      experimentRunID_(experimentRunID),
+      experimentRunStartTime_(experimentStartTime)
 {
-	setMouseTracking(true);
+    setMouseTracking(true);
 
-	experimentRunID_ = experimentRunID;
-	experimentRunStartTime_ = experimentStartTime;
-	hoveredSeriesKind_ = ChartDataKind::DATA;
-
-	dataMinX_ = DBL_MAX;
-	dataMaxX_ = DBL_MIN;
-	dataMinY_ = DBL_MAX;
-	dataMaxY_ = DBL_MIN;
-
-	connect(Theme::theme(), &Theme::theme_Changed, this, &Chart::themeChanged);
-	themeChanged();
+    connect(Theme::theme(), &Theme::theme_Changed, this, &Chart::themeChanged);
+    themeChanged();
 }
 
 /**
@@ -58,27 +47,67 @@ quint32 Chart::getExperimentRunID() const
  * @brief Chart::addSeries
  * @param series
  */
-void Chart::addSeries(EventSeries* series)
+void Chart::addSeries(const QPointer<const MEDEA::EventSeries>& series)
 {
-    if (series) {
-        seriesList_[series->getKind()] = series;
-        if (series->getKind() == ChartDataKind::CPU_UTILISATION ||
-                series->getKind() == ChartDataKind::MEMORY_UTILISATION ||
-                series->getKind() == ChartDataKind::NETWORK_UTILISATION) {
-            containsYRange_ = true;
-            connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
-            connect(series, &EventSeries::maxYValueChanged, this, &Chart::updateVerticalMax);
+    if (series.isNull()) {
+        return;
+    }
+
+    if (series->getKind() == ChartDataKind::CPU_UTILISATION ||
+        series->getKind() == ChartDataKind::MEMORY_UTILISATION ||
+        series->getKind() == ChartDataKind::NETWORK_UTILISATION) {
+
+        containsYRange_ = true;
+        connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
+        connect(series, &EventSeries::maxYValueChanged, this, &Chart::updateVerticalMax);
+
+        const auto& cpu_util = dynamic_cast<const CPUUtilisationEventSeries*>(series.data());
+        const auto& mem_util = dynamic_cast<const MemoryUtilisationEventSeries*>(series.data());
+        const auto& net_util = dynamic_cast<const NetworkUtilisationEventSeries*>(series.data());
+
+        if (cpu_util) {
+            dataMinY_ = cpu_util->getMinUtilisation();
+            dataMaxY_ = cpu_util->getMaxUtilisation();
+        } else if (mem_util) {
+            dataMinY_ = mem_util->getMinUtilisation();
+            dataMaxY_ = mem_util->getMaxUtilisation();
+        } else if (net_util) {
+            dataMinY_ = net_util->getMinUtilisation();
+            dataMaxY_ = net_util->getMaxUtilisation();
         }
     }
+
+    series_pointers_[series->getKind()] = series;
+    update();
+}
+
+/**
+ * @brief Chart::removeSeries
+ * @param kind
+ */
+void Chart::removeSeries(ChartDataKind kind)
+{
+    series_pointers_.remove(kind);
+    update();
+}
+
+/**
+ * @brief Chart::getSeries
+ * @param kind
+ * @return
+ */
+QPointer<const EventSeries> Chart::getSeries(ChartDataKind kind) const
+{
+    return series_pointers_.value(kind, {});
 }
 
 /**
  * @brief Chart::getSeries
  * @return
  */
-const QHash<ChartDataKind, EventSeries*>& Chart::getSeries() const
+const QHash<ChartDataKind, QPointer<const EventSeries>>& Chart::getSeries() const
 {
-	return seriesList_;
+    return series_pointers_;
 }
 
 /**
@@ -114,10 +143,6 @@ void Chart::setRange(double min, double max)
 
 	dataMinX_ = min;
 	dataMaxX_ = max;
-
-	displayMin_ = (dataMaxX_ - dataMinX_) * minRatio_ + dataMinX_;
-	displayMax_ = (dataMaxX_ - dataMinX_) * maxRatio_ + dataMinX_;
-
 	update();
 }
 
@@ -128,7 +153,7 @@ void Chart::setRange(double min, double max)
 void Chart::setDisplayMinRatio(double ratio)
 {
 	minRatio_ = ratio;
-	displayMin_ = (dataMaxX_ - dataMinX_) * ratio + dataMinX_;
+	updateBinnedData();
 	update();
 }
 
@@ -139,8 +164,8 @@ void Chart::setDisplayMinRatio(double ratio)
 void Chart::setDisplayMaxRatio(double ratio)
 {
 	maxRatio_ = ratio;
-	displayMax_ = (dataMaxX_ - dataMinX_) * ratio + dataMinX_;
-	update();
+    updateBinnedData();
+    update();
 }
 
 /**
@@ -152,9 +177,8 @@ void Chart::setDisplayRangeRatio(double minRatio, double maxRatio)
 {
 	minRatio_ = minRatio;
 	maxRatio_ = maxRatio;
-	displayMin_ = (dataMaxX_ - dataMinX_) * minRatio + dataMinX_;
-	displayMax_ = (dataMaxX_ - dataMinX_) * maxRatio + dataMinX_;
-	update();
+    updateBinnedData();
+    update();
 }
 
 /**
@@ -181,7 +205,6 @@ void Chart::updateBinnedData(const QSet<ChartDataKind>& kinds)
 	// TODO: Instead of re-calculating the binned data in the paint method, calculate and store the binned data per series
 	//  and only recalculate it when the data or diaplay range has changed, or when the widget is resized.
 	//  This should do a lot less calculations and provide smoother rendering of the charts
-
     /*
     if (kinds.isEmpty()) {
         kinds = seriesList_.keys().toSet();
@@ -217,7 +240,7 @@ void Chart::updateVerticalMax(double max)
  * @brief Chart::isHovered
  * @return
  */
-bool Chart::isHovered()
+bool Chart::isHovered() const
 {
 	return hovered_;
 }
@@ -251,17 +274,6 @@ void Chart::setHoveredRect(QRectF rect)
 }
 
 /**
- * @brief Chart::setSeriesKindVisible
- * @param kind
- * @param visible
- */
-void Chart::setSeriesKindVisible(ChartDataKind kind, bool visible)
-{
-	seriesKindVisible_[kind] = visible;
-	update();
-}
-
-/**
  * @brief Chart::seriesKindHovered
  * @param kind
  */
@@ -271,87 +283,51 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         return;
     }
 
-    portLifecycleColor_ = backgroundColor_;
-    workloadColor_ = backgroundColor_;
-    utilisationColor_ = backgroundColor_;
-    memoryColor_ = backgroundColor_;
-    markerColor_ = backgroundColor_;
-    portEventColor_ = backgroundColor_;
-    networkColor_sent_ = backgroundColor_;
-    networkColor_received_ = backgroundColor_;
-    networkColor_combined_ = backgroundColor_;
+    double active_alpha = 1.0;
+    double inactive_alpha = 0.2;
 
-    double alpha = 0.25;
-    portLifecycleSeriesOpacity_ = alpha;
-    workloadSeriesOpacity_ = alpha;
-    cpuSeriesOpacity_ = alpha;
-    memorySeriesOpacity_ = alpha;
-    markerSeriesOpacity_ = alpha;
-    portEventSeriesOpacity_ = alpha;
-    networkSeriesOpacity_ = alpha;
+    port_lifecycle_paint_vals_.paint_val.opacity = inactive_alpha;
+    port_event_paint_vals_.paint_val.opacity = inactive_alpha;
+    workload_event_paint_vals_.paint_val.opacity = inactive_alpha;
+    marker_event_paint_vals_.opacity = inactive_alpha;
+    cpu_util_paint_vals_.opacity = inactive_alpha / 2;
+    memory_util_paint_vals_.opacity = inactive_alpha / 2;
+    network_util_paint_vals_.opacity = inactive_alpha / 2;
 
     switch (kind) {
-        case ChartDataKind::PORT_LIFECYCLE: {
-            portLifecycleColor_ = defaultPortLifecycleColor_;
-            portLifecycleSeriesOpacity_ = 1.0;
+        case ChartDataKind::PORT_LIFECYCLE:
+            port_lifecycle_paint_vals_.paint_val.opacity = active_alpha;
             break;
-        }
-        case ChartDataKind::WORKLOAD: {
-            workloadColor_ = defaultWorkloadColor_;
-            workloadSeriesOpacity_ = 1.0;
+        case ChartDataKind::PORT_EVENT:
+            port_event_paint_vals_.paint_val.opacity = active_alpha;
             break;
-        }
-        case ChartDataKind::CPU_UTILISATION: {
-            utilisationColor_ = defaultUtilisationColor_;
-            cpuSeriesOpacity_ = 1.0;
+        case ChartDataKind::WORKLOAD:
+            workload_event_paint_vals_.paint_val.opacity = active_alpha;
             break;
-        }
-        case ChartDataKind::MEMORY_UTILISATION: {
-            memoryColor_ = defaultMemoryColor_;
-            memorySeriesOpacity_ = 1.0;
+        case ChartDataKind::MARKER:
+            marker_event_paint_vals_.opacity = active_alpha;
             break;
-        }
-        case ChartDataKind::MARKER: {
-            markerColor_ = defaultMarkerColor_;
-            markerSeriesOpacity_ = 1.0;
+        case ChartDataKind::CPU_UTILISATION:
+            cpu_util_paint_vals_.opacity = active_alpha;
             break;
-        }
-        case ChartDataKind::PORT_EVENT: {
-            portEventColor_ = defaultPortEventColor_;
-            portEventSeriesOpacity_ = 1.0;
+        case ChartDataKind::MEMORY_UTILISATION:
+            memory_util_paint_vals_.opacity = active_alpha;
             break;
-        }
-        case ChartDataKind::NETWORK_UTILISATION: {
-            networkColor_sent_ = defaultNetworkColor_sent_;
-            networkColor_received_ = defaultNetworkColor_received_;
-            networkColor_combined_ = Qt::blue;
-            networkSeriesOpacity_ = 1.0;
+        case ChartDataKind::NETWORK_UTILISATION:
+            network_util_paint_vals_.opacity = active_alpha;
             break;
-        }
-        default: {
-            // clear hovered state
-            portLifecycleColor_ = defaultPortLifecycleColor_;
-            workloadColor_ = defaultWorkloadColor_;
-            utilisationColor_ = defaultUtilisationColor_;
-            memoryColor_ = defaultMemoryColor_;
-            markerColor_ = defaultMarkerColor_;
-            portEventColor_ = defaultPortEventColor_;
-            networkColor_sent_ = defaultNetworkColor_sent_;
-            networkColor_received_ = defaultNetworkColor_received_;
-            networkColor_combined_ = Qt::blue;
-            portLifecycleSeriesOpacity_ = 1.0;
-            workloadSeriesOpacity_ = 1.0;
-            cpuSeriesOpacity_ = 1.0;
-            memorySeriesOpacity_ = 1.0;
-            markerSeriesOpacity_ = 1.0;
-            portEventSeriesOpacity_ = 1.0;
-            networkSeriesOpacity_ = 1.0;
+        default:
+            port_lifecycle_paint_vals_.paint_val.opacity = active_alpha;
+            port_event_paint_vals_.paint_val.opacity = active_alpha;
+            workload_event_paint_vals_.paint_val.opacity = active_alpha;
+            marker_event_paint_vals_.opacity = active_alpha;
+            cpu_util_paint_vals_.opacity = active_alpha;
+            memory_util_paint_vals_.opacity = active_alpha;
+            network_util_paint_vals_.opacity = active_alpha;
             break;
-        }
     }
 
 	hoveredSeriesKind_ = kind;
-	updateSeriesPixmaps();
 	update();
 }
 
@@ -363,52 +339,82 @@ void Chart::themeChanged()
 	Theme* theme = Theme::theme();
 	setFont(theme->getSmallFont());
 
-	defaultPortLifecycleColor_ = QColor(235,123,255);
-	portLifecycleColor_ = defaultPortLifecycleColor_;
-
-	defaultWorkloadColor_ = QColor(0,206,209);
-	workloadColor_ = defaultWorkloadColor_;
-
-	defaultUtilisationColor_ = QColor(30,144,255);
-	utilisationColor_ = defaultUtilisationColor_;
-
-	defaultMemoryColor_ = theme->getSeverityColor(Notification::Severity::SUCCESS);
-	memoryColor_ = defaultMemoryColor_;
-
-	defaultMarkerColor_ = QColor(221,188,153);
-	markerColor_ = defaultMarkerColor_;
-
-	defaultPortEventColor_ = theme->getSeverityColor(Notification::Severity::WARNING);
-	portEventColor_ = defaultPortEventColor_;
-
-    if (theme->getTextColor() == theme->black()) {
-        defaultNetworkColor_sent_ = Qt::darkCyan;
-        defaultNetworkColor_received_ = Qt::darkMagenta;
-    } else {
-        defaultNetworkColor_sent_ = Qt::cyan;
-        defaultNetworkColor_received_ = Qt::magenta;
-    }
-    networkColor_sent_ = defaultNetworkColor_sent_;
-    networkColor_received_ = defaultNetworkColor_received_;
-
     backgroundDefaultColor_ = theme->getAltBackgroundColor();
-    backgroundDefaultColor_.setAlphaF(BACKGROUND_OPACITY);
+    backgroundDefaultColor_.setAlphaF(background_opacity_);
     backgroundHighlightColor_ = theme->getActiveWidgetBorderColor();
-    backgroundHighlightColor_.setAlphaF(BACKGROUND_OPACITY * 2.0);
+    backgroundHighlightColor_.setAlphaF(background_opacity_ * 2.0);
 
     textColor_ = theme->getTextColor();
-    gridColor_ = theme->getAltTextColor();
     backgroundColor_ = backgroundDefaultColor_;
-    highlightColor_ = theme->getHighlightColor();
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
     defaultTextPen_ = QPen(textColor_, 2.0);
-	defaultRectPen_ = QPen(gridColor_, 0.5);
-	defaultEllipsePen_ = QPen(gridColor_, 2.0);
-	highlightPen_ = QPen(highlightColor_, 2.0);
-	highlightBrush_ = QBrush(getContrastingColor(textColor_));
+    defaultRectPen_ = QPen(theme->getAltTextColor(), border_width_);
+    defaultEllipsePen_ = QPen(theme->getAltTextColor(), 1.0);
+    highlightPen_ = QPen(theme->getHighlightColor(), 1.5);
+    highlightBrush_ = QBrush(getContrastingColor(textColor_));
 
-	updateSeriesPixmaps();
+    setupPaintValues(*theme);
+    setupPixmaps(*theme);
+}
+
+/**
+ * @brief Chart::setupPaintValues
+ */
+void Chart::setupPaintValues(Theme& theme)
+{
+    port_lifecycle_paint_vals_.paint_val.series_color = std::move(QColor(235, 123, 255));
+    port_event_paint_vals_.paint_val.series_color = std::move(theme.getSeverityColor(Notification::Severity::WARNING));
+    workload_event_paint_vals_.paint_val.series_color = std::move(QColor(0, 206, 209));
+    marker_event_paint_vals_.series_color = std::move(QColor(221, 188, 153));
+    cpu_util_paint_vals_.series_color = std::move(QColor(40, 154, 255));
+    memory_util_paint_vals_.series_color = std::move(theme.getSeverityColor(Notification::Severity::SUCCESS));
+
+    network_util_paint_vals_.combined_color = Qt::blue;
+    if (theme.getTextColor() == theme.black()) {
+        network_util_paint_vals_.sent_color = Qt::darkCyan;
+        network_util_paint_vals_.received_color = Qt::darkMagenta;
+    } else {
+        network_util_paint_vals_.sent_color = Qt::cyan;
+        network_util_paint_vals_.received_color = Qt::magenta;
+    }
+}
+
+/**
+ * @brief Chart::setupPixmaps
+ * @param theme
+ */
+void Chart::setupPixmaps(Theme& theme)
+{
+    auto&& path = "Icons";
+    QSize scale;
+
+    using lifecycle_type = AggServerResponse::LifecycleType;
+    auto& lifecycle_map = port_lifecycle_paint_vals_.pixmaps;
+    lifecycle_map[lifecycle_type::NO_TYPE] = theme.getImage(path, "circleQuestion", scale, theme.getAltTextColor());
+    lifecycle_map[lifecycle_type::CONFIGURE] = theme.getImage(path, "gear", scale, theme.getTextColor());
+    lifecycle_map[lifecycle_type::ACTIVATE] = theme.getImage(path, "power", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    lifecycle_map[lifecycle_type::PASSIVATE] = theme.getImage(path, "bed", scale, QColor(255, 179, 102));
+    lifecycle_map[lifecycle_type::TERMINATE] = theme.getImage(path, "cancel", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+
+    using workload_type = WorkloadEvent::WorkloadEventType;
+    auto& workload_map = workload_event_paint_vals_.pixmaps;
+    workload_map[workload_type::STARTED] = theme.getImage(path, "play", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    workload_map[workload_type::FINISHED] = theme.getImage(path, "avStop", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    workload_map[workload_type::MESSAGE] = theme.getImage(path, "speechBubbleFilled", scale, QColor(72, 151, 189));
+    workload_map[workload_type::WARNING] = theme.getImage(path, "triangleCritical", scale, theme.getSeverityColor(Notification::Severity::WARNING));
+    workload_map[workload_type::ERROR_EVENT] = theme.getImage(path, "circleCrossDark", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    workload_map[workload_type::MARKER] = theme.getImage(path, "bookmarkTwoTone", scale, QColor(72, 151, 199));
+
+    using port_event_type = PortEvent::PortEventType;
+    auto& port_map = port_event_paint_vals_.pixmaps;
+    port_map[port_event_type::SENT] = theme.getImage(path, "arrowTopRight", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    port_map[port_event_type::RECEIVED] = theme.getImage(path, "arrowBottomRight", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    port_map[port_event_type::STARTED_FUNC] = theme.getImage(path, "arrowLineLeft", scale, theme.getSeverityColor(Notification::Severity::SUCCESS));
+    port_map[port_event_type::FINISHED_FUNC] = theme.getImage(path, "arrowToLineRight", scale, theme.getSeverityColor(Notification::Severity::ERROR));
+    port_map[port_event_type::IGNORED] = theme.getImage(path, "circleCross");
+    port_map[port_event_type::EXCEPTION] = theme.getImage(path, "circleCritical");
+    port_map[port_event_type::MESSAGE] = theme.getImage(path, "speechBubbleMessage");
 }
 
 /**
@@ -430,117 +436,130 @@ void Chart::paintEvent(QPaintEvent* event)
 {
 	Q_UNUSED(event);
 
-	/*
-	 * NOTE: This assumes that the data is ordered in ascending order time-wise
-	 */
+    // NOTE: This assumes that the data is ordered in ASCENDING order time-wise
 
-	auto start = QDateTime::currentMSecsSinceEpoch();
-
-	QPainter painter(this);
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
-	painter.setFont(font());
-
-	painter.fillRect(rect(), backgroundColor_);
+    QPainter painter(this);
+    painter.setFont(font());
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
+    painter.fillRect(rect(), backgroundColor_);
 
 	clearHoveredLists();
 
-	// NOTE: If we decide to display multiple kinds of event series in one chart, we'll need to render the hovered one last
-	for (const auto& seriesKind : seriesList_.keys()) {
-		paintSeries(painter, seriesKind);
-	}
-	painter.setOpacity(1.0);
+    // NOTE: If we decide to display multiple kinds of series in one chart, we'll need to render the hovered one last
+    for (const auto& series : series_pointers_) {
+        paintSeries(painter, series);
+    }
 
-	// outline the highlighted rects - for event series
-	painter.setPen(highlightPen_);
-	painter.setBrush(Qt::NoBrush);
-	for (auto rect : hoveredRects_) {
-		rect.adjust(-1, -1, 1, 1);
-		painter.drawRect(rect);
-	}
+    outlineHoveredData(painter);
 
-	// outline the highlighted ellipses - for utilisation series
-	painter.setRenderHint(QPainter::Antialiasing, true);
-	painter.setBrush(highlightBrush_);
-	for (auto rect : hoveredEllipseRects_) {
-		rect.adjust(-BORDER_WIDTH, -BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-		painter.drawEllipse(rect);
-	}
-
-	painter.setRenderHint(QPainter::Antialiasing, false);
-	painter.setPen(defaultRectPen_);
-
-    // display the y-range and send the series points that were hovered over
     if (hovered_) {
-        if (containsYRange_) {
-            QString minStr = QString::number(floor(dataMinY_ * 100)) + "%";
-            QString maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
-
-            bool contains_network_utilisation = seriesList_.keys().contains(ChartDataKind::NETWORK_UTILISATION);
-            if (contains_network_utilisation) {
-                minStr = NetworkUtilisationEventSeries::getByteString(dataMinY_);
-                maxStr = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
-            }
-
-            int h = fontMetrics().height();
-            int w = qMax(fontMetrics().horizontalAdvance(minStr), fontMetrics().horizontalAdvance(maxStr)) + 5;
-
-            QRectF maxRect(width() - w, 0, w, h);
-            QRectF minRect(width() - w, height() - h, w, h);
-            painter.setPen(textColor_);
-            painter.setBrush(hoveredRectColor_);
-            painter.drawRect(maxRect);
-            painter.drawRect(minRect);
-            painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
-            painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
-        }
+        displayDataMinMax(painter);
         painter.setPen(QPen(textColor_, 2.0));
         painter.drawEllipse(mapFromGlobal(cursor().pos()), 4, 4);
     }
 
-	// NOTE: Don't use rect.bottom (rect.bottom = rect.top + rect.height - 1)
-	// draw horizontal grid lines
-	painter.drawLine(0, 0, rect().right(), 0);
-	painter.drawLine(0, height(), rect().right(), height());
+    // NOTE: Don't use rect.bottom (rect.bottom = rect.top + rect.height - 1)
+    // Draw horizontal grid lines
+    painter.setPen(defaultRectPen_);
+    painter.drawLine(0, 0, rect().right(), 0);
+    painter.drawLine(0, height(), rect().right(), height());
+}
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES) {
-		qDebug() << "Total Render Took: " << finish - start << "ms";
-		qDebug() << "------------------------------------------------";
-	}
+/**
+ * @brief Chart::outlineHoveredData
+ * @param painter
+ */
+void Chart::outlineHoveredData(QPainter& painter)
+{
+    painter.save();
+    painter.setPen(highlightPen_);
+
+    double delta = highlightPen_.widthF() / 2;
+
+    // Outline the highlighted rects - for event series
+    painter.setBrush(Qt::NoBrush);
+    for (const auto& rect : hoveredRects_) {
+        painter.drawRect(rect.adjusted(-delta, -delta, delta, delta));
+    }
+
+    // Outline the highlighted ellipses - for utilisation series
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setBrush(highlightBrush_);
+    for (const auto& rect : hoveredEllipseRects_) {
+        painter.drawEllipse(rect.adjusted(-delta, -delta, delta, delta));
+    }
+
+    painter.restore();
+}
+
+/**
+ * @brief Chart::displayDataMinMax
+ * @param painter
+ */
+void Chart::displayDataMinMax(QPainter& painter)
+{
+    if (containsYRange_) {
+        painter.save();
+
+        auto minStr = QString::number(floor(dataMinY_ * 100)) + "%";
+        auto maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
+        if (series_pointers_.contains(ChartDataKind::NETWORK_UTILISATION)) {
+            minStr = NetworkUtilisationEventSeries::getByteString(dataMinY_);
+            maxStr = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
+        }
+
+        static const int padding = 5;
+        int h = fontMetrics().height() + padding;
+        int w = qMax(fontMetrics().horizontalAdvance(minStr), fontMetrics().horizontalAdvance(maxStr)) + padding;
+
+        painter.setPen(textColor_);
+        painter.setBrush(hoveredRectColor_);
+
+        QRectF maxRect(width() - w, 0, w, h);
+        painter.drawRect(maxRect);
+        painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
+
+        QRectF minRect(width() - w, height() - h, w, h);
+        painter.drawRect(minRect);
+        painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
+
+        painter.restore();
+    }
 }
 
 /**
  * @brief Chart::paintSeries
  * @param painter
- * @param kind
+ * @param series
  */
-void Chart::paintSeries(QPainter &painter, const ChartDataKind kind)
+void Chart::paintSeries(QPainter& painter, const QPointer<const EventSeries>& series)
 {
-	if (!seriesKindVisible_.value(kind, false))
-		return;
-
-    switch (kind) {
+    if (series.isNull()) {
+        return;
+    }
+    const auto series_kind = series->getKind();
+    switch (series_kind) {
         case ChartDataKind::PORT_LIFECYCLE:
-            paintPortLifecycleEventSeries(painter);
-            break;
-        case ChartDataKind::WORKLOAD:
-            paintWorkloadEventSeries(painter);
-            break;
-        case ChartDataKind::CPU_UTILISATION:
-            paintCPUUtilisationEventSeries(painter);
-            break;
-        case ChartDataKind::MEMORY_UTILISATION:
-            paintMemoryUtilisationEventSeries(painter);
-            break;
-        case ChartDataKind::MARKER:
-            paintMarkerEventSeries(painter);
+            paintEventSeries<PortLifecycleEvent>(painter, series, port_lifecycle_paint_vals_);
             break;
         case ChartDataKind::PORT_EVENT:
-            paintPortEventSeries(painter);
+            paintEventSeries<PortEvent>(painter, series, port_event_paint_vals_);
+            break;
+        case ChartDataKind::WORKLOAD:
+            paintEventSeries<WorkloadEvent>(painter, series, workload_event_paint_vals_);
+            break;
+        case ChartDataKind::MARKER:
+            paintMarkerEventSeries(painter, (MarkerEventSeries*) series.data());
+            break;
+        case ChartDataKind::CPU_UTILISATION:
+            paintUtilisationSeries<CPUUtilisationEvent>(painter, series, cpu_util_paint_vals_);
+            break;
+        case ChartDataKind::MEMORY_UTILISATION:
+            paintUtilisationSeries<MemoryUtilisationEvent>(painter, series, memory_util_paint_vals_);
             break;
         case ChartDataKind::NETWORK_UTILISATION:
-            paintNetworkUtilisationEventSeries(painter);
+            paintNetworkUtilisationSeries(painter, (NetworkUtilisationEventSeries*) series.data());
             break;
         default:
             qWarning("Chart::paintSeries - Series kind not handled");
@@ -548,785 +567,502 @@ void Chart::paintSeries(QPainter &painter, const ChartDataKind kind)
     }
 }
 
-namespace AggServerResponse
-{
-	/**
-	 * @brief qHash
-	 * @param key
-	 * @param seed
-	 * @return
-	 */
-	inline uint qHash(const LifecycleType& key, uint seed)
-	{
-		return ::qHash(static_cast<uint>(key), seed);
-	}
-}
-
 /**
- * @brief Chart::paintPortLifecycleEventSeries
+ * @brief Chart::paintEventSeries
+ * @tparam EventEnumType
  * @param painter
+ * @param series
+ * @param paint_vals
  */
-void Chart::paintPortLifecycleEventSeries(QPainter &painter)
+template<class DerivedEvent, class EventEnumType,
+    std::enable_if_t<std::is_same<DerivedEvent, PortLifecycleEvent>::value ||
+                     std::is_same<DerivedEvent, PortEvent>::value ||
+                     std::is_same<DerivedEvent, WorkloadEvent>::value,
+        int>>
+void Chart::paintEventSeries(QPainter& painter,
+                             const QPointer<const EventSeries>& series,
+                             const EventSeriesPaintValues<EventEnumType>& paint_vals)
 {
-	auto start = QDateTime::currentMSecsSinceEpoch();
+    if (series.isNull()) {
+        return;
+    }
 
-	const auto eventSeries = seriesList_.value(ChartDataKind::PORT_LIFECYCLE, nullptr);
-	if (!eventSeries)
-		return;
+    double bin_width = getBinWidth(default_bin_width_);
+    int bin_count = getBinCount(default_bin_width_);
+    int y = rect().center().y() - bin_width / 2.0;
 
-	double barWidth = BIN_WIDTH;
-	double barCount = ceil((double)width() / barWidth);
+    const auto& events = series->getEvents();
+    const auto series_kind = series->getKind();
+    auto bins = binEvents(events,
+                          bin_count,
+                          series->getFirstAfterTime(getDisplayMin()),
+                          series->getFirstAfterTime(getDisplayMax()));
 
-	// because barCount needed to be rounded up, the barWidth also needs to be recalculated
-	barWidth = (double) width() / barCount;
+    painter.save();
+    painter.setOpacity(paint_vals.paint_val.opacity);
 
-	QVector< QList<Event*> > buckets(barCount);
-	QVector<double> bucket_endTimes;
-	bucket_endTimes.reserve(barCount);
-
-	double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-	double current_left = displayMin_;
-	for (int i = 0; i < barCount; i++) {
-		bucket_endTimes.append(current_left + barTimeWidth);
-		current_left = bucket_endTimes.last();
-	}
-
-	const auto& events = eventSeries->getEvents();
-	auto current = events.constBegin();
-	auto upper = events.constEnd();
-	for (; current != upper; current++) {
-		const auto& current_time = (*current)->getTimeMS();
-		if (current_time > displayMin_) {
-			break;
-		}
-	}
-
-	auto current_bucket = 0;
-	auto current_bucket_ittr = bucket_endTimes.constBegin();
-	auto end_bucket_ittr = bucket_endTimes.constEnd();
-
-	// put the data in the correct bucket
-	for (;current != upper; current++) {
-		const auto& current_time = (*current)->getTimeMS();
-		while (current_bucket_ittr != end_bucket_ittr) {
-			if (current_time > (*current_bucket_ittr)) {
-				current_bucket_ittr ++;
-				current_bucket ++;
-			} else {
-				break;
-			}
-		}
-		if (current_bucket < barCount) {
-			buckets[current_bucket].append(*current);
-		}
-	}
-
-    int y = rect().center().y() - barWidth / 2.0;
-    painter.setOpacity(portLifecycleSeriesOpacity_);
-
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i].count();
-        if (count == 0)
+    for (int i = 0; i < bins.size(); i++) {
+        int count = bins[i].count();
+        if (count == 0) {
             continue;
-        QRectF rect(i * barWidth, y, barWidth, barWidth);
+        }
+        auto e = bins[i];
+        QRectF rect(i * bin_width, y, bin_width, bin_width);
         if (count == 1) {
-            auto event = (PortLifecycleEvent*) buckets[i][0];
-            if (rectHovered(eventSeries->getKind(), rect)) {
+            if (rectHovered(series_kind, rect)) {
                 painter.fillRect(rect, highlightBrush_);
             }
+            const auto& converted_event = convertEvent<DerivedEvent>(bins[i][0]);
+            auto&& pixmap = paint_vals.pixmaps.value(converted_event->getType(), QPixmap());
             painter.setRenderHint(QPainter::Antialiasing, true);
-            painter.drawPixmap(rect.toRect(), lifeCycleTypePixmaps_.value(event->getType()));
+            painter.drawPixmap(rect.toRect(), pixmap);
             painter.setRenderHint(QPainter::Antialiasing, false);
         } else {
             QString countStr = count > 99 ? "𝑛" : QString::number(count);
-            drawTextRect(painter, rect, countStr, portLifecycleColor_.darker(100 + (50 * (count - 1))), ChartDataKind::PORT_LIFECYCLE);
+            drawTextRect(painter,
+                         rect,
+                         countStr,
+                         paint_vals.paint_val.series_color.darker(100 + (50 * (count - 1))),
+                         series_kind);
         }
     }
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "PORT LIFECYCLE Render Took: " << finish - start << "ms";
+    painter.restore();
 }
 
 /**
- * @brief Chart::paintWorkloadEventSeries
+ * @brief Chart::paintUtilisationSeries
  * @param painter
+ * @param series
+ * @param paint_vals
  */
-void Chart::paintWorkloadEventSeries(QPainter &painter)
+template<class DerivedEvent,
+    std::enable_if_t<std::is_same<DerivedEvent, CPUUtilisationEvent>::value ||
+                     std::is_same<DerivedEvent, MemoryUtilisationEvent>::value,
+        int>>
+void Chart::paintUtilisationSeries(QPainter& painter,
+                                   const QPointer<const EventSeries>& series,
+                                   const SeriesPaintValues& paint_vals)
 {
-	auto start = QDateTime::currentMSecsSinceEpoch();
+    if (series.isNull()) {
+        return;
+    }
 
-	const auto eventSeries = seriesList_.value(ChartDataKind::WORKLOAD, nullptr);
-	if (!eventSeries)
-		return;
+    const auto series_kind = series->getKind();
+    const auto& events = series->getEvents();
 
-	double barWidth = BIN_WIDTH;
-	double barCount = ceil((double)width() / barWidth);
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
 
-	// because barCount needed to be rounded up, the barWidth also needs to be recalculated
-	barWidth = (double) width() / barCount;
+    int bin_count = getBinCount(default_ellipse_width_);
+    auto bin_width = getBinWidth(default_ellipse_width_);
+    auto bin_time_width = (display_max - display_min) / bin_count;
 
-	QVector< QList<Event*> > buckets(barCount);
-	QVector<double> bucket_endTimes;
-	bucket_endTimes.reserve(barCount);
+    const auto& outer_bounds = getOuterDisplayIterators(events, default_ellipse_width_);
+    const auto& outer_bound_itrs = outer_bounds.second;
+    auto first_contributing_event = outer_bound_itrs.first;
+    auto last_contributing_event = outer_bound_itrs.second;
 
-	double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-	double current_left = displayMin_;
-	for (int i = 0; i < barCount; i++) {
-		bucket_endTimes.append(current_left + barTimeWidth);
-		current_left = bucket_endTimes.last();
-	}
+    // Exit early if there are no events within the display range
+    if (first_contributing_event == events.constEnd()) {
+        return;
+    }
 
-	const auto& events = eventSeries->getEvents();
-	auto current = events.constBegin();
-	auto upper = events.constEnd();
-	for (; current != upper; current++) {
-		const auto& current_time = (*current)->getTimeMS();
-		if (current_time > displayMin_) {
-			break;
-		}
-	}
+    const auto& outer_bin_counts = outer_bounds.first;
+    int pre_bin_count = outer_bin_counts.first;
+    int total_bin_count = pre_bin_count + bin_count + outer_bin_counts.second;;
 
-	auto current_bucket = 0;
-	auto current_bucket_ittr = bucket_endTimes.constBegin();
-	auto end_bucket_ittr = bucket_endTimes.constEnd();
+    auto first_end_time = display_min - pre_bin_count * bin_time_width;
+    auto current_bin_start_time = first_end_time;
 
-	// put the data in the correct bucket
-	for (;current != upper; current++) {
-		const auto& current_time = (*current)->getTimeMS();
-		while (current_bucket_ittr != end_bucket_ittr) {
-			if (current_time > (*current_bucket_ittr)) {
-				current_bucket_ittr ++;
-				current_bucket ++;
-			} else {
-				break;
-			}
-		}
-		if (current_bucket < barCount) {
-			buckets[current_bucket].append(*current);
-		}
-	}
+    QVector< QList<Event*> > bins(total_bin_count);
+    QVector<double> bin_end_times;
+    bin_end_times.reserve(total_bin_count);
 
-    int y = rect().center().y() - barWidth / 2.0;
-    painter.setOpacity(workloadSeriesOpacity_);
+    // Calculate the bin end times
+    for (int i = 0; i < total_bin_count; i++) {
+        bin_end_times.append(current_bin_start_time + bin_time_width);
+        current_bin_start_time = bin_end_times.last();
+    }
 
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i].count();
-        if (count == 0)
-            continue;
-        QRectF rect(i * barWidth, y, barWidth, barWidth);
-        if (count == 1) {
-            auto event = (WorkloadEvent*) buckets[i][0];
-            if (rectHovered(eventSeries->getKind(), rect)) {
-                painter.fillRect(rect, highlightBrush_);
+    int current_bin_index = 0;
+    auto current_bin_itr = bin_end_times.constBegin();
+    auto end_bin_itr = bin_end_times.constEnd();
+
+    // Put the event in the correct bin
+    while (first_contributing_event != events.constEnd()) {
+        const auto& event = (*first_contributing_event);
+        const auto& event_time = event->getTimeMS();
+        while (current_bin_itr != end_bin_itr) {
+            const auto& bin_end_time = *current_bin_itr;
+            if (event_time >= bin_end_time) {
+                current_bin_itr++;
+                current_bin_index++;
+            } else {
+                break;
             }
-            painter.setRenderHint(QPainter::Antialiasing, true);
-            painter.drawPixmap(rect.toRect(), workloadEventTypePixmaps_.value(event->getType()));
-            painter.setRenderHint(QPainter::Antialiasing, false);
-        } else {
-            QString countStr = count > 99 ? "𝑛" : QString::number(count);
-            drawTextRect(painter, rect, countStr, workloadColor_.darker(100 + (50 * (count - 1))), ChartDataKind::WORKLOAD);
         }
+        if (current_bin_index < total_bin_count) {
+            bins[current_bin_index].append(event);
+        }
+        if (first_contributing_event == last_contributing_event) {
+            break;
+        }
+        first_contributing_event++;
     }
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "WORKLOAD Render Took: " << finish - start << "ms";
-}
+    // TODO: If we don't care about seeing the full ellipse, remove (- bin_width) from available_height
+    //  This will paint 0% utilisation along the border instead of half the ellipse size up
+    auto available_height = height() - border_width_ * 2 - bin_width;
+    auto y_offset = border_width_;
 
-/**
- * @brief Chart::paintCPUUtilisationEventSeries
- * @param painter
- */
-void Chart::paintCPUUtilisationEventSeries(QPainter &painter)
-{
-	auto start = QDateTime::currentMSecsSinceEpoch();
-
-	const auto eventSeries = seriesList_.value(ChartDataKind::CPU_UTILISATION, nullptr);
-	if (!eventSeries)
-		return;
-
-	const auto& events = eventSeries->getEvents();
-	if  (events.isEmpty())
-		return;
-
-	double barWidth = POINT_WIDTH;
-	double barCount = ceil((double)width() / barWidth);
-	double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-
-	// because barCount needed to be rounded up, the barWidth also needs to be recalculated
-	barWidth = (double) width() / barCount;
-
-	// get the iterators to the left and right of the display range
-	auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const Event* e, const qint64 &time) {
-		return e->getTimeMS() < time;
-	});
-	auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const Event* e) {
-		return time < e->getTimeMS();
-	});
-
-	// if the first iterator is the same as the last iterator, it means that all the events are out of range; return
-	if (firstEventItr == lastEventItr) {
-		return;
-	}
-
-	if (firstEventItr != events.constBegin()) {
-		firstEventItr -= 1;
-	}
-
-	auto prevBarCount = 0.0;
-	auto firstEventTime = (*firstEventItr)->getTimeMS();
-	bool firstItrIsToTheLeftOfDisplay = (firstEventTime < displayMin_);
-	if (firstItrIsToTheLeftOfDisplay) {
-		prevBarCount = ceil((displayMin_ - firstEventTime) / barTimeWidth);
-	}
-
-	// get the iterator of the leftmost event up to the first bin that contributes to drawing
-	auto first_contributing_event = firstEventItr;
-	auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
-	if (firstItrIsToTheLeftOfDisplay) {
-		for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
-			const auto& current_time = (*first_contributing_event)->getTimeMS();
-			// keep going until we overshoot, then move back if we can
-			if (current_time < firstEndTime) {
-				first_contributing_event++;
-				break;
-			}
-		}
-	}
-
-	auto postBarCount = 0.0;
-	bool lastItrIsToTheRightOfDisplay = false;
-	if (lastEventItr != events.constEnd()) {
-		auto lastEventTime = (*lastEventItr)->getTimeMS();
-		lastItrIsToTheRightOfDisplay = (lastEventTime >= displayMax_);
-		if (lastItrIsToTheRightOfDisplay) {
-			postBarCount = ceil((lastEventTime - displayMax_) / barTimeWidth);
-		}
-	}
-
-	// get the iterator of the rightmost event up to the last bin that contributes to drawing
-	auto last_contributing_event = lastEventItr;
-	if (lastItrIsToTheRightOfDisplay) {
-		auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
-		for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
-			const auto& current_time = (*last_contributing_event)->getTimeMS();
-			// keep going until we overshoot, then move back if we can
-			if (current_time >= lastEndTime) {
-				if (last_contributing_event != events.constBegin()) {
-					last_contributing_event--;
-					break;
-				}
-			}
-		}
-	}
-
-	auto totalBarCount = prevBarCount + barCount + postBarCount;
-	auto currentLeft = firstEndTime;
-
-	QVector< QList<CPUUtilisationEvent*> > buckets(totalBarCount);
-	QVector<double> bucketEndTimes;
-	bucketEndTimes.reserve(totalBarCount);
-
-	// calculate the bucket end times
-	for (int i = 0; i < totalBarCount; i++) {
-		bucketEndTimes.append(currentLeft + barTimeWidth);
-		currentLeft = bucketEndTimes.last();
-	}
-
-	auto currentBucketIndex = 0;
-	auto currentBucketItr = bucketEndTimes.constBegin();
-	auto endBucketItr = bucketEndTimes.constEnd();
-
-	// put the data in the correct bucket
-	while (first_contributing_event != events.constEnd()) {
-		auto event = (CPUUtilisationEvent*)(*first_contributing_event);
-		const auto& currentTime = event->getTimeMS();
-		while (currentBucketItr != endBucketItr) {
-			if (currentTime >= (*currentBucketItr)) {
-				currentBucketItr++;
-				currentBucketIndex++;
-			} else {
-				break;
-			}
-		}
-		if (currentBucketIndex < totalBarCount) {
-			buckets[currentBucketIndex].append(event);
-		}
-		if (first_contributing_event == last_contributing_event) {
-			break;
-		}
-		first_contributing_event++;
-	}
-
-    auto availableHeight = height() - barWidth - BORDER_WIDTH / 2.0;
     QList<QRectF> rects;
 
-	for (int i = 0; i < totalBarCount; i++) {
-		int count = buckets[i].count();
-		if (count == 0)
-			continue;
+    for (int i = 0; i < bins.size(); i++) {
+        int count = bins[i].count();
+        if (count == 0) {
+            continue;
+        }
 
-		// calculate the bucket's average utilisation
-		auto utilisation = 0.0;
-		for (auto e : buckets[i]) {
-			utilisation += e->getUtilisation();
-		}
-		utilisation /= count;
+        // Calculate the bins's average utilisation
+        auto utilisation = 0.0;
+        for (const auto& event : bins[i]) {
+            const auto& converted_event = convertEvent<DerivedEvent>(event);
+            utilisation += converted_event->getUtilisation();
+        }
+        utilisation /= count;
 
-		double y = (1 - utilisation) * availableHeight;
-		double x = (i - prevBarCount) * barWidth;
-		QRectF rect(x, y, barWidth, barWidth);
-		rects.append(rect);
-	}
+        auto&& y = y_offset + (1 - utilisation) * available_height;
+        auto&& x = (i - pre_bin_count) * bin_width;
+        rects.append(QRectF(x, y, bin_width, bin_width));
+    }
 
-    drawLineFromRects(painter, rects, utilisationColor_, cpuSeriesOpacity_, ChartDataKind::CPU_UTILISATION);
-
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "CPU Render Took: " << finish - start << "ms";
-}
-
-/**
- * @brief Chart::paintMemoryUtilisationEventSeries
- * @param painter
- */
-void Chart::paintMemoryUtilisationEventSeries(QPainter &painter)
-{
-	auto start = QDateTime::currentMSecsSinceEpoch();
-
-	const auto eventSeries = seriesList_.value(ChartDataKind::MEMORY_UTILISATION, nullptr);
-	if (!eventSeries)
-		return;
-
-	const auto& events = eventSeries->getEvents();
-	if  (events.isEmpty())
-		return;
-
-	double barWidth = POINT_WIDTH;
-	double barCount = ceil((double)width() / barWidth);
-	double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-
-	// because barCount needed to be rounded up, the barWidth also needs to be recalculated
-	barWidth = (double) width() / barCount;
-
-	// get the iterators to the left and right of the display range
-	auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const Event* e, const qint64 &time) {
-		return e->getTimeMS() < time;
-	});
-	auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const Event* e) {
-		return time < e->getTimeMS();
-	});
-
-	// if the first iterator is the same as the last iterator, it means that all the events are out of range; return
-	if (firstEventItr == lastEventItr) {
-		return;
-	}
-
-	if (firstEventItr != events.constBegin()) {
-		firstEventItr -= 1;
-	}
-
-	auto prevBarCount = 0.0;
-	auto firstEventTime = (*firstEventItr)->getTimeMS();
-	bool firstItrIsOutOfRange = (firstEventTime < displayMin_);
-	if (firstItrIsOutOfRange) {
-		prevBarCount = ceil((displayMin_ - firstEventTime) / barTimeWidth);
-	}
-
-	// get the iterator of the leftmost event up to the first bin that contributes to drawing
-	auto first_contributing_event = firstEventItr;
-	auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
-	if (firstItrIsOutOfRange) {
-		for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
-			const auto& current_time = (*first_contributing_event)->getTimeMS();
-			// keep going until we overshoot, then move back if we can
-			if (current_time < firstEndTime) {
-				first_contributing_event++;
-				break;
-			}
-		}
-	}
-
-	auto postBarCount = 0.0;
-	bool lastItrIsOutOfRange = false;
-	if (lastEventItr != events.constEnd()) {
-		auto lastEventTime = (*lastEventItr)->getTimeMS();
-		lastItrIsOutOfRange = (lastEventTime >= displayMax_);
-		if (lastItrIsOutOfRange) {
-			postBarCount = ceil((lastEventTime - displayMax_) / barTimeWidth);
-		}
-	}
-
-	// get the iterator of the rightmost event up to the last bin that contributes to drawing
-	auto last_contributing_event = lastEventItr;
-	if (lastItrIsOutOfRange) {
-		auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
-		for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
-			const auto& current_time = (*last_contributing_event)->getTimeMS();
-			// keep going until we overshoot, then move back if we can
-			if (current_time >= lastEndTime) {
-				if (last_contributing_event != events.constBegin()) {
-					last_contributing_event--;
-					break;
-				}
-			}
-		}
-	}
-
-	auto totalBarCount = prevBarCount + barCount + postBarCount;
-	auto currentLeft = firstEndTime;
-
-	QVector< QList<MemoryUtilisationEvent*> > buckets(totalBarCount);
-	QVector<double> bucketEndTimes;
-	bucketEndTimes.reserve(totalBarCount);
-
-	// calculate the bucket end times
-	for (int i = 0; i < totalBarCount; i++) {
-		bucketEndTimes.append(currentLeft + barTimeWidth);
-		currentLeft = bucketEndTimes.last();
-	}
-
-	auto currentBucketIndex = 0;
-	auto currentBucketItr = bucketEndTimes.constBegin();
-	auto endBucketItr = bucketEndTimes.constEnd();
-
-	// put the data in the correct bucket
-	while (first_contributing_event != events.constEnd()) {
-		auto event = (MemoryUtilisationEvent*)(*first_contributing_event);
-		const auto& currentTime = event->getTimeMS();
-		while (currentBucketItr != endBucketItr) {
-			if (currentTime >= (*currentBucketItr)) {
-				currentBucketItr++;
-				currentBucketIndex++;
-			} else {
-				break;
-			}
-		}
-		if (currentBucketIndex < totalBarCount) {
-			buckets[currentBucketIndex].append(event);
-		}
-		if (first_contributing_event == last_contributing_event) {
-			break;
-		}
-		first_contributing_event++;
-	}
-
-    auto availableHeight = height() - barWidth;
-    QList<QRectF> rects;
-
-	for (int i = 0; i < totalBarCount; i++) {
-		int count = buckets[i].count();
-		if (count == 0)
-			continue;
-
-		// calculate the bucket's average utilisation
-		auto utilisation = 0.0;
-		for (auto e : buckets[i]) {
-			utilisation += e->getUtilisation();
-		}
-		utilisation /= count;
-
-		double y = (1 - utilisation) * availableHeight;
-		double x = (i - prevBarCount) * barWidth;
-		QRectF rect(x, y, barWidth, barWidth);
-		rects.append(rect);
-	}
-
-    drawLineFromRects(painter, rects, memoryColor_, memorySeriesOpacity_, ChartDataKind::MEMORY_UTILISATION);
-
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "MEMORY Render Took: " << finish - start << "ms";
+    drawLineFromRects(painter,
+                      rects,
+                      paint_vals.series_color,
+                      paint_vals.opacity,
+                      series_kind);
 }
 
 /**
  * @brief Chart::paintMarkerEventSeries
  * @param painter
+ * @param series
  */
-void Chart::paintMarkerEventSeries(QPainter &painter)
+void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const MarkerEventSeries>& series)
 {
-	auto start = QDateTime::currentMSecsSinceEpoch();
+    if (series.isNull()) {
+        return;
+    }
 
-	const auto eventSeries = seriesList_.value(ChartDataKind::MARKER, nullptr);
-	if (!eventSeries)
-		return;
+    int bin_count = getBinCount(default_bin_width_);
+    QVector<double> bins(bin_count);
+    QVector<double> bin_end_times;
+    bin_end_times.reserve(bin_count);
 
-	double binWidth = BIN_WIDTH;
-	double binCount = ceil((double)width() / binWidth);
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
 
-	// because barCount needed to be rounded up, the barWidth also needs to be recalculated
-	binWidth = (double) width() / binCount;
+    double bin_time_width = (display_max - display_min) / bin_count;
+    double current_bin_start_time = display_min;
+    for (int i = 0; i < bin_count; i++) {
+        bin_end_times.append(current_bin_start_time + bin_time_width);
+        current_bin_start_time = bin_end_times.last();
+    }
 
-	QVector<double> bins(binCount);
-	QVector<double> binEndTimes;
-	binEndTimes.reserve(binCount);
+    const auto& start_times_map = series->getMarkerIDsMappedByStartTimes();
+    const auto& id_set_duration = series->getMarkerIDSetDurations();
+    const auto& start_times = start_times_map.keys();
 
-	double binTimeWidth = (displayMax_ - displayMin_) / binCount;
-	double currentLeft = displayMin_;
-	for (int i = 0; i < binCount; i++) {
-		binEndTimes.append(currentLeft + binTimeWidth);
-		currentLeft = binEndTimes.last();
-	}
+    auto current_bin_index = 0;
+    auto current_bin_itr = bin_end_times.constBegin();
 
-	auto markerEventSeries = (MarkerEventSeries*) eventSeries;
-	const auto& startTimesMap = markerEventSeries->getMarkerIDsMappedByStartTimes();
-	const auto& idSetDuration = markerEventSeries->getMarkerIDSetDurations();
+    while (current_bin_itr != bin_end_times.constEnd()) {
 
-	auto currentBinIndex = 0;
-	auto currentBinItr = binEndTimes.constBegin();
-	const auto endBinItr = binEndTimes.constEnd();
-	const auto& startTimes = startTimesMap.keys();
-	auto startTimeItr = startTimes.constBegin();
-	const auto endStartTimeItr = startTimes.constEnd();
+        auto current_bin_end_time = *current_bin_itr;
+        auto total_duration = 0.0;
+        auto number_of_id_sets = 0;
 
-	while (currentBinItr != endBinItr) {
-		auto currentBinEndTime = *currentBinItr;
-		auto totalDuration = 0.0;
-		auto numberOfIDSets = 0;
-		for (; startTimeItr != endStartTimeItr; startTimeItr++) {
-			const auto& startTime = *startTimeItr;
-			// skip start times that are out of the display range
-			if (startTime < displayMin_) {
-				continue;
-			}
-			if (startTime >= displayMax_) {
-				break;
-			}
-			if (startTime > currentBinEndTime) {
-				break;
-			}
-			// calculate average duration
-			const auto& IDSetsAtStartTime = startTimesMap.value(startTime);
-			for (auto ID : IDSetsAtStartTime) {
-				totalDuration += idSetDuration.value(ID);
-				numberOfIDSets++;
-			}
-		}
-
-		// store the average duration at the current bin
-		auto avgDuration = 0.0;
-		if (numberOfIDSets > 0) {
-			avgDuration = (totalDuration == 0) ? -1 : totalDuration / numberOfIDSets;
-		}
-		bins[currentBinIndex] = avgDuration;
-
-		//bins[currentBinIndex] = (numberOfIDSets == 0) ? 0 : totalDuration / numberOfIDSets;
-		currentBinItr++;
-		currentBinIndex++;
-
-		if (currentBinIndex >= binCount)
-			break;
-	}
-
-	// get the maximum duration
-	auto maxDuration = 0.0;
-	for (int i = 0; i < bins.count(); i++) {
-		maxDuration = qMax(bins[i], maxDuration);
-	}
-
-	QColor seriesColor = markerColor_;
-	QColor brushColor = seriesColor;
-	QPen textPen(textColor_, 2.0);
-
-	auto availableHeight = height() - BORDER_WIDTH;
-	painter.setOpacity(markerSeriesOpacity_);
-
-	for (int i = 0; i < binCount; i++) {
-		auto durationMS = bins[i];
-		if (durationMS == 0) {
-			continue;
-		}
-		auto rectHeight = (maxDuration <= 0) ? availableHeight : durationMS / maxDuration * availableHeight;
-		if (durationMS == -1) {
-			rectHeight = 2.0;
-		}
-		auto y = availableHeight - rectHeight + BORDER_WIDTH / 2.0;
-		QRectF rect(i * binWidth, y, binWidth, rectHeight);
-		if (rectHovered(eventSeries->getKind(), rect)) {
-			textPen.setColor(textColor_);
-			painter.fillRect(rect, highlightBrush_);
-		} else {
-			brushColor = (maxDuration <= 0) ? seriesColor.darker(150) : seriesColor.darker(100 + (50 * durationMS / maxDuration));
-			textPen.setColor(getContrastingColor(brushColor));
-			painter.setPen(defaultRectPen_);
-			painter.setBrush(brushColor);
-			painter.drawRect(rect);
-		}
-	}
-
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "MARKER Render Took: " << finish - start << "ms";
-}
-
-/**
- * @brief Chart::paintPortEventSeries
- * @param painter
- */
-void Chart::paintPortEventSeries(QPainter& painter)
-{
-	auto start = QDateTime::currentMSecsSinceEpoch();
-
-	const auto eventSeries = seriesList_.value(ChartDataKind::PORT_EVENT, nullptr);
-	if (!eventSeries)
-		return;
-
-
-	double barWidth = BIN_WIDTH;
-	double barCount = ceil((double)width() / barWidth);
-
-	// because barCount needed to be rounded up, the barWidth also needs to be recalculated
-	barWidth = (double) width() / barCount;
-
-	QVector< QList<Event*> > buckets(barCount);
-	QVector<double> bucket_endTimes;
-	bucket_endTimes.reserve(barCount);
-
-	double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-	double current_left = displayMin_;
-	for (int i = 0; i < barCount; i++) {
-		bucket_endTimes.append(current_left + barTimeWidth);
-		current_left = bucket_endTimes.last();
-	}
-
-	const auto& events = eventSeries->getEvents();
-	auto current = events.constBegin();
-	auto upper = events.constEnd();
-	for (; current != upper; current++) {
-		const auto& current_time = (*current)->getTimeMS();
-		if (current_time > displayMin_) {
-			break;
-		}
-	}
-
-	auto current_bucket = 0;
-	auto current_bucket_ittr = bucket_endTimes.constBegin();
-	auto end_bucket_ittr = bucket_endTimes.constEnd();
-
-	// put the data in the correct bucket
-	for (;current != upper; current++) {
-		const auto& current_time = (*current)->getTimeMS();
-		while (current_bucket_ittr != end_bucket_ittr) {
-			if (current_time > (*current_bucket_ittr)) {
-				current_bucket_ittr ++;
-				current_bucket ++;
-			} else {
-				break;
-			}
-		}
-		if (current_bucket < barCount) {
-			buckets[current_bucket].append(*current);
-		}
-	}
-
-    int y = rect().center().y() - barWidth / 2.0;
-    painter.setOpacity(portEventSeriesOpacity_);
-
-    for (int i = 0; i < barCount; i++) {
-        int count = buckets[i].count();
-        if (count == 0)
-            continue;
-        QRectF rect(i * barWidth, y, barWidth, barWidth);
-        if (count == 1) {
-            auto event = (PortEvent*) buckets[i][0];
-            if (rectHovered(eventSeries->getKind(), rect)) {
-                painter.fillRect(rect, highlightBrush_);
+        for (auto start_time_itr = start_times.constBegin(); start_time_itr != start_times.constEnd(); start_time_itr++) {
+            const auto& start_time = *start_time_itr;
+            // Skip start times that are out of the display range
+            if (start_time < display_min) {
+                continue;
             }
-            painter.setRenderHint(QPainter::Antialiasing, true);
-            painter.drawPixmap(rect.toRect(), portEventTypePixmaps_.value(event->getType()));
-            painter.setRenderHint(QPainter::Antialiasing, false);
+            if (start_time >= display_max) {
+                break;
+            }
+            if (start_time > current_bin_end_time) {
+                break;
+            }
+            // Calculate average duration
+            const auto& id_sets_at_start_time = start_times_map.value(start_time);
+            for (auto ID : id_sets_at_start_time) {
+                total_duration += id_set_duration.value(ID);
+                number_of_id_sets++;
+            }
+        }
+
+        // Store the average duration at the current bin
+        if (number_of_id_sets > 0) {
+            bins[current_bin_index] = total_duration / number_of_id_sets;
         } else {
-            QString countStr = count > 99 ? "𝑛" : QString::number(count);
-            drawTextRect(painter, rect, countStr, portEventColor_.darker(100 + (50 * (count - 1))), ChartDataKind::PORT_EVENT);
+            bins[current_bin_index] = 0;
+        }
+
+        current_bin_itr++;
+        current_bin_index++;
+
+        if (current_bin_index >= bin_count) {
+            break;
         }
     }
 
-	auto finish = QDateTime::currentMSecsSinceEpoch();
-	if (PRINT_RENDER_TIMES)
-		qDebug() << "PORT EVENT Render Took: " << finish - start << "ms";
+    // Get the maximum duration
+    auto maxDuration = 0.0;
+    for (int i = 0; i < bins.count(); i++) {
+        maxDuration = qMax(bins[i], maxDuration);
+    }
+
+    painter.save();
+    painter.setOpacity(marker_event_paint_vals_.opacity);
+
+    const auto& marker_color = marker_event_paint_vals_.series_color;
+    QColor brushColor = marker_color;
+
+    auto bin_width = getBinWidth(default_bin_width_);
+    auto available_height = height() - border_width_ * 2;
+    auto y_offset = border_width_;
+
+    for (int i = 0; i < bins.size(); i++) {
+        auto durationMS = bins[i];
+        if (durationMS == 0) {
+            continue;
+        }
+        auto rectHeight = (maxDuration <= 0) ? available_height : durationMS / maxDuration * available_height;
+        if (durationMS == -1) {
+            rectHeight = 2.0;
+        }
+        auto y = y_offset + available_height - rectHeight;
+        QRectF rect(i * bin_width, y, bin_width, rectHeight);
+        if (rectHovered(ChartDataKind::MARKER, rect)) {
+            painter.fillRect(rect, highlightBrush_);
+        } else {
+            brushColor = (maxDuration <= 0) ? marker_color.darker(150) : marker_color.darker(100 + (50 * durationMS / maxDuration));
+            painter.setPen(defaultRectPen_);
+            painter.setBrush(brushColor);
+            painter.drawRect(rect);
+        }
+    }
+
+    painter.restore();
 }
 
+/**
+ * @brief Chart::paintNetworkUtilisationSeries
+ * @param painter
+ * @param series
+ */
+void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<const NetworkUtilisationEventSeries> &series)
+{
+    if (series.isNull()) {
+        return;
+    }
+
+    const auto& events = series->getEvents();
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
+
+    int bin_count = getBinCount(default_ellipse_width_);
+    auto bin_width = getBinWidth(default_ellipse_width_);
+    auto bin_time_width = (display_max - display_min) / bin_count;
+
+    const auto& outer_bounds = getOuterDisplayIterators(events, default_ellipse_width_);
+    const auto& outer_bound_itrs = outer_bounds.second;
+    auto first_contributing_event = outer_bound_itrs.first;
+    auto last_contributing_event = outer_bound_itrs.second;
+
+    // Exit early if there are no events within the display range
+    if (first_contributing_event == events.constEnd()) {
+        return;
+    }
+
+    const auto& outer_bin_counts = outer_bounds.first;
+    int pre_bin_count = outer_bin_counts.first;
+    int total_bin_count = pre_bin_count + bin_count + outer_bin_counts.second;;
+
+    auto first_end_time = display_min - pre_bin_count * bin_time_width;
+    auto current_bin_start_time = first_end_time;
+
+    QVector< QList<NetworkUtilisationEvent*> > bins(total_bin_count);
+    QVector<double> bin_end_times;
+    bin_end_times.reserve(total_bin_count);
+
+    // Calculate the bin end times
+    for (int i = 0; i < total_bin_count; i++) {
+        bin_end_times.append(current_bin_start_time + bin_time_width);
+        current_bin_start_time = bin_end_times.last();
+    }
+
+    int current_bin_index = 0;
+    auto current_bin_itr = bin_end_times.constBegin();
+    auto end_bin_itr = bin_end_times.constEnd();
+
+    // Put the event in the correct bin
+    while (first_contributing_event != events.constEnd()) {
+        auto event = (NetworkUtilisationEvent*)(*first_contributing_event);
+        const auto& currentTime = event->getTimeMS();
+        while (current_bin_itr != end_bin_itr) {
+            if (currentTime >= (*current_bin_itr)) {
+                current_bin_itr++;
+                current_bin_index++;
+            } else {
+                break;
+            }
+        }
+        if (current_bin_index < total_bin_count) {
+            bins[current_bin_index].append(event);
+        }
+        if (first_contributing_event == last_contributing_event) {
+            break;
+        }
+        first_contributing_event++;
+    }
+
+    auto available_height = height() - border_width_ * 2 - bin_width;
+    auto y_offset = border_width_;
+    auto y_range = dataMaxY_ - dataMinY_;
+
+    QList<QRectF> rects_sent, rects_received;
+
+    for (int i = 0; i < total_bin_count; i++) {
+        int count = bins[i].count();
+        if (count == 0) {
+            continue;
+        }
+
+        // Calculate the bin's average bytes sent/received
+        auto bytes_sent = 0.0;
+        auto bytes_received = 0.0;
+        for (auto e : bins[i]) {
+            bytes_sent += e->getBytesSent();
+            bytes_received += e->getBytesReceived();
+        }
+        bytes_sent /= count;
+        bytes_received /= count;
+
+        double x = (i - pre_bin_count) * bin_width;
+        double y_sent = y_offset + available_height - (bytes_sent - dataMinY_) / y_range * available_height;
+        double y_received = y_offset + available_height - (bytes_received - dataMinY_) / y_range * available_height;
+        rects_sent.append(QRectF(x, y_sent, bin_width, bin_width));
+        rects_received.append(QRectF(x, y_received, bin_width, bin_width));
+    }
+
+    if (rects_sent == rects_received) {
+        drawLineFromRects(painter,
+                          rects_sent,
+                          network_util_paint_vals_.combined_color,
+                          network_util_paint_vals_.opacity,
+                          ChartDataKind::NETWORK_UTILISATION);
+    } else {
+        drawLineFromRects(painter,
+                          rects_sent,
+                          network_util_paint_vals_.sent_color,
+                          network_util_paint_vals_.opacity,
+                          ChartDataKind::NETWORK_UTILISATION);
+        drawLineFromRects(painter,
+                          rects_received,
+                          network_util_paint_vals_.received_color,
+                          network_util_paint_vals_.opacity,
+                          ChartDataKind::NETWORK_UTILISATION);
+    }
+}
 
 /**
- * @brief Chart::paintNetworkUtilisationEventSeries
- * @param painter
+ * Chart::getOuterDisplayIterators
+ * This gets the iterators of the first and last paint contributing event just outside of the display range
+ * It also returns the number of bins to those events either side of the display
+ * @param events
+ * @param target_bin_width
+ * @return a pair of pairs
+ *         pair.first = bin counts left/right of the display upto the first/last event that can contribute to paint
+ *         pair.second = iterators to the first/last event that can contribute to paint on either side of the display
  */
-void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
+QPair<QPair<int, int>, QPair<QList<Event*>::const_iterator, QList<Event*>::const_iterator>>
+Chart::getOuterDisplayIterators(const QList<Event*>& events, double target_bin_width) const
 {
-    auto start = QDateTime::currentMSecsSinceEpoch();
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
 
-    const auto eventSeries = seriesList_.value(ChartDataKind::NETWORK_UTILISATION, nullptr);
-    if (!eventSeries)
-        return;
-
-    const auto& events = eventSeries->getEvents();
-    if  (events.isEmpty())
-        return;
-
-    double barWidth = POINT_WIDTH;
-    double barCount = ceil((double)width() / barWidth);
-    double barTimeWidth = (displayMax_ - displayMin_) / barCount;
-
-    // because barCount needed to be rounded up, the barWidth also needs to be recalculated
-    barWidth = (double) width() / barCount;
-
-    // get the iterators to the left and right of the display range
-    auto firstEventItr = std::lower_bound(events.constBegin(), events.constEnd(), displayMin_, [](const Event* e, const qint64 &time) {
+    // Get the iterators to the left and right of the display range
+    // lower_bound returns itr to first element >= value
+    // upper_bound returns itr to first element > value
+    auto first_itr = std::lower_bound(events.constBegin(), events.constEnd(), display_min, [](const Event* e, const qint64 &time) {
         return e->getTimeMS() < time;
     });
-    auto lastEventItr = std::upper_bound(events.constBegin(), events.constEnd(), displayMax_, [](const qint64 &time, const Event* e) {
+    auto last_itr = std::upper_bound(events.constBegin(), events.constEnd(), display_max, [](const qint64 &time, const Event* e) {
         return time < e->getTimeMS();
     });
 
-    // if the first iterator is the same as the last iterator, it means that all the events are out of range; return
-    if (firstEventItr == lastEventItr) {
-        return;
+    // Since lower_bound returns >= value, try to move back one if we can
+    if (first_itr != events.constBegin()) {
+        first_itr -= 1;
     }
 
-    if (firstEventItr != events.constBegin()) {
-        firstEventItr -= 1;
+    // Return if there are no events within the display
+    if (first_itr == events.constEnd()) {
+        return {{0,0}, {events.constEnd(), events.constEnd()}};
+    }
+    if ((*first_itr)->getTimeMS() >= display_max) {
+        return {{0,0}, {events.constEnd(), events.constEnd()}};
     }
 
-    auto prevBarCount = 0.0;
-    auto firstEventTime = (*firstEventItr)->getTimeMS();
-    bool firstItrIsOutOfRange = (firstEventTime < displayMin_);
-    if (firstItrIsOutOfRange) {
-        prevBarCount = ceil((displayMin_ - firstEventTime) / barTimeWidth);
+    int bin_count = getBinCount(target_bin_width);
+    double bin_time_width = (display_max - display_min) / bin_count;
+
+    int pre_bin_count = 0;
+    auto first_event_time = (*first_itr)->getTimeMS();
+    bool first_itr_is_to_the_left_of_display = (first_event_time < display_min);
+    if (first_itr_is_to_the_left_of_display) {
+        pre_bin_count = ceil((display_min - first_event_time) / bin_time_width);
     }
 
-    // get the iterator of the leftmost event up to the first bin that contributes to drawing
-    auto first_contributing_event = firstEventItr;
-    auto firstEndTime = displayMin_ - prevBarCount * barTimeWidth;
-    if (firstItrIsOutOfRange) {
+    // Get the iterator of the leftmost event within the first bin that contributes to drawing
+    auto first_contributing_event = first_itr;
+    auto first_end_time = display_min - pre_bin_count * bin_time_width;
+    if (first_itr_is_to_the_left_of_display) {
         for (; first_contributing_event != events.constBegin(); --first_contributing_event) {
             const auto& current_time = (*first_contributing_event)->getTimeMS();
-            // keep going until we overshoot, then move back if we can
-            if (current_time < firstEndTime) {
+            // Keep going until we overshoot, then move back if we can
+            if (current_time < first_end_time) {
                 first_contributing_event++;
                 break;
             }
         }
     }
 
-    auto postBarCount = 0.0;
-    bool lastItrIsOutOfRange = false;
-    if (lastEventItr != events.constEnd()) {
-        auto lastEventTime = (*lastEventItr)->getTimeMS();
-        lastItrIsOutOfRange = (lastEventTime >= displayMax_);
-        if (lastItrIsOutOfRange) {
-            postBarCount = ceil((lastEventTime - displayMax_) / barTimeWidth);
+    if (last_itr == events.constEnd()) {
+        return {{pre_bin_count, 0}, {first_contributing_event, last_itr}};
+    }
+
+    int post_bin_count = 0;
+    bool last_itr_is_to_the_right_of_display = false;
+    if (last_itr != events.constEnd()) {
+        auto last_event_time = (*last_itr)->getTimeMS();
+        last_itr_is_to_the_right_of_display = (last_event_time >= display_max);
+        if (last_itr_is_to_the_right_of_display) {
+            post_bin_count = ceil((last_event_time - display_max) / bin_time_width);
         }
     }
 
-    // get the iterator of the rightmost event up to the last bin that contributes to drawing
-    auto last_contributing_event = lastEventItr;
-    if (lastItrIsOutOfRange) {
-        auto lastEndTime = displayMax_ + postBarCount * barTimeWidth;
+    // Get the iterator of the rightmost event within the last bin that contributes to drawing
+    auto last_contributing_event = last_itr;
+    if (last_itr_is_to_the_right_of_display) {
+        auto last_end_time = display_max + post_bin_count * bin_time_width;
         for (; last_contributing_event != events.constEnd(); ++last_contributing_event) {
             const auto& current_time = (*last_contributing_event)->getTimeMS();
-            // keep going until we overshoot, then move back if we can
-            if (current_time >= lastEndTime) {
+            // Keep going until we overshoot, then move back if we can
+            if (current_time >= last_end_time) {
                 if (last_contributing_event != events.constBegin()) {
                     last_contributing_event--;
                     break;
@@ -1335,89 +1071,79 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
         }
     }
 
-    auto totalBarCount = prevBarCount + barCount + postBarCount;
-    auto currentLeft = firstEndTime;
+    return {{pre_bin_count, post_bin_count}, {first_contributing_event, last_contributing_event}};
+}
 
-    QVector< QList<NetworkUtilisationEvent*> > buckets(totalBarCount);
-    QVector<double> bucketEndTimes;
-    bucketEndTimes.reserve(totalBarCount);
-
-    // calculate the bucket end times
-    for (int i = 0; i < totalBarCount; i++) {
-        bucketEndTimes.append(currentLeft + barTimeWidth);
-        currentLeft = bucketEndTimes.last();
+/**
+ * @brief Chart::binEvents
+ * This puts the events from the first to last iterator into the number of bins provided within the display range
+ * @param events
+ * @param bin_count
+ * @param first
+ * @param last
+ * @return
+ */
+QVector<QList<Event*>> Chart::binEvents(const QList<Event*>& events,
+                                        int bin_count,
+                                        QList<Event*>::const_iterator first,
+                                        QList<Event*>::const_iterator last) const
+{
+    if (first == events.constEnd()) {
+        return {};
     }
 
-    auto currentBucketIndex = 0;
-    auto currentBucketItr = bucketEndTimes.constBegin();
-    auto endBucketItr = bucketEndTimes.constEnd();
+    QVector<QList<Event*>> bins(bin_count);
+    QVector<double> bin_end_times;
+    bin_end_times.reserve(bin_count);
 
-    // put the data in the correct bucket
-    while (first_contributing_event != events.constEnd()) {
-        auto event = (NetworkUtilisationEvent*)(*first_contributing_event);
-        const auto& currentTime = event->getTimeMS();
-        while (currentBucketItr != endBucketItr) {
-            if (currentTime >= (*currentBucketItr)) {
-                currentBucketItr++;
-                currentBucketIndex++;
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
+
+    // Calculate the bin end times
+    double bin_time_width = (display_max - display_min) / bin_count;
+    double current_bin_start_time = display_min;
+    for (int i = 0; i < bin_count; i++) {
+        bin_end_times.append(current_bin_start_time + bin_time_width);
+        current_bin_start_time = bin_end_times.last();
+    }
+
+    // Put the event in the correct bin
+    int current_bin_index = 0;
+    auto current_bin_itr = bin_end_times.constBegin();
+    auto end_bin_itr = bin_end_times.constEnd();
+    for (auto current = first; current != events.constEnd(); current++) {
+        const auto& event = (*current);
+        const auto& event_time = event->getTimeMS();
+        if (event_time < display_min || event_time >= display_max) {
+            continue;
+        }
+        while (current_bin_itr != end_bin_itr) {
+            const auto& bin_end_time = *current_bin_itr;
+            if (event_time >= bin_end_time) {
+                current_bin_itr++;
+                current_bin_index++;
             } else {
                 break;
             }
         }
-        if (currentBucketIndex < totalBarCount) {
-            buckets[currentBucketIndex].append(event);
+        if (current_bin_index < bin_count) {
+            bins[current_bin_index].append(event);
         }
-        if (first_contributing_event == last_contributing_event) {
+        if (current == last) {
             break;
         }
-        first_contributing_event++;
     }
 
-    QList<QRectF> rects_sent, rects_received;
-    auto availableHeight = height() - barWidth;
-    double y_range = dataMaxY_ - dataMinY_;
-    double total_sent_ = 0.0;
-    double total_received = 0.0;
-
-    for (int i = 0; i < totalBarCount; i++) {
-        int count = buckets[i].count();
-        if (count == 0) {
-            continue;
-        }
-
-        // calculate the bucket's average bytes sent/received
-        auto bytes_sent = 0.0;
-        auto bytes_received = 0.0;
-        for (auto e : buckets[i]) {
-            bytes_sent += e->getBytesSent();
-            bytes_received += e->getBytesReceived();
-        }
-        bytes_sent /= count;
-        bytes_received /= count;
-
-        double x = (i - prevBarCount) * barWidth;
-        double y_sent = availableHeight - (bytes_sent - dataMinY_) / y_range * availableHeight;
-        double y_received = availableHeight - (bytes_received - dataMinY_) / y_range * availableHeight;
-        rects_sent.append(QRectF(x, y_sent, barWidth, barWidth));
-        rects_received.append(QRectF(x, y_received, barWidth, barWidth));
-    }
-
-    if (rects_sent == rects_received) {
-        drawLineFromRects(painter, rects_sent, networkColor_combined_, networkSeriesOpacity_,
-                          ChartDataKind::NETWORK_UTILISATION);
-    } else {
-        drawLineFromRects(painter, rects_sent, networkColor_sent_, networkSeriesOpacity_,
-                          ChartDataKind::NETWORK_UTILISATION);
-        drawLineFromRects(painter, rects_received, networkColor_received_, networkSeriesOpacity_,
-                          ChartDataKind::NETWORK_UTILISATION);
-    }
-
-    auto finish = QDateTime::currentMSecsSinceEpoch();
-    if (PRINT_RENDER_TIMES) {
-        qDebug() << "NETWORK Render Took: " << finish - start << "ms";
-    }
+    return bins;
 }
 
+namespace AggServerResponse
+{
+	inline uint qHash(const LifecycleType& key, uint seed)
+	{
+		return ::qHash(static_cast<uint>(key), seed);
+	}
+}
 
 /**
  * @brief Chart::drawTextRect
@@ -1427,8 +1153,10 @@ void Chart::paintNetworkUtilisationEventSeries(QPainter& painter)
  * @param color
  * @param series_kind
  */
-void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, QColor color, ChartDataKind series_kind)
+void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& text, const QColor& color, ChartDataKind series_kind)
 {
+    painter.save();
+
     if (rectHovered(series_kind, rect)) {
         painter.fillRect(rect, highlightBrush_);
         painter.setPen(defaultTextPen_);
@@ -1440,8 +1168,8 @@ void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& t
     }
 
     painter.drawText(rect, text, QTextOption(Qt::AlignCenter));
+    painter.restore();
 }
-
 
 /**
  * @brief Chart::drawLineFromRects
@@ -1450,26 +1178,27 @@ void Chart::drawTextRect(QPainter& painter, const QRectF& rect, const QString& t
  * @param opacity
  * @param series_kind
  */
-void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QColor color, double opacity, ChartDataKind series_kind)
+void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, const QColor& color, double opacity, ChartDataKind series_kind)
 {
     if (rects.isEmpty()) {
         return;
     }
 
+    painter.save();
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setOpacity(opacity);
-    painter.setPen(defaultEllipsePen_);
     painter.setBrush(color);
 
     if (rects.size() == 1) {
         auto rect = rects.first();
+        painter.setPen(defaultEllipsePen_);
         painter.drawEllipse(rect);
         rectHovered(series_kind, rect);
     } else {
         QPen linePen(color, 3.0);
-        for (int i = 1; i < rects.count(); i++) {
-            auto rect1 = rects.at(i - 1);
-            auto rect2 = rects.at(i);
+        for (int i = 0; i < rects.count() - 1; i++) {
+            auto rect1 = rects.at(i);
+            auto rect2 = rects.at(i + 1);
             painter.setPen(linePen);
             painter.drawLine(rect1.center(), rect2.center());
             painter.setPen(defaultEllipsePen_);
@@ -1480,9 +1209,8 @@ void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QCo
         }
     }
 
-    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.restore();
 }
-
 
 /**
  * @brief Chart::rectHovered
@@ -1492,9 +1220,8 @@ void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, QCo
  */
 bool Chart::rectHovered(ChartDataKind kind, const QRectF& hitRect)
 {
-    auto painterRect = hitRect.adjusted(-PEN_WIDTH / 2.0, 0, PEN_WIDTH / 2.0, 0);
-    if (rectHovered(painterRect)) {
-        // if the hit rect is hovered, store/update the hovered time range for the provided series kind
+    if (hoveredRect_.intersects(hitRect)) {
+        // If the hit rect is hovered, store/update the hovered time range for the provided series kind
         QPair<qint64, qint64> timeRange = {mapPixelToTime(hitRect.left()), mapPixelToTime(hitRect.right())};
         if (hoveredSeriesTimeRange_.contains(kind)) {
             timeRange.first = hoveredSeriesTimeRange_.value(kind).first;
@@ -1508,16 +1235,6 @@ bool Chart::rectHovered(ChartDataKind kind, const QRectF& hitRect)
         return true;
     }
     return false;
-}
-
-/**
- * @brief Chart::rectHovered
- * @param hitRect
- * @return
- */
-bool Chart::rectHovered(const QRectF &hitRect)
-{
-	return hoveredRect_.intersects(hitRect);
 }
 
 /**
@@ -1537,7 +1254,8 @@ void Chart::clearHoveredLists()
  */
 void Chart::updateBinnedData(ChartDataKind kind)
 {
-	if (!seriesList_.contains(kind))
+    // TODO: Part of binning work
+	/*if (!seriesList_.contains(kind))
 		return;
 
 	auto dataRange = dataMaxX_ - dataMinX_;
@@ -1547,31 +1265,11 @@ void Chart::updateBinnedData(ChartDataKind kind)
 	binTimeWidth_ = binRatio * displayRange;
 	binCount_ = ceil(dataRange / binTimeWidth_);
 	binPixelWidth_ = (double) width() / binCount_;
-	//binPixelWidth_ = BIN_WIDTH;
-	//binPixelWidth_ = (double)width() / (dataRange / binTimeWidth_);
-
-	//binRatio = binPixelWidth_ / (double) width();
-	//binTimeWidth_ = binRatio * displayRange;
-	//binCount_ = /*ceil*/(dataRange / binTimeWidth_);
-
-	if (kind == ChartDataKind::PORT_LIFECYCLE) {
-		int firstIndex = getBinIndexForTime(displayMin_);
-		int lastIndex = getBinIndexForTime(displayMax_);
-		qDebug() << "width(): " << width();
-		qDebug() << "binRatio =" << binRatio;
-		qDebug() << "bin pixel width: " << binPixelWidth_;
-		qDebug() << "bin time width: " << binTimeWidth_;
-		qDebug() << "bins#: " << binCount_;
-		qDebug() << "first index: " << firstIndex << " - 0";
-		qDebug() << "last index: " << lastIndex << " - " << ((lastIndex - firstIndex) * binPixelWidth_);
-	}
 
 	// clear binned data
 	auto& binnedData = getBinnedData(kind);
 	binnedData.clear();
 	binnedData.resize(binCount_);
-
-	//qDebug() << "Update binned data: " << QDateTime::fromMSecsSinceEpoch(dataMinX_).toString(TIME_FORMAT) << ", " << QDateTime::fromMSecsSinceEpoch(dataMaxX_).toString(TIME_FORMAT);
 
 	QVector<double> binEndTimes;
 	binEndTimes.reserve(binCount_);
@@ -1579,8 +1277,6 @@ void Chart::updateBinnedData(ChartDataKind kind)
 	// calculate the bin end times for the whole data range
 	auto currentTime = dataMinX_;
 	for (auto i = 0; i < binCount_; i++) {
-		/*if (kind == ChartDataKind::PORT_LIFECYCLE)
-			qDebug() << "CURRENT time: " << QDateTime::fromMSecsSinceEpoch(currentTime).toString(TIME_FORMAT);*/
 		binEndTimes.append(currentTime + binTimeWidth_);
 		currentTime = binEndTimes.last();
 	}
@@ -1607,91 +1303,10 @@ void Chart::updateBinnedData(ChartDataKind kind)
 				}
 			}
 			if (currentBin < binCount_) {
-				if (kind == ChartDataKind::PORT_LIFECYCLE)
-					qDebug() << "--- bin data at: " << currentBin;
 				binnedData[currentBin].append(*eventItr);
 			}
 		}
-	}
-}
-
-/**
- * @brief Chart::updateSeriesPixmaps
- */
-void Chart::updateSeriesPixmaps()
-{
-	Theme* theme = Theme::theme();
-	bool colorLifecyclePixmaps = false;
-	bool colorWorkerPixmaps = false;
-	bool colorPortEventPixmaps = false;
-
-	switch (hoveredSeriesKind_) {
-		case ChartDataKind::DATA: {
-			colorLifecyclePixmaps = true;
-			colorWorkerPixmaps = true;
-			colorPortEventPixmaps = true;
-			break;
-		}
-		case ChartDataKind::PORT_LIFECYCLE:
-			colorLifecyclePixmaps = true;
-			break;
-		case ChartDataKind::WORKLOAD:
-			colorWorkerPixmaps = true;
-			break;
-		case ChartDataKind::PORT_EVENT:
-			colorPortEventPixmaps = true;
-			break;
-		default:
-			return;
-	}
-
-    if (colorLifecyclePixmaps) {
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), theme->getAltTextColor());
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), theme->getTextColor());
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::ACTIVATE] = theme->getImage("Icons", "power", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "bed", QSize(), QColor(255, 179, 102));
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "cancel", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
-    } else {
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::NO_TYPE] = theme->getImage("Icons", "circleQuestion", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::CONFIGURE] = theme->getImage("Icons", "gear", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::ACTIVATE] = theme->getImage("Icons", "power", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::PASSIVATE] = theme->getImage("Icons", "bed", QSize(), backgroundColor_);
-        lifeCycleTypePixmaps_[AggServerResponse::LifecycleType::TERMINATE] = theme->getImage("Icons", "cancel", QSize(), backgroundColor_);
-    }
-
-	if (colorWorkerPixmaps) {
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleFilled", QSize(), QColor(72, 151, 189));
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), theme->getSeverityColor(Notification::Severity::WARNING));
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), QColor(72, 151, 199));
-	} else {
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::STARTED] = theme->getImage("Icons", "play", QSize(), backgroundColor_);
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::FINISHED] = theme->getImage("Icons", "avStop", QSize(), backgroundColor_);
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleFilled", QSize(), backgroundColor_);
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::WARNING] = theme->getImage("Icons", "triangleCritical", QSize(), backgroundColor_);
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::ERROR_EVENT] = theme->getImage("Icons", "circleCrossDark", QSize(), backgroundColor_);
-		workloadEventTypePixmaps_[WorkloadEvent::WorkloadEventType::MARKER] = theme->getImage("Icons", "bookmarkTwoTone", QSize(), backgroundColor_);
-	}
-
-	if (colorPortEventPixmaps) {
-		portEventTypePixmaps_[PortEvent::PortEventType::SENT] = theme->getImage("Icons", "arrowTopRight", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
-		portEventTypePixmaps_[PortEvent::PortEventType::RECEIVED] = theme->getImage("Icons", "arrowBottomRight", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
-		portEventTypePixmaps_[PortEvent::PortEventType::STARTED_FUNC] = theme->getImage("Icons", "arrowLineLeft", QSize(), theme->getSeverityColor(Notification::Severity::SUCCESS));
-		portEventTypePixmaps_[PortEvent::PortEventType::FINISHED_FUNC] = theme->getImage("Icons", "arrowToLineRight", QSize(), theme->getSeverityColor(Notification::Severity::ERROR));
-		portEventTypePixmaps_[PortEvent::PortEventType::IGNORED] = theme->getImage("Icons", "circleCross");
-		portEventTypePixmaps_[PortEvent::PortEventType::EXCEPTION] = theme->getImage("Icons", "circleCritical");
-		portEventTypePixmaps_[PortEvent::PortEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage");
-	} else {
-		portEventTypePixmaps_[PortEvent::PortEventType::SENT] = theme->getImage("Icons", "arrowTopRight", QSize(), backgroundColor_);
-		portEventTypePixmaps_[PortEvent::PortEventType::RECEIVED] = theme->getImage("Icons", "arrowBottomRight", QSize(), backgroundColor_);
-		portEventTypePixmaps_[PortEvent::PortEventType::STARTED_FUNC] = theme->getImage("Icons", "arrowLineLeft", QSize(), backgroundColor_);
-		portEventTypePixmaps_[PortEvent::PortEventType::FINISHED_FUNC] = theme->getImage("Icons", "arrowToLineRight", QSize(), backgroundColor_);
-		portEventTypePixmaps_[PortEvent::PortEventType::IGNORED] = theme->getImage("Icons", "circleCross", QSize(), backgroundColor_);
-		portEventTypePixmaps_[PortEvent::PortEventType::EXCEPTION] = theme->getImage("Icons", "circleCritical", QSize(), backgroundColor_);
-		portEventTypePixmaps_[PortEvent::PortEventType::MESSAGE] = theme->getImage("Icons", "speechBubbleMessage", QSize(), backgroundColor_);
-	}
+	}*/
 }
 
 /**
@@ -1711,42 +1326,40 @@ QColor Chart::getContrastingColor(const QColor &color)
 }
 
 /**
- * @brief Chart::getBinIndexForTime
- * @param time
+ * @brief Chart::getBinCount
+ * @param target_bin_width
  * @return
  */
-int Chart::getBinIndexForTime(double time)
+int Chart::getBinCount(double target_bin_width) const
 {
-	auto index = (time - dataMinX_) / binTimeWidth_;
-	return floor(index);
+    return ceil( (double)width() / target_bin_width );
 }
 
 /**
- * @brief Chart::getBinnedData
- * @param kind
+ * @brief Chart::getBinWidth
  * @return
  */
-QVector<QList<Event*>>& Chart::getBinnedData(ChartDataKind kind)
+double Chart::getBinWidth(double target_bin_width) const
 {
-    switch (kind) {
-        case ChartDataKind::PORT_LIFECYCLE:
-            return portLifecycleBinnedData_;
-        case ChartDataKind::WORKLOAD:
-            return workloadBinnedData_;
-        case ChartDataKind::CPU_UTILISATION:
-            return cpuUtilisationBinnedData_;
-        case ChartDataKind::MEMORY_UTILISATION:
-            return memoryUtilisationBinnedData_;
-        case ChartDataKind::MARKER:
-            return markerBinnedData_;
-        case ChartDataKind::PORT_EVENT:
-            return portEventBinnedData_;
-        case ChartDataKind::NETWORK_UTILISATION:
-            return networkUtilisationBinnedData_;
-        default:
-            qWarning("Chart::getBinnedData - Series kind not handled");
-            return emptyBinnedData_;
-    }
+    return (double)width() / getBinCount(target_bin_width);
+}
+
+/**
+ * @brief Chart::getDisplayMin
+ * @return
+ */
+double Chart::getDisplayMin() const
+{
+    return (dataMaxX_ - dataMinX_) * minRatio_ + dataMinX_;
+}
+
+/**
+ * @brief Chart::getDisplayMax
+ * @return
+ */
+double Chart::getDisplayMax() const
+{
+    return (dataMaxX_ - dataMinX_) * maxRatio_ + dataMinX_;
 }
 
 /**
@@ -1756,9 +1369,9 @@ QVector<QList<Event*>>& Chart::getBinnedData(ChartDataKind kind)
  */
 qint64 Chart::mapPixelToTime(double x)
 {
-	auto timeRange = displayMax_ - displayMin_;
+	auto timeRange = getDisplayMax() - getDisplayMin();
 	auto ratio = x / width();
-	return displayMin_ + timeRange * ratio;
+	return getDisplayMin() + timeRange * ratio;
 }
 
 /**
@@ -1768,7 +1381,7 @@ qint64 Chart::mapPixelToTime(double x)
  */
 double Chart::mapTimeToPixel(double time)
 {
-	auto timeRange = displayMax_ - displayMin_;
-	auto adjustedTime = time - displayMin_;
+	auto timeRange = getDisplayMax() - getDisplayMin();
+	auto adjustedTime = time - getDisplayMin();
 	return adjustedTime / timeRange * width();
 }

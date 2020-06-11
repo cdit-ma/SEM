@@ -35,13 +35,17 @@ void ExperimentData::addExperimentRun(const AggServerResponse::ExperimentRun& ex
         throw std::invalid_argument("ExperimentData::addExperimentRun - Invalid experiment run.");
     }
 
-    auto&& exp_run_data = std::make_unique<ExperimentRunData>(exp_run_id,
-                                                              exp_run.job_num,
-                                                              exp_run.start_time,
-                                                              exp_run.end_time,
-                                                              exp_run.last_updated_time);
+    auto exp_run_data = std::make_unique<ExperimentRunData>(experiment_name_,
+                                                            exp_run_id,
+                                                            exp_run.job_num,
+                                                            exp_run.start_time,
+                                                            exp_run.end_time,
+                                                            exp_run.last_updated_time);
 
-    // TODO: We should figure out what the emplace/insert functions actually do
+    connect(&(*exp_run_data), &ExperimentRunData::dataUpdated, this, &ExperimentData::experimentRunDataUpdated);
+
+    // NOTE: emplace() - Inserts a new element into the container constructed in-place with the given args
+    //  if there is no element with the key in the container
     experiment_run_map_.emplace(exp_run_id, std::move(exp_run_data));
 }
 
@@ -67,4 +71,15 @@ MEDEA::ExperimentRunData& ExperimentData::getExperimentRun(quint32 exp_run_id) c
 void ExperimentData::updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state)
 {
     getExperimentRun(exp_run_id).updateData(exp_state);
+}
+
+/**
+ * @brief ExperimentData::experimentRunDataUpdated
+ * This is called when the sender ExperimentRunData's last updated time has changed
+ * @param last_updated_time - updated ExperimentRunData's last_updated_time
+ */
+void ExperimentData::experimentRunDataUpdated(qint64 last_updated_time)
+{
+    auto exp_run = qobject_cast<ExperimentRunData*>(sender());
+    emit dataUpdated(exp_run->experiment_run_id(), last_updated_time);
 }

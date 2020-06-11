@@ -3,6 +3,7 @@
 
 #include "protomessagestructs.h"
 #include "componentinstancedata.h"
+#include <QSet>
 
 class ContainerInstanceData : public QObject
 {
@@ -13,10 +14,13 @@ public:
 
     const QString& getGraphmlID() const;
     const QString& getName() const;
-
     AggServerResponse::Container::ContainerType getType() const;
 
     QList<ComponentInstanceData*> getComponentInstanceData() const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
 
     void updateData(const AggServerResponse::Container& container, qint64 new_last_updated_time);
 

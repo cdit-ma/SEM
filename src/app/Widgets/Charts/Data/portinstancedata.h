@@ -11,7 +11,10 @@
 #include "Series/portlifecycleeventseries.h"
 #include "Series/porteventseries.h"
 
+#include <QPointer>
+
 class ComponentInstanceData;
+
 class PortInstanceData : public QObject
 {
     Q_OBJECT
@@ -29,14 +32,14 @@ public:
     const PortLifecycleRequest& getPortLifecycleRequest() const;
     const PortEventRequest& getPortEventRequest() const;
 
-    qint64 getPreviousEventTime(qint64 time) const;
-    qint64 getNextEventTime(qint64 time) const;
-
     void addPortLifecycleEvents(const QVector<PortLifecycleEvent*>& events);
-    const PortLifecycleEventSeries& getPortLifecycleEventSeries() const;
+    QPointer<const MEDEA::EventSeries> getPortLifecycleSeries() const;
 
     void addPortEvents(const QVector<PortEvent*>& events);
-    const PortEventSeries& getPortEventSeries() const;
+    QPointer<const MEDEA::EventSeries> getPortEventSeries() const;
+
+    qint64 getPreviousEventTime(qint64 time) const;
+    qint64 getNextEventTime(qint64 time) const;
 
     void updateData(qint64 new_last_updated_time);
 
@@ -44,6 +47,9 @@ signals:
     void requestData(PortInstanceData& port);
 
 private:
+    void setupRequests();
+    void setupSeries();
+
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
 

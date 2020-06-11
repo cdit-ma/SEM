@@ -26,7 +26,10 @@ public:
     void updateData(quint32 exp_run_id, const AggServerResponse::ExperimentState& exp_state);
 
 signals:
-    void requestData(quint32 exp_run_id);
+    void dataUpdated(quint32 exp_run_id, qint64 last_updated_time);
+
+private slots:
+    void experimentRunDataUpdated(qint64 last_updated_time);
 
 private:
     QString experiment_name_;

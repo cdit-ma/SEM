@@ -544,7 +544,9 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
 
         //auto results = DummyResponseBuilder::getMultiEventsResponse();
         const auto& results = requester_->GetNetworkUtilisation(agg_request);
-        
+
+        // TODO: The NodeNetworkEvents returns a list of InterfaceNetworkEvents per NetworkUtilisationEvent
+        //  Ask Jackson - Shouldn't the NetworkUtilisationEvents be grouped by InterfaceNetworkEvent?
         for (const auto& node_network_event : results->node_network_events()) {
             const auto& hostname = ConstructQString(node_network_event.node_info().hostname());
             for (const auto& interface_network_event : node_network_event.events()) {
@@ -706,6 +708,25 @@ AggServerResponse::Container AggregationProxy::ConvertContainer(const AggServer:
 
 
 /**
+ * @brief AggregationProxy::ConvertNetworkInterface
+ * @param proto_network_interface
+ * @return
+ */
+AggServerResponse::NetworkInterface AggregationProxy::ConvertNetworkInterface(const AggServer::NetworkInterface& proto_network_interface)
+{
+    AggServerResponse::NetworkInterface network_interface;
+    network_interface.name = ConstructQString(proto_network_interface.name());
+    network_interface.type = ConstructQString(proto_network_interface.type());
+    network_interface.description = ConstructQString(proto_network_interface.description());
+    network_interface.ipv4 = ConstructQString(proto_network_interface.ipv4());
+    network_interface.ipv6 = ConstructQString(proto_network_interface.ipv6());
+    network_interface.mac_address = ConstructQString(proto_network_interface.mac_address());
+    network_interface.speed = proto_network_interface.speed();
+    return network_interface;
+}
+
+
+/**
  * @brief AggregationProxy::ConvertNode
  * @param proto_node
  * @return
@@ -717,6 +738,9 @@ AggServerResponse::Node AggregationProxy::ConvertNode(const AggServer::Node& pro
     node.ip = ConstructQString(proto_node.ip());
     for (const auto& c : proto_node.containers()) {
         node.containers.append(ConvertContainer(c));
+    }
+    for (const auto& i : proto_node.interfaces()) {
+        node.interfaces.append(ConvertNetworkInterface(i));
     }
     return node;
 }

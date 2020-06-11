@@ -58,6 +58,7 @@ signals:
 public slots:
     void themeChanged();
     void setChartHovered(Chart* chart, bool hovered_);
+    void clearHovered();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -89,6 +90,7 @@ private:
 
     QColor backgroundColor_;
     QColor highlightColor_;
+    QColor ellipseColor_;
 
     QPen axisLinePen_;
     QPen hoverLinePen_;

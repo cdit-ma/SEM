@@ -9,13 +9,23 @@
  * @param last_updated_time
  * @param parent
  */
-MEDEA::ExperimentRunData::ExperimentRunData(quint32 experiment_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time, QObject *parent)
+MEDEA::ExperimentRunData::ExperimentRunData(QString exp_name, quint32 experiment_run_id, quint32 job_num, qint64 start_time, qint64 end_time, qint64 last_updated_time, QObject *parent)
     : QObject(parent),
+      experiment_name_(std::move(exp_name)),
       experiment_run_id_(experiment_run_id),
       job_num_(job_num),
       start_time_(start_time),
       end_time_(end_time),
       last_updated_time_(last_updated_time) {}
+
+/**
+ * @brief MEDEA::ExperimentRunData::experiment_name
+ * @return
+ */
+const QString& MEDEA::ExperimentRunData::experiment_name() const
+{
+    return experiment_name_;
+}
 
 /**
  * @brief MEDEA::ExperimentRunData::experiment_run_id
@@ -95,13 +105,91 @@ QList<PortConnectionData*> MEDEA::ExperimentRunData::getPortConnectionData(const
  * @param id
  * @return
  */
-QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(int id) const
+QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(const QString& id) const
 {
-    if (id == -1) {
+    if (id.isEmpty()) {
         return marker_set_hash_.values();
     } else {
         return marker_set_hash_.values(id);
     }
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getPortLifecycleSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortLifecycleSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getPortLifecycleSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getPortEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortEventSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getPortEventSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getWorkloadEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getWorkloadEventSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getWorkloadEventSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getCPUUtilisationSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getCPUUtilisationSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getCPUUtilisationSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getMemoryUtilisationSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getMemoryUtilisationSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getMemoryUtilisationSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getNetworkUtilisationSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getNetworkUtilisationSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getNetworkUtilisationSeries());
+    }
+    return series;
 }
 
 /**
@@ -112,6 +200,7 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
 {
     auto&& state_last_updated_time = exp_state.last_updated_time;
     if (state_last_updated_time > last_updated_time_) {
+
         // NOTE: last_updated_time_ is passed through to update the children data
         //  Therefore, it needs to be updated before calling addNodeData and addPortConnection
         last_updated_time_ = state_last_updated_time;
@@ -166,7 +255,11 @@ void MEDEA::ExperimentRunData::addPortConnection(const AggServerResponse::PortCo
  */
 void MEDEA::ExperimentRunData::addMarkerSet(const QString& marker_name)
 {
-    // TODO: Figure out where to construct this and what key to store it by
-    auto marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);
-    marker_set_hash_.insert(marker_set_data->getID(), marker_set_data);
+    // NOTE: Marker events used to be grouped by CompInst.graphml_id + marker_name
+    // TODO: Ask Jackson what they should be grouped by
+    auto&& marker_set_id = marker_name + QString::number(experiment_run_id());
+    if (!marker_set_hash_.contains(marker_set_id)) {
+        auto marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);
+        marker_set_hash_.insert(marker_set_id, marker_set_data);
+    }
 }

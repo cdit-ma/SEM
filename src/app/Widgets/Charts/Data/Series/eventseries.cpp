@@ -12,12 +12,12 @@ std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
  * @param parent
  */
 MEDEA::EventSeries::EventSeries(const QString& ID, MEDEA::ChartDataKind kind, QObject* parent)
-	: QObject(parent),
-	  ID_(ID),
-	  label_(ID),
-	  kind_(kind),
-	  eventSeriesID_(eventSeries_ID++),
-	  eventSeriesIDStr_(QString::number(eventSeriesID_))
+    : QObject(parent),
+      ID_(ID),
+      label_(ID),
+      kind_(kind),
+      eventSeriesID_(eventSeries_ID++),
+      eventSeriesIDStr_(QString::number(eventSeriesID_))
 {
     minTime_ = QDateTime::currentMSecsSinceEpoch();
     maxTime_ = 0;
@@ -95,7 +95,7 @@ void MEDEA::EventSeries::updateTimeRange(qint64 new_timestamp)
  */
 void MEDEA::EventSeries::setLabel(const QString& label)
 {
-    label_ = label;
+    label_ = label + Event::GetChartDataKindStringSuffix(kind_);
 }
 
 /**
@@ -347,6 +347,7 @@ bool MEDEA::EventSeries::contains(MEDEA::Event* event) const
  */
 void MEDEA::EventSeries::addEventToList(MEDEA::Event& event)
 {
+
     auto&& new_event = &event;
     if (contains(new_event)) {
         throw std::invalid_argument("MEDEA::EventSeries::addEventToList - Cannot add an already existing event");

@@ -24,16 +24,19 @@ void NetworkUtilisationEventSeries::addEvent(MEDEA::Event* event)
         throw std::invalid_argument("NetworkUtilisationEventSeries::addEvent - Invalid event kind.");
     }
     if (!contains(event)) {
+
         // NOTE - We are currently only checking and displaying the bytes sent/received
         auto bytes_sent = qobject_cast<NetworkUtilisationEvent *>(event)->getBytesSent();
         auto bytes_received = qobject_cast<NetworkUtilisationEvent *>(event)->getBytesReceived();
 
         // Send a signal to set the min y value for the charts
         if (isEmpty()) {
-            emit minYValueChanged(qMin(bytes_sent, bytes_received));
+            minUtilisation_ = qMin(bytes_sent, bytes_received);
+            emit minYValueChanged(minUtilisation_);
         }
-    
-        emit maxYValueChanged(qMax(bytes_sent, bytes_received));
+
+        maxUtilisation_ = qMax(bytes_sent, bytes_received);
+        emit maxYValueChanged(maxUtilisation_);
         addEventToList(*event);
     }
 }
@@ -99,4 +102,22 @@ void NetworkUtilisationEventSeries::rightPad(QString &str, int intended_length, 
     while (str.length() < intended_length) {
         str += pad_char;
     }
+}
+
+/**
+ * @brief NetworkUtilisationEventSeries::getMinUtilisation
+ * @return
+ */
+double NetworkUtilisationEventSeries::getMinUtilisation() const
+{
+    return minUtilisation_;
+}
+
+/**
+ * @brief NetworkUtilisationEventSeries::getMaxUtilisation
+ * @return
+ */
+double NetworkUtilisationEventSeries::getMaxUtilisation() const
+{
+    return maxUtilisation_;
 }

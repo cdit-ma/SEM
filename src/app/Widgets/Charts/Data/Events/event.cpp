@@ -8,11 +8,10 @@
  * @param name
  * @param parent
  */
-MEDEA::Event::Event(MEDEA::ChartDataKind kind, qint64 time, QString name, QObject *parent)
+MEDEA::Event::Event(MEDEA::ChartDataKind kind, qint64 time, QObject *parent)
 	: QObject(parent),
 	  kind_(kind),
-	  time_(time),
-	  series_name_(std::move(name)) {}
+	  time_(time) {}
 
 /**
  * @brief MEDEA::Event::getKind
@@ -40,15 +39,6 @@ qint64 MEDEA::Event::getTimeMS() const
 QString MEDEA::Event::getDateTimeString(const QString& format) const
 {
     return QDateTime::fromMSecsSinceEpoch(time_).toString(format);
-}
-
-/**
- * @brief MEDEA::Event::getName
- * @return
- */
-const QString& MEDEA::Event::getSeriesName() const
-{
-    return series_name_;
 }
 
 /**

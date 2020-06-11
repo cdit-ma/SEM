@@ -1,8 +1,6 @@
 #include "markersetdata.h"
 #include "../ExperimentDataManager/experimentdatamanager.h"
 
-std::atomic<int> MarkerSetData::marker_set_id(0);
-
 /**
  * @brief MarkerSetData::MarkerSetData
  * @param exp_run_id
@@ -13,23 +11,12 @@ MarkerSetData::MarkerSetData(quint32 exp_run_id, const QString& marker_name, QOb
     : QObject(parent),
       experiment_run_id_(exp_run_id),
       last_updated_time_(0),
-      marker_name_(marker_name),
-      marker_set_id_(marker_set_id++)
+      marker_name_(marker_name)
 {
-    marker_event_series_ = new MarkerEventSeries(marker_name);
-    marker_event_series_->setLabel(marker_name);
+    setupSeries();
 
     connect(this, &MarkerSetData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestMarkerSetEvents);
     emit requestData(*this);
-}
-
-/**
- * @brief MarkerSetData::getID
- * @return
- */
-int MarkerSetData::getID() const
-{
-    return marker_set_id_;
 }
 
 /**
@@ -64,12 +51,12 @@ void MarkerSetData::addMarkerEvents(const QVector<MarkerEvent*>& events)
  * @throws std::runtime_error
  * @return
  */
-const MarkerEventSeries& MarkerSetData::getMarkerEventSeries() const
+QPointer<const MEDEA::EventSeries> MarkerSetData::getMarkerEventSeries() const
 {
 	if (marker_event_series_ == nullptr) {
-		throw std::runtime_error("MarkerEventSeries& MarkerSetData::getMarkerEventSeries - Marker event series is null");
+		throw std::runtime_error("MarkerSetData::getMarkerEventSeries - Marker event series is null");
 	}
-	return *marker_event_series_;
+	return marker_event_series_;
 }
 
 /**
@@ -85,4 +72,16 @@ void MarkerSetData::updateData(qint64 new_last_updated_time)
     marker_request_.setTimeInterval({last_updated_time_, new_last_updated_time});
     last_updated_time_ = new_last_updated_time;
     emit requestData(*this);
+}
+
+/**
+ * @brief NodeData::setupSeries
+ */
+void MarkerSetData::setupSeries()
+{
+    auto&& exp_run_id_str = QString::number(experiment_run_id_);
+
+    marker_event_series_ = new MarkerEventSeries(marker_name_ + exp_run_id_str);
+    marker_event_series_->setLabel("[" + exp_run_id_str + "] " + marker_name_);
+    marker_event_series_->setParent(this);
 }

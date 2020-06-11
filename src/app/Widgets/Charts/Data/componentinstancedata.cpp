@@ -108,6 +108,45 @@ QList<WorkerInstanceData*> ComponentInstanceData::getWorkerInstanceData() const
 }
 
 /**
+ * @brief ComponentInstanceData::getPortLifecycleSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ComponentInstanceData::getPortLifecycleSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& port_inst : getPortInstanceData()) {
+        series.append(port_inst->getPortLifecycleSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief ComponentInstanceData::getPortEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ComponentInstanceData::getPortEventSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& port_inst : getPortInstanceData()) {
+        series.append(port_inst->getPortEventSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief ComponentInstanceData::getWorkloadEventSeries
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> ComponentInstanceData::getWorkloadEventSeries() const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& worker_inst : getWorkerInstanceData()) {
+        series.append(worker_inst->getWorkloadEventSeries());
+    }
+    return series;
+}
+
+/**
  * @brief ComponentInstanceData::updateData
  * This is called when the ExperimentRunData's last updated time has changed
  * It updates the children port data and worker instance data

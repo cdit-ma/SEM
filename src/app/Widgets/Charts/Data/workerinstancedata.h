@@ -5,6 +5,7 @@
 #include "Requests/workloadrequest.h"
 #include "Events/workloadevent.h"
 #include "Series/workloadeventseries.h"
+#include <QHash>
 
 class ComponentInstanceData;
 class WorkerInstanceData : public QObject
@@ -22,7 +23,7 @@ public:
     const WorkloadRequest& getWorkloadRequest() const;
 
     void addWorkloadEvents(const QVector<WorkloadEvent*>& events);
-    const WorkloadEventSeries& getWorkloadEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
 
     void updateData(qint64 new_last_updated_time);
 
@@ -30,6 +31,9 @@ signals:
     void requestData(WorkerInstanceData& worker_inst);
 
 private:
+    void setupRequests();
+    WorkloadEventSeries& setupSeries(const QString& series_id, const QString& series_name);
+
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
 
@@ -39,7 +43,7 @@ private:
     QString type_;
 
     WorkloadRequest workload_request_;
-    WorkloadEventSeries* workload_event_series_ = nullptr;
+    QHash<QString, WorkloadEventSeries*> workload_event_series_;
 };
 
 #endif // WORKERINSTANCEDATA_H

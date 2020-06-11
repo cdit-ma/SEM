@@ -18,7 +18,7 @@ class DataflowDialog : public QFrame
 public:
     explicit DataflowDialog(QWidget* parent = nullptr);
 
-    void constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data);
+    void constructGraphicsItemsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
 
 signals:
     void playbackActivated(bool active);

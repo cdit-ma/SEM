@@ -1,12 +1,13 @@
 #include "experimentdatamanager.h"
 #include "../../../Controllers/WindowManager/windowmanager.h"
-#include "../../../../modelcontroller/keynames.h"
 
 #include <QFutureWatcher>
 
 const int default_playback_interval_ms = 33;
 const int invalid_experiment_id = -1;
 ExperimentDataManager* ExperimentDataManager::manager_ = nullptr;
+
+using namespace MEDEA;
 
 /**
  * @brief ExperimentDataManager::ExperimentDataManager
@@ -54,95 +55,89 @@ TimelineChartView& ExperimentDataManager::timelineChartView()
 /**
  * @brief ExperimentDataManager::requestExperimentData
  * @param request_type
+ * @param request_param
+ * @param requester
  * @throws std::invalid_argument
- */
-void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* sender_obj)
+*/
+void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* requester)
 {
 	if (request_param.isNull() || !request_param.isValid()) {
 		throw std::invalid_argument("ExperimentDataManager::requestExperimentData - Provided request parameter is invalid.");
 	}
-	
+
 	try {
-		
+
 		bool valid = true;
-		
+
 		switch (request_type) {
 			case ExperimentDataRequestType::ExperimentRun: {
 				const auto& exp_name = request_param.toString();
-				requestExperimentRuns(exp_name, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
+				requestExperimentRuns(exp_name, qobject_cast<ExperimentData*>(requester));
 				break;
 			}
-			case ExperimentDataRequestType::ExperimentState: {
+			case ExperimentDataRequestType::ExperimentState:
 				valid = request_param.canConvert<quint32>();
 				if (valid) {
 					quint32 exp_run_id = request_param.toUInt();
-					requestExperimentState(exp_run_id, qobject_cast<MEDEA::ExperimentData*>(sender_obj));
+					requestExperimentState(exp_run_id, qobject_cast<ExperimentRunData*>(requester));
 				}
 				break;
-			}
-			case ExperimentDataRequestType::PortLifecycleEvent: {
+			case ExperimentDataRequestType::PortLifecycleEvent:
 				valid = request_param.canConvert<PortLifecycleRequest>();
 				if (valid) {
 					auto request = request_param.value<PortLifecycleRequest>();
-					requestPortLifecycleEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
+					requestPortLifecycleEvents(request, qobject_cast<PortInstanceData*>(requester));
 				}
 				break;
-			}
-			case ExperimentDataRequestType::WorkloadEvent: {
+			case ExperimentDataRequestType::WorkloadEvent:
 				valid = request_param.canConvert<WorkloadRequest>();
 				if (valid) {
 					auto request = request_param.value<WorkloadRequest>();
-					requestWorkloadEvents(request, selectedExperimentRun_, qobject_cast<WorkerInstanceData*>(sender_obj));
+                    requestWorkloadEvents(request, qobject_cast<WorkerInstanceData*>(requester));
 				}
 				break;
-			}
-			case ExperimentDataRequestType::CPUUtilisationEvent: {
+			case ExperimentDataRequestType::CPUUtilisationEvent:
 				valid = request_param.canConvert<UtilisationRequest>();
 				if (valid) {
 					auto request = request_param.value<UtilisationRequest>();
-					requestCPUUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+					requestCPUUtilisationEvents(request, qobject_cast<NodeData*>(requester));
 				}
 				break;
-			}
-			case ExperimentDataRequestType::MemoryUtilisationEvent: {
+			case ExperimentDataRequestType::MemoryUtilisationEvent:
 				valid = request_param.canConvert<UtilisationRequest>();
 				if (valid) {
 					auto request = request_param.value<UtilisationRequest>();
-					requestMemoryUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+					requestMemoryUtilisationEvents(request, qobject_cast<NodeData*>(requester));
 				}
 				break;
-			}
-			case ExperimentDataRequestType::MarkerEvent: {
+			case ExperimentDataRequestType::MarkerEvent:
 				valid = request_param.canConvert<MarkerRequest>();
 				if (valid) {
 					auto request = request_param.value<MarkerRequest>();
-					requestMarkerEvents(request, selectedExperimentRun_, qobject_cast<MarkerSetData*>(sender_obj));
+					requestMarkerEvents(request, qobject_cast<MarkerSetData*>(requester));
 				}
 				break;
-			}
-			case ExperimentDataRequestType::PortEvent: {
+			case ExperimentDataRequestType::PortEvent:
 				valid = request_param.canConvert<PortEventRequest>();
 				if (valid) {
 					auto request = request_param.value<PortEventRequest>();
-					requestPortEvents(request, selectedExperimentRun_, qobject_cast<PortInstanceData*>(sender_obj));
+					requestPortEvents(request, qobject_cast<PortInstanceData*>(requester));
 				}
 				break;
-			}
-            case ExperimentDataRequestType::NetworkUtilisationEvent: {
+            case ExperimentDataRequestType::NetworkUtilisationEvent:
                 valid = request_param.canConvert<UtilisationRequest>();
                 if (valid) {
                     auto request = request_param.value<UtilisationRequest>();
-                    requestNetworkUtilisationEvents(request, selectedExperimentRun_, qobject_cast<NodeData*>(sender_obj));
+                    requestNetworkUtilisationEvents(request, qobject_cast<NodeData*>(requester));
                 }
                 break;
-            }
 		}
 
 		if (!valid) {
 			auto&& request_str = QString::number(static_cast<int>(request_type)).toStdString() + request_param.toString().toStdString();
 			throw std::invalid_argument("Failed to request data (" + request_str + ") - Invalid request parameter.");
 		}
-		
+
 	} catch (const NoRequesterException& ex) {
 		toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.What(), "chart", Notification::Severity::ERROR);
 	} catch (const RequestException& ex) {
@@ -155,19 +150,19 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 /**
  * @brief ExperimentDataManager::requestExperimentRuns
  * @param experimentName
- * @param exp_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestExperimentRuns(const QString& experimentName, MEDEA::ExperimentData* exp_data_requester)
+void ExperimentDataManager::requestExperimentRuns(const QString& experimentName, ExperimentData* requester)
 {
     auto future = aggregationProxy().RequestExperimentRuns(experimentName);
     auto futureWatcher = new QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>::finished, [this, experimentName, futureWatcher, exp_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>::finished, [this, experimentName, futureWatcher, requester]() {
         try {
             auto&& exp_runs = futureWatcher->result();
-            if (exp_data_requester != nullptr) {
+            if (requester != nullptr) {
                 for (const auto& run : exp_runs) {
-                    exp_data_requester->addExperimentRun(run);
+                    requester->addExperimentRun(run);
                 }
             } else {
                 processExperimentRuns(experimentName, futureWatcher->result());
@@ -183,24 +178,22 @@ void ExperimentDataManager::requestExperimentRuns(const QString& experimentName,
 /**
  * @brief ExperimentDataManager::requestExperimentState
  * @param experimentRunID
- * @param exp_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID, MEDEA::ExperimentData* exp_data_requester)
+void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID, ExperimentRunData* requester)
 {
     auto future = aggregationProxy().RequestExperimentState(experimentRunID);
     auto futureWatcher = new QFutureWatcher<AggServerResponse::ExperimentState>(this);
 
-    connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [this, experimentRunID, futureWatcher, exp_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& exp_state = futureWatcher->result();
-            if (exp_data_requester != nullptr) {
-                // Setup the sender experiment run's state
-                exp_data_requester->updateData(experimentRunID, exp_state);
+            if (requester != nullptr) {
+                requester->updateData(exp_state);
             } else {
-                // Once the state is received, request the events for the selected experiment run
-                processExperimentState(selectedExperimentRun_.experiment_name, experimentRunID, exp_state);
-                // NOTE: This needs to be called last because it clears the selectedExperimentRun_
-                setupRequestsForExperimentRun(experimentRunID);
+                auto& exp_run_data = getExperimentRunData(selectedExperimentRun_.experiment_name, selectedExperimentRun_.experiment_run_id);
+                exp_run_data.updateData(exp_state);
+                showDataForExperimentRun(exp_run_data);
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get experiment state - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
@@ -211,84 +204,20 @@ void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID
 }
 
 /**
- * @brief ExperimentDataManager::requestEvents
- * This is the last function that is called, from when a valid experiment run is selected from the ChartInputPopup
- * This is where the chart data request chain ends
- * @param builder
- */
-void ExperimentDataManager::requestEvents(const RequestBuilder& builder)
-{
-     // Check if there is a valid selected experiment run
-    if (selectedExperimentRun_.experiment_run_id == invalid_experiment_id) {
-        toastNotification("ExperimentDataManager::requestEvents - Aborted requests; there is no valid selected experiment run", "chart", Notification::Severity::ERROR);
-        return;
-    }
-
-    try {
-        auto&& request_param = QVariant::fromValue<PortLifecycleRequest>(builder.getPortLifecycleRequest());
-        requestExperimentData(ExperimentDataRequestType::PortLifecycleEvent, request_param);
-    } catch (const std::exception& ex) {
-        qInfo(ex.what());
-    }
-    try {
-        auto&& request_param = QVariant::fromValue<WorkloadRequest>(builder.getWorkloadRequest());
-        requestExperimentData(ExperimentDataRequestType::WorkloadEvent, request_param);
-    } catch (const std::exception& ex) {
-		qInfo(ex.what());
-    }
-    try {
-        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getCPUUtilisationRequest());
-        requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, request_param);
-	} catch (const std::exception& ex) {
-		qInfo(ex.what());
-	}
-    try {
-        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getMemoryUtilisationRequest());
-        requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, request_param);
-	} catch (const std::exception& ex) {
-		qInfo(ex.what());
-	}
-    try {
-        auto&& request_param = QVariant::fromValue<MarkerRequest>(builder.getMarkerRequest());
-        requestExperimentData(ExperimentDataRequestType::MarkerEvent, request_param);
-	} catch (const std::exception& ex) {
-		qInfo(ex.what());
-	}
-    try {
-        auto&& request_param = QVariant::fromValue<PortEventRequest>(builder.getPortEventRequest());
-        requestExperimentData(ExperimentDataRequestType::PortEvent, request_param);
-    } catch (const std::exception& ex) {
-		qInfo(ex.what());
-    }
-    try {
-        auto&& request_param = QVariant::fromValue<UtilisationRequest>(builder.getNetworkUtilisationRequest());
-        requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, request_param);
-    } catch (const std::exception& ex) {
-		qInfo(ex.what());
-    }
-
-    // Reset the selected experiment run
-    selectedExperimentRun_.experiment_run_id = invalid_experiment_id;
-}
-
-/**
  * @brief ExperimentDataManager::requestPortLifecycleEvents
  * @param request
- * @param experimentRun
- * @param port_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleRequest& request, const AggServerResponse::ExperimentRun& experimentRun, PortInstanceData* port_data_requester)
+void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleRequest& request, PortInstanceData* requester)
 {
     auto future = aggregationProxy().RequestPortLifecycleEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<PortLifecycleEvent*>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [this, futureWatcher, experimentRun, port_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
-            if (port_data_requester != nullptr) {
-                port_data_requester->addPortLifecycleEvents(events);
-            } else {
-                processPortLifecycleEvents(experimentRun, events);
+            if (requester != nullptr) {
+                requester->addPortLifecycleEvents(events);
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
@@ -301,21 +230,25 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
 /**
  * @brief ExperimentDataManager::requestWorkloadEvents
  * @param request
- * @param experimentRun
- * @param worker_inst_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request, const AggServerResponse::ExperimentRun& experimentRun, WorkerInstanceData* worker_inst_data_requester)
+void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request, WorkerInstanceData* requester)
 {
     auto future = aggregationProxy().RequestWorkloadEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<WorkloadEvent*>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [this, futureWatcher, experimentRun, worker_inst_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
-            if (worker_inst_data_requester != nullptr) {
-                worker_inst_data_requester->addWorkloadEvents(events);
-            } else {
-                processWorkloadEvents(experimentRun, events);
+            if (requester != nullptr) {
+                requester->addWorkloadEvents(events);
+                // NOTE: This needs to be here because the workload event series aren't constructed until the workload events are received
+                //  This also means that the events need to have been added before showing the workload charts
+                const auto& exp_run_data = getExperimentRunData(selectedExperimentRun_.experiment_name,
+                                                                selectedExperimentRun_.experiment_run_id);
+                for (const auto& series : requester->getWorkloadEventSeries()) {
+                    showChartForSeries(series, exp_run_data);
+                }
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get workload events - " + QString::fromStdString(ex.what()), "spanner", Notification::Severity::ERROR);
@@ -328,21 +261,18 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
 /**
  * @brief ExperimentDataManager::requestCPUUtilisationEvents
  * @param request
- * @param experimentRun
- * @param node_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest& request, NodeData* requester)
 {
     auto future = aggregationProxy().RequestCPUUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [this, futureWatcher, experimentRun, node_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
-            if (node_data_requester != nullptr) {
-                node_data_requester->addCPUUtilisationEvents(events);
-            } else {
-                processCPUUtilisationEvents(experimentRun, events);
+            if (requester != nullptr) {
+                requester->addCPUUtilisationEvents(events);
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
@@ -355,21 +285,18 @@ void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest
 /**
  * @brief ExperimentDataManager::requestMemoryUtilisationEvents
  * @param request
- * @param experimentRun
- * @param node_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestMemoryUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestMemoryUtilisationEvents(const UtilisationRequest& request, NodeData* requester)
 {
     auto future = aggregationProxy().RequestMemoryUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [this, futureWatcher, experimentRun, node_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
-            if (node_data_requester != nullptr) {
-                node_data_requester->addMemoryUtilisationEvents(events);
-            } else {
-                processMemoryUtilisationEvents(experimentRun, events);
+            if (requester != nullptr) {
+                requester->addMemoryUtilisationEvents(events);
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
@@ -382,21 +309,18 @@ void ExperimentDataManager::requestMemoryUtilisationEvents(const UtilisationRequ
 /**
  * @brief ExperimentDataManager::requestMarkerEvents
  * @param request
- * @param experimentRun
- * @param marker_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestMarkerEvents(const MarkerRequest& request, const AggServerResponse::ExperimentRun& experimentRun, MarkerSetData* marker_data_requester)
+void ExperimentDataManager::requestMarkerEvents(const MarkerRequest& request, MarkerSetData* requester)
 {
     auto future = aggregationProxy().RequestMarkerEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MarkerEvent*>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<MarkerEvent*>>::finished, [this, futureWatcher, experimentRun, marker_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<MarkerEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
-            if (marker_data_requester != nullptr) {
-                marker_data_requester->addMarkerEvents(events);
-            } else {
-                processMarkerEvents(experimentRun, events);
+            if (requester != nullptr) {
+                requester->addMarkerEvents(events);
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get marker events - " + QString::fromStdString(ex.what()), "bookmark", Notification::Severity::ERROR);
@@ -409,21 +333,18 @@ void ExperimentDataManager::requestMarkerEvents(const MarkerRequest& request, co
 /**
  * @brief ExperimentDataManager::requestPortEvents
  * @param request
- * @param experimentRun
- * @param port_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, const AggServerResponse::ExperimentRun &experimentRun, PortInstanceData* port_data_requester)
+void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, PortInstanceData* requester)
 {
     auto future = aggregationProxy().RequestPortEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<PortEvent*>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<PortEvent*>>::finished, [this, futureWatcher, experimentRun, port_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<PortEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
-            if (port_data_requester != nullptr) {
-                port_data_requester->addPortEvents(events);
-            } else {
-                processPortEvents(experimentRun, events);
+            if (requester != nullptr) {
+                requester->addPortEvents(events);
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
@@ -433,25 +354,21 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, c
     futureWatcher->setFuture(future);
 }
 
-
 /**
  * @brief ExperimentDataManager::requestNetworkUtilisationEvents
  * @param request
- * @param experimentRun
- * @param node_data_requester
+ * @param requester
  */
-void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationRequest& request, const AggServerResponse::ExperimentRun& experimentRun, NodeData* node_data_requester)
+void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationRequest& request, NodeData* requester)
 {
     auto future = aggregationProxy().RequestNetworkUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);
 
-    connect(futureWatcher, &QFutureWatcher<QVector<NetworkUtilisationEvent*>>::finished, [this, futureWatcher, experimentRun, node_data_requester]() {
+    connect(futureWatcher, &QFutureWatcher<QVector<NetworkUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             auto&& events = futureWatcher->result();
-            if (node_data_requester != nullptr) {
-                node_data_requester->addNetworkUtilisationEvents(events);
-            } else {
-                processNetworkUtilisationEvents(experimentRun, events);
+            if (requester != nullptr) {
+                requester->addNetworkUtilisationEvents(events);
             }
         } catch (const std::exception& ex) {
             toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);
@@ -460,7 +377,6 @@ void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationReq
 
     futureWatcher->setFuture(future);
 }
-
 
 /**
  * @brief ExperimentDataManager::processExperimentRuns
@@ -483,21 +399,19 @@ void ExperimentDataManager::processExperimentRuns(const QString& experiment_name
             if (exp_run_name.isEmpty()) {
                 throw std::runtime_error("ExperimentDataManager::processExperimentRuns - Experiment run name cannot be empty");
             }
-            MEDEA::ExperimentData* exp_data = experiment_data_hash_.value(exp_run_name, nullptr);
+            auto exp_data = getExperimentData(exp_run_name);
             if (exp_data == nullptr) {
                 exp_data = constructExperimentData(exp_run_name);
             }
             exp_data->addExperimentRun(exp_run);
-            exp_run_names_.insert(static_cast<quint32>(exp_run.experiment_run_id), exp_run_name);
         }
     } else {
-        MEDEA::ExperimentData* exp_data = experiment_data_hash_.value(experiment_name, nullptr);
+        auto exp_data = getExperimentData(experiment_name);
         if (exp_data == nullptr) {
             exp_data = constructExperimentData(experiment_name);
         }
         for (const auto& exp_run : experiment_runs) {
             exp_data->addExperimentRun(exp_run);
-            exp_run_names_.insert(static_cast<quint32>(exp_run.experiment_run_id), experiment_name);
         }
     }
 
@@ -506,181 +420,41 @@ void ExperimentDataManager::processExperimentRuns(const QString& experiment_name
 }
 
 /**
- * @brief ExperimentDataManager::processExperimentState
- * @param experiment_name
- * @param experiment_run_id
- * @param experiment_state
- * @throws std::invalid_argument
- */
-void ExperimentDataManager::processExperimentState(const QString& experiment_name, quint32 experiment_run_id, const AggServerResponse::ExperimentState& experiment_state)
-{
-    if (selectedExperimentRun_.experiment_run_id != invalid_experiment_id) {
-        auto exp_data = experiment_data_hash_.value(selectedExperimentRun_.experiment_name, nullptr);
-        if (exp_data == nullptr) {
-            throw std::invalid_argument("ExperimentDataManager::processExperimentState - There is no ExperimentData with experiment name: " + experiment_name.toStdString());
-        }
-        if (show_in_pulse_) {
-            // Setup/display experiment data for PULSE
-            auto& exp_run_data = exp_data->getExperimentRun(experiment_run_id);
-            exp_run_data.updateData(experiment_state);
-            getDataflowDialog().constructGraphicsItemsForExperimentRun(experiment_name, exp_run_data);
-            emit showDataflowPanel();
-        }
-        if (show_in_charts_) {
-            // Updated the selected experiment run's last updated time - the selected run is passed on to the chartview
-            auto&& last_updated_time = experiment_state.last_updated_time;
-            selectedExperimentRun_.last_updated_time = last_updated_time;
-            // Let the chartview know to update the time-range for the charts associated with the experiment_run_id
-            timelineChartView().updateExperimentRunLastUpdatedTime(experiment_run_id, last_updated_time);
-        }
-    }
-}
-
-/**
- * @brief ExperimentDataManager::processPortLifecycleEvents
- * @param exp_run
- * @param events
- */
-void ExperimentDataManager::processPortLifecycleEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortLifecycleEvent*>& events)
-{
-    if (show_in_charts_) {
-        if (events.isEmpty()) {
-            toastNotification("No port lifecycle events received for selection", "plug");
-        } else {
-            emit showChartsPanel();
-            timelineChartView().addPortLifecycleEvents(exp_run, events);
-        }
-    }
-}
-
-/**
- * @brief ExperimentDataManager::processWorkloadEvents
- * @param exp_run
- * @param events
- */
-void ExperimentDataManager::processWorkloadEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<WorkloadEvent*>& events)
-{
-    if (show_in_charts_) {
-        if (events.isEmpty()) {
-            toastNotification("No workload events received for selection", "spanner");
-        } else {
-            emit showChartsPanel();
-            timelineChartView().addWorkloadEvents(exp_run, events);
-        }
-    }
-}
-
-/**
- * @brief ExperimentDataManager::processCPUUtilisationEvents
- * @param exp_run
- * @param events
- */
-void ExperimentDataManager::processCPUUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<CPUUtilisationEvent*>& events)
-{
-    if (show_in_charts_) {
-        if (events.isEmpty()) {
-            toastNotification("No cpu utilisation events received for selection", "cpu");
-        } else {
-            emit showChartsPanel();
-            timelineChartView().addCPUUtilisationEvents(exp_run, events);
-        }
-    }
-}
-
-/**
- * @brief ExperimentDataManager::processMemoryUtilisationEvents
- * @param exp_run
- * @param events
- */
-void ExperimentDataManager::processMemoryUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MemoryUtilisationEvent*>& events)
-{
-    if (show_in_charts_) {
-        if (events.isEmpty()) {
-            toastNotification("No memory utilisation events received for selection", "memoryCard");
-        } else {
-            emit showChartsPanel();
-            timelineChartView().addMemoryUtilisationEvents(exp_run, events);
-        }
-    }
-}
-
-/**
- * @brief ExperimentDataManager::processMarkerEvents
- * @param exp_run
- * @param events
- */
-void ExperimentDataManager::processMarkerEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<MarkerEvent*>& events)
-{
-    if (show_in_charts_) {
-        if (events.isEmpty()) {
-            toastNotification("No marker events received for selection", "bookmark");
-        } else {
-            emit showChartsPanel();
-            timelineChartView().addMarkerEvents(exp_run, events);
-        }
-    }
-}
-
-/**
- * @brief ExperimentDataManager::processPortEvents
- * @param exp_run
- * @param events
- */
-void ExperimentDataManager::processPortEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<PortEvent*>& events)
-{
-    if (show_in_charts_) {
-        if (events.isEmpty()) {
-            toastNotification("No port events received for selection", "plug");
-        } else {
-            emit showChartsPanel();
-            timelineChartView().addPortEvents(exp_run, events);
-        }
-    }
-}
-
-
-/**
- * @brief ExperimentDataManager::processNetworkUtilisationEvents
- * @param exp_run
- * @param events
- */
-void ExperimentDataManager::processNetworkUtilisationEvents(const AggServerResponse::ExperimentRun& exp_run, const QVector<NetworkUtilisationEvent*>& events)
-{
-    if (show_in_charts_) {
-        if (events.isEmpty()) {
-            toastNotification("No network utilisation events received for selection", "waveEmit");
-        } else {
-            emit showChartsPanel();
-            timelineChartView().addNetworkUtilisationEvents(exp_run, events);
-        }
-    }
-}
-
-
-/**
  * @brief ExperimentDataManager::constructExperimentData
  * @param experiment_name
  * @return
  */
-MEDEA::ExperimentData* ExperimentDataManager::constructExperimentData(const QString& experiment_name)
+ExperimentData* ExperimentDataManager::constructExperimentData(const QString& experiment_name)
 {
-    auto exp_data = new MEDEA::ExperimentData(experiment_name);
+    auto exp_data = new ExperimentData(experiment_name);
     experiment_data_hash_.insert(experiment_name, exp_data);
-    connect(exp_data, &MEDEA::ExperimentData::requestData, [this, exp_data] (quint32 exp_run_id) {
-        requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, exp_data);
-    });
+    connect(exp_data, &ExperimentData::dataUpdated, this, &ExperimentDataManager::experimentRunDataUpdated);
     return exp_data;
 }
 
 /**
  * @brief ExperimentDataManager::getExperimentData
+ * @param exp_name
+ * @return
+ */
+ExperimentData* ExperimentDataManager::getExperimentData(const QString& exp_name) const
+{
+    return experiment_data_hash_.value(exp_name, nullptr);
+}
+
+/**
+ * @brief ExperimentDataManager::getExperimentRunData
+ * @param exp_name
  * @param exp_run_id
  * @return
  */
-MEDEA::ExperimentData* ExperimentDataManager::getExperimentData(quint32 exp_run_id) const
+ExperimentRunData& ExperimentDataManager::getExperimentRunData(const QString& exp_name, quint32 exp_run_id) const
 {
-    auto&& exp_name = exp_run_names_.value(exp_run_id, "");
-    return experiment_data_hash_.value(exp_name, nullptr);
+    auto exp_data = getExperimentData(exp_name);
+    if (exp_data) {
+        return exp_data->getExperimentRun(exp_run_id);
+    }
+    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - The is no ExperimentData named " + exp_name.toStdString());
 }
 
 /**
@@ -692,19 +466,6 @@ MEDEA::ExperimentData* ExperimentDataManager::getExperimentData(quint32 exp_run_
 void ExperimentDataManager::toastNotification(const QString &description, const QString &iconName, Notification::Severity severity)
 {
     NotificationManager::manager()->AddNotification(description, "Icons", iconName, severity, Notification::Type::APPLICATION, Notification::Category::NONE);
-}
-
-/**
- * @brief ExperimentDataManager::getItemLabel
- * @param item
- * @return
- */
-QString ExperimentDataManager::getItemLabel(const ViewItem *item) const
-{
-    if (item) {
-        return item->getData(KeyName::Label).toString();
-    }
-    return "";
 }
 
 /**
@@ -769,26 +530,34 @@ void ExperimentDataManager::stopTimerLoop(quint32 exp_run_id)
 /**
  * @brief ExperimentDataManager::timerEvent
  * @param event
+ * @throws std::invalid_argument
  */
 void ExperimentDataManager::timerEvent(QTimerEvent* event)
 {
     Q_UNUSED(event);
 
+    // TODO: Need to discuss what we want happening in the charts when a live experiment(s) is being visualised
+    //  Unlike Pulse, Charts can display data from multiple experiment runs from different experiments at one time
+    //  Previously, the timer was only used for Pulse and was stopped the moment a finished experiment is selected
+
     if (live_exp_run_id_ != invalid_experiment_id) {
-        auto exp_run_id = static_cast<quint32>(live_exp_run_id_);
-        const auto& exp_data = getExperimentData(exp_run_id);
-        if (exp_data) {
-            const auto& exp_run_data = exp_data->getExperimentRun(exp_run_id);
+        const auto exp_run_id = static_cast<quint32>(live_exp_run_id_);
+        try {
+            auto& exp_run_data = getExperimentRunData(live_exp_name_, exp_run_id);
             // When the experiment run has an end-time, kill its timer
             if (exp_run_data.end_time() != 0) {
                 stopTimerLoop(exp_run_id);
+                live_exp_run_id_ = invalid_experiment_id;
             } else {
-                requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, exp_data);
+                requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, &exp_run_data);
             }
-        } else {
-            throw std::invalid_argument("ExperimentDataManager::timerEvent - There is no experiment data for the current experiment run");
+        } catch (const std::exception& ex) {
+            throw std::invalid_argument(ex.what());
         }
     }
+
+    const auto& timer_id = event->timerId();
+
 
     // TODO: Use the code below when we allow multiple Pulse windows
     // Request the displayed experiment run(s)' state every tick interval
@@ -813,7 +582,8 @@ void ExperimentDataManager::timerEvent(QTimerEvent* event)
  */
 void ExperimentDataManager::showChartInputPopup()
 {
-    // NOTE: All experiments are requested to fill the context menu's model all the time, the filtering based on input happens in the ChartInputPopup
+    // NOTE: All experiments are requested to fill the context menu's model all the time
+    //  The filtering based on input happens in the ChartInputPopup
     requestExperimentData(ExperimentDataRequestType::ExperimentRun, "");
     chartPopup_.setPopupVisible(true);
 }
@@ -823,7 +593,7 @@ void ExperimentDataManager::showChartInputPopup()
  * @param selectedItems
  * @param selectedDataKinds
  */
-void ExperimentDataManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &selectedItems, const QList<MEDEA::ChartDataKind> &selectedDataKinds)
+void ExperimentDataManager::filterRequestsBySelectedEntities(const QVector<ViewItem*> &selectedItems, const QList<ChartDataKind> &selectedDataKinds)
 {
     selectedViewItems_ = selectedItems;
     selectedDataKinds_ = selectedDataKinds;
@@ -892,8 +662,8 @@ void ExperimentDataManager::clear()
     }
 
     experiment_data_hash_.clear();
-    exp_run_names_.clear();
     exp_run_timers_.clear();
+    live_exp_name_.clear();
     live_exp_run_id_ = invalid_experiment_id;
 }
 
@@ -912,15 +682,19 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
         show_in_charts_ = charts;
         show_in_pulse_ = pulse;
 
+        // NOTE: We no longer want to stop it in case the charts are still displaying the live experiment
+        // TODO: Refactor timer work
         // Stop the previous timer if there is one
         stopTimerLoop(static_cast<quint32>(live_exp_run_id_));
         selectedExperimentRun_ = experimentRun;
 
         auto expRunID = static_cast<quint32>(experimentRun.experiment_run_id);
         if (experimentRun.end_time == 0) {
+            live_exp_name_ = experimentRun.experiment_name;
             live_exp_run_id_ = experimentRun.experiment_run_id;
             startTimerLoop(expRunID);
         } else {
+            live_exp_name_.clear();
             live_exp_run_id_ = invalid_experiment_id;
         }
 
@@ -929,122 +703,101 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
 }
 
 /**
- * @brief ExperimentDataManager::setupRequestsForExperimentRun
- * @param experimentRunID
+ * @brief ExperimentDataManager::experimentRunDataUpdated
+ * @param exp_run_id
+ * @param last_updated_time
  */
-void ExperimentDataManager::setupRequestsForExperimentRun(const quint32 experimentRunID)
+void ExperimentDataManager::experimentRunDataUpdated(quint32 exp_run_id, qint64 last_updated_time)
 {
-	if (selectedDataKinds_.isEmpty()) {
-		selectedDataKinds_ = MEDEA::Event::GetChartDataKinds();
-		selectedDataKinds_.removeAll(MEDEA::ChartDataKind::DATA);
-	}
+    // This will update the time range of the charts whenever the experiment run's last updated time has changed
+    // TODO (Ask Jackson): Do we want this to happen? Or should we require the user to re-request the charts?
+    timelineChartView().updateExperimentRunLastUpdatedTime(exp_run_id, last_updated_time);
+}
 
-	auto builder = RequestBuilder::build();
-	builder.buildRequests(selectedDataKinds_);
-	builder.setExperimentRunID(experimentRunID);
+/**
+ * @brief ExperimentDataManager::showDataForExperimentRun
+ * @param exp_run_data
+ */
+void ExperimentDataManager::showDataForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
+{
+    showChartsForExperimentRun(exp_run_data);
+    showPulseForExperimentRun(exp_run_data);
+}
 
-	if (!selectedViewItems_.isEmpty()) {
+/**
+ * @brief ExperimentDataManager::showChartsForExperimentRun
+ * @param exp_run_data
+ */
+void ExperimentDataManager::showChartsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
+{
+    if (!show_in_charts_) {
+        return;
+    }
 
-		QVector<QString> compNames;
-		QVector<QString> compInstPaths;
-		QVector<QString> portPaths;
-		QVector<QString> workerInstPaths;
-		QVector<QString> nodeHostnames;
+    // If there are no view items or data kinds to filter by, show all data kinds
+    if (selectedViewItems_.isEmpty() || selectedDataKinds_.isEmpty()) {
+        selectedDataKinds_ = Event::GetChartDataKinds();
+        selectedDataKinds_.removeAll(ChartDataKind::DATA);
+    }
 
-		for (auto item : selectedViewItems_) {
+    QList<QPointer<const EventSeries>> series_to_show;
 
-			if (!item || !item->isNode()) {
-				continue;
-			}
+    if (selectedDataKinds_.contains(ChartDataKind::PORT_LIFECYCLE)) {
+        series_to_show += exp_run_data.getPortLifecycleSeries();
+    }
+    if (selectedDataKinds_.contains(ChartDataKind::PORT_EVENT)) {
+        series_to_show += exp_run_data.getPortEventSeries();
+    }
+    if (selectedDataKinds_.contains(ChartDataKind::WORKLOAD)) {
+        series_to_show += exp_run_data.getWorkloadEventSeries();
+    }
+    if (selectedDataKinds_.contains(ChartDataKind::CPU_UTILISATION)) {
+        series_to_show += exp_run_data.getCPUUtilisationSeries();
+    }
+    if (selectedDataKinds_.contains(ChartDataKind::MEMORY_UTILISATION)) {
+        series_to_show += exp_run_data.getMemoryUtilisationSeries();
+    }
+    if (selectedDataKinds_.contains(ChartDataKind::NETWORK_UTILISATION)) {
+        series_to_show += exp_run_data.getNetworkUtilisationSeries();
+    }
 
-			auto nodeItem = qobject_cast<NodeViewItem*>(item);
-			auto label = getItemLabel(nodeItem);
+    for (const auto& series : series_to_show) {
+        showChartForSeries(series, exp_run_data);
+    }
 
-			switch (nodeItem->getNodeKind()) {
-				case NODE_KIND::COMPONENT:
-				case NODE_KIND::COMPONENT_IMPL:
-					// can send port/workload requests
-					compNames.append(label);
-					break;
-				case NODE_KIND::COMPONENT_INST:
-					// can send port/workload requests
-					compInstPaths.append(getItemLabel(nodeItem->getParentItem()) + ".%/" + label);
-					break;
-				case NODE_KIND::PORT_REPLIER_IMPL:
-				case NODE_KIND::PORT_REQUESTER_IMPL:
-				case NODE_KIND::PORT_PUBLISHER_IMPL:
-				case NODE_KIND::PORT_SUBSCRIBER_IMPL:
-				case NODE_KIND::PORT_REPLIER:
-				case NODE_KIND::PORT_REQUESTER:
-				case NODE_KIND::PORT_PUBLISHER:
-				case NODE_KIND::PORT_SUBSCRIBER:
-				case NODE_KIND::PORT_PERIODIC:
-					// can send port requests
-					if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
-						for (auto instItem : viewController_.getNodesInstances(item->getID())) {
-							if (instItem && instItem->getParentItem()) {
-								auto compInstItem = instItem->getParentItem();
-								portPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-							}
-						}
-					}
-					break;
-				case NODE_KIND::PORT_REPLIER_INST:
-				case NODE_KIND::PORT_REQUESTER_INST:
-				case NODE_KIND::PORT_PUBLISHER_INST:
-				case NODE_KIND::PORT_SUBSCRIBER_INST:
-				case NODE_KIND::PORT_PERIODIC_INST:
-					// can send port requests
-					if (selectedDataKinds_.contains(MEDEA::ChartDataKind::PORT_LIFECYCLE)) {
-						auto compInstItem = nodeItem->getParentItem();
-						if (compInstItem) {
-							portPaths.append(
-								getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" +
-								label);
-						}
-					}
-					break;
-				case NODE_KIND::CLASS_INST:
-					// can send workload requests
-					if (selectedDataKinds_.contains(MEDEA::ChartDataKind::WORKLOAD)) {
-						// a ClassInstance can be a child of either a CompImpl or CompInst
-						auto parentNodeKind = nodeItem->getParentNodeKind();
-						if (parentNodeKind == NODE_KIND::COMPONENT_IMPL) {
-							for (auto instItem : viewController_.getNodesInstances(item->getID())) {
-								if (instItem && instItem->getParentItem()) {
-									auto compInstItem = instItem->getParentItem();
-									workerInstPaths.append(getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) + "/" + label);
-								}
-							}
-						} else if (parentNodeKind == NODE_KIND::COMPONENT_INST) {
-							auto compInstItem = nodeItem->getParentItem();
-							if (compInstItem) {
-								workerInstPaths.append(
-									getItemLabel(compInstItem->getParentItem()) + ".%/" + getItemLabel(compInstItem) +
-									"/" + label);
-							}
-						}
-					}
-					break;
-				case NODE_KIND::HARDWARE_NODE:
-					// can send cpu/mem requests
-					nodeHostnames.append(label);
-					break;
-				default:
-					break;
-			}
-		}
+    // TODO: Finalise MarkerSetData and handle it here!
+    //  They can be added in ExperimentRunData, but they currently don't get added anywhere
+    //  They don't live anywhere in the proto message, you have to explicitly request them
 
-		builder.setComponentNames(compNames);
-		builder.setComponentInstancePaths(compInstPaths);
-		builder.setPortPaths(portPaths);
-		builder.setWorkerInstancePaths(workerInstPaths);
-		builder.setNodeHostnames(nodeHostnames);
-	}
+    selectedDataKinds_.clear();
+    selectedViewItems_.clear();
+}
 
-	requestEvents(builder);
-	selectedDataKinds_.clear();
-	selectedViewItems_.clear();
+/**
+ * @brief ExperimentDataManager::showChartForSeries
+ * @param series
+ * @param exp_run_data
+ */
+void ExperimentDataManager::showChartForSeries(const QPointer<const EventSeries>& series, const ExperimentRunData& exp_run_data)
+{
+    if (show_in_charts_) {
+        if (!series.isNull()) {
+            timelineChartView().addChart(series, exp_run_data);
+            emit showChartsPanel();
+        }
+    }
+}
+
+/**
+ * @brief ExperimentDataManager::showPulseForExperimentRun
+ * @param exp_run_data
+ */
+void ExperimentDataManager::showPulseForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
+{
+    if (show_in_pulse_) {
+        getDataflowDialog().constructGraphicsItemsForExperimentRun(exp_run_data);
+        emit showDataflowPanel();
+    }
 }
 
 /**

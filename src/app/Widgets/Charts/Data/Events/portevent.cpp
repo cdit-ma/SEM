@@ -15,10 +15,9 @@ PortEvent::PortEvent(const AggServerResponse::Port& port,
                      QString message,
                      qint64 time,
                      QObject* parent)
-    : MEDEA::Event(MEDEA::ChartDataKind::PORT_EVENT, time, port.name, parent),
+    : MEDEA::Event(MEDEA::ChartDataKind::PORT_EVENT, time, parent),
       type_(type),
       sequence_num_(sequence_num),
-      series_id_(port.graphml_id),
       id_(port.graphml_id + getTypeString(type) + QString::number(time)),
       message_(std::move(message)) {}
 
@@ -31,15 +30,6 @@ QString PortEvent::toString(const QString& dateTimeFormat) const
 {
     return getTypeString(type_) + " - " + getDateTimeString(dateTimeFormat) + "\n";
             //+ "Message: " + message_ + "\n";
-}
-
-/**
- * @brief PortEvent::getSeriesID
- * @return
- */
-const QString& PortEvent::getSeriesID() const
-{
-    return series_id_;
 }
 
 /**

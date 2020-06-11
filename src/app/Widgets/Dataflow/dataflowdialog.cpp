@@ -66,21 +66,15 @@ void DataflowDialog::playbackSpeedChanged(double multiplier)
 
 /**
  * @brief DataflowDialog::constructGraphicsItemsForExperimentRun
- * @param exp_name
  * @param exp_run_data
- * @throws std::invalid_argument
  */
-void DataflowDialog::constructGraphicsItemsForExperimentRun(const QString& exp_name, const MEDEA::ExperimentRunData& exp_run_data)
+void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
 {
-    if (exp_name.isEmpty()) {
-        throw std::invalid_argument("DataflowDialog::constructGraphicsItemsForExperimentRun - Experiment name cannot be empty.");
-    }
-
     // Clear previous states and items
     clear();
 
     // This sets the experiment info displays on the title bar of the panel
-    setExperimentInfo(exp_name, exp_run_data.experiment_run_id());
+    setExperimentInfo(exp_run_data.experiment_name(), exp_run_data.experiment_run_id());
     setPlaybackTimeRange(exp_run_data.start_time(), exp_run_data.end_time());
     playback_controls_.setControlsEnabled(true);
 

@@ -22,6 +22,10 @@ public:
     QList<PortInstanceData*> getPortInstanceData() const;
     QList<WorkerInstanceData*> getWorkerInstanceData() const;
 
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
+
     void updateData(const AggServerResponse::ComponentInstance& component_instance, qint64 new_last_updated_time);
 
 signals:

@@ -5,7 +5,6 @@
 #include "containerinstancedata.h"
 
 #include "Requests/utilisationrequest.h"
-
 #include "Events/cpuutilisationevent.h"
 #include "Events/memoryutilisationevent.h"
 #include "Events/networkutilisationevent.h"
@@ -25,18 +24,22 @@ public:
 
     QList<ContainerInstanceData*> getContainerInstanceData() const;
 
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
+
     const UtilisationRequest& getCPUUtilisationRequest() const;
     const UtilisationRequest& getMemoryUtilisationRequest() const;
     const UtilisationRequest& getNetworkUtilisationRequest() const;
 
     void addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events);
-    const CPUUtilisationEventSeries& getCPUUtilisationSeries() const;
+    QPointer<const MEDEA::EventSeries> getCPUUtilisationSeries() const;
 
     void addMemoryUtilisationEvents(const QVector<MemoryUtilisationEvent*>& events);
-    const MemoryUtilisationEventSeries& getMemoryUtilisationSeries() const;
+    QPointer<const MEDEA::EventSeries> getMemoryUtilisationSeries() const;
 
     void addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent*>& events);
-    NetworkUtilisationEventSeries* getNetworkUtilisationSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries() const;
 
     void updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time);
 
@@ -45,6 +48,9 @@ signals:
 
 private:
     void addContainerInstanceData(const AggServerResponse::Container& container);
+
+    void setupRequests();
+    void setupSeries(const QVector<AggServerResponse::NetworkInterface>& interfaces);
 
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
@@ -60,7 +66,7 @@ private:
 
     CPUUtilisationEventSeries* cpu_utilisation_series_ = nullptr;
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;
-    NetworkUtilisationEventSeries* network_utilisation_series_ = nullptr;
+    QHash<QString, NetworkUtilisationEventSeries*> network_utilisation_series_;
 };
 
 #endif // NODEDATA_H

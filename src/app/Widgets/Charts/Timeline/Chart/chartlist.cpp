@@ -132,6 +132,7 @@ bool ChartList::isPanning() const
 void ChartList::themeChanged()
 {
 	Theme* theme = Theme::theme();
+    ellipseColor_ = theme->getTextColor(ColorRole::SELECTED);
 	highlightColor_ = theme->getHighlightColor();
 
 	backgroundColor_ = theme->getAltBackgroundColor();
@@ -150,15 +151,21 @@ void ChartList::themeChanged()
  */
 void ChartList::setChartHovered(Chart* chart, bool hovered)
 {
-	if (chart) {
-		// the signal below is used to tell the TimelineChartView which chart was hovered on/off
-		// it sets the corresponding ChartLabel's hovered state
-		emit chartHovered(chart, hovered);
-		chart->setHovered(hovered);
-	}
-	hovered_ = hovered;
-	update();
+    if (chart) {
+        // the signal below is used to tell the TimelineChartView which chart was hovered on/off
+        // it sets the corresponding ChartLabel's hovered state
+        emit chartHovered(chart, hovered);
+        chart->setHovered(hovered);
+    }
+    update();
 }
+
+void ChartList::clearHovered()
+{
+    hovered_ = false;
+    update();
+}
+
 
 /**
  * @brief ChartList::eventFilter
@@ -207,8 +214,8 @@ void ChartList::mouseReleaseEvent(QMouseEvent* event)
 		emit rubberbandUsed(rubberBandRect_.left(), rubberBandRect_.right());
 	}
 
-	// NOTE: This is only here to demo that the hover axis display's position can be set manually
-	//emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
+    // NOTE: This demos that the hover axis display's position can be set manually
+    //emit hoverLineUpdated(hoverRect.isValid(), QPointF(0, 0));
 
 	emit panning(false);
 	clearDragMode();
@@ -337,32 +344,25 @@ void ChartList::paintEvent(QPaintEvent *event)
  */
 void ChartList::hoverRectUpdated(bool repaintRequired)
 {
-	if (hoverLineRect_.isNull()) {
-		for (Chart* chart : charts_) {
-			chart->setHoveredRect(hoverLineRect_);
-		}
-	} else {
-		for (Chart* chart : charts_) {
-			if (!chart->isVisible()) {
-				continue;
-			}
-			QRect childRect(chart->x(), chart->y(), chart->width(), chart->height());
-			if (visibleRegion().contains(childRect)) {
-				chart->setHoveredRect(hoverLineRect_);
-			}
-		}
-	}
+    for (auto chart : charts_) {
+        if (chart->isVisible()) {
+            if (visibleRegion().intersects(chart->geometry())) {
+                chart->setHoveredRect(hoverLineRect_);
+            }
+        }
+    }
 
-	if (repaintRequired) {
-		// this repaint is required instead of an update whenever there's a moveEvent
-		// the hovered series ranges are being calculated in the children charts' paint event
-		// and it needs to happen before the signal below is sent to the timeline view
-		repaint();
-	} else {
-		update();
-	}
+    if (repaintRequired) {
+        // NOTE: This repaint is required instead of an update whenever there's a moveEvent
+        //  The hoveredSeriesTimeRange_ is populated in the children charts' paintEvent and needs to happen before the signal below is sent
+        //  The slot connected to the signal in the TimelineChartView is what updates the hover display
+        repaint();
+    } else {
+        update();
+    }
 
-	emit hoverLineUpdated(hoverLineRect_.isValid(), mapToGlobal(hoverLineRect_.center().toPoint()));
+    // Send a signal to the AxisWidget and the TimelineChartVIew notifying them of the change in hover line
+    emit hoverLineUpdated(hoverLineRect_.isValid(), mapToGlobal(hoverLineRect_.center().toPoint()));
 }
 
 /**

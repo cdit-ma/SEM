@@ -13,9 +13,9 @@ MarkerEvent::MarkerEvent(const QString& markerName,
                          const AggServerResponse::ComponentInstance& inst,
                          qint64 time,
                          QObject* parent)
-    : MEDEA::Event(MEDEA::ChartDataKind::MARKER, time, markerName, parent),
-      series_id_(inst.graphml_id + markerName),
-      id_(series_id_ + QString::number(time)),
+    : MEDEA::Event(MEDEA::ChartDataKind::MARKER, time, parent),
+      marker_name_(markerName),
+      id_(inst.graphml_id + markerName + QString::number(time)),
       markerID_(markerID) {}
 
 /**
@@ -25,18 +25,9 @@ MarkerEvent::MarkerEvent(const QString& markerName,
  */
 QString MarkerEvent::toString(const QString& dateTimeFormat) const
 {
-	return "Marker Name: " + getSeriesName() + "\n" +
+	return "Marker Name: " + marker_name_ + "\n" +
 		   "ID: " + QString::number(markerID_) + "\n" +
 		   "At: " + getDateTimeString(dateTimeFormat) + "\n\n";
-}
-
-/**
- * @brief MarkerEvent::getSeriesID
- * @return
- */
-const QString& MarkerEvent::getSeriesID() const
-{
-    return series_id_;
 }
 
 /**
