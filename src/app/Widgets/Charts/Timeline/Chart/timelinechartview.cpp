@@ -214,7 +214,6 @@ void TimelineChartView::setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format)
 	timelineAxis_->setDisplayFormat(format);
 	timeDisplayFormat_ = format;
 
-    // PART OF REFACTOR - TEST THIS!
     updateTimelineRange(false);
 }
 
