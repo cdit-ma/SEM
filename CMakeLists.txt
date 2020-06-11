@@ -62,6 +62,15 @@ endif ()
 # Configure cmakevars.h to have correct string replaced vars
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/cmakevars.h @ONLY)
 
+if (BUILD_TEST)
+    set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
+    set(GOOGLE_MOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googlemock)
+
+    # Only add googlemock as googlemock builds googletest.
+    # Adding googletest subdirectory leads to multiple definition error
+    add_subdirectory(${GOOGLE_MOCK_DIR})
+endif (BUILD_TEST)
+
 # Build re_common
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
@@ -80,14 +89,7 @@ endif ()
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/DockerClient")
 
 if (BUILD_TEST)
-    message(STATUS "Building re tests")
-    set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
-    set(GOOGLE_MOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googlemock)
-
-    # Only add googlemock as googlemock builds googletest.
-    # Adding googletest subdirectory leads to multiple definition error
-    add_subdirectory(${GOOGLE_MOCK_DIR})
-
     #Build tests
+    message(STATUS "Building re tests")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif (BUILD_TEST)

@@ -8,9 +8,12 @@ namespace re::types::proto {
 namespace proto = google::protobuf;
 using Timestamp = google::protobuf::Timestamp;
 
-/// Convert a protobuf timestamp list to an unbounded timerange
-/// \param timerange
-/// \return
+/**
+ * Convert a protobuf timestamp list to an unbounded timerange
+ * @param timerange A protobuf array of timestamps, should not contain any more than 2 timestamps as this has no meaning
+ * @return The representative UnboundedTimeRange
+ * @throws std::invalid_argument - If the provided array contains more than 2 elements
+ */
 static UnboundedTimeRange<time_point>
 FromProto(const google::protobuf::RepeatedPtrField<Timestamp>& timerange)
 {
@@ -24,29 +27,26 @@ FromProto(const google::protobuf::RepeatedPtrField<Timestamp>& timerange)
     std::optional<time_point> start_time, end_time;
     if(timerange.size() >= 1) {
         start_time.emplace(clock::from_time_t(proto::util::TimeUtil::TimestampToTimeT(timerange[0])));
-        //start_time = clock::from_time_t(proto_time::TimestampToTimeT(*start));
     }
 
     if(timerange.size() == 2) {
         end_time.emplace(clock::from_time_t(proto::util::TimeUtil::TimestampToTimeT(timerange[1])));
-        //end_time = clock::from_time_t(proto_time::TimestampToTimeT(*end));
     }
 
     return UnboundedTimeRange<time_point >(start_time, end_time);
 }
 
+/**
+ * Convert a protobuf Timestamp to a string representation
+ * @param timestamp The protobuf Timestamp
+ * @return the string representation
+ */
 static inline auto to_string(const Timestamp& timestamp) -> std::string
 {
     using proto_tu = google::protobuf::util::TimeUtil;
 
     return proto_tu::ToString(timestamp);
 }
-
-/*static inline auto ToStdUnboundedTimeRange(const UnboundedTimeRange<Timestamp>& proto_timerange)
-    -> UnboundedTimeRange<time_point>
-{
-    return UnboundedTimeRange<time_point>(proto_timerange.Start(), proto_timerange.End());
-}*/
 
 } // namespace re::types::proto
 
