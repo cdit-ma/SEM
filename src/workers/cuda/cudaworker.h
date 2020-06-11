@@ -54,4 +54,7 @@ private:
 } // namespace workers
 } // namespace cditma
 
+// Expose CUDAWorker to MEDEA without namespacing
+using CUDAWorker = cditma::workers::CUDAWorker;
+
 #endif // RE_CUDAWORKER_H

@@ -14,7 +14,7 @@ set_target_properties(cuda_worker_test
 
 target_link_libraries(cuda_worker_test
         PUBLIC
-            cuda_worker
+            cudaworker
             re_loggers
             gtest
             gtest_main)

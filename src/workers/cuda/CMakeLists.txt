@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(cuda_worker
+project(cudaworker
         VERSION
             ${PROJECT_VERSION}
         LANGUAGES
