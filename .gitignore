@@ -7,7 +7,7 @@
 
 # IDE config dirs
 /.vscode/
-/.idea/
+**/.idea/
 
 # Scripts and other artifacts
 .DS_Store
@@ -22,6 +22,7 @@ CMakeSettings.json.bak
 *.lo
 *.o
 *.obj
+*.py[cod]
 
 # Precompiled Headers
 *.gch
@@ -52,6 +53,7 @@ cmake_install.cmake
 #Cached
 .DS_Store
 .vscode
+/__pycache__/
 
 #Protobuf
 *.pb.*
