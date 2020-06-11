@@ -163,10 +163,8 @@ void SystemEventProtoHandler::ProcessInfoEvent(const SystemEvent::InfoEvent& inf
 
     const std::string& cpu_model = info.cpu_model();
     const std::string& cpu_vendor = info.cpu_vendor();
-    // const std::string& cpu_frequency = database_->quote(info.cpu_frequency_hz());
     const std::string& cpu_frequency = std::to_string(info.cpu_frequency_hz());
 
-    // const std::string& physical_memory = database_->quote(info.physical_memory_kilobytes());
     const std::string& physical_memory = std::to_string(info.physical_memory_kilobytes());
 
     int system_id = database_->InsertValuesUnique(

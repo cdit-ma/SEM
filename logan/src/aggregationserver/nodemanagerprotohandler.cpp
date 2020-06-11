@@ -15,7 +15,9 @@
 
 #include <zmq/zmqutils.hpp>
 
-using google::protobuf::util::TimeUtil;void NodeManagerProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver)
+using google::protobuf::util::TimeUtil;
+
+void NodeManagerProtoHandler::BindCallbacks(zmq::ProtoReceiver& receiver)
 {
     receiver.RegisterProtoCallback<NodeManager::EnvironmentMessage>(std::bind(
         &NodeManagerProtoHandler::ProcessEnvironmentMessage, this, std::placeholders::_1));

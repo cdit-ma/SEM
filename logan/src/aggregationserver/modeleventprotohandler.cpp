@@ -50,7 +50,7 @@ void ModelEventProtoHandler::ProcessWorkloadEvent(const ModelEvent::WorkloadEven
     std::string worker_instance_id = database_->quote(
         GetWorkerInstanceID(message.component(), message.worker()));
     std::string function = database_->quote(message.function_name());
-     std::string workload_id = database_->quote(message.workload_id());
+    std::string workload_id = database_->quote(message.workload_id());
     std::string type = database_->quote(ModelEvent::WorkloadEvent::Type_Name(message.event_type()));
     std::string args = database_->quote(message.args());
     std::string log_level = database_->quote(message.log_level());
