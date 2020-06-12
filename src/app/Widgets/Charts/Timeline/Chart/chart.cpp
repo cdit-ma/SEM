@@ -692,6 +692,9 @@ void Chart::paintUtilisationSeries(QPainter& painter,
     // Put the event in the correct bin
     while (first_contributing_event != events.constEnd()) {
         const auto& event = (*first_contributing_event);
+        if (event == nullptr) {
+            continue;
+        }
         const auto& event_time = event->getTimeMS();
         while (current_bin_itr != end_bin_itr) {
             const auto& bin_end_time = *current_bin_itr;

@@ -269,11 +269,11 @@ void NodeData::setupSeries(const QVector<AggServerResponse::NetworkInterface>& i
     memory_utilisation_series_->setLabel(label);
     memory_utilisation_series_->setParent(this);
 
-    for (const auto& interface : interfaces) {
-        const auto& mac_addr = interface.mac_address;
+    for (const auto& network_interface : interfaces) {
+        const auto& mac_addr = network_interface.mac_address;
         auto&& series_id = hostname_ + mac_addr;
         auto series = new NetworkUtilisationEventSeries(series_id + exp_run_id_str);
-        series->setLabel(label + "_" + interface.name);
+        series->setLabel(label + "_" + network_interface.name);
         series->setParent(this);
         network_utilisation_series_.insert(mac_addr, series);
     }
