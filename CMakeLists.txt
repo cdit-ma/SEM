@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 
 project(MEDEA_PROJECT
-        VERSION 3.4.1
+        VERSION 3.4.2
         LANGUAGES CXX)
 
 #Set CMake Options

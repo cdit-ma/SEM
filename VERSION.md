@@ -1,5 +1,9 @@
-# MEDEA v3.4.1
-## New Features:
+# MEDEA v3.4.2
+
+## Miscellaneous
+* Bug fixes and prep work for moving to the new SEM monorepo
+
+## New Features (from v3.4.1):
 * Implemented basic Trigger/Strategy paradigm for allowing experiments to respond to hardware events.
     * Added a Trigger Browser widget for the construction of the Triggers
     * Added a the following new entities:
