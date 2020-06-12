@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(re_top_level_project)
 
 project("re"
-        VERSION 3.4.0
+        VERSION 3.4.2
         LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
