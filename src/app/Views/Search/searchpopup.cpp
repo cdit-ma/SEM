@@ -3,10 +3,16 @@
 #include "../../Controllers/SearchManager/searchmanager.h"
 
 #include <QStyledItemDelegate>
+#include <QScrollBar>
 
-SearchPopup::SearchPopup():PopupWidget(PopupWidget::TYPE::POPUP, 0) {
+/**
+ * @brief SearchPopup::SearchPopup
+ */
+SearchPopup::SearchPopup()
+        : PopupWidget(PopupWidget::TYPE::POPUP, nullptr)
+{
     setupLayout();
-    
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &SearchPopup::themeChanged);
     themeChanged();
 
@@ -15,44 +21,57 @@ SearchPopup::SearchPopup():PopupWidget(PopupWidget::TYPE::POPUP, 0) {
     hide();
 }
 
-
-void SearchPopup::takeFocus(){
+/**
+ * @brief SearchPopup::takeFocus
+ */
+void SearchPopup::takeFocus()
+{
     search_bar->setFocus();
     search_bar->selectAll();
 }
 
-void SearchPopup::themeChanged(){
+/**
+ * @brief SearchPopup::themeChanged
+ */
+void SearchPopup::themeChanged()
+{
     auto theme = Theme::theme();
-    //setStyleSheet("QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
+    toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ spacing: 5px; }");
+    toolbar->setIconSize(theme->getLargeIconSize() * 0.75);
 
-    toolbar->setStyleSheet(theme->getToolBarStyleSheet());
-    
-    search_bar->setStyleSheet(theme->getLineEditStyleSheet());
     search_action->setIcon(theme->getIcon("Icons", "zoom"));
-    search_completer->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
+    search_bar->setStyleSheet(theme->getLineEditStyleSheet() + "QLineEdit{ padding: 3px; }");
 
-    toolbar->setIconSize(theme->getIconSize());
+    search_completer->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
+    search_completer->popup()->verticalScrollBar()->setStyleSheet(theme->getScrollBarStyleSheet());
 }
 
-void SearchPopup::SearchRequested(){
+/**
+ * @brief SearchPopup::SearchRequested
+ */
+void SearchPopup::SearchRequested()
+{
     auto search_query = search_bar->text();
     SearchManager::manager()->Search(search_query);
     hide();
 }
 
-void SearchPopup::updateSearchSuggestions(QStringList suggestions){
+/**
+ * @brief SearchPopup::updateSearchSuggestions
+ * @param suggestions
+ */
+void SearchPopup::updateSearchSuggestions(const QStringList& suggestions)
+{
     search_model->setStringList(suggestions);
 }
 
-void SearchPopup::setupLayout(){
-    toolbar = new QToolBar(this);
-    toolbar->setMovable(false);
-    toolbar->setFloatable(false);
-    toolbar->setFixedWidth(300);
-    toolbar->setStyleSheet("QToolBar{padding:2px;}");
-
+/**
+ * @brief SearchPopup::setupLayout
+ */
+void SearchPopup::setupLayout()
+{
     search_model = new QStringListModel(this);
-    
+
     search_completer = new QCompleter(this);
     search_completer->setModel(search_model);
     search_completer->setFilterMode(Qt::MatchContains);
@@ -60,15 +79,23 @@ void SearchPopup::setupLayout(){
     search_completer->popup()->setItemDelegate(new QStyledItemDelegate(this));
     search_completer->popup()->setFont(QFont(font().family(), 10));
 
-    
     search_bar = new QLineEdit(this);
-    search_bar->setFont(QFont(font().family(), 13));
-    search_bar->setPlaceholderText("Search MEDEA");
+    search_bar->setFont(QFont(font().family(), 13, QFont::ExtraLight));
+    search_bar->setPlaceholderText("Search...");
     search_bar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     search_bar->setCompleter(search_completer);
     search_bar->setAttribute(Qt::WA_MacShowFocusRect, false);
-    
+
+    toolbar = new QToolBar(this);
+    toolbar->setMovable(false);
+    toolbar->setFloatable(false);
+    toolbar->setFixedWidth(450);
     toolbar->addWidget(search_bar);
+
     search_action = toolbar->addAction("Submit Search");
+
+    int buttonSize = search_bar->height() + 10;
+    toolbar->widgetForAction(search_action)->setFixedSize(buttonSize, buttonSize);
+
     setWidget(toolbar);
 }

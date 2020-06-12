@@ -4,46 +4,45 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QAction>
-#include <QPixmap>
+
 class DockTitleBar : public QToolBar
 {
     Q_OBJECT
+
 public:
     enum DOCK_ACTION{DA_CLOSE, DA_MAXIMIZE, DA_POPOUT, DA_PROTECT, DA_HIDE, DA_ICON};
 
-    explicit DockTitleBar(QWidget *parent=0);
-    ~DockTitleBar();
+    explicit DockTitleBar(QWidget* parent = nullptr);
 
     void setActive(bool active);
-    QList<QAction*> getToolActions();
+    void setIcon(const QString& iconPath, const QString& iconName);
 
-    void setIcon(QString iconPath, QString iconName);
-    //QPixmap getIcon();
-    void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
-    QString getTitle();
     QAction* getAction(DOCK_ACTION action);
+    QList<QAction*> getToolActions() const ;
+    void addToolAction(QAction* action, const QString& iconPath, const QString& iconName, Qt::Alignment alignment = Qt::AlignRight);
+
+    void setTitle(const QString& title, Qt::Alignment alignment = Qt::AlignCenter);
+    QString getTitle() const;
 
 private slots:
     void themeChanged();
     void updateActiveStyle();
+
 private:
-    void updateIcon(QAction* action, QString iconPath, QString iconName);
-    void updateIcon(QLabel* action, QString iconPath, QString iconName);
+    void updateIcon(QAction* action, const QString& iconPath, const QString& iconName);
     void setupToolBar();
-    bool isActive();
 
-private:
-    QLabel* titleLabel;
-    
-    bool _isActive;
+    QLabel* titleLabel = nullptr;
 
-    QList<QAction*> actions;
-    QPair<QString, QString> icon_path;
-    QAction* closeAction;
-    QAction* maximizeAction;
-    QAction* popOutAction;
-    QAction* protectAction;
-    QAction* hideAction;
-    QAction* iconAction;
+    QAction* closeAction = nullptr;
+    QAction* maximizeAction = nullptr;
+    QAction* popOutAction = nullptr;
+    QAction* protectAction = nullptr;
+    QAction* hideAction = nullptr;
+    QAction* iconAction = nullptr;
+
+    QList<QAction*> toolActions;
+    bool _isActive = false;
 };
+
 #endif // DOCKTITLEBAR_H

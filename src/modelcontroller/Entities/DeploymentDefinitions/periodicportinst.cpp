@@ -8,9 +8,8 @@ const QString kind_string = "Periodic Port Instance";
 void PeriodicPortInst::RegisterWithEntityFactory(EntityFactoryRegistryBroker& broker){
     broker.RegisterWithEntityFactory(node_kind, kind_string, [](EntityFactoryBroker& broker, bool is_temp_node){
         return new PeriodicPortInst(broker, is_temp_node);
-        });
+    });
 }
-#include <QDebug>
 
 PeriodicPortInst::PeriodicPortInst(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind, is_temp){
     //Setup State
@@ -22,13 +21,13 @@ PeriodicPortInst::PeriodicPortInst(EntityFactoryBroker& broker, bool is_temp) : 
         return;
     }
     
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::UNPROTECTED, 1);
-    broker.AttachData(this, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::UNPROTECTED, 0);
+    broker.AttachData(this, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 2);
 
     auto frequency = broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE_INST);
-    broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
-    broker.AttachData(frequency, "value", QVariant::String, ProtectedState::UNPROTECTED, 1);
+    broker.AttachData(frequency, KeyName::Type, QVariant::String, ProtectedState::PROTECTED, "Double");
+    broker.AttachData(frequency, KeyName::Value, QVariant::String, ProtectedState::UNPROTECTED, 1);
 }
 
 bool PeriodicPortInst::canAdoptChild(Node* child)

@@ -171,13 +171,21 @@
 #include "Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h"
 #include "Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h"
 
+// Triggers
+#include "Entities/TriggerDefinitions/triggerdefinitions.h"
+#include "Entities/TriggerDefinitions/trigger.h"
+#include "Entities/DeploymentDefinitions/triggerinst.h"
+#include "Entities/DeploymentDefinitions/strategyinst.h"
+
 //Edges
 #include "Entities/Edges/aggregateedge.h"
 #include "Entities/Edges/assemblyedge.h"
 #include "Entities/Edges/dataedge.h"
 #include "Entities/Edges/definitionedge.h"
 #include "Entities/Edges/deploymentedge.h"
+#include "Entities/Edges/triggeredge.h"
 #include "Entities/Edges/qosedge.h"
+
 #include "Entities/DeploymentDefinitions/deploymentcontainer.h"
 
 EntityFactory* EntityFactory::global_factory = 0;
@@ -240,7 +248,8 @@ QList<VIEW_ASPECT> EntityFactory::getViewAspects(){
         VIEW_ASPECT::BEHAVIOUR,
         VIEW_ASPECT::ASSEMBLIES,
         VIEW_ASPECT::HARDWARE,
-        VIEW_ASPECT::WORKERS
+        VIEW_ASPECT::WORKERS,
+        VIEW_ASPECT::TRIGGERS
     };
 }
 
@@ -256,6 +265,8 @@ NODE_KIND EntityFactory::getViewAspectKind(VIEW_ASPECT aspect){
             return NODE_KIND::HARDWARE_DEFINITIONS;
         case VIEW_ASPECT::WORKERS:
             return NODE_KIND::WORKER_DEFINITIONS;
+        case VIEW_ASPECT::TRIGGERS:
+            return NODE_KIND::TRIGGER_DEFINITIONS;
         default:
             return NODE_KIND::NONE;
     }
@@ -506,6 +517,12 @@ entity_lock_(QReadWriteLock::Recursive)
 
 
     VoidType::RegisterWithEntityFactory(registry_broker);
+    
+    // Triggers
+    TriggerDefinitions::RegisterWithEntityFactory(registry_broker);
+    Trigger::RegisterWithEntityFactory(registry_broker);
+    TriggerInst::RegisterWithEntityFactory(registry_broker);
+    StrategyInst::RegisterWithEntityFactory(registry_broker);
 
     //Edges
     DefinitionEdge::RegisterWithEntityFactory(registry_broker);
@@ -514,6 +531,7 @@ entity_lock_(QReadWriteLock::Recursive)
     DataEdge::RegisterWithEntityFactory(registry_broker);
     DeploymentEdge::RegisterWithEntityFactory(registry_broker);
     QosEdge::RegisterWithEntityFactory(registry_broker);
+    TriggerEdge::RegisterWithEntityFactory(registry_broker);
 }
 
 EntityFactory::~EntityFactory()
@@ -875,7 +893,7 @@ bool EntityFactory::RegisterEntity(GraphML* graphml, int id){
         case GRAPHML_KIND::EDGE:{
             auto entity = (Entity*) graphml;
 
-            auto uuid_data = entity->getData("uuid");
+            auto uuid_data = entity->getData(KeyName::UUID);
             if(uuid_data){
                 uuid_data->revalidateData();
             }

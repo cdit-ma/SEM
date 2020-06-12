@@ -12,46 +12,55 @@ class NotificationObject;
 class NotificationItem : public QFrame
 {
     Q_OBJECT
+    
 public:
-    explicit NotificationItem(QSharedPointer<NotificationObject> obj, QWidget* parent = 0);
-    ~NotificationItem();
+    explicit NotificationItem(QSharedPointer<NotificationObject> obj, QWidget* parent = nullptr);
 
     int getID();
     int getEntityID();
-    void setSelected(bool select);
+
+    bool isSelected();
+    void setSelected(bool selected);
+
 signals:
-    void highlightEntity(int entityID, bool highlight);
-    void itemClicked(NotificationItem* item);
+    void notificationItemClicked(NotificationItem* item);
+    void flashEntityItem(int ID);
+    void centerEntityItem(int ID);
+    void selectAndCenterEntityItem(int ID);
+
 private slots:
     void themeChanged();
     void descriptionChanged();
     void titleChanged();
-    void updateIcon();
     void timeChanged();
+
+    void updateIcon();
+    void updateActionDeleteEnabled();
+
 protected:
-    void mouseReleaseEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
+    void toggleSelected();
     void setupDescriptionLayout();
     void setupLayout();
     void updateStyleSheet();
-    void updateVisibility(bool filterMatched);
 
     QSharedPointer<NotificationObject> notification;
 
-    QLabel* label_icon = 0;
-    QLabel* label_text = 0;
-    QLabel* label_time = 0;
-    QAction* action_delete = 0;
-    QToolBar* toolbar = 0;
-    //QToolButton* button_expand = 0;
-    //QAction* action_expand = 0;
-    QLabel* label_description = 0;
+    QLabel* label_icon = nullptr;
+    QLabel* label_text = nullptr;
+    QLabel* label_time = nullptr;
+    QLabel* label_description = nullptr;
+
+    QAction* action_delete = nullptr;
+    QToolBar* toolbar = nullptr;
     
-
-    QString backgroundColor;
-    bool selected = false;
+    QString backgroundColor_;
+    
+    bool selected_ = false;
+    bool doubleClicked_ = false;
 };
-
 
 #endif // NOTIFICATIONITEM_H

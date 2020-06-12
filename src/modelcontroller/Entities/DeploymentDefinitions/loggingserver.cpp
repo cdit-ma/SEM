@@ -23,5 +23,5 @@ LoggingServer::LoggingServer(EntityFactoryBroker& broker, bool is_temp) : Node(b
         return;
     }
     
-    broker.AttachData(this, "database", QVariant::String, ProtectedState::UNPROTECTED,  "output.sql");
+    broker.AttachData(this, KeyName::Database, QVariant::String, ProtectedState::UNPROTECTED,  "output.sql");
 }

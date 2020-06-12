@@ -1,60 +1,67 @@
 #include "arrowline.h"
+#include "../../../theme.h"
+
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <QPainter>
-#include "../../../theme.h"
 
-ArrowLine::ArrowLine(){
-
-}
-
-QRectF ArrowLine::boundingRect() const{
-
+QRectF ArrowLine::boundingRect() const
+{
     qreal pen_width = pen().width() / 2.0;
     auto rect = QRectF(line.p1(), line.p2()).normalized();
+    
     //Adjust for the pen_width
     rect = rect.adjusted(-pen_width, -pen_width, pen_width, pen_width);
     rect = rect.united(arrow_head.boundingRect());
     return rect;
 }
 
-void ArrowLine::setHighlighted(bool highlight){
+void ArrowLine::setHighlighted(bool highlight)
+{
     auto pen_ = pen();
-    auto theme = Theme::theme();
     pen_.setStyle(highlight ? Qt::SolidLine : Qt::DotLine);
-    //pen_.setColor(highlight ? QColor(Qt::green) : QColor(Qt::red));
     pen_.setWidthF(highlight ? 1 : 0.5);
     setPen(pen_);
     update();
 }
-QPainterPath ArrowLine::shape() const{
+
+QPainterPath ArrowLine::shape() const
+{
     QPainterPath path = QGraphicsLineItem::shape();
     path.addPolygon(arrow_head);
     return path;
 }
 
-void ArrowLine::set_begin_point(QPointF point){
+void ArrowLine::set_begin_point(QPointF point)
+{
     if(point != line.p1()){
         line.setP1(point);
         update_head();
     }
 }
 
-QPointF ArrowLine::get_begin_point() const{
+QPointF ArrowLine::get_begin_point() const
+{
     return line.p1();
 }
-QPointF ArrowLine::get_end_point() const{
+
+QPointF ArrowLine::get_end_point() const
+{
     return line.p2();
 }
-void ArrowLine::set_end_point(QPointF point){
+
+void ArrowLine::set_end_point(QPointF point)
+{
     if(point != line.p2()){
         line.setP2(point);
         update_head();
     }
 }
 
-void ArrowLine::update_head(){
+void ArrowLine::update_head()
+{
     setLine(line);
+
     auto angle = ::acos(line.dx() / line.length());
     if(line.dy() >= 0){
         angle = (M_PI * 2) - angle;
@@ -67,7 +74,8 @@ void ArrowLine::update_head(){
     update();
 }
 
-void ArrowLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
+void ArrowLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
     auto pen_ = pen();
     if(!line.isNull()){
         painter->setPen(pen_);
@@ -81,5 +89,3 @@ void ArrowLine::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         }
     }
 }
-
-

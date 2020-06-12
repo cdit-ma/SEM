@@ -7,52 +7,58 @@
 
 #include <QApplication>
 
-#include <QDebug>
+SearchManager* SearchManager::manager_singleton = nullptr;
 
-SearchManager* SearchManager::manager_singleton = 0;
-
-
-SearchManager::SearchManager(ViewController* controller){
+/**
+ * @brief SearchManager::SearchManager
+ * @param controller
+ */
+SearchManager::SearchManager(ViewController* controller)
+{
     viewController = controller;
 }
 
-SearchManager::~SearchManager(){
-
-}
-
-bool SearchManager::construct_singleton(ViewController* controller){
-    if (!manager_singleton){
+/**
+ * @brief SearchManager::construct_singleton
+ * @param controller
+ * @return
+ */
+bool SearchManager::construct_singleton(ViewController* controller)
+{
+    if (!manager_singleton) {
         manager_singleton = new SearchManager(controller);
         return true;
     }
     return false;
 }
 
-void SearchManager::destruct_singleton(){
-
-}
-
-SearchManager* SearchManager::manager(){
+/**
+ * @brief SearchManager::manager
+ * @return
+ */
+SearchManager* SearchManager::manager()
+{
     return manager_singleton;
 }
 
-void SearchManager::Search(QString query){
-    
-    auto search_start = QDateTime::currentDateTime().toMSecsSinceEpoch();
+/**
+ * @brief SearchManager::Search
+ * @param query
+ */
+void SearchManager::Search(const QString &query)
+{
     auto search_results = viewController->getSearchResults(query);
-    auto search_finish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "ViewController Search took: " <<  search_finish - search_start << "MS. Returned: " << search_results.size();
-    auto panel = getSearchDialog();
-    panel->DisplaySearchResults(query, search_results);
-    auto search_display = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    getSearchDialog()->DisplaySearchResults(query, search_results);
     emit SearchComplete();
-    qCritical() << "Panel rendering search results: " <<  search_display - search_finish << "MS. Returned: " << search_results.size();
 }
 
-
-void SearchManager::PopupSearch(){
+/**
+ * @brief SearchManager::PopupSearch
+ */
+void SearchManager::PopupSearch()
+{
     auto popup = getSearchPopup();
-    if(popup){
+    if (popup) {
         auto search_suggestions = viewController->_getSearchSuggestions();
         popup->updateSearchSuggestions(search_suggestions);
         WindowManager::MoveWidget(popup);
@@ -60,9 +66,14 @@ void SearchManager::PopupSearch(){
         popup->takeFocus();
     }
 }
-void SearchManager::PopupGoto(){
+
+/**
+ * @brief SearchManager::PopupGoto
+ */
+void SearchManager::PopupGoto()
+{
     auto popup = getGotoPopup();
-    if(popup){
+    if (popup) {
         popup->updateIDs(viewController->GetIDs());
         WindowManager::MoveWidget(popup);
         popup->show();
@@ -70,34 +81,52 @@ void SearchManager::PopupGoto(){
     }
 }
 
-SearchPopup* SearchManager::getSearchPopup(){
-    if(!search_popup){
+/**
+ * @brief SearchManager::getSearchPopup
+ * @return
+ */
+SearchPopup* SearchManager::getSearchPopup()
+{
+    if (!search_popup) {
         search_popup = new SearchPopup();
     }
     return search_popup;
 }
-GotoPopup* SearchManager::getGotoPopup(){
-    if(!goto_popup){
+
+/**
+ * @brief SearchManager::getGotoPopup
+ * @return
+ */
+GotoPopup* SearchManager::getGotoPopup()
+{
+    if (!goto_popup) {
         goto_popup = new GotoPopup();
     }
     return goto_popup;
 }
 
-SearchDialog* SearchManager::getSearchDialog(){
-    if(!search_dialog){
-        search_dialog = new SearchDialog(0);
+/**
+ * @brief SearchManager::getSearchDialog
+ * @return
+ */
+SearchDialog* SearchManager::getSearchDialog()
+{
+    if (!search_dialog) {
+        search_dialog = new SearchDialog();
+
+        connect(this, &SearchManager::ItemSelectionChanged, search_dialog, &SearchDialog::viewItemSelected);
         connect(viewController, &ViewController::vc_viewItemDestructing, search_dialog, &SearchDialog::viewItemDestructed);
 
         connect(search_dialog, &SearchDialog::CenterOn, viewController, &ViewController::centerOnID);
         connect(search_dialog, &SearchDialog::Popup, viewController, &ViewController::popupItem);
-        connect(search_dialog, &SearchDialog::HighlightEntity, viewController, &ViewController::vc_highlightItem);
-
-        //connect(search_dialog, &SearchDialog::itemHoverEnter, viewController->getToolbarController(), &ToolbarController::actionHoverEnter);
-        //connect(search_dialog, &SearchDialog::itemHoverLeave, viewController->getToolbarController(), &ToolbarController::actionHoverLeave);
+        connect(search_dialog, &SearchDialog::FlashEntity, [=] (int ID) {
+            viewController->HighlightItems({ID});
+        });
 
         //TODO:
         connect(search_dialog, &SearchDialog::SearchPopup, this, &SearchManager::PopupSearch);
         connect(search_dialog, &SearchDialog::SearchQuery, this, &SearchManager::Search);
     }
+
     return search_dialog;
 }

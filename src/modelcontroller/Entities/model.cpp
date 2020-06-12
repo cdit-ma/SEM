@@ -20,20 +20,22 @@ Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind
     setAcceptsNodeKind(NODE_KIND::DEPLOYMENT_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::BEHAVIOUR_DEFINITIONS);
     setAcceptsNodeKind(NODE_KIND::WORKER_DEFINITIONS);
+    setAcceptsNodeKind(NODE_KIND::TRIGGER_DEFINITIONS);
 
     if(is_temp){
         return;
     }
  
     //Setup Data
-    broker.AttachData(this, "medea_version", QVariant::String, ProtectedState::PROTECTED, APP_VERSION());
-    broker.AttachData(this, "description", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::MedeaVersion, QVariant::String, ProtectedState::PROTECTED, APP_VERSION());
+    broker.AttachData(this, KeyName::Description, QVariant::String, ProtectedState::PROTECTED);
 
     //Attach Children
     broker.ConstructChildNode(*this, NODE_KIND::INTERFACE_DEFINITIONS);
     broker.ConstructChildNode(*this, NODE_KIND::BEHAVIOUR_DEFINITIONS);
     broker.ConstructChildNode(*this, NODE_KIND::DEPLOYMENT_DEFINITIONS);
     broker.ConstructChildNode(*this, NODE_KIND::WORKER_DEFINITIONS);
+    broker.ConstructChildNode(*this, NODE_KIND::TRIGGER_DEFINITIONS);
 }
 
 bool Model::canAdoptChild(Node *child)

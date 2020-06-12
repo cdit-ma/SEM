@@ -18,27 +18,25 @@ class ViewController;
 class ExecutionManager: public QObject
 {
     Q_OBJECT
+    
 public:
-    ExecutionManager(ViewController* view_controller);
+    explicit ExecutionManager(ViewController* view_controller);
+    
     bool HasJava();
     bool HasRe();
     bool HasRegen();
 
     //Functional runners
-    void CheckForRe(QString re_configure_path);
-    void CheckForRegen(QString re_gen_path);
+    void CheckForRe(const QString& re_configure_path);
+    void CheckForRegen(const QString& re_gen_path);
     void CheckForJava();
 
+    bool ExecuteModel(const QString& document_path, const QString& output_directory, int duration);
+    void ValidateModel(const QString& model_path);
+    void GenerateCodeForWorkload(const QString& document_path, ViewItem* view_item);
     
-
-
-    void RunConfigure(QString configure_script_path);
-    bool ExecuteModel(QString document_path, QString output_directory, int duration);
-    void ValidateModel(QString model_path);
-    void GenerateCodeForWorkload(QString document_path, ViewItem* view_item);
+    void GenerateProject(const QString& document_path, const QString& output_directory);
     
-    void GenerateProject(QString document_path, QString output_directory);
-    QString get_env_var(QString key);
 signals:
     void GotProcessStdOutLine(QString line);
     void GotProcessStdErrLine(QString line);
@@ -50,28 +48,22 @@ signals:
     void GotJava(bool ready);
     void GotRe(bool ready);
     void GotRegen(bool ready);
+    
 private:
-    void CheckForRe_(QString configure_script_path);
-    void CheckForRegen_(QString configure_script_path);
-    void ValidateModel_(QString model_path);
+    void CheckForRe_(const QString& configure_script_path);
+    void CheckForRegen_(const QString& configure_script_path);
+    void ValidateModel_(const QString& model_path);
     void CheckForJava_();
-    void ExecuteModel_(QString document_path, QString output_directory, int duration);
+    void ExecuteModel_(const QString& document_path, const QString& output_directory, int duration);
 
     QString GetSaxonPath();
 
-    bool GenerateProject_(QString document_path, QString output_directory);
-    QString GenerateWorkload(QString document_path, QString output_directory, int id);
+    bool GenerateProject_(const QString& document_path, const QString& output_directory);
+    QString GenerateWorkload(const QString& document_path, const QString& output_directory, int id);
 
+    void settingChanged(SETTINGS setting, const QVariant& value);
 
-    void settingChanged(SETTINGS setting, QVariant value);
-
-    
-
-
-    ProcessResult RunSaxonTransform(QString transform_path, QString document, QString output_directory, QStringList arguments=QStringList());
-
-    //ProcessRunner* runner_ = 0;
-    ViewController* view_controller_ = 0;;
+    ProcessResult RunSaxonTransform(const QString& transform_path, const QString& document, const QString& output_directory, const QStringList& arguments = QStringList());
     
     QProcessEnvironment re_configured_env_;
     QString transforms_path_;
@@ -81,7 +73,6 @@ private:
     QFuture<void> validate_thread;
     QFuture<void> execute_model_thread;
     QFuture<bool> generate_project_thread;
-    QFuture<void> generate_code_thread;
     QFuture<void> regen_thread;
 
     QReadWriteLock lock_;
@@ -90,6 +81,5 @@ private:
     bool got_re_ = false;
     bool got_regen_ = false;
 };
-
 
 #endif // EXECUTIONMANAGER_H

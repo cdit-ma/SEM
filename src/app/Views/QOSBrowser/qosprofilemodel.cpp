@@ -1,40 +1,35 @@
 #include "qosprofilemodel.h"
-
-#include <QDebug>
-
 #include "../../theme.h"
 
+#include <keynames.h>
 
+/**
+ * @brief QOSProfileModel::QOSProfileModel
+ * @param parent
+ */
+QOSProfileModel::QOSProfileModel(QObject* parent)
+	: QStandardItemModel(parent) {}
 
-QOSProfileModel::QOSProfileModel(QObject* parent):QStandardItemModel(parent)
+void QOSProfileModel::viewItem_Constructed(ViewItem* viewItem)
 {
-    rootItem = invisibleRootItem();
-}
+    //We only care about nodes
+    if (viewItem && viewItem->isNode()) {
+        auto item = qobject_cast<NodeViewItem*>(viewItem);
+        if (item->getViewAspect() == VIEW_ASPECT::ASSEMBLIES) {
 
-void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
-{
-    //We only care about NOdes.
-    if(viewItem && viewItem->isNode()){
-        int ID = viewItem->getID();
-        NodeViewItem* item = (NodeViewItem*)viewItem;
+            QString nodeKind = viewItem->getData(KeyName::Kind).toString();
+            QStandardItem* parentItem = nullptr;
 
-        VIEW_ASPECT aspect = item->getViewAspect();
-        if(aspect == VIEW_ASPECT::ASSEMBLIES){
-            QString nodeKind = viewItem->getData("kind").toString();
-            int parentID = item->getParentID();
-
-            QStandardItem* parentItem = 0;
-            if(nodeKind.endsWith("QOSProfile")){
+            if (nodeKind.endsWith("QOSProfile")) {
                 parentItem = invisibleRootItem();
-            }else if(modelItems.contains(parentID)){
-                parentItem = modelItems[parentID];
+            } else {
+                parentItem = modelItems.value(item->getParentID(), nullptr);
             }
 
-            if(parentItem){
-                QOSModelItem* modelItem = new QOSModelItem(item);
+            if (parentItem) {
+                auto modelItem = new QOSModelItem(item);
                 parentItem->setChild(parentItem->rowCount(), modelItem);
-                //parentItem->appendRow(modelItem);
-                modelItems[ID] =  modelItem;
+                modelItems.insert(item->getID(), modelItem);
             }
         }
     }
@@ -42,30 +37,32 @@ void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
 
 void QOSProfileModel::viewItem_Destructed(int ID, ViewItem *)
 {
-    if(modelItems.contains(ID)){
-        QOSModelItem* modelItem = modelItems[ID];
-        modelItems.remove(ID);
+    if (modelItems.contains(ID)) {
 
-        //Remove the row?!
+        QOSModelItem* modelItem = modelItems.take(ID);
         QStandardItem* parentItem = ((QStandardItem*)modelItem)->parent();
 
-        if(parentItem){
+        //Remove the row
+        if (parentItem) {
             removeRow(modelItem->row(), parentItem->index());
-        }else{
+        } else {
             removeRow(modelItem->row());
         }
     }
 }
 
-QAbstractTableModel *QOSProfileModel::getTableModel(const QModelIndex &index) const
+QAbstractTableModel* QOSProfileModel::getTableModel(const QModelIndex &index) const
 {
-    if(index.isValid()){
+    if (index.isValid()) {
         QStandardItem* item = itemFromIndex(index);
-        if(item){
-            return (QAbstractTableModel*) item->data(QOSProfileModel::DATATABLE_ROLE).value<void *>();
+        if (item) {
+            auto table_model_data = item->data(QOSProfileModel::DATATABLE_ROLE);
+            if (!table_model_data.isNull() && table_model_data.isValid()) {
+                return (QAbstractTableModel*) table_model_data.value<void *>();
+            }
         }
     }
-    return 0;
+    return nullptr;
 }
 
 QVariant QOSProfileModel::data(const QModelIndex &index, int role) const
@@ -104,30 +101,29 @@ Qt::ItemFlags QOSProfileModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
-
-QOSModelItem::QOSModelItem(NodeViewItem *item):QObject(), QStandardItem()
+/**
+ * @brief QOSModelItem::QOSModelItem
+ * @param item
+ */
+QOSModelItem::QOSModelItem(NodeViewItem* item)
+	: QObject(),
+	  QStandardItem(),
+	  nodeViewItem_(item)
 {
-    this->item = item;
-    if(item){
+    if (item) {
         ID = item->getID();
         item->registerObject(this);
         connect(item, SIGNAL(iconChanged()), this, SLOT(itemChanged()));
         connect(item, SIGNAL(labelChanged(QString)), this, SLOT(itemChanged()));
-    }else{
+    } else {
         ID = -1;
     }
-
-}
-
-NodeViewItem *QOSModelItem::getNodeViewItem()
-{
-    return item;
 }
 
 QOSModelItem::~QOSModelItem()
 {
-    if(item){
-        item->unregisterObject(this);
+    if (nodeViewItem_) {
+        nodeViewItem_->unregisterObject(this);
     }
 }
 
@@ -138,46 +134,52 @@ void QOSModelItem::itemChanged()
 
 QVariant QOSModelItem::data(int role) const
 {
-    if(item){
-        if(role == Qt::DisplayRole|| role == Qt::EditRole || role == Qt::ToolTipRole){
-            return item->getData("label");
-        }
-    }
-    if(role == QOSProfileModel::ID_ROLE){
-        return ID;
-    }
-    if(role == QOSProfileModel::DATATABLE_ROLE){
-        if(item){
-            return qVariantFromValue((void *)item->getTableModel());
-        }else{
-            return 0;
-        }
-    }
-    if(role == QOSProfileModel::EDITABLELABEL_ROLE){
-        if(item){
-            return !item->isDataProtected("label");
-        }else{
-            return false;
-        }
+    switch (role) {
+        case Qt::DisplayRole:
+        case Qt::EditRole:
+        case Qt::ToolTipRole:
+            if (nodeViewItem_) {
+                return nodeViewItem_->getData(KeyName::Label);
+            }
+            break;
+        case QOSProfileModel::ID_ROLE:
+            return ID;
+        case QOSProfileModel::DATATABLE_ROLE:
+            if (nodeViewItem_) {
+                return QVariant::fromValue((void *)nodeViewItem_->getTableModel());
+            } else {
+                return QVariant();
+            }
+        case QOSProfileModel::EDITABLELABEL_ROLE:
+            if (nodeViewItem_) {
+                return !nodeViewItem_->isDataProtected(KeyName::Label);
+            } else {
+                return false;
+            }
+        default:
+            break;
     }
     return QStandardItem::data(role);
 }
 
 void QOSModelItem::setData(const QVariant &value, int role)
 {
+    // NOTE: According to Qt's documentation, this function should call emitDataChanged() if the base implementation
+    //  of setData() is not being called. This will ensure that views using the model are notified of the changes.
+    //  At the moment, we call emitDataChanged when the nodeViewItem (associated with this model item)'s data has changed
     if (role == Qt::EditRole) {
-        if(item && !item->isDataProtected("label")){
-            emit item->getTableModel()->req_dataChanged(ID, "label", value);
+        if(nodeViewItem_ && !nodeViewItem_->isDataProtected(KeyName::Label)){
+            emit nodeViewItem_->getTableModel()->req_dataChanged(ID, KeyName::Label, value);
         }
     }
 }
 
 QVariant QOSProfileModel::headerData(int, Qt::Orientation orientation, int role) const
 {
-    if(role == Qt::DisplayRole && orientation == Qt::Horizontal){
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         return "Policies";
     }
-    if(role == Qt::DecorationRole){
+    if (role == Qt::DecorationRole) {
         return Theme::theme()->getImage("Icons", "buildingColumns", QSize(16,16), Theme::theme()->getMenuIconColorHex());
     }
     return QVariant();

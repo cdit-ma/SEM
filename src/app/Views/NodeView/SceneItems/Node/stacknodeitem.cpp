@@ -1,17 +1,14 @@
 #include "stacknodeitem.h"
-
-#include <QDebug>
-#include <QDateTime>
 #include <cmath>
-#include <iterator>
 
-StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::Orientation orientation):
-    BasicNodeItem(viewItem, parentItem)
+StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::Orientation orientation)
+	: BasicNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
-    addRequiredData("column_count");
+    addRequiredData(KeyName::ColumnCount);
 
     reloadRequiredData();
+
     this->orientation = orientation;
 
     disconnect(this, &NodeItem::childSizeChanged, this, &NodeItem::childPosChanged);
@@ -20,6 +17,7 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     connect(this, &NodeItem::childSizeChanged, this, &StackNodeItem::ChildSizeChanged);
     connect(this, &NodeItem::childIndexChanged, this, &StackNodeItem::ChildIndexChanged);
     connect(this, &NodeItem::childCountChanged, this, &StackNodeItem::ChildCountChanged);
+    
 
     addHoverFunction(EntityRect::BODY, std::bind(&StackNodeItem::bodyHover, this, std::placeholders::_1, std::placeholders::_2));
 
@@ -27,94 +25,103 @@ StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem, Qt::O
     RecalculateCells();
 }
 
-void StackNodeItem::dataChanged(const QString& key_name, const QVariant& data){
-    if(isDataRequired(key_name)){
-        if(key_name == "column_count"){
+void StackNodeItem::dataChanged(const QString& key_name, const QVariant& data)
+{
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::ColumnCount) {
             SetColumnCount(data.toInt());
         }
     }
-
     BasicNodeItem::dataChanged(key_name, data);
 }
 
-void StackNodeItem::SetColumnCount(int column_count){
+void StackNodeItem::SetColumnCount(int column_count)
+{
     column_count_ = column_count;
     RecalculateCells();
 }
 
-void StackNodeItem::SetUseColumnCount(int row, int col, bool use_column_count){
+void StackNodeItem::SetUseColumnCount(int row, int col, bool use_column_count)
+{
     auto& cell_info = SetupCellInfo(row, col);
     cell_info.use_column_count = use_column_count;
     RecalculateCells();
 }
 
-void StackNodeItem::setAlignment(Qt::Orientation orientation){
-    this->orientation = orientation;
+void StackNodeItem::setAlignment(Qt::Orientation _orientation)
+{
+    orientation = _orientation;
     RecalculateCells();
 }
 
-void StackNodeItem::RecalculateCells(){
+void StackNodeItem::RecalculateCells()
+{
     sub_areas_dirty = true;
     updateCells();
 }
 
-void StackNodeItem::ChildCountChanged(){
+void StackNodeItem::ChildCountChanged()
+{
     RecalculateCells();
 }
 
-void StackNodeItem::ChildSizeChanged(EntityItem* item){
+void StackNodeItem::ChildSizeChanged(EntityItem*)
+{
     RecalculateCells();
 }
 
-void StackNodeItem::ChildIndexChanged(EntityItem* item){
+void StackNodeItem::ChildIndexChanged(EntityItem*)
+{
     RecalculateCells();
 }
 
-StackNodeItem::PersistentCellInfo& StackNodeItem::SetupCellInfo(int row, int col){
+StackNodeItem::PersistentCellInfo& StackNodeItem::SetupCellInfo(int row, int col)
+{
     CellIndex index(row, col);
-
-    if(cell_infos.contains(index)){
+    if (cell_infos.contains(index)) {
         return cell_infos[index];
-    }else{
+    } else {
         PersistentCellInfo& info = cell_infos[index];
         info.index = index;
         info.orientation = orientation;
         info.margin = getDefaultCellMargin();
         info.spacing = getDefaultCellSpacing();
-
         return info;
     }
 }
 
-
-
-QMarginsF StackNodeItem::getDefaultCellMargin() const{
-    return QMarginsF(getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing(), getDefaultCellSpacing());
+QMarginsF StackNodeItem::getDefaultCellMargin() const
+{
+    auto default_spacing = getDefaultCellSpacing();
+    return {default_spacing, default_spacing, default_spacing, default_spacing};
 }
 
-QMarginsF StackNodeItem::getCellMargin(const CellIndex& index){
+QMarginsF StackNodeItem::getCellMargin(const CellIndex& index)
+{
     if(cell_infos.contains(index)){
         return cell_infos[index].margin;
     }
     return getDefaultCellMargin();
 }
 
-
-int StackNodeItem::getCellColumnCount(const CellIndex& index){
+int StackNodeItem::getCellColumnCount(const CellIndex& index)
+{
     if(cell_infos.contains(index) && cell_infos[index].use_column_count){
         return column_count_;
     }
     return -1;
 }
 
-Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index){
+Qt::Orientation StackNodeItem::getCellOrientation(const CellIndex& index)
+{
     if(cell_infos.contains(index)){
         return cell_infos[index].orientation;
     }
     return orientation;
 }
 
-bool StackNodeItem::allowIcons(){
+bool StackNodeItem::allowIcons()
+{
     if(isReadOnly()){
         return false;
     }else{
@@ -127,68 +134,71 @@ bool StackNodeItem::allowIcons(){
     }
 }
 
-bool StackNodeItem::getCellRenderPrefixIcon(const CellIndex& index){
+bool StackNodeItem::getCellRenderPrefixIcon(const CellIndex& index)
+{
     if(allowIcons()){
         return cell_infos.contains(index) && cell_infos[index].render_prefix_icon;
     }
     return false;
 }
 
-bool StackNodeItem::getCellRenderSuffixIcon(const CellIndex& index){
+bool StackNodeItem::getCellRenderSuffixIcon(const CellIndex& index)
+{
     if(allowIcons()){
         return cell_infos.contains(index) && cell_infos[index].render_suffix_icon;
     }
     return false;
 }
 
-bool StackNodeItem::getCellRenderGapIcon(const CellIndex& index){
+bool StackNodeItem::getCellRenderGapIcon(const CellIndex& index)
+{
     if(allowIcons()){
         return cell_infos.contains(index) && cell_infos[index].render_gap_icons;
     }
     return false;
 }
 
-qreal StackNodeItem::getDefaultCellSpacing() const{
+qreal StackNodeItem::getDefaultCellSpacing() const
+{
     return cell_spacing;
 }
 
-void StackNodeItem::setDefaultCellSpacing(qreal spacing){
+void StackNodeItem::setDefaultCellSpacing(qreal spacing)
+{
     cell_spacing = spacing;
 }
 
-qreal StackNodeItem::getCellSpacing(const CellIndex& index){
-    auto grid_size = getGridSize();
-
+qreal StackNodeItem::getCellSpacing(const CellIndex& index)
+{
     if(cell_infos.contains(index)){
         return cell_infos[index].spacing;
     }
     return getDefaultCellSpacing();
 }
 
-void StackNodeItem::SetRenderCellText(int row, int col, bool render, QString label){
+void StackNodeItem::SetRenderCellText(int row, int col, bool render, const QString& label)
+{
     auto& cell_info = SetupCellInfo(row, col);
-
     cell_info.render_text = render && label.length();
     
-    if(cell_info.render_text){
-        if(!cell_info.text_item){
+    if (cell_info.render_text) {
+        if (!cell_info.text_item) {
             cell_info.text_item = new StaticTextItem(Qt::AlignHCenter | Qt::AlignTop);
         }
-    }else{
-        if(cell_info.text_item){
+    } else {
+        if (cell_info.text_item) {
             delete cell_info.text_item;
-            cell_info.text_item = 0;
+            cell_info.text_item = nullptr;
         }
     }
     cell_info.text_item->setText(label);
 }
 
-void StackNodeItem::SetRenderCellArea(int row, int col, bool render, bool use_alt_color){
+void StackNodeItem::SetRenderCellArea(int row, int col, bool render, bool use_alt_color)
+{
     auto& cell_info = SetupCellInfo(row, col);
-
     cell_info.render_rect = render;
-
-    if(cell_info.render_rect){
+    if (cell_info.render_rect) {
         cell_info.use_alt_color = use_alt_color;
     }
 }
@@ -198,54 +208,59 @@ QRectF StackNodeItem::childrenRect() const
     return cell_rect;
 }
 
-void StackNodeItem::SetCellOrientation(int row, int col, Qt::Orientation orientation){
+void StackNodeItem::SetCellOrientation(int row, int col, Qt::Orientation _orientation)
+{
     auto& cell_info = SetupCellInfo(row, col);
-    cell_info.orientation = orientation;
+    cell_info.orientation = _orientation;
 }
-void StackNodeItem::SetCellSpacing(int row, int col, int spacing){
-    auto& cell_info = SetupCellInfo(row, col);
 
+void StackNodeItem::SetCellSpacing(int row, int col, int spacing)
+{
+    auto& cell_info = SetupCellInfo(row, col);
     cell_info.spacing = spacing;
 }
 
-
-void StackNodeItem::SetRenderCellGapIcons(int row, int col, bool render, QString icon_path, QString icon_name){
+void StackNodeItem::SetRenderCellGapIcons(int row, int col, bool render, const QString& icon_path, const QString& icon_name)
+{
     auto& cell_info = SetupCellInfo(row, col);
     cell_info.render_gap_icons = render;
     cell_info.gap_icon = qMakePair(icon_path, icon_name);
 }
 
-void StackNodeItem::SetRenderCellHoverIcons(int row, int col, bool render, QString icon_path, QString icon_name){
+void StackNodeItem::SetRenderCellHoverIcons(int row, int col, bool render, const QString& icon_path, const QString& icon_name)
+{
     auto& cell_info = SetupCellInfo(row, col);
     cell_info.render_hover_icon = render;
     cell_info.hovered_icon = qMakePair(icon_path, icon_name);
 }
 
-void StackNodeItem::SetRenderCellPrefixIcon(int row, int col, bool render, QString icon_path, QString icon_name){
+void StackNodeItem::SetRenderCellPrefixIcon(int row, int col, bool render, const QString& icon_path, const QString& icon_name)
+{
     auto& cell_info = SetupCellInfo(row, col);
     cell_info.render_prefix_icon = render;
     cell_info.prefix_icon = qMakePair(icon_path, icon_name);
 }
 
-void StackNodeItem::SetRenderCellSuffixIcon(int row, int col, bool render, QString icon_path, QString icon_name){
+void StackNodeItem::SetRenderCellSuffixIcon(int row, int col, bool render, const QString& icon_path, const QString& icon_name)
+{
     auto& cell_info = SetupCellInfo(row, col);
     cell_info.render_suffix_icon = render;
     cell_info.suffix_icon = qMakePair(icon_path, icon_name);
 }
 
-QRectF StackNodeItem::getRowRect(int row) const{
-
+QRectF StackNodeItem::getRowRect(int row) const
+{
     QRectF rect;
-
-    for(auto& cell : cells){
-        if(cell.index.first == row){
+    for (auto& cell : cells) {
+        if (cell.index.first == row) {
             rect |= cell.bounding_rect;
         }
     }
     return rect;
 }
 
-void StackNodeItem::updateCells(){
+void StackNodeItem::updateCells()
+{
     if(sub_areas_dirty){
         //Clear the cells 
         cells.clear();
@@ -259,7 +274,6 @@ void StackNodeItem::updateCells(){
             bool inserted = !cells.contains(index);
             auto& cell = cells[index];
             cell.children.append(child);
-
             if(inserted){
                 row_cols.insert(index.first, index.second);
                 cell.index = index;
@@ -316,7 +330,6 @@ void StackNodeItem::updateCells(){
                     }else{
                         //If our rows are different, use the previous row to calculate our offset
                         auto prev_row_rect = getRowRect(prev_index.first);
-
                         if(orientation == Qt::Vertical){
                             cell_br_top_left = prev_row_rect.topRight();
                         }else{
@@ -329,9 +342,9 @@ void StackNodeItem::updateCells(){
                 }
 
                 const auto child_count = cell.children.count();
-                const auto cell_margin = getCellMargin(index);
-                const auto cell_spacing = getCellSpacing(index);
-                const auto& column_count = getCellColumnCount(index);
+                const auto current_cell_margin = getCellMargin(index);
+                const auto current_cell_spacing = getCellSpacing(index);
+                const auto column_count = getCellColumnCount(index);
                 bool render_suffix = getCellRenderSuffixIcon(index);
                 bool render_prefix = getCellRenderPrefixIcon(index);
 
@@ -346,15 +359,14 @@ void StackNodeItem::updateCells(){
 
                 if(cell.allocated){
                     //If the cell is being used, add a gap from the last rect
-                    cell_cr_top_left.rx() += cell_margin.left();
-                    cell_cr_top_left.ry() += cell_margin.top();
-
+                    cell_cr_top_left.rx() += current_cell_margin.left();
+                    cell_cr_top_left.ry() += current_cell_margin.top();
                     if(render_prefix){
                          //Add an allowance to at the start if we need to render a prefix icon
-                        if(cell.orientation == Qt::Vertical || column_count > 0){
-                            cell_cr_top_left.ry() += cell_spacing;
-                        }else if(cell.orientation == Qt::Horizontal){
-                            cell_cr_top_left.rx() += cell_spacing;
+                        if (cell.orientation == Qt::Vertical || column_count > 0) {
+                            cell_cr_top_left.ry() += current_cell_spacing;
+                        } else {
+                            cell_cr_top_left.rx() += current_cell_spacing;
                         }
                     }
                 }
@@ -372,29 +384,25 @@ void StackNodeItem::updateCells(){
                     
                     QPointF child_pos;
 
-                    if(cell.orientation == Qt::Vertical){
+                    if (cell.orientation == Qt::Vertical) {
                         child_pos = cell_row_cr.bottomLeft();
-
                         if(current_cell_row_count != 0){
                             //Add a vertical gap between each child
-                            child_pos.ry() += cell_spacing;
+                            child_pos.ry() += current_cell_spacing;
                         }
-
                         if(current_cell_row_count == 0 && i > 0){
                             //Add a horizontal gap between each row
-                            child_pos.rx() += cell_spacing;
+                            child_pos.rx() += current_cell_spacing;
                         }
-                    }else if(cell.orientation == Qt::Horizontal){
+                    } else {
                         child_pos = cell_row_cr.topRight();
-
                         if(current_cell_row_count != 0){
                             //Add a horizontal gap between each child
-                            child_pos.rx() += cell_spacing;
+                            child_pos.rx() += current_cell_spacing;
                         }
-
                         if(current_cell_row_count == 0 && i > 0){
                             //Add a vertical gap between each row
-                            child_pos.ry() += cell_spacing;
+                            child_pos.ry() += current_cell_spacing;
                         }
                     }
 
@@ -405,13 +413,11 @@ void StackNodeItem::updateCells(){
                     //If this is the last element in the row
                     if(column_count > 0 && current_cell_row_count + 1 == column_count){
                         QRectF prev_cell_row_cr = cell_row_cr;
-
-                        if(cell.orientation == Qt::Vertical){
+                        if (cell.orientation == Qt::Vertical) {
                             cell_row_cr = QRectF(prev_cell_row_cr.topRight(), prev_cell_row_cr.topRight());
-                        }else if(cell.orientation == Qt::Horizontal){
+                        } else {
                             cell_row_cr = QRectF(prev_cell_row_cr.bottomLeft(), prev_cell_row_cr.bottomLeft());
                         }
-                        
                         //Update the cell_cr with the previous cell row rect
                         cell_cr |= prev_cell_row_cr;
                         //current_cell_row_count is incremented in loop.
@@ -427,29 +433,26 @@ void StackNodeItem::updateCells(){
 
                 if(cell.allocated && render_prefix){
                     //Take into account the extra space used by the prefix icon, if we have one
-                    if(cell.orientation == Qt::Vertical || column_count > 0){
-                        cell_cr += QMarginsF(0, cell_spacing, 0, 0);
-                    }else if(cell.orientation == Qt::Horizontal){
-                        cell_cr += QMarginsF(cell_spacing, 0, 0, 0);
+                    if (cell.orientation == Qt::Vertical || column_count > 0) {
+                        cell_cr += QMarginsF(0, current_cell_spacing, 0, 0);
+                    } else {
+                        cell_cr += QMarginsF(current_cell_spacing, 0, 0, 0);
                     }
                 }
                 
                 if(cell.allocated && render_suffix){
                     //Allocate the cell spacing even if we don't have any children (Allows the rectangle to be drawn)
-                    auto alt_offset = child_count == 0 ? cell_spacing : 0;
-
-                    if(cell.orientation == Qt::Vertical || column_count > 0){
-                        cell_cr += QMarginsF(0, 0, alt_offset, cell_spacing);
-                    }else if(cell.orientation == Qt::Horizontal){
-                        cell_cr += QMarginsF(0, 0, cell_spacing, alt_offset);
+                    auto alt_offset = child_count == 0 ? current_cell_spacing : 0;
+                    if (cell.orientation == Qt::Vertical || column_count > 0) {
+                        cell_cr += QMarginsF(0, 0, alt_offset, current_cell_spacing);
+                    } else {
+                        cell_cr += QMarginsF(0, 0, current_cell_spacing, alt_offset);
                     }
                 }
-            
 
                 if(cell_cr.width() < cell_info.minimum_width){
                     cell_cr.setWidth(cell_info.minimum_width);
                 }
-
                 if(cell_cr.height() < cell_info.minimum_height){
                     cell_cr.setHeight(cell_info.minimum_height);
                 }
@@ -458,7 +461,7 @@ void StackNodeItem::updateCells(){
                 
                 //Should we use this space?
                 if(cell.allocated){
-                    cell_br += cell_margin;
+                    cell_br += current_cell_margin;
                     last_cell_in_row.insert(row, index);
                 }
 
@@ -480,13 +483,12 @@ void StackNodeItem::updateCells(){
             const auto& index = last_cell_in_row[row];
             auto& cell = cells[index];
             auto& cell_br = cell.bounding_rect;
-
-            if(orientation == Qt::Vertical){
+            if (orientation == Qt::Vertical) {
                 cell_br.setBottom(overall_rect.bottom());
                 if(row_count == 1){
                     cell_br.setRight(overall_rect.right());    
                 }
-            }else if(orientation == Qt::Horizontal){
+            } else {
                 cell_br.setRight(overall_rect.right());
             }
         }
@@ -511,9 +513,9 @@ void StackNodeItem::updateCells(){
                 auto& cell_cr = cell.child_rect;
 
                 //Update the cell's bounding Rect to stretch to fill the row_rect
-                if(orientation == Qt::Vertical){
+                if (orientation == Qt::Vertical) {
                     cell_br.setWidth(row_rect.width());
-                }else if(orientation == Qt::Horizontal){
+                } else {
                     cell_br.setHeight(row_rect.height());
                 }
                 
@@ -597,7 +599,6 @@ void StackNodeItem::updateCells(){
                 }
             }
         }
-        
 
         sub_areas_dirty = false;
         if(cell_rect != overall_rect){
@@ -608,8 +609,8 @@ void StackNodeItem::updateCells(){
     }
 }
 
-
-QPointF StackNodeItem::GetGridAlignedTopLeft() const{
+QPointF StackNodeItem::GetGridAlignedTopLeft() const
+{
     auto grid_size = getGridSize();
     auto item_offset = gridRect().topLeft();
 
@@ -620,7 +621,6 @@ QPointF StackNodeItem::GetGridAlignedTopLeft() const{
     if(x_mod > 0){
         item_offset.rx() += grid_size - x_mod;
     }
-
     if(y_mod > 0){
         item_offset.ry() += grid_size - y_mod;
     }
@@ -628,8 +628,9 @@ QPointF StackNodeItem::GetGridAlignedTopLeft() const{
     return item_offset - QPointF(getGridSize(), getGridSize());
 }
 
-CellIndex StackNodeItem::GetCellIndex(NodeItem* child){
-    return CellIndex(child->getSortOrderRow(), child->getSortOrderRowSubgroup());
+CellIndex StackNodeItem::GetCellIndex(NodeItem* child)
+{
+    return {child->getSortOrderRow(), child->getSortOrderRowSubgroup()};
 }
 
 QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
@@ -637,14 +638,6 @@ QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
     auto index = GetCellIndex(child);
     return cells[index].child_offsets[child];
 }
-
-
-
-void StackNodeItem::childPosChanged(EntityItem* child)
-{
-    return;
-}
-
 
 void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -669,7 +662,6 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         painter->setBrush(Qt::NoBrush);
                         painter->setPen(Qt::NoPen);
                     }
-                    
                     painter->drawRect(cell.bounding_rect);
                 }
 
@@ -682,7 +674,6 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         }else{
                             painter->setPen(getTextColor());    
                         }
-                        
                         p_cell.text_item->RenderText(painter, getRenderState(lod), text_rect);
                     }
                 }
@@ -713,7 +704,6 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         }
 
                         auto& icon = is_prefix ? p_cell.prefix_icon : is_suffix ? p_cell.suffix_icon : p_cell.gap_icon;
-
                         auto is_hovered = cell_icon_rect.hovered;
                         const auto& icon_path = is_hovered && p_cell.render_hover_icon ? p_cell.hovered_icon : icon;
                         const auto icon_color = is_hovered ? getHighlightTextColor() : getTextColor();
@@ -722,7 +712,6 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
                         painter->setBrush(is_hovered ? getHighlightColor() : background_color);
                         painter->setPen(Qt::NoPen);
                         painter->drawEllipse(icon_rect);
-
                         paintPixmap(painter, lod, icon_rect, icon_path.first, icon_path.second, icon_color);
                     }
                 }
@@ -730,51 +719,48 @@ void StackNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         }
     }
 
+    // NOTE: This calls into the class one below/above this class' base class
+    //  This is intentional; calling BasicNodeItem's paint here stops the circle arrow/plus buttons from being rendered
     NodeItem::paint(painter, option, widget);
 }
 
-void StackNodeItem::bodyHover(bool hovered, const QPointF& pos){
+void StackNodeItem::bodyHover(bool hovered, const QPointF& pos)
+{
     bool should_update = false;
-    
     for(auto& p_cell : cell_infos.values()){
         if(p_cell.render_icons()){
             const auto& index = p_cell.index;
             if(cells.contains(index)){
                 auto& cell = cells[index];
-                
                 for (auto& cell_icon_rect : cell.child_gap_rects){
                     auto is_hovered = hovered && cell_icon_rect.icon_rect.contains(pos);
                     if(cell_icon_rect.hovered != is_hovered){
                         cell_icon_rect.hovered = is_hovered;
                         should_update = true;
-
                     }
                     if(is_hovered){
-                        AddTooltip("Click to show Add Menu");
+                        AddTooltip("Click to show add menu");
                     }
                 }
             }
         }
     }
-
-
     if(should_update){
         update();
     }
 }
 
-
-void StackNodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event){
+void StackNodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
     NodeItem::mousePressEvent(event);
 }
 
-void StackNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
-    
+void StackNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
     for(auto& p_cell : cell_infos.values()){
         const auto& index = p_cell.index;
         if(cells.contains(index) && p_cell.render_icons()){
             auto& cell = cells[index];
-
             for (auto& cell_icon_rect : cell.child_gap_rects){
                 if(cell_icon_rect.hovered){
                     auto is_contained = cell_icon_rect.icon_rect.contains(event->pos());
@@ -788,10 +774,9 @@ void StackNodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
     NodeItem::mouseReleaseEvent(event);
 }
 
-QRectF StackNodeItem::GetGapIconRect(const CellIndex& index, int child_index, const QRectF& prev_rect, const QRectF& current_rect){
-    QRectF gap_rect;
-    
-    const auto& orientation = getCellOrientation(index);
+QRectF StackNodeItem::GetGapIconRect(const CellIndex& index, int child_index, const QRectF& prev_rect, const QRectF& current_rect)
+{
+    const auto& cell_orientation = getCellOrientation(index);
     const auto& column_count = getCellColumnCount(index);
     auto sibling_count = cells.contains(index) ? cells[index].children.size() : 0;
 
@@ -799,16 +784,16 @@ QRectF StackNodeItem::GetGapIconRect(const CellIndex& index, int child_index, co
     if(column_count > 0 && (child_index % column_count == 0 || child_index == sibling_count)){
         use_vertical_layout = true;
     }
-                            
-    if(orientation == Qt::Vertical || use_vertical_layout){
+
+    QRectF gap_rect;
+    if(cell_orientation == Qt::Vertical || use_vertical_layout){
         gap_rect.setTopLeft(prev_rect.bottomLeft());
         gap_rect.setBottomRight(current_rect.topRight());
-    }else if(orientation == Qt::Horizontal){
+    }else if(cell_orientation == Qt::Horizontal){
         gap_rect.setTopLeft(prev_rect.topRight());
         gap_rect.setBottomRight(current_rect.bottomLeft());
     }
 
     gap_rect = gap_rect.normalized();
-
     return gap_rect;
 }

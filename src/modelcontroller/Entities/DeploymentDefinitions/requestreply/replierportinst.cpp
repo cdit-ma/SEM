@@ -22,12 +22,11 @@ MEDEA::ReplierPortInst::ReplierPortInst(::EntityFactoryBroker& broker, bool is_t
     }
 
     ///Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
     
-    broker.AttachData(this, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
-    
-    auto data_middleware = broker.AttachData(this, "middleware", QVariant::String, ProtectedState::UNPROTECTED);
+    auto data_middleware = broker.AttachData(this, KeyName::Middleware, QVariant::String, ProtectedState::UNPROTECTED);
     data_middleware->addValidValues({"TAO", "ZMQ", "QPID"});
 
     connect(data_middleware, &Data::dataChanged, this, &MEDEA::ReplierPortInst::MiddlewareUpdated);

@@ -24,10 +24,10 @@ HardwareNode::HardwareNode(EntityFactoryBroker& broker, bool is_temp) : Node(bro
         return;
     }
     
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "ip_address", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "os", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "os_version", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "architecture", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "uuid", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IpAddress, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::OS, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::OsVersion, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Architecture, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::UUID, QVariant::String, ProtectedState::PROTECTED);
 }

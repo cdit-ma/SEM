@@ -3,19 +3,24 @@
 
 #include <QGraphicsView>
 
-
 class ViewDockWidget;
+
 /**
  * @brief The NodeViewMinimap class
  */
 class NodeViewMinimap : public QGraphicsView
 {
     Q_OBJECT
+    
 public:
-    explicit NodeViewMinimap(QObject *parent = 0);
-    void setEnabled(bool enabled);
+    explicit NodeViewMinimap(QObject *parent = nullptr);
     void setBackgroundColor(QColor color);
+    
+    // NOTE: These are non-virtual functions
+    //  QGraphicsView's implementations are called within the function
+    void setEnabled(bool enabled);
     void setScene(QGraphicsScene *scene);
+    
     bool isPanning();
 
 signals:
@@ -25,17 +30,18 @@ signals:
 
 public slots:
     void sceneRectChanged(QRectF sceneRect);
-
-
     void viewportRectChanged(QRectF viewportRect, qreal zoom);
+    
 private slots:
     void activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockWidget *prevDock);
+
 private:
     void themeChanged();
-    void update();
+    
     QRectF zoomIcon() const;
     QRectF zoomText() const;
     QRectF infoBox() const;
+    
     void centerView();
     void setMinimapPanning(bool pan);
 
@@ -44,20 +50,23 @@ private:
     QPointF previousScenePos;
     QRectF viewportRect;
     QString zoomPercent;
-    bool _isPanning = false;
     QPixmap zoomPixmap;
-    bool drawRect = false;
     QColor backgroundColor;
+    
+    bool _isPanning = false;
+    bool drawRect = false;
+    
 protected:
-    void drawForeground(QPainter *painter, const QRectF &rect);
-    void drawBackground(QPainter *painter, const QRectF &rect);
+    void drawForeground(QPainter *painter, const QRectF &rect) override;
+    void drawBackground(QPainter *painter, const QRectF &rect) override;
 
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
-    void wheelEvent(QWheelEvent* event);
-    void resizeEvent(QResizeEvent *);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    
+    void wheelEvent(QWheelEvent* event) override;
+    void resizeEvent(QResizeEvent *) override;
 };
 
 #endif // NODEVIEWMINIMAP_H

@@ -4,7 +4,7 @@
 #include "customgroupbox.h"
 #include <QToolButton>
 
-enum class SortOrder{
+enum class SortOrder {
     ASCENDING,
     DESCENDING,
     INSERTION,
@@ -16,7 +16,7 @@ class OptionGroupBox : public CustomGroupBox
     Q_OBJECT
 
 public:
-    explicit OptionGroupBox(QString title, SortOrder sort_order = SortOrder::INSERTION, QWidget* parent = 0);
+    explicit OptionGroupBox(const QString& title, SortOrder sort_order = SortOrder::INSERTION, QWidget* parent = nullptr);
 
     template<class T> QList<T> getOptions()
     {
@@ -35,24 +35,25 @@ public:
         }
         return options;
     }
+
     bool isResetChecked();
     int getOptionCount();
     
-    bool gotOption(QVariant key);
-    void setOptionChecked(QVariant key, bool checked);
-    bool addOption(QVariant key, QString label, QString icon_path, QString icon_name, bool put_on_top=false);
-    void setOptionVisible(QVariant key, bool is_visible);
-    void updateOptionLabel(QVariant key, QString label);
-    void updateOptionIcon(QVariant key, QString icon_path, QString icon_name);
-    void removeOption(QVariant key);
+    bool gotOption(const QVariant& key);
+    void setOptionChecked(const QVariant& key, bool checked);
+	bool addOption(const QVariant& key, const QString& label, const QString& icon_path, const QString& icon_name);
+    void setOptionVisible(const QVariant& key, bool is_visible);
+	void updateOptionLabel(const QVariant& key, const QString& label);
+	void updateOptionIcon(const QVariant& key, const QString& icon_path, const QString& icon_name);
+    void removeOption(const QVariant& key);
     void removeOptions();
 
     void setExclusive(bool exclusive);
-    void setTitle(QString title);
+    void setTitle(const QString& title) override;
 
     void setResetButtonVisible(bool visible);
-    void setResetButtonIcon(QString path, QString name);
-    void setResetButtonText(QString text);
+    void setResetButtonIcon(const QString& path, const QString& name);
+    void setResetButtonText(const QString& text);
     void resetChecked(bool notify);
 
 signals:
@@ -62,29 +63,25 @@ signals:
 public slots:
     void reset();
 
-    
 private slots:
     void themeChanged();
     void optionToggled();
     
 private:
     void resetOptions();
+	void uncheckOptions();
 
-    QAction* getNewOptionAction(QAction* put_below = 0);
-
-    void uncheckOptions();
-    void clearFilters();
+    QAction* getNewOptionAction(QAction* put_below = nullptr);
 
     void updateTitleCount();
     void setupResetAction();
 
-    QAction* reset_action = 0;
+    QAction* reset_action = nullptr;
     QSize icon_size = QSize(10,10);
-    
-    bool showResetButton = true;
-    bool exclusive = false;
-    QString title;
 
+    bool exclusive = false;
+
+    QString title;
     SortOrder sort_order;
     
     QHash<QVariant, QAction*> actions_lookup;

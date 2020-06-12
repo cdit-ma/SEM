@@ -1,14 +1,11 @@
 #include "viewmanagerwidget.h"
-
-#include <QVBoxLayout>
-#include <QPushButton>
-
 #include "windowitem.h"
 #include "dockitem.h"
 
-#include "../../theme.h"
+#include <QPushButton>
 
-ViewManagerWidget::ViewManagerWidget(WindowManager *manager) : QWidget(0)
+ViewManagerWidget::ViewManagerWidget(WindowManager *manager)
+    : QWidget(nullptr)
 {
     setContentsMargins(0,3,0,0);
     setMinimumSize(130,130);
@@ -33,26 +30,22 @@ void ViewManagerWidget::themeChanged()
 
 DockItem *ViewManagerWidget::getDockItem(int ID)
 {
-    return dockItems.value(ID, 0);
+    return dockItems.value(ID, nullptr);
 }
 
 void ViewManagerWidget::windowConstructed(BaseWindow *window)
 {
-    if(window->getType() == BaseWindow::VIEW_WINDOW){
-        WindowItem* item = new WindowItem(this, window);
-
-        if(item){
-            int ID = window->getID();
-            windowItems[ID] = item;
-        }
+    if (window->getType() == BaseWindow::VIEW_WINDOW) {
+        auto item = new WindowItem(this, window);
+        windowItems[window->getID()] = item;
         scrollLayout->insertWidget(scrollLayout->count() -1 , item);
     }
 }
 
 void ViewManagerWidget::windowDestructed(int ID)
 {
-    WindowItem* item = windowItems.value(ID, 0);
-    if(item){
+    WindowItem* item = windowItems.value(ID, nullptr);
+    if (item) {
         windowItems.remove(ID);
         item->deleteLater();
     }
@@ -60,18 +53,14 @@ void ViewManagerWidget::windowDestructed(int ID)
 
 void ViewManagerWidget::dockWidgetConstructed(BaseDockWidget *dockWidget)
 {
-    DockItem* item = new DockItem(this, dockWidget);
-
-    if(item){
-        int ID = dockWidget->getID();
-        dockItems[ID] = item;
-    }
+    auto item = new DockItem(this, dockWidget);
+    dockItems[dockWidget->getID()] = item;
 }
 
 void ViewManagerWidget::dockWidgetDestructed(int ID)
 {
-    DockItem* item = dockItems.value(ID, 0);
-    if(item){
+    DockItem* item = dockItems.value(ID, nullptr);
+    if (item) {
         dockItems.remove(ID);
         item->deleteLater();
     }
@@ -79,21 +68,19 @@ void ViewManagerWidget::dockWidgetDestructed(int ID)
 
 void ViewManagerWidget::setupLayout()
 {
-    QVBoxLayout* layout = new QVBoxLayout(this);
     windowArea = new QWidget(this);
     windowArea->setStyleSheet("background: rgba(0,0,0,0);");
 
     scrollLayout = new QVBoxLayout(windowArea);
     scrollLayout->setContentsMargins(0,0,0,0);
     scrollLayout->setSpacing(5);
-    layout->setContentsMargins(0,0,0,0);
+    scrollLayout->addStretch(1);
 
     scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
-
     scrollArea->setWidget(windowArea);
+
+    auto layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0,0,0,0);
     layout->addWidget(scrollArea, 1);
-    scrollLayout->addStretch(1);
 }
-
-

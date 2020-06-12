@@ -3,36 +3,42 @@
 
 #include "basewindow.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
+
 #include <QMenu>
 #include <QToolButton>
+
 class Theme;
 class WelcomeScreenWidget;
-
 
 class MainWindow : public BaseWindow
 {
     friend class WindowManager;
     Q_OBJECT
+
 protected:
-    MainWindow(ViewController* vc, QWidget *parent=0);
+    explicit MainWindow(ViewController* vc, QWidget *parent = nullptr);
+
+    void closeEvent(QCloseEvent *event) override;
+
 public:
-    QMenu *createPopupMenu();
+    QMenu* createPopupMenu() override;
+
 signals:
     void welcomeScreenToggled(bool);
+
 private slots:
     void themeChanged();
     void resetToolDockWidgets();
+
 private:
-    void settingChanged(SETTINGS key, QVariant value);
+    void settingChanged(SETTINGS key, const QVariant& value);
     void ShowWorkerAspect(bool show);
     bool isWelcomeScreenVisible();
-    void setModelTitle(QString model_title="");
+    void setModelTitle(QString model_title = "");
 
-    void setDockWidgetIcon(BaseDockWidget* dockwidget, QString icon_path, QString icon_alias, Theme* theme = 0);
+    void setDockWidgetIcon(BaseDockWidget* dockwidget, const QString& icon_path, const QString& icon_alias, Theme* theme = nullptr);
     void setupDockIcons();
-    
-    void setupRightToolPanel();
-    
+
     void swapCentralWidget(QWidget* widget);
     void setViewController(ViewController* view_controller);
     void initializeApplication();
@@ -52,38 +58,39 @@ private:
 
     void resetToolWidgets();
 
-    ViewController* view_controller = 0;
-    ActionController* action_controller = 0;
+    ViewController* view_controller = nullptr;
+    ActionController* action_controller = nullptr;
 
-    BaseWindow* innerWindow = 0;
-    BaseWindow* rightWindow = 0;
-    BaseWindow* leftWindow = 0;
+    BaseWindow* innerWindow = nullptr;
+    BaseWindow* rightWindow = nullptr;
 
-    BaseDockWidget* dockwidget_Search = 0;
-    BaseDockWidget* dockwidget_Qos = 0;
-    BaseDockWidget* dockwidget_Notification = 0;
+    BaseDockWidget* dockwidget_Search = nullptr;
+    BaseDockWidget* dockwidget_Qos = nullptr;
+    BaseDockWidget* dockwidget_Notification = nullptr;
+
+    BaseDockWidget* dockWidget_Trigger = nullptr;
+    BaseDockWidget* dockwidget_Charts = nullptr;
+    BaseDockWidget* dockwidget_Dataflow = nullptr;
 
     //Right hand tools
-    BaseDockWidget* dockwidget_Table = 0;
-    BaseDockWidget* dockwidget_ViewManager = 0;
-    BaseDockWidget* dockwidget_Minimap = 0;
+    BaseDockWidget* dockwidget_Table = nullptr;
+    BaseDockWidget* dockwidget_ViewManager = nullptr;
+    BaseDockWidget* dockwidget_Minimap = nullptr;
 
     //Main windows dock widgets
-    BaseDockWidget* dockwidget_Center = 0;
-    BaseDockWidget* dockwidget_Right = 0;
-    BaseDockWidget* dockwidget_Dock = 0;
+    BaseDockWidget* dockwidget_Center = nullptr;
+    BaseDockWidget* dockwidget_Right = nullptr;
+    BaseDockWidget* dockwidget_Dock = nullptr;
 
-    ViewDockWidget* dockwidget_workers = 0;
+    ViewDockWidget* dockwidget_workers = nullptr;
     
-    QMenuBar* menu_bar = 0;
-    QToolBar* applicationToolbar = 0;
+    QMenuBar* menu_bar = nullptr;
+    QToolBar* applicationToolbar = nullptr;
 
-    QToolButton* restore_toolbutton = 0;
-    QAction* reset_action = 0;
+    QToolButton* restore_toolbutton = nullptr;
+    QAction* reset_action = nullptr;
 
-    WelcomeScreenWidget* welcomeScreen = 0;
-protected:
-    void closeEvent(QCloseEvent *event);
+    WelcomeScreenWidget* welcomeScreen = nullptr;
 };
 
 #endif // MAINWINDOW_H

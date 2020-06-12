@@ -23,6 +23,6 @@ DDS_OwnershipStrengthQosPolicy::DDS_OwnershipStrengthQosPolicy(EntityFactoryBrok
     }
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED, "ownership_strength");
-    broker.AttachData(this, "qos_dds_int_value", QVariant::Int, ProtectedState::UNPROTECTED, 0);
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "ownership_strength");
+    broker.AttachData(this, KeyName::QosDdsIntValue, QVariant::Int, ProtectedState::UNPROTECTED, 0);
 }

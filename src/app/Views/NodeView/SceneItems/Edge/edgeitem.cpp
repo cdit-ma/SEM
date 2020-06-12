@@ -1,20 +1,20 @@
 #include "edgeitem.h"
 #include "../Node/nodeitem.h"
-#include <QDebug>
-#include <math.h>
+#include <cmath>
 
 #define ARROW_SIZE 4
-EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *source, NodeItem *destination):EntityItem(edgeViewItem, parent, EDGE)
+
+const QSizeF small_circle_size {8, 8};
+const QSizeF default_circle_size {10, 10};
+
+EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *source, NodeItem *destination)
+	: EntityItem(edgeViewItem, parent, EDGE)
 {
     //Set the margins
     margins = QMarginsF(10,10,10,10);
 
     src = source;
     dst = destination;
-
-    vSrc = 0;
-    vDst = 0;
-    _isCentered = true;
 
     setMoveEnabled(true);
     setExpandEnabled(false);
@@ -35,34 +35,29 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
         pDst = pDst->getParentNodeItem();
     }
 
-    //Set the Pen
-    QPen pen;
-    pen.setWidthF(.5);
-    pen.setCapStyle(Qt::FlatCap);
-
     //Add the edge to the parent
     if(getParent()){
         parent->addChildEdge(this);
-        pen.setColor(parent->getBaseBodyColor().darker(300));
     }
-    pen.setColor(Qt::black);
+
+    QPen pen(Qt::black);
+    pen.setWidthF(.5);
+    pen.setCapStyle(Qt::FlatCap);
 
     kind = edgeViewItem->getEdgeKind();
-
-    switch(kind){
+    switch (kind) {
         case EDGE_KIND::DATA:
             pen.setStyle(Qt::DotLine);
-        break;
+            break;
         case EDGE_KIND::ASSEMBLY:
             pen.setStyle(Qt::DashLine);
-        break;
-    default:
-        pen.setStyle(Qt::SolidLine);
+            break;
+        default:
+            break;
     }
     
     //Set the Pen.
     setDefaultPen(pen);
-
 
     srcAncestorVisibilityChanged();
     dstAncestorVisibilityChanged();
@@ -74,19 +69,20 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     connect(this, &EntityItem::positionChanged, this, &EdgeItem::updateEdge);
 
     //Listen to the X/Y data
-    addRequiredData("x");
-    addRequiredData("y");
-
+    addRequiredData(KeyName::X);
+    addRequiredData(KeyName::Y);
     reloadRequiredData();
 
     addHoverFunction(EntityRect::MOVE, std::bind(&EdgeItem::moveHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::SECONDARY_ICON, std::bind(&EdgeItem::sourceIconHover, this, std::placeholders::_1, std::placeholders::_2));
     addHoverFunction(EntityRect::TERTIARY_ICON, std::bind(&EdgeItem::targetIconHover, this, std::placeholders::_1, std::placeholders::_2));
+
     connect(Theme::theme(), &Theme::theme_Changed, this, &EdgeItem::updateEdgeOpacity);
     updateEdgeOpacity();
 }
 
-void EdgeItem::updateEdgeOpacity(){
+void EdgeItem::updateEdgeOpacity()
+{
     auto new_opacity = Theme::theme()->getInactiveEdgeOpacity();
     if(inactive_opacity_ != new_opacity){
         inactive_opacity_ = new_opacity;
@@ -147,8 +143,8 @@ QRectF EdgeItem::edgeRect() const
     return r;
 }
 
-
-QPointF EdgeItem::getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND kind) const{
+QPointF EdgeItem::getSceneEdgeTermination(EDGE_DIRECTION direction, EDGE_KIND) const
+{
     return getCenterCircleTermination(direction == EDGE_DIRECTION::SOURCE, _centerPoint);
 }
 
@@ -165,36 +161,31 @@ QRectF EdgeItem::currentRect() const
 
 void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(widget);
+
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
-
-    painter->setClipRect(option->exposedRect);
 
     bool full_render = vSrc->isHovered() || vDst->isHovered() || isSelected() || isHovered();
     full_render |= vSrc->isSelected() || vDst->isSelected();
 
+    painter->setClipRect(option->exposedRect);
     painter->setOpacity(full_render ? 1 : inactive_opacity_);
-
-
     painter->setBrush(Qt::blue);
 
-    if(!isSelected()){
+    if (!isSelected()) {
         painter->save();
         painter->setCompositionMode(QPainter::CompositionMode_Plus);
     }
 
     QPen pen = getPen();
 
-    if(state > RENDER_STATE::BLOCK){
+    if (state > RENDER_STATE::BLOCK) {
         painter->setPen(Qt::NoPen);
         painter->setBrush(Qt::NoBrush);
 
         auto inactive_pen = pen;
         inactive_pen.setWidthF(pen.widthF() / 4.0);
-        auto color = inactive_pen.color();
-        inactive_pen.setColor(color);
-
-       
 
         auto src_pen = (full_render) ? pen : inactive_pen;
         auto dst_pen = (full_render) ? pen : inactive_pen;
@@ -211,26 +202,23 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawPath(dstArrow);
     }
 
-    if(!isSelected()){
+    if (!isSelected()) {
         painter->restore();
     }
     
-    if(state > RENDER_STATE::BLOCK){
-        painter->setBrush(getBodyColor());
+    if (state > RENDER_STATE::BLOCK) {
         pen.setStyle(Qt::SolidLine);
         painter->setPen(pen);
-
+        painter->setBrush(getBodyColor());
         painter->drawEllipse(translatedCenterCircleRect());
     }
 
-
     auto ICON = EntityRect::MAIN_ICON;
-    if(isIconVisible(ICON)){
+    if (isIconVisible(ICON)) {
         paintPixmap(painter, lod, ICON, getIcon(ICON));
     }
-
     
-    if(state > RENDER_STATE::BLOCK && isSelected()){
+    if (state > RENDER_STATE::BLOCK && isSelected()) {
         {
             ICON = EntityRect::SECONDARY_ICON;
             auto is_hovered = isHovered(ICON);
@@ -241,18 +229,15 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             painter->drawEllipse(srcIconCircle());
             paintPixmap(painter, lod, srcIconRect(), src->getIcon(EntityRect::MAIN_ICON), icon_color);
         }
-
         {
             ICON = EntityRect::TERTIARY_ICON;
             auto is_hovered = isHovered(ICON);
-
             const auto brush_color = is_hovered ? getHighlightColor() : getBodyColor();
             const auto icon_color = is_hovered ? getHighlightTextColor() : QColor();
             painter->setBrush(brush_color);
             painter->setPen(pen);
             painter->setPen(pen);
             painter->drawEllipse(dstIconCircle());
-            
             paintPixmap(painter, lod, dstIconRect(), dst->getIcon(EntityRect::MAIN_ICON), icon_color);
         }
     }
@@ -260,52 +245,44 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 QPainterPath EdgeItem::getElementPath(EntityRect rect) const
 {
-    switch(rect){
-        case EntityRect::SHAPE:{
+    switch (rect) {
+        case EntityRect::SHAPE: {
             //Selection Area is the Center Circle and Arrow Heads
             QPainterPath path = getElementPath(EntityRect::MOVE);
-            if(isSelected()){
+            if (isSelected()) {
                 path.addEllipse(srcIconCircle());
                 path.addEllipse(dstIconCircle());
-            }else{
+            } else {
                 path.addPath(srcArrow);
                 path.addPath(dstArrow);
             }
             return path;
         }
-    default:
-        break;
+        default:
+            break;
     }
     return EntityItem::getElementPath(rect);
 }
-
 
 QRectF EdgeItem::getElementRect(EntityRect rect) const
 {
     switch(rect){
         case EntityRect::MOVE:
-        case EntityRect::MAIN_ICON:{
+        case EntityRect::MAIN_ICON:
             return centerIconRect();
-        }
-        case EntityRect::SECONDARY_ICON:{
+        case EntityRect::SECONDARY_ICON:
             return srcIconCircle();
-        }
-        case EntityRect::TERTIARY_ICON:{
+        case EntityRect::TERTIARY_ICON:
             return dstIconCircle();
-        }
         default:
-        break;
+            break;
     }
     //Just call base class.
     return EntityItem::getElementRect(rect);
 }
 
-
-
 void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-
-    //If we aren't
     if(event->button() == Qt::LeftButton){
         const auto& pos = event->pos();
         if(!isCentered() && translatedCenterCircleRect().contains(pos)){
@@ -322,8 +299,8 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void EdgeItem::dataChanged(const QString& key_name, const QVariant& data)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
             setCentered(false);
         }
         EntityItem::dataChanged(key_name, data);
@@ -332,11 +309,10 @@ void EdgeItem::dataChanged(const QString& key_name, const QVariant& data)
 
 void EdgeItem::dataRemoved(const QString& key_name)
 {
-    if(isDataRequired(key_name)){
-        if(key_name == "x" || key_name == "y"){
-            auto has_x_and_y = hasData("x") && hasData("y");
-
-            if(!has_x_and_y){
+    if (isDataRequired(key_name)) {
+        if (key_name == KeyName::X || key_name == KeyName::Y) {
+            auto has_x_and_y = hasData(KeyName::X) && hasData(KeyName::Y);
+            if (!has_x_and_y) {
                 setCentered(true);
             }
         }
@@ -349,22 +325,36 @@ void EdgeItem::dataRemoved(const QString& key_name)
  * @param pointLeft Whether the arrow header points facing left/right
  * @return
  */
-QPainterPath EdgeItem::calculateArrowHead(QPointF endPoint, bool pointLeft) const
+QPainterPath EdgeItem::calculateArrowHead(const QPointF& endPoint, bool pointLeft) const
 {
-    QPainterPath path;
-
     int x = pointLeft ? -ARROW_SIZE: ARROW_SIZE;
     // |=>
     // <=|
-    QPointF startPoint = endPoint - QPointF(x, 0);
-    QPointF topPoint = startPoint + QPointF(x, -ARROW_SIZE/2);
-    QPointF bottomPoint = startPoint + QPointF(x, ARROW_SIZE/2);
 
-    path.moveTo(startPoint);
+    QPointF startPoint = endPoint - QPointF(x, 0);
+    QPointF topPoint = startPoint + QPointF(x, -ARROW_SIZE / 2);
+    QPointF bottomPoint = startPoint + QPointF(x, ARROW_SIZE / 2);
+
+    QPainterPath path(startPoint);
     path.lineTo(topPoint);
     path.lineTo(bottomPoint);
     path.lineTo(startPoint);
     return path;
+}
+
+/**
+ * @brief EdgeItem::getRect
+ * @param center
+ * @param size
+ * @return a rectangle centered at center with a width and height specified by size
+ */
+QRectF EdgeItem::getRect(const QPointF& center, const QSizeF& size) const
+{
+    QRectF rect(QPointF(), size);
+    if (!center.isNull()) {
+        rect.moveCenter(center);
+    }
+    return rect;
 }
 
 /**
@@ -373,10 +363,7 @@ QPainterPath EdgeItem::calculateArrowHead(QPointF endPoint, bool pointLeft) cons
  */
 QRectF EdgeItem::srcIconRect() const
 {
-    QRectF  r;
-    r.setSize(smallIconSize());
-    r.moveCenter(srcIconCircle().center());
-    return r;
+    return getRect(srcIconCircle().center(), smallIconSize());
 }
 
 /**
@@ -385,10 +372,7 @@ QRectF EdgeItem::srcIconRect() const
  */
 QRectF EdgeItem::centerIconRect() const
 {
-    QRectF  r;
-    r.setSize(smallIconSize());
-    r.moveCenter(translatedCenterCircleRect().center());
-    return r;
+    return getRect(translatedCenterCircleRect().center(), smallIconSize());
 }
 
 /**
@@ -397,10 +381,7 @@ QRectF EdgeItem::centerIconRect() const
  */
 QRectF EdgeItem::dstIconRect() const
 {
-    QRectF  r;
-    r.setSize(smallIconSize());
-    r.moveCenter(dstIconCircle().center());
-    return r;
+    return getRect(dstIconCircle().center(), smallIconSize());
 }
 
 /**
@@ -410,16 +391,13 @@ QRectF EdgeItem::dstIconRect() const
  */
 QRectF EdgeItem::srcIconCircle() const
 {
-    QRectF  r;
-    if(isSelected()){
-        r.setSize(QSizeF(10,10));
-
+    QRectF r;
+    if (isSelected()) {
         QRectF cR = translatedCenterCircleRect();
-        r.moveCenter(cR.center());
-
-        if(srcCurveEntersCenterLeft){
+        r = getRect(cR.center(), default_circle_size);
+        if (srcCurveEntersCenterLeft) {
             r.moveRight(cR.left());
-        }else{
+        } else {
             r.moveLeft(cR.right());
         }
     }
@@ -433,22 +411,18 @@ QRectF EdgeItem::srcIconCircle() const
  */
 QRectF EdgeItem::dstIconCircle() const
 {
-    QRectF  r;
-    if(isSelected()){
-        r.setSize(QSizeF(10,10));
-
+    QRectF r;
+    if (isSelected()) {
         QRectF cR = translatedCenterCircleRect();
-        r.moveCenter(cR.center());
-
-        if(!srcCurveEntersCenterLeft){
+        r = getRect(cR.center(), default_circle_size);
+        if (!srcCurveEntersCenterLeft) {
             r.moveRight(cR.left());
-        }else{
+        } else {
             r.moveLeft(cR.right());
         }
     }
     return r;
 }
-
 
 /**
  * @brief EdgeItem::getCenterCircleTermination Gets the left or right point of the center circle, given a particular center point.
@@ -456,7 +430,7 @@ QRectF EdgeItem::dstIconCircle() const
  * @param center The defined center point to use (If undefined, will use the current Center)
  * @return
  */
-QPointF EdgeItem::getCenterCircleTermination(bool left, QPointF center) const
+QPointF EdgeItem::getCenterCircleTermination(bool left, const QPointF& center) const
 {
     QRectF r = translatedCenterCircleRect(center);
     QPointF point = r.center();
@@ -465,18 +439,17 @@ QPointF EdgeItem::getCenterCircleTermination(bool left, QPointF center) const
 }
 
 /**
- * @brief EdgeItem::centerCircleRect Gets the center circle bounding rectangle (Non translated)
- * @return
+ * @brief EdgeItem::centerCircleRectSize
+ * @return the center circle's size
+ * The circle is slightly bigger when it is no longer auto-centered.
  */
-QRectF EdgeItem::centerCircleRect() const
+QSizeF EdgeItem::centerCircleRectSize() const
 {
-    QRectF  r;
-    if(_isCentered){
-        r.setSize(QSizeF(8, 8));
-    }else{
-        r.setSize(QSizeF(10, 10));
+    if (_isCentered) {
+        return small_circle_size;
+    } else {
+        return default_circle_size;
     }
-    return r;
 }
 
 /**
@@ -484,16 +457,13 @@ QRectF EdgeItem::centerCircleRect() const
  * @param center
  * @return
  */
-QRectF EdgeItem::translatedCenterCircleRect(QPointF center) const
+QRectF EdgeItem::translatedCenterCircleRect(const QPointF& center) const
 {
-    if(center.isNull()){
-        center = _centerPoint;
+    if (center.isNull()) {
+        return getRect(_centerPoint, centerCircleRectSize());
     }
-    QRectF r = centerCircleRect();
-    r.moveCenter(center);
-    return r;
+    return getRect(center, centerCircleRectSize());
 }
-
 
 /**
  * @brief EdgeItem::srcAncestorVisibilityChanged Called when a Source ancestor's visibility changes. Sets the Visible Parent as the lowest visible parent of source
@@ -501,7 +471,6 @@ QRectF EdgeItem::translatedCenterCircleRect(QPointF center) const
 void EdgeItem::srcAncestorVisibilityChanged()
 {
     NodeItem* newSrc = getFirstVisibleParent(src);
-
     if(newSrc != vSrc){
         if(vSrc){
             //Disconnect old visible Src
@@ -519,7 +488,8 @@ void EdgeItem::srcAncestorVisibilityChanged()
     }
 }
 
-void EdgeItem::repaint(){
+void EdgeItem::repaint()
+{
     update();
 }
 
@@ -529,7 +499,6 @@ void EdgeItem::repaint(){
 void EdgeItem::dstAncestorVisibilityChanged()
 {
     NodeItem* newDst = getFirstVisibleParent(dst);
-
     if(newDst != vDst){
         if(vDst){
             //Disconnect old visible Dst
@@ -547,7 +516,6 @@ void EdgeItem::dstAncestorVisibilityChanged()
     }
 }
 
-
 /**
  * @brief EdgeItem::updateSrcCurve Updates the curve between the Visible Source and the Center Point
  * @param srcP The source end point
@@ -558,7 +526,6 @@ void EdgeItem::dstAncestorVisibilityChanged()
 void EdgeItem::updateSrcCurve(QPointF srcP, QPointF ctrP, bool srcP_Left, bool ctrP_Left)
 {
     QPainterPath newCurve = calculateBezierCurve(srcP, ctrP, srcP_Left, ctrP_Left);
-
     if(newCurve != srcCurve){
         //Update the curve
         srcCurve = newCurve;
@@ -579,8 +546,6 @@ void EdgeItem::updateSrcCurve(QPointF srcP, QPointF ctrP, bool srcP_Left, bool c
  */
 QPainterPath EdgeItem::calculateBezierCurve(QPointF P1, QPointF P2, bool P1_Left, bool P2_Left) const
 {
-    QPainterPath curve;
-
     //Calculate the control points for the bezier curve, By using the swapping the X/Y coordinates from the start end points of the curve.
     QPointF ctrlP1 = QPointF(P2.x(), P1.y());
     QPointF ctrlP2 = QPointF(P1.x(), P2.y());
@@ -588,7 +553,7 @@ QPainterPath EdgeItem::calculateBezierCurve(QPointF P1, QPointF P2, bool P1_Left
     //If both ends exit the same side as each other, make our control points make a singularly curved loop
     if(P1_Left == P2_Left){
         //Calculate the vertical offset between our two end points.
-        qreal yOffset = fabs(P1.y() - P2.y());
+        qreal yOffset = std::fabs(P1.y() - P2.y());
 
         if(P1_Left){
             //Both exiting Left, so we should make the curve grow to the left of the smaller end point
@@ -605,8 +570,8 @@ QPainterPath EdgeItem::calculateBezierCurve(QPointF P1, QPointF P2, bool P1_Left
         ctrlP2.rx() = ctrlP1.x();
     }
 
-    //Move to the first point.
-    curve.moveTo(mapFromScene(P1));
+    // Create a path starting at the first point
+    QPainterPath curve(mapFromScene(P1));
     //Setup our cubic bezier curve.
     curve.cubicTo(mapFromScene(ctrlP1), mapFromScene(ctrlP2), mapFromScene(P2));
     return curve;
@@ -623,7 +588,6 @@ void EdgeItem::updateDstCurve(QPointF dstP, QPointF ctrP, bool dstP_Left, bool c
 {
     //Calculate the dst curve backwards, so that the dashed pen will appear to feed from the center point.
     QPainterPath newCurve = calculateBezierCurve(dstP, ctrP, dstP_Left, ctrP_Left);
-
     if(newCurve != dstCurve){
         //Update the curve
         dstCurve = newCurve;
@@ -653,17 +617,11 @@ void EdgeItem::updateEdge()
     /*
      * Map of the position points.
      * [(SRC) sP1] --> [sP2 (CEN) dP1] --> [dP2 (DST)]
-     * */
+     */
 
-    //Check if given the current Center, the source/destination should exit the left side
-    bool useSrcLeft = false;// srcExitsLeft();
-    bool useDstLeft = true;//dstExitsLeft();
-
-    //Get the entry/exit points into the source/destinatino based off the above variables.
+    //Get the entry/exit points into the source/destination based off the above variables.
     QPointF sP1 = vSrc->getSceneEdgeTermination(EDGE_DIRECTION::SOURCE, kind);
     QPointF dP2 = vDst->getSceneEdgeTermination(EDGE_DIRECTION::TARGET, kind);
-
-
 
     //Calculate the lines which represents the 2 options
 
@@ -687,13 +645,13 @@ void EdgeItem::updateEdge()
     QPointF dP1 = useOption1 ? ctrRight : ctrLeft;
 
     //Allow for the Arrow head at the ends of the source/destination.
-    dP2.rx() += useDstLeft ? -ARROW_SIZE : ARROW_SIZE;
+    dP2.rx() -= ARROW_SIZE;
     sP2.rx() += useOption1 ? -ARROW_SIZE : ARROW_SIZE;
 
     //Update the curves
-    updateSrcCurve(sP1, sP2, useSrcLeft, useOption1);
+    updateSrcCurve(sP1, sP2, false, useOption1);
     //Flipping the locations of dP1/dP2 will mean the line will start being drawn at then termination points, which will make the line look more uniform with the source.
-    updateDstCurve(dP2, dP1, useDstLeft, !useOption1);
+    updateDstCurve(dP2, dP1, true, !useOption1);
 }
 
 /**
@@ -708,17 +666,15 @@ void EdgeItem::resetCenter()
         //Calculate new Center position
         auto center = (srcCenter + dstCenter) / 2;
         auto scene_center = mapFromScene(center);
-        
         setPos(scene_center);
 
         if(!_isCentered){
             emit req_triggerAction("Resetting Edge Position");
-            removeData("x");
-            removeData("y");
+            removeData(KeyName::X);
+            removeData(KeyName::Y);
         }
     }
 }
-
 
 /**
  * @brief EdgeItem::getFirstVisibleParent Gets the first visible parent, starting at the actual NodeItem the EdgeItem is connected to.
@@ -727,7 +683,6 @@ void EdgeItem::resetCenter()
  */
 NodeItem *EdgeItem::getFirstVisibleParent(NodeItem *item)
 {
-
     while(item && item->isHidden()){
         item = item->getParentNodeItem();
     }
@@ -737,12 +692,10 @@ NodeItem *EdgeItem::getFirstVisibleParent(NodeItem *item)
 void EdgeItem::updateZValue(bool childSelected, bool childActive)
 {
     EntityItem::updateZValue(childSelected, childActive);
-
     if(vSrc && vDst){
         vSrc->updateZValue(isSelected(), isActiveSelected());
         vDst->updateZValue(isSelected(), isActiveSelected());
     }
-
 }
 
 /**
@@ -773,31 +726,33 @@ void EdgeItem::setCentered(bool centered)
 bool EdgeItem::setMoveFinished()
 {
     if(!isCentered()){
-        setPos(getNearestGridPoint());
+        setPos(getNearestGridPoint(QPointF()));
     }
     return EntityItem::setMoveFinished();
 }
 
-
-void EdgeItem::sourceIconHover(bool hovered, const QPointF& pos){
+void EdgeItem::sourceIconHover(bool hovered, const QPointF& pos)
+{
     if(hovered){
-        AddTooltip("Double-Click to center on edge's source");
+        AddTooltip("Double-click to center on edge's source");
     }
     vSrc->setHighlighted(hovered);
 }
 
-void EdgeItem::targetIconHover(bool hovered, const QPointF& pos){
+void EdgeItem::targetIconHover(bool hovered, const QPointF& pos)
+{
     if(hovered){
-        AddTooltip("Double-Click to center on edge's target");
+        AddTooltip("Double-click to center on edge's target");
     }
     vDst->setHighlighted(hovered);
 }
 
-void EdgeItem::moveHover(bool hovered, const QPointF& pos){
+void EdgeItem::moveHover(bool hovered, const QPointF& pos)
+{
     if(hovered){
         QString tooltip = "Click and drag to move edge";
         if(!isCentered()){
-            tooltip+= "\nDouble-Click to reset edge";
+            tooltip += "\nDouble-click to reset edge";
         }
         AddTooltip(tooltip);
         AddCursor(Qt::OpenHandCursor);

@@ -33,21 +33,22 @@ MEDEA::TransitionFunction::TransitionFunction(::EntityFactoryBroker& broker, boo
     setLabelFunctional(false);
 
     //Setup Data
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
-    auto data_type = broker.AttachData(this, "type", QVariant::String, ProtectedState::UNPROTECTED);
-    data_type->addValidValues({"Activate", "Configure", "Passivate", "Terminate"});
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED);
+    auto data_type = broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::UNPROTECTED);
+    data_type->addValidValues({"Configure", "Activate", "Passivate", "Terminate"});
 
     connect(data_type, &Data::dataChanged, this, &MEDEA::TransitionFunction::updateLabel);
     updateLabel();
 }
 
 
-void MEDEA::TransitionFunction::updateLabel(){
+void MEDEA::TransitionFunction::updateLabel()
+{
     QString new_label = "Handle";
-    new_label += getDataValue("type").toString();
-    setDataValue("label", new_label);
+    new_label += getDataValue(KeyName::Type).toString();
+    setDataValue(KeyName::Label, new_label);
 }
 
 
@@ -70,8 +71,8 @@ bool MEDEA::TransitionFunction::canAdoptChild(Node* child)
 
 void MEDEA::TransitionFunction::parentSet(Node* parent){
 
-    auto src_data = parent->getData("label");
-    auto dst_data = getData("class");
+    auto src_data = parent->getData(KeyName::Label);
+    auto dst_data = getData(KeyName::Class);
     if(src_data && dst_data){
         src_data->linkData(dst_data, true);
     }
@@ -86,8 +87,8 @@ void MEDEA::TransitionFunction::parentSet(Node* parent){
     }
 
     if(parent->getViewAspect() == VIEW_ASPECT::BEHAVIOUR && parent_node_kind != NODE_KIND::CLASS_INST){
-        auto operation = getData("operation");
-        auto label = getData("label");
+        auto operation = getData(KeyName::Operation);
+        auto label = getData(KeyName::Label);
         if(operation && label){
             operation->linkData(label, true);
         }

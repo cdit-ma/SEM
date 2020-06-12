@@ -26,30 +26,25 @@ Member::Member(EntityFactoryBroker& broker, bool is_temp) : DataNode(broker, nod
     //Setup Data
     setLabelFunctional(false);
 
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "primitive_type", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::PrimitiveType, QVariant::String, ProtectedState::UNPROTECTED);
 
-    auto type_data = broker.AttachData(this, "type", QVariant::String, ProtectedState::UNPROTECTED, TypeKey::GetDefaultPrimitiveType());
+    auto type_data = broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::UNPROTECTED, TypeKey::GetDefaultPrimitiveType());
     type_data->addValidValues(TypeKey::GetValidPrimitiveTypes());
-    broker.AttachData(this, "key", QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    
+    broker.AttachData(this, KeyName::Key, QVariant::Bool, ProtectedState::UNPROTECTED, false);
 }
 
 
-void Member::parentSet(Node* parent){
-    if(parent->getNodeKind() == NODE_KIND::AGGREGATE){
+void Member::parentSet(Node* parent)
+{
+    if (parent->getNodeKind() == NODE_KIND::AGGREGATE) {
         setLabelFunctional(true);
     }
-
-    if(parent->getNodeKind() != NODE_KIND::VARIABLE){
+    if (parent->getNodeKind() != NODE_KIND::VARIABLE) {
         AggregateInst::ParentSet(this);
-    }else{
-        getFactoryBroker().AttachData(this, "label", QVariant::String, ProtectedState::PROTECTED);
+    } else {
+        getFactoryBroker().AttachData(this, KeyName::Label, QVariant::String, ProtectedState::PROTECTED);
     }
-    //Needs Value
-    QSet<NODE_KIND> needs_value_key = {NODE_KIND::VARIABLE, NODE_KIND::RETURN_PARAMETER_GROUP};
-    if(needs_value_key.contains(parent->getNodeKind())){
-        
-    }
-    
     DataNode::parentSet(parent);
 }

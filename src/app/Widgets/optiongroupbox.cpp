@@ -1,32 +1,29 @@
 #include "optiongroupbox.h"
 #include "../theme.h"
-#include <QDebug>
 
 #define OPTION_KEY "OPTION_KEY"
-#define ICON_SIZE 20
-
 
 /**
  * @brief OptionGroupBox::OptionGroupBox
  * @param title
+ * @param sort_order
  * @param parent
  */
-OptionGroupBox::OptionGroupBox(QString title, SortOrder sort_order, QWidget* parent) : CustomGroupBox(title, parent)
+OptionGroupBox::OptionGroupBox(const QString& title, SortOrder sort_order, QWidget* parent)
+	: CustomGroupBox(title, parent)
 {
     this->sort_order = sort_order;
-    setupResetAction();
-    setTitle(title);
+	this->title = title;
+	setupResetAction();
     
     connect(Theme::theme(), &Theme::theme_Changed, this, &OptionGroupBox::themeChanged);
     themeChanged();
 }
 
-
-bool OptionGroupBox::isResetChecked(){
+bool OptionGroupBox::isResetChecked()
+{
     return reset_action && reset_action->isChecked();
 }
-
-
 
 /**
  * @brief OptionGroupBox::themeChanged
@@ -40,7 +37,6 @@ void OptionGroupBox::themeChanged()
     Theme::UpdateActionIcon(reset_action, theme);
 }
 
-
 /**
  * @brief OptionGroupBox::setExclusive
  * This sets whether this group is exclusive or not.
@@ -51,7 +47,6 @@ void OptionGroupBox::setExclusive(bool exclusive)
 {
     this->exclusive = exclusive;
 }
-
 
 /**
  * @brief OptionGroupBox::setResetButtonVisible
@@ -64,56 +59,63 @@ void OptionGroupBox::setResetButtonVisible(bool visible)
     }
 }
 
-void OptionGroupBox::setOptionVisible(QVariant key, bool visible)
+/**
+ * @brief OptionGroupBox::setOptionVisible
+ * @param key
+ * @param visible
+ */
+void OptionGroupBox::setOptionVisible(const QVariant& key, bool visible)
 {
-    auto option_button = actions_lookup.value(key, 0);
-    if(option_button){
+    auto option_button = actions_lookup.value(key, nullptr);
+    if (option_button) {
         option_button->setVisible(visible);
     }
 }
 
-void OptionGroupBox::setOptionChecked(QVariant key, bool checked){
-    auto option_button = actions_lookup.value(key, 0);
-    if(option_button){
-        if(option_button->isChecked() != checked){
+/**
+ * @brief OptionGroupBox::setOptionChecked
+ * @param key
+ * @param checked
+ */
+void OptionGroupBox::setOptionChecked(const QVariant& key, bool checked)
+{
+    auto option_button = actions_lookup.value(key, nullptr);
+    if (option_button) {
+        if (option_button->isChecked() != checked) {
             option_button->setChecked(!checked);
             emit option_button->trigger();
         }
     }
 }
 
-
-
 /**
  * @brief OptionGroupBox::setResetButtonIcon
  * @param path
  * @param name
  */
-void OptionGroupBox::setResetButtonIcon(QString path, QString name)
+void OptionGroupBox::setResetButtonIcon(const QString& path, const QString& name)
 {
     Theme::StoreActionIcon(reset_action, path, name);
 }
-
 
 /**
  * @brief OptionGroupBox::setResetButtonText
  * @param text
  */
-void OptionGroupBox::setResetButtonText(QString text)
+void OptionGroupBox::setResetButtonText(const QString& text)
 {
     if (reset_action) {
         reset_action->setText(text);
     }
 }
 
-
 /**
  * @brief OptionGroupBox::removeOption
  * @param key
  */
-void OptionGroupBox::removeOption(QVariant key)
+void OptionGroupBox::removeOption(const QVariant& key)
 {
-    auto action = actions_lookup.value(key, 0);
+    auto action = actions_lookup.value(key, nullptr);
     if (action) {
         actions_lookup.remove(key);
         checkedKeys.removeAll(key);
@@ -123,10 +125,10 @@ void OptionGroupBox::removeOption(QVariant key)
     updateTitleCount();
 }
 
-bool OptionGroupBox::gotOption(QVariant key){
-    return actions_lookup.value(key, 0) != 0;
+bool OptionGroupBox::gotOption(const QVariant& key)
+{
+    return actions_lookup.value(key, nullptr) != nullptr;
 }
-
 
 /**
  * @brief OptionGroupBox::removeOptions
@@ -134,7 +136,7 @@ bool OptionGroupBox::gotOption(QVariant key){
 void OptionGroupBox::removeOptions()
 {
     hide();
-    for(auto key : actions_lookup.uniqueKeys()){
+    for (const auto& key : actions_lookup.uniqueKeys()) {
         removeOption(key);
     }
     actions_lookup.clear();
@@ -142,13 +144,16 @@ void OptionGroupBox::removeOptions()
     show();
 }
 
-void OptionGroupBox::resetChecked(bool notify){
+void OptionGroupBox::resetChecked(bool notify)
+{
     resetOptions();
-    if(notify){
+    if (notify) {
         emit checkedOptionsChanged();
     }
 }
-void OptionGroupBox::reset(){
+
+void OptionGroupBox::reset()
+{
     resetChecked(true);
 }
 
@@ -164,7 +169,6 @@ void OptionGroupBox::uncheckOptions()
     checkedKeys.clear();
 }
 
-
 /**
  * @brief OptionGroupBox::resetOptions
  */
@@ -174,20 +178,17 @@ void OptionGroupBox::resetOptions()
     reset_action->setChecked(true);
     checkedKeys = actions_lookup.keys();
     updateTitleCount();
-    
 }
-
 
 /**
  * @brief OptionGroupBox::setTitle
  * @param title
  */
-void OptionGroupBox::setTitle(QString title)
+void OptionGroupBox::setTitle(const QString& title)
 {
     this->title = title;
     updateTitleCount();
 }
-
 
 /**
  * @brief OptionGroupBox::updateTitleCount
@@ -195,12 +196,13 @@ void OptionGroupBox::setTitle(QString title)
 void OptionGroupBox::updateTitleCount()
 {
     auto new_title = title;
-    if (reset_action && !reset_action->isChecked()) {
-        new_title += QString(" (%1)").arg(QString::number(checkedKeys.count()));
+    if (!exclusive) {
+        if (reset_action && !reset_action->isChecked()) {
+            new_title += QString(" (%1)").arg(QString::number(checkedKeys.count()));
+        }
     }
     CustomGroupBox::setTitle(new_title);
 }
-
 
 /**
  * @brief OptionGroupBox::filterTriggered
@@ -239,7 +241,6 @@ void OptionGroupBox::optionToggled()
     emit checkedOptionsChanged();
 }
 
-
 /**
  * @brief OptionGroupBox::setupResetButton
  */
@@ -254,9 +255,11 @@ void OptionGroupBox::setupResetAction()
     }
 }
 
-int OptionGroupBox::getOptionCount(){
+int OptionGroupBox::getOptionCount()
+{
     return actions_lookup.size();
 }
+
 /**
  * @brief OptionGroupBox::addOption
  * @param key
@@ -265,33 +268,31 @@ int OptionGroupBox::getOptionCount(){
  * @param icon_name
  * @return
  */
-bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, QString icon_name, bool put_on_top)
+bool OptionGroupBox::addOption(const QVariant& key, const QString& label, const QString& icon_path, const QString& icon_name)
 {
     if (key.isNull() || actions_lookup.count(key)) {
-        qWarning() << "OptionGroupBox::addOption - The key is null.";
+        qWarning("OptionGroupBox::addOption - The key is null.");
         return false;
     }
 
-    QAction* put_below = 0;
-    if(sort_order == SortOrder::REVERSE_INSERTION){
+    QAction* put_below = nullptr;
+    if (sort_order == SortOrder::REVERSE_INSERTION) {
         sorted_keys.insert(0, key);
-    }else{
+    } else {
         sorted_keys.append(key);
     }
 
-    if(sort_order == SortOrder::DESCENDING || sort_order == SortOrder::ASCENDING){
+    if (sort_order == SortOrder::DESCENDING || sort_order == SortOrder::ASCENDING) {
         std::sort(sorted_keys.begin(), sorted_keys.end());
-
-        if(sort_order == SortOrder::DESCENDING){
+        if (sort_order == SortOrder::DESCENDING) {
             std::reverse(sorted_keys.begin(), sorted_keys.end());
         }
     }
 
     auto index_of = sorted_keys.indexOf(key) + 1;
-
-    if(index_of < sorted_keys.size()){
+    if (index_of < sorted_keys.size()) {
         auto before_key = sorted_keys.at(index_of);
-        put_below = actions_lookup.value(before_key, 0);
+        put_below = actions_lookup.value(before_key, nullptr);
     }
 
     auto option_action = getNewOptionAction(put_below);
@@ -305,29 +306,30 @@ bool OptionGroupBox::addOption(QVariant key, QString label, QString icon_path, Q
     return true;
 }
 
-void OptionGroupBox::updateOptionIcon(QVariant key, QString icon_path, QString icon_name){
-    auto option_action = actions_lookup.value(key, 0);
-    if(option_action){
+void OptionGroupBox::updateOptionIcon(const QVariant& key, const QString& icon_path, const QString& icon_name)
+{
+    auto option_action = actions_lookup.value(key, nullptr);
+    if (option_action) {
         Theme::StoreActionIcon(option_action, icon_path, icon_name);
         Theme::UpdateActionIcon(option_action);
     }
 }
 
-void OptionGroupBox::updateOptionLabel(QVariant key, QString label){
-    auto option_action = actions_lookup.value(key, 0);
-    if(option_action){
+void OptionGroupBox::updateOptionLabel(const QVariant& key, const QString& label)
+{
+    auto option_action = actions_lookup.value(key, nullptr);
+    if (option_action) {
         option_action->setText(label);
     }
 }
 
-
-QAction* OptionGroupBox::getNewOptionAction(QAction* put_below){
+QAction* OptionGroupBox::getNewOptionAction(QAction* put_below)
+{
     auto button = new QToolButton(this);
     button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     auto action = insertWidget(put_below, button);
 
-    
     //Connect the button to it's action so we don't need to worry about QToolButton stuff
     button->setDefaultAction(action);
     action->setCheckable(true);
@@ -336,8 +338,7 @@ QAction* OptionGroupBox::getNewOptionAction(QAction* put_below){
     return action;
 }
 
-
-inline uint qHash(QVariant key, uint seed)
+inline uint qHash(const QVariant& key, uint seed)
 {
     return ::qHash(key.toUInt(), seed);
 }

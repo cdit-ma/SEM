@@ -14,6 +14,7 @@
 #include "edgekinds.h"
 #include "dataupdate.h"
 #include "viewcontrollerint.h"
+#undef ERROR
 class Entity;
 class Node;
 class Edge;
@@ -82,6 +83,8 @@ public:
 
     int getImplementation(int ID);
     int getDefinition(int ID);
+    QList<int> getInstances(int ID);
+
     int getSharedParent(int ID, int ID2);
     bool isProjectSaved();
     int getProjectActionCount();
@@ -120,6 +123,8 @@ private slots:
     void constructConnectedNodeAtPos(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, QPointF pos);
     void constructConnectedNodeAtIndex(int parentID, NODE_KIND nodeKind, int dstID, EDGE_KIND edgeKind, int index);
     void constructDDSQOSProfile();
+    void constructTriggerDefinition();
+    
     void constructEdges(QList<int> src, QList<int> dst, EDGE_KIND edge_kind);
     
     void destructEdges(QList<int> srcIDs, QList<int> dstID, EDGE_KIND edgeClass);
@@ -305,6 +310,7 @@ private:
     Node* assemblyDefinitions = 0;
     Node* hardwareDefinitions = 0;
     Node* workerDefinitions = 0;
+    Node* triggerDefinitions = 0;
 
     int actionCount = 0;
     int currentActionID = 0;
@@ -333,4 +339,3 @@ inline uint qHash(MODEL_ACTION key, uint seed)
 Q_DECLARE_METATYPE(MODEL_ACTION);
 
 #endif // MODELCONTROLLER_H
-

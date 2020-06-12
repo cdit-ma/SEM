@@ -1,19 +1,15 @@
 #include "shortcutdialog.h"
+#include "../../theme.h"
+
 #include <QHeaderView>
 #include <QAction>
-#include <QPalette>
-#include <QBrush>
-#include <QDebug>
 #include <QStringBuilder>
-
 
 #define IMAGE_PREFIX QTableWidgetItem::UserType + 1
 #define IMAGE_NAME QTableWidgetItem::UserType + 2
 
-#include "../../theme.h"
-
-ShortcutDialog::ShortcutDialog(QWidget *parent) :
-    QDialog(parent)
+ShortcutDialog::ShortcutDialog(QWidget *parent)
+    : QDialog(parent)
 {
     setWindowTitle("App Shortcuts");
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -26,7 +22,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     connect(Theme::theme(), &Theme::theme_Changed, this, &ShortcutDialog::themeChanged);
 }
 
-void ShortcutDialog::addShortcut(QString shortcut, QString description, QString alias, QString image)
+void ShortcutDialog::addShortcut(QString shortcut, const QString& description, const QString& alias, const QString& image)
 {
     QFont italicFont;
     italicFont.setItalic(true);
@@ -37,8 +33,8 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description, QString 
         shortcut.replace("Ctrl", "⌘");
     #endif
 
-    QTableWidgetItem * shortcutR = new QTableWidgetItem(shortcut);
-    QTableWidgetItem * descriptionR = new QTableWidgetItem(description);
+    auto shortcutR = new QTableWidgetItem(shortcut);
+    auto descriptionR = new QTableWidgetItem(description);
 
     descriptionR->setData(IMAGE_PREFIX, alias);
     descriptionR->setData(IMAGE_NAME, image);
@@ -50,7 +46,7 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description, QString 
     shortcutR->setFlags(shortcutR->flags() ^ Qt::ItemIsEditable);
     shortcutR->setTextAlignment(Qt::AlignCenter);
 
-    if(tableWidget){
+    if (tableWidget) {
         int insertLocation = tableWidget->rowCount();
         tableWidget->insertRow(insertLocation);
         tableWidget->setItem(insertLocation, 0, descriptionR);
@@ -59,14 +55,14 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description, QString 
     }
 }
 
-void ShortcutDialog::addTitle(QString label, QString alias, QString image)
+void ShortcutDialog::addTitle(const QString& label, const QString& alias, const QString& image)
 {
-    if(tableWidget){
+    if (tableWidget) {
         QFont boldFont;
         boldFont.setBold(true);
         boldFont.setPointSize(boldFont.pointSize() + 1);
 
-        QTableWidgetItem* textItem = new QTableWidgetItem(label);
+        auto textItem = new QTableWidgetItem(label);
         textItem->setFlags(textItem->flags() ^ Qt::ItemIsEditable);
         textItem->setTextAlignment(Qt::AlignCenter);
         textItem->setFont(boldFont);
@@ -95,9 +91,8 @@ void ShortcutDialog::themeChanged()
                                "}");
 
     for (int row = 0 ; row < tableWidget->rowCount() ; ++row) {
-        //QTableWidgetItem* header = tableWidget->verticalHeaderItem(row);
         QTableWidgetItem* header = tableWidget->item(row, 0);
-        if(header){
+        if (header) {
             QString prefix = header->data(IMAGE_PREFIX).toString();
             QString image = header->data(IMAGE_NAME).toString();
             if(!prefix.isEmpty() && !image.isEmpty()){

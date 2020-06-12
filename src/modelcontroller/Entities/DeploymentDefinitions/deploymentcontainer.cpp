@@ -18,6 +18,7 @@ MEDEA::DeploymentContainer::DeploymentContainer(EntityFactoryBroker &broker, boo
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::SOURCE);
+    setAcceptsEdgeKind(EDGE_KIND::TRIGGER, EDGE_DIRECTION::TARGET);
     setLabelFunctional(false);
 
     if(is_temp_node){
@@ -25,12 +26,12 @@ MEDEA::DeploymentContainer::DeploymentContainer(EntityFactoryBroker &broker, boo
     }
 
     //Don't allow late joiner flag to be modified
-    broker.AttachData(this, "is_late_joiner", QVariant::Bool, ProtectedState::PROTECTED, false);
-    auto data_docker = broker.AttachData(this, "is_docker", QVariant::Bool, ProtectedState::UNPROTECTED, false);
+    broker.AttachData(this, KeyName::IsLateJoiner, QVariant::Bool, ProtectedState::PROTECTED, false);
+    auto data_docker = broker.AttachData(this, KeyName::IsDocker, QVariant::Bool, ProtectedState::UNPROTECTED, false);
     connect(data_docker, &Data::dataChanged, this, &MEDEA::DeploymentContainer::TypeUpdated);
 
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED);
     TypeUpdated();
 }
 
@@ -51,7 +52,8 @@ bool MEDEA::DeploymentContainer::canAcceptEdge(EDGE_KIND edge_kind, Node *destin
     return Node::canAcceptEdge(edge_kind, destination);
 }
 
-void MEDEA::DeploymentContainer::TypeUpdated(){
-    auto is_docker = getDataValue("is_docker").toBool();
-    getFactoryBroker().AttachData(this, "icon", QVariant::String, ProtectedState::PROTECTED, (is_docker ? "docker" : "servers"));
+void MEDEA::DeploymentContainer::TypeUpdated()
+{
+    auto is_docker = getDataValue(KeyName::IsDocker).toBool();
+    getFactoryBroker().AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, (is_docker ? "docker" : "servers"));
 }

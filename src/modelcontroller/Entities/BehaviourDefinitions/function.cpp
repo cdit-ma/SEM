@@ -33,12 +33,10 @@ MEDEA::Function::Function(::EntityFactoryBroker& broker, bool is_temp) : Node(br
     setLabelFunctional(false);
 
     //Setup Data
-    broker.AttachData(this, "class", QVariant::String, ProtectedState::PROTECTED);
-
-    broker.AttachData(this, "operation", QVariant::String, ProtectedState::UNPROTECTED, "Function");
-
-    broker.AttachData(this, "icon_prefix", QVariant::String, ProtectedState::UNPROTECTED);
-    broker.AttachData(this, "icon", QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Class, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Operation, QVariant::String, ProtectedState::UNPROTECTED, "Function");
+    broker.AttachData(this, KeyName::IconPrefix, QVariant::String, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Icon, QVariant::String, ProtectedState::UNPROTECTED);
 }
 
 
@@ -61,8 +59,8 @@ bool MEDEA::Function::Function::canAdoptChild(Node* child)
 
 void MEDEA::Function::parentSet(Node* parent){
 
-    auto src_data = parent->getData("label");
-    auto dst_data = getData("class");
+    auto src_data = parent->getData(KeyName::Label);
+    auto dst_data = getData(KeyName::Class);
     if(src_data && dst_data){
         src_data->linkData(dst_data, true);
     }
@@ -75,8 +73,8 @@ void MEDEA::Function::parentSet(Node* parent){
     }
 
     if(parent->getViewAspect() == VIEW_ASPECT::BEHAVIOUR && parent_node_kind != NODE_KIND::CLASS_INST){
-        auto operation = getData("operation");
-        auto label = getData("label");
+        auto operation = getData(KeyName::Operation);
+        auto label = getData(KeyName::Label);
         if(operation && label){
             operation->linkData(label, true);
         }

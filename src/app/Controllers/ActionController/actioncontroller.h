@@ -7,41 +7,39 @@
 #include <QSignalMapper>
 
 #include "../SelectionController/selectioncontroller.h"
+#include "../../Widgets/Dialogs/shortcutdialog.h"
 #include "../../Utils/rootaction.h"
 #include "../../Utils/actiongroup.h"
-#include "../../Widgets/Dialogs/shortcutdialog.h"
 #include "../../theme.h"
-
+#include "../../../modelcontroller/keynames.h"
 
 class ViewController;
 class ActionController : public QObject
 {
     Q_OBJECT
-public:
-    enum ACTION{};
-    explicit ActionController(ViewController* vc);
 
-    void connectSelectionController();
-
-    void connectViewController(ViewController* controller);
-
-    void updateIcon(RootAction* action, Theme* theme = Theme::theme());
-    QList<RootAction*> getRecentProjectActions();
-
-    QList<QAction*> getAllActions();
-    QList<QAction*> getNodeViewActions();
 private:
     bool gotRegenAndJava();
-    RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
+    RootAction* createRootAction(const QString& category, const QString& name, const QString& actionHash, const QString& iconPath = "", const QString& aliasPath = "");
+
+    void createRecentProjectAction(const QString& fileName);
+    void recentProjectsChanged();
+    void setupActions();
+    void setupMainMenu();
+    void setupApplicationToolbar();
+    void setupContextToolbar();
+    void setupRecentProjects();
+
 signals:
     void recentProjectsUpdated();
+
 private slots:
     void showShortcutDialog();
     void clearRecentProjects();
     void addRecentProject(QString file_path);
     void removeRecentProject(QString file_path);
     
-    void settingChanged(SETTINGS key, QVariant value);
+    void settingChanged(SETTINGS key, const QVariant& value);
     void jenkinsValidated(bool success);
     void gotJava(bool java);
     void gotRe(bool re);
@@ -56,173 +54,158 @@ private slots:
     void updateJenkinsActions();
     void updateReActions();
     void updateUndoRedo();
+    void updateActions();
 
     QAction* getSettingAction(SETTINGS key);
 
-    void updateActions();
 public:
-    SelectionController* selectionController;
-    ViewController* viewController;
+    // TODO: (Ask Jackson) This enum is not being used. Remove it???
+    enum ACTION{};
+    explicit ActionController(ViewController* vc);
+
+    void connectSelectionController();
+    void connectViewController(ViewController* controller);
+
+    void updateIcon(RootAction* action, Theme* theme = Theme::theme());
+
+    QList<RootAction*> getRecentProjectActions();
+    QList<QAction*> getAllActions();
+    QList<QAction*> getNodeViewActions();
+
+    SelectionController* selectionController = nullptr;
+    ViewController* viewController = nullptr;
+
     QList<RootAction*> allActions;
     QHash<QString, RootAction*> actionHash;
     QMultiMap<QString, RootAction*> actionCategoryMap;
 
-    QHash<ACTION, RootAction*> rootActionHash;
+    ActionGroup* applicationToolbar = nullptr;
+    ActionGroup* contextToolbar = nullptr;
 
-    ActionGroup* applicationToolbar;
-    ActionGroup* contextToolbar;
+    QAction* toolbar_context = nullptr;
+    QAction* toolbar_undo = nullptr;
+    QAction* toolbar_redo = nullptr;
+    QAction* toolbar_cut = nullptr;
+    QAction* toolbar_copy = nullptr;
+    QAction* toolbar_paste = nullptr;
+    QAction* toolbar_replicate = nullptr;
+    QAction* toolbar_fitToScreen = nullptr;
+    QAction* toolbar_centerOn = nullptr;
+    QAction* toolbar_viewInNewWindow = nullptr;
+    QAction* toolbar_sort = nullptr;
+    QAction* toolbar_delete = nullptr;
+    QAction* toolbar_alignVertical = nullptr;
+    QAction* toolbar_alignHorizontal = nullptr;
+    QAction* toolbar_search = nullptr;
+    QAction* toolbar_contract = nullptr;
+    QAction* toolbar_expand = nullptr;
+    QAction* toolbar_validate = nullptr;
 
-    ActionGroup* recentProjects;
+    RootAction* dock_addPart = nullptr;
+    RootAction* dock_deploy = nullptr;
 
-    QAction* toggleDock;
+    RootAction* file_recentProjects_clearHistory = nullptr;
+    RootAction* file_newProject = nullptr;
+    RootAction* file_openProject = nullptr;
+    RootAction* file_saveProject = nullptr;
+    RootAction* file_saveAsProject = nullptr;
+    RootAction* file_closeProject = nullptr;
+    RootAction* file_importGraphML = nullptr;
+    RootAction* file_exit = nullptr;
 
-    QAction* toolbar_context;
-    QAction* toolbar_undo;
-    QAction* toolbar_redo;
-    QAction* toolbar_cut;
-    QAction* toolbar_copy;
-    QAction* toolbar_paste;
-    QAction* toolbar_replicate;
-    QAction* toolbar_fitToScreen;
-    QAction* toolbar_centerOn;
-    QAction* toolbar_viewInNewWindow;
-    QAction* toolbar_sort;
-    QAction* toolbar_delete;
-    QAction* toolbar_alignVertical;
-    QAction* toolbar_alignHorizontal;
-    QAction* toolbar_search; 
-    QAction* toolbar_contract;
-    QAction* toolbar_expand;
-    QAction* toolbar_validate;
+    RootAction* edit_undo = nullptr;
+    RootAction* edit_redo = nullptr;
+    RootAction* edit_cut = nullptr;
+    RootAction* edit_copy = nullptr;
+    RootAction* edit_paste = nullptr;
+    RootAction* edit_replicate = nullptr;
+    RootAction* edit_delete = nullptr;
+    RootAction* edit_search = nullptr;
+    RootAction* edit_goto = nullptr;
 
-    RootAction* file_recentProjects_clearHistory;
-    RootAction* file_newProject;
-    RootAction* file_importGraphML;
+    RootAction* edit_clearSelection = nullptr;
+    RootAction* edit_selectAll = nullptr;
+    RootAction* edit_alignHorizontal = nullptr;
+    RootAction* edit_alignVertical = nullptr;
+    RootAction* edit_CycleActiveSelectionForward = nullptr;
+    RootAction* edit_CycleActiveSelectionBackward = nullptr;
+    RootAction* edit_renameActiveSelection = nullptr;
+    RootAction* edit_expand = nullptr;
+    RootAction* edit_contract = nullptr;
     
-    
-    RootAction* file_openProject;
-    RootAction* file_saveProject;
-    RootAction* file_saveAsProject;
-    RootAction* file_closeProject;
-    RootAction* file_exit;
+    RootAction* edit_incrementIndex = nullptr;
+    RootAction* edit_decrementIndex = nullptr;
+    RootAction* edit_incrementRow = nullptr;
+    RootAction* edit_decrementRow = nullptr;
 
-    RootAction* edit_undo;
-    RootAction* edit_redo;
-    RootAction* edit_cut;
-    RootAction* edit_copy;
-    RootAction* edit_paste;
-    RootAction* edit_replicate;
-    RootAction* edit_delete;
-    RootAction* edit_search;
-    RootAction* edit_goto;
-    
+    RootAction* view_fitView = nullptr;
+    RootAction* view_fitAllViews = nullptr;
+    RootAction* view_centerOn = nullptr;
+    RootAction* view_centerOnDefn = nullptr;
+    RootAction* view_viewDefnInNewWindow = nullptr;
+    RootAction* view_centerOnImpl = nullptr;
+    RootAction* view_viewImplInNewWindow = nullptr;
+    RootAction* view_viewConnections = nullptr;
+    RootAction* view_viewInstances = nullptr;
+    RootAction* view_viewInNewWindow = nullptr;
+    RootAction* view_zoomIn = nullptr;
+    RootAction* view_zoomOut = nullptr;
 
-    RootAction* dock_addPart;
-    RootAction* dock_deploy;
+    RootAction* model_validateModel = nullptr;
+    RootAction* model_selectModel = nullptr;
+    RootAction* model_getCodeForComponent = nullptr;
+    RootAction* model_generateModelWorkspace = nullptr;
+    RootAction* model_executeLocalJob = nullptr;
+    RootAction* model_reloadWorkerDefinitions = nullptr;
 
-    //RootAction* edit_sort;
-    RootAction* edit_clearSelection;
-    RootAction* edit_selectAll;
-    RootAction* edit_alignHorizontal;
-    RootAction* edit_alignVertical;
-    RootAction* edit_CycleActiveSelectionForward;
-    RootAction* edit_CycleActiveSelectionBackward;
-    RootAction* edit_renameActiveSelection;
-    RootAction* edit_expand;
-    RootAction* edit_contract;
-    
-    RootAction* edit_incrementIndex;
-    RootAction* edit_decrementIndex;
+    RootAction* model_queryRunningExperiments = nullptr;
+    RootAction* model_displayExperimentDataflow = nullptr;
 
-    RootAction* edit_incrementRow;
-    RootAction* edit_decrementRow;
-    
-    
+    RootAction* options_settings = nullptr;
 
-    RootAction* view_fitView;
-    RootAction* view_fitAllViews;
+    RootAction* help_aboutMedea = nullptr;
+    RootAction* help_wiki = nullptr;
+    RootAction* help_aboutQt = nullptr;
+    RootAction* help_shortcuts = nullptr;
+    RootAction* help_reportBug = nullptr;
 
-    RootAction* view_centerOn;
-    RootAction* view_centerOnDefn;
-    RootAction* view_viewDefnInNewWindow;
-    RootAction* view_centerOnImpl;
-    RootAction* view_viewImplInNewWindow;
-    RootAction* view_viewConnections;
-    RootAction* view_viewInNewWindow;
-    RootAction* view_zoomIn;
-    RootAction* view_zoomOut;
+    RootAction* jenkins_importNodes = nullptr;
+    RootAction* jenkins_executeJob = nullptr;
+    RootAction* jenkins_listJobs = nullptr;
+    RootAction* jenkins_showBrowser = nullptr;
 
+    RootAction* toolbar_contextToolbar = nullptr;
+    RootAction* toolbar_addChild = nullptr;
+    RootAction* toolbar_wiki = nullptr;
+    RootAction* toolbar_replicateCount = nullptr;
+    RootAction* toolbar_displayedChildrenOption = nullptr;
 
+    RootAction* toolbar_addDDSQOSProfile = nullptr;
+    RootAction* toolbar_removeDDSQOSProfile = nullptr;
 
-    RootAction* model_validateModel;
-    RootAction* model_selectModel;
-    RootAction* model_getCodeForComponent;
-    RootAction* model_generateModelWorkspace;
-    RootAction* model_executeLocalJob;
-    RootAction* model_reloadWorkerDefinitions;
-
-    RootAction* options_settings;
-
-    RootAction* help_aboutMedea;
-    RootAction* help_wiki;
-    RootAction* help_aboutQt;
-    RootAction* help_shortcuts;
-    RootAction* help_reportBug;
-
-    RootAction* jenkins_importNodes;
-    RootAction* jenkins_executeJob;
-    RootAction* jenkins_listJobs;
-    RootAction* jenkins_showBrowser;
-    RootAction* toolbar_contextToolbar;
-
-    RootAction* toolbar_addChild;
-    RootAction* toolbar_connect;
-    RootAction* toolbar_popOutDefn;
-    RootAction* toolbar_popOutImpl;
-    
-    RootAction* toolbar_wiki;
-    RootAction* toolbar_replicateCount;
-    RootAction* toolbar_displayedChildrenOption;
-
-
-    RootAction* toolbar_addDDSQOSProfile;
-    RootAction* toolbar_removeDDSQOSProfile;
+    RootAction* chart_viewInChart = nullptr;
 
     bool got_valid_jenkins = false;
     bool got_java = false;
     bool got_re = false;
     bool got_regen = false;
 
-    QMenu* menu_file;
-    QMenu* menu_file_recentProjects;
-    QMenu* menu_edit;
-    QMenu* menu_view;
-    QMenu* menu_model;
-    QMenu* menu_jenkins;
-    QMenu* menu_help;
-    QMenu* menu_options;
+    QMenu* menu_file = nullptr;
+    QMenu* menu_file_recentProjects = nullptr;
+    QMenu* menu_edit = nullptr;
+    QMenu* menu_view = nullptr;
+    QMenu* menu_model = nullptr;
+    QMenu* menu_jenkins = nullptr;
+    QMenu* menu_help = nullptr;
+    QMenu* menu_options = nullptr;
 
-    ShortcutDialog* shortcutDialog;
+    ShortcutDialog* shortcutDialog = nullptr;
 
-
-
-
-    QSignalMapper* recentProjectMapper;
-    QSignalMapper* readOnlyMapper;
+    QSignalMapper* recentProjectMapper = nullptr;
     QHash<QString, RootAction*> recentProjectActions;
     QStringList recentProjectKeys;
 
     QList<QAction*> view_actions;
-
-private:
-
-    void createRecentProjectAction(QString fileName);
-    void recentProjectsChanged();
-    void setupActions();
-    void setupMainMenu();
-    void setupApplicationToolbar();
-    void setupContextToolbar();
-    void setupRecentProjects();
 };
 
 #endif // ACTIONCONTROLLER_H

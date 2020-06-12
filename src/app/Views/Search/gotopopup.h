@@ -6,27 +6,30 @@
 #include <QLineEdit>
 #include <QToolBar>
 
-
 #include "../../Widgets/Dialogs/popupwidget.h"
 
 class GotoPopup : public PopupWidget
 {
     Q_OBJECT
+    
 public:
     GotoPopup();
-    void updateIDs(QStringList ids);
+    
+    void updateIDs(const QStringList& ids);
     void takeFocus();
+    
 private:
     void GotoRequested();
 
     void themeChanged();
     void setupLayout();
 
-    QCompleter* search_completer = 0;
-    QStringListModel* search_model = 0;
-    QLineEdit* search_bar = 0;
-    QToolBar* toolbar = 0;
-    QAction* goto_action = 0;
+    QCompleter* search_completer = nullptr;
+    QStringListModel* search_model = nullptr;
+    
+    QLineEdit* search_bar = nullptr;
+    QToolBar* toolbar = nullptr;
+    QAction* goto_action = nullptr;
 };
 
-#endif //GOTOPOPUP_H
+#endif // GOTOPOPUP_H

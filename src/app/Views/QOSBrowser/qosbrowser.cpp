@@ -2,22 +2,17 @@
 
 #include <QBoxLayout>
 #include <QHeaderView>
-#include <QDebug>
-#include "qosprofilemodel.h"
-#include "../../theme.h"
 
-QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QFrame(parent)
+QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent)
+	: QFrame(parent)
 {
     this->vc = vc;
     qosModel = new QOSProfileModel(this);
+
     connect(vc, &ViewController::vc_viewItemConstructed, qosModel, &QOSProfileModel::viewItem_Constructed);
     connect(vc, &ViewController::vc_viewItemDestructing, qosModel, &QOSProfileModel::viewItem_Destructed);
 
-
     setupLayout();
-
-
-
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -31,11 +26,12 @@ void QOSBrowser::themeChanged()
 
     mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
     toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
-
     horizontalSplitter->setStyleSheet(theme->getSplitterStyleSheet());
-    profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
-    elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
-    tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet() +
+
+    auto border_style = "QAbstractItemView { border: 1px solid " + theme->getAltBackgroundColorHex() + ";}";
+    profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet() + border_style);
+    elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet() + border_style);
+    tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet() + border_style +
                              "QAbstractItemView::item {"
                              "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                              "border-width: 0px 0px 1px 0px;"
@@ -54,16 +50,16 @@ void QOSBrowser::themeChanged()
 
 void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex)
 {
-    if(index1.isValid()){
+    if (index1.isValid()) {
         elementView->setModel(qosModel);
         elementView->setSelectionModel(elementViewSelectionModel);
         elementView->setRootIndex(index1);
-    }else{
-        elementView->setModel(0);
+    } else {
+        elementView->setModel(nullptr);
     }
-    tableView->setModel(0);
+
+    tableView->setModel(nullptr);
     elementViewSelectionModel->clear();
-    
     removeSelection->setEnabled(index1.isValid());
 }
 
@@ -75,13 +71,13 @@ void QOSBrowser::settingSelected(QModelIndex index1, QModelIndex)
 void QOSBrowser::removeSelectedProfile()
 {
     QList<int> IDs;
-    foreach(QModelIndex index, profileView->selectionModel()->selectedIndexes()){
+    for (QModelIndex index : profileView->selectionModel()->selectedIndexes()) {
         int ID = index.data(QOSProfileModel::ID_ROLE).toInt();
-        if(ID > 0){
+        if (ID > 0) {
             IDs.append(ID);
         }
     }
-    if(!IDs.isEmpty()){
+    if (!IDs.isEmpty()) {
         vc->Delete(IDs);
     }
 }
@@ -95,9 +91,6 @@ void QOSBrowser::setupLayout()
 
     toolbar = new QToolBar(this);
     toolbar->setContentsMargins(0,0,0,4);
-
-    //profileView->setFocusPolicy(Qt::NoFocus);
-    //elementView->setFocusPolicy(Qt::NoFocus);
 
     profileView->setAttribute(Qt::WA_MacShowFocusRect, false);
     elementView->setAttribute(Qt::WA_MacShowFocusRect, false);
@@ -126,32 +119,31 @@ void QOSBrowser::setupLayout()
     attributeLabelButton->setEnabled(false);
     attributeLabelButton->setFixedHeight(labelButtonHeight);
 
-    QWidget* profileWidget = new QWidget(this);
+    auto profileWidget = new QWidget(this);
     profileWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    QVBoxLayout* profileLayout = new QVBoxLayout(profileWidget);
+    auto profileLayout = new QVBoxLayout(profileWidget);
     profileLayout->setSpacing(5);
     profileLayout->setMargin(0);
     profileLayout->addWidget(profileLabelButton);
     profileLayout->addWidget(profileView, 1);
     profileLayout->addWidget(toolbar, 0, Qt::AlignRight);
 
-    QWidget* policyWidget = new QWidget(this);
+    auto policyWidget = new QWidget(this);
     policyWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    QVBoxLayout* policyLayout = new QVBoxLayout(policyWidget);
+    auto policyLayout = new QVBoxLayout(policyWidget);
     policyLayout->setSpacing(5);
     policyLayout->setMargin(0);
     policyLayout->addWidget(policyLabelButton);
     policyLayout->addWidget(elementView, 1);
 
-    QWidget* attributeWidget = new QWidget(this);
+    auto attributeWidget = new QWidget(this);
     attributeWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    QVBoxLayout* attributeLayout = new QVBoxLayout(attributeWidget);
+    auto attributeLayout = new QVBoxLayout(attributeWidget);
     attributeLayout->setSpacing(5);
     attributeLayout->setMargin(0);
     attributeLayout->addWidget(attributeLabelButton);
     attributeLayout->addWidget(tableView, 1);
 
-    //elementView->header()->setMinimumHeight(25);
     elementView->header()->setVisible(false);
 
     horizontalSplitter->addWidget(profileWidget);
@@ -159,26 +151,24 @@ void QOSBrowser::setupLayout()
     horizontalSplitter->addWidget(attributeWidget);
 
     mainWidget = new QWidget(this);
-    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+    auto mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->setMargin(5);
     mainLayout->addWidget(horizontalSplitter);
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    auto layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->addWidget(mainWidget);
 
-    profileView->setModel(qosModel);
-    elementView->setModel(0);
-
     elementViewSelectionModel = new QItemSelectionModel(qosModel);
 
+    profileView->setModel(qosModel);
     profileView->setSelectionBehavior(QAbstractItemView::SelectItems);
     profileView->setSelectionMode(QAbstractItemView::SingleSelection);
 
+    elementView->setModel(nullptr);
     elementView->setSelectionBehavior(QAbstractItemView::SelectItems);
     elementView->setSelectionMode(QAbstractItemView::SingleSelection);
 
     connect(profileView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(profileSelected(QModelIndex, QModelIndex)));
     connect(elementViewSelectionModel, SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(settingSelected(QModelIndex, QModelIndex)));
 }
-

@@ -1,7 +1,6 @@
 #ifndef NOTIFICATIONOBJECT_H
 #define NOTIFICATIONOBJECT_H
 
-#include <QDebug>
 #include <QObject>
 #include <QDateTime>
 #include <QEnableSharedFromThis>
@@ -16,19 +15,20 @@ class NotificationObject : public QObject, public QEnableSharedFromThis<Notifica
 
 protected:
     NotificationObject();
+    
 public:
     //Setters
-    void setTitle(QString title);
-    void setDescription(QString description);
-    void setIcon(QString path, QString name);
+    void setTitle(const QString& title);
+    void setDescription(const QString& description);
+    void setIcon(const QString& path, const QString& name);
 
     void setSeverity(Notification::Severity severity);
     void setType(Notification::Type type);
     void setCategory(Notification::Category category);
     void setEntityID(int entity_id);
-    void setToastable(bool toast);
+    void setToastEnabled(bool enable);
 
-    bool getToastable() const;
+    bool isToastEnabled() const;
     int getID() const;
     int getEntityID() const;
     QString getTitle() const;
@@ -39,6 +39,7 @@ public:
     Notification::Type getType() const;
     Notification::Category getCategory() const;
     Notification::Severity getSeverity() const;
+    
 signals:
     void titleChanged();
     void descriptionChanged();
@@ -49,13 +50,14 @@ signals:
     void categoryChanged();
     void timeChanged();
     void notificationChanged(QSharedPointer<NotificationObject>);
+    
 private:
     void updateModifiedTime();
     static int id_counter_;
 
     int id_ = -1;
     int entity_id_ = -1;
-    bool toastable_ = true;
+    bool toast_enabled_ = true;
 
     QString title_;
     QString description_;

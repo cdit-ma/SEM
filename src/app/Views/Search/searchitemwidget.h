@@ -12,84 +12,76 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-struct DataItem{
-    QWidget* item = 0;
-    QLabel* label_icon = 0;
-    QLabel* label_value = 0;
-    QLabel* label_key = 0;
-
+struct DataItem {
+    QWidget* item = nullptr;
+    QLabel* label_icon = nullptr;
+    QLabel* label_value = nullptr;
+    QLabel* label_key = nullptr;
     bool in_layout = false;
 };
 
 class SearchItemWidget : public QFrame
 {
     Q_OBJECT
-public:
-    explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
-    ~SearchItemWidget();
 
-    void addMatchedKeys(QSet<QString> keys);
-    void addMatchedKey(QString key);
-    void addPersistentKey(QString key);
+public:
+    explicit SearchItemWidget(ViewItem* item, QWidget *parent = nullptr);
+    ~SearchItemWidget() final;
+
+    void addMatchedKeys(const QSet<QString>& keys);
+    void addMatchedKey(const QString& key);
+    void addPersistentKey(const QString& key);
     void clearMatchedKeys();
 
+    void viewItemSelected(bool selected);
     void setSelected(bool selected);
+    void setExpanded(bool expanded);
 
     VIEW_ASPECT getViewAspect();
+
 signals:
-    void itemHovered(int ID, bool hovered);
-    void itemSelected(int ID);
+    void searchItemClicked(int ID);
+    void flashEntityItem(int ID);
+    void centerEntityItem(int ID);
+
 public slots:
     void themeChanged();
-    void expandButtonToggled(bool checked);
+
 protected:
-    void mouseReleaseEvent(QMouseEvent *);
-    void mouseDoubleClickEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
-    void updateDataIcon(QString key);
+    void updateData(const QString& data);
+    void updateDataStyleSheet(const QString& key);
     void updateIcon();
     void updateLabel();
-    void updateData(QString data);
+    void updateStyleSheet();
 
     void setupLayout();
     void setupDataLayout();
 
-    void setupDataKey(QString key);
-    void updateDataKey(QString key, QVariant data);
-    void removeDataKey(QString key);
+    void setupDataKey(const QString& key);
+    void updateDataKey(const QString& key, const QVariant& data);
+    void removeDataKey(const QString& key);
     
-    
-    
-    void updateStyleSheet();
-    
-    void constructKeyWidgets();
-    
-    bool data_layout_setup = false;
-
-    ViewItem* view_item = 0;
+    ViewItem* view_item = nullptr;
     VIEW_ASPECT view_aspect = VIEW_ASPECT::NONE;
     int ID = -1;
     
-    QLabel* label_text = 0;
-    QLabel* label_icon = 0;
-    QToolButton* button_expand = 0;
-    QWidget* data_widget = 0;
+    QLabel* label_text = nullptr;
+    QLabel* label_icon = nullptr;
+    QToolButton* button_expand = nullptr;
+    QWidget* data_widget = nullptr;
 
-    QSize icon_size = QSize(24, 24);
-    QSize small_icon_size = QSize(16, 16);
+    QSize data_icon_size = QSize(24, 24);
 
-    
     QSet<QString> matched_keys;
     QSet<QString> persistent_keys;
-
     QHash<QString, DataItem*> data_key_hash;
 
-    QString backgroundColor;
-
-    bool doubleClicked = false;
-    bool selected = false;
-    bool visible = false;
+    bool viewItemSelected_ = false;
+    bool selected_ = false;
 };
 
 #endif // SEARCHITEMWIDGET_H

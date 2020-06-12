@@ -1,36 +1,35 @@
 #include "viewdockwidget.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
-#include <QDebug>
-ViewDockWidget::ViewDockWidget(QString title, QWidget* parent, Qt::DockWidgetArea area):DefaultDockWidget(title, parent, area, DefaultDockType::VIEW)
-{
-    nodeView = 0;
-}
 
-ViewDockWidget::~ViewDockWidget()
-{
-}
+ViewDockWidget::ViewDockWidget(const QString& title, QWidget* parent, Qt::DockWidgetArea area)
+    : DefaultDockWidget(title, parent, area, DefaultDockType::VIEW) {}
 
-SelectionHandler *ViewDockWidget::getSelectionHandler()
+SelectionHandler* ViewDockWidget::getSelectionHandler()
 {
-    if(nodeView){
-        return nodeView->getSelectionHandler();
+    if (nodeView) {
+        return &nodeView->getSelectionHandler();
     }
-    return 0;
+    return nullptr;
 }
 
-NodeView *ViewDockWidget::getNodeView()
+NodeView* ViewDockWidget::getNodeView()
 {
     return nodeView;
 }
 
+/**
+ * @brief ViewDockWidget::setWidget
+ * @param widget
+ * @throws std::invalid_argument
+ */
 void ViewDockWidget::setWidget(QWidget *widget)
 {
-    NodeView* view = qobject_cast<NodeView*>(widget);
-    if(view){
+    auto view = qobject_cast<NodeView*>(widget);
+    if (view) {
         nodeView = view;
         connect(nodeView, SIGNAL(destroyed(QObject*)), this, SLOT(destruct()));
         DefaultDockWidget::setWidget(widget);
-    }else{
-        qCritical() << "Can't adopt!";
+    } else {
+        throw std::invalid_argument("Invalid widget: ViewDockWidget requires a NodeView as its widget");
     }
 }

@@ -170,8 +170,8 @@ bool Entity::isEdge() const
 
 bool Entity::isReadOnly() const
 {
-    Data* readOnlyData = getData("readOnly");
-    if(readOnlyData){
+    Data* readOnlyData = getData(KeyName::ReadOnly);
+    if (readOnlyData) {
         return readOnlyData->getValue().toBool();
     }
     return false;
@@ -245,7 +245,7 @@ bool Entity::removeData(const QString& key_name)
 
 QString Entity::toString() const
 {
-    return QString("[%1]%2 - %3").arg(QString::number(getID()), getDataValue("kind").toString() ,getDataValue("label").toString());
+    return QString("[%1]%2 - %3").arg(QString::number(getID()), getDataValue(KeyName::Kind).toString() ,getDataValue(KeyName::Label).toString());
 }
 
 

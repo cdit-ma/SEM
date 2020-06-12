@@ -26,9 +26,9 @@ Node::Node(EntityFactoryBroker& broker, NODE_KIND node_kind, bool is_temp_node) 
     }
 
     //Attach default data
-    broker.AttachData(this, "kind", QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
-    broker.AttachData(this, "label", QVariant::String, ProtectedState::UNPROTECTED, broker.GetNodeKindString(node_kind));
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED, -1);
+    broker.AttachData(this, KeyName::Kind, QVariant::String, ProtectedState::PROTECTED, broker.GetNodeKindString(node_kind));
+    broker.AttachData(this, KeyName::Label, QVariant::String, ProtectedState::UNPROTECTED, broker.GetNodeKindString(node_kind));
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED, -1);
 
     connect(this, &Node::acceptedEdgeKindsChanged, [=](Node* node){
         getFactoryBroker().AcceptedEdgeKindsChanged(node);
@@ -166,6 +166,13 @@ bool Node::canAcceptEdge(EDGE_KIND edge_kind, Node *dst)
     }
     case EDGE_KIND::DEPLOYMENT:{
         if(!dst->isNodeOfType(NODE_TYPE::HARDWARE)){
+            return false;
+        }
+        break;
+    }
+    case EDGE_KIND::TRIGGER: {
+        // Only allow Trigger edges to DeploymentContainers
+        if (dst->getNodeKind() != NODE_KIND::DEPLOYMENT_CONTAINER) {
             return false;
         }
         break;
@@ -794,7 +801,7 @@ void Node::removeEdge(Edge *edge)
 }
 void Node::AddUUID(){
     if(parent_node_){
-        auto parent_uuid = parent_node_->getData("uuid");
+        auto parent_uuid = parent_node_->getData(KeyName::UUID);
         if(parent_uuid){
             auto uuid_key = parent_uuid->getKey();
             if(!gotData(uuid_key)){
@@ -837,7 +844,7 @@ void Node::setParentNode(Node *parent, int branch)
 QList<Node *> Node::getOrderedChildNodes() const
 {
     auto child_list = new_nodes_.toList();
-    auto index_key = getKey("index");
+    auto index_key = getKey(KeyName::Index);
     std::sort(child_list.begin(), child_list.end(), [index_key](const Node* a, const Node* b){
         auto a_ind = a->getDataValue(index_key).toInt();
         auto b_ind = b->getDataValue(index_key).toInt();
@@ -1033,6 +1040,10 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
                 required_instance_keys.insert(KeyName::Description);
                 break;
             }
+            case NODE_KIND ::TRIGGER_INST:
+                // Setting this to false allows the TriggerInstance to have an editable label
+                bind_labels = false;
+                break;
             default:
                 break;
         }
@@ -1108,6 +1119,7 @@ void Node::BindDefinitionToInstance(Node* definition, Node* instance, bool setup
 
 QList<Node*> Node::getRequiredInstanceDefinitions(){
     //Get the list of definitions, contained within valid ancestors, we should try and make instances of
+
     QList<Node*> adoptable_nodes;
     if(!IsEdgeRuleActive(EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS)){
         for(auto valid_ancestor : getListOfValidAncestorsForChildrenDefinitions()){
@@ -1215,6 +1227,8 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
             }
             break;
         }
+        case EDGE_KIND::TRIGGER:
+            return canAcceptEdgeKind(edge_kind, direction);
         default:
             qCritical() << "NOT IMPLEMENTED";
             return false;
@@ -1272,6 +1286,8 @@ bool Node::canCurrentlyAcceptEdgeKind(EDGE_KIND edge_kind, EDGE_DIRECTION direct
         case EDGE_KIND::QOS:{
             return true;
         }
+        case EDGE_KIND::TRIGGER:
+            return canAcceptEdgeKind(edge_kind, direction);
         default:
             qCritical() << "NOT IMPLEMENTED";
             return false;
@@ -1322,8 +1338,26 @@ bool Node::canAcceptNodeKind(const Node* node) const{
 }
 
 QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
+    
+    if (isReadOnly()) {
+        return QSet<NODE_KIND>();
+    }
+    bool is_valid_instance = isInstance() && getDefinition();
+    bool allow_adoption_for_instance = IsEdgeRuleActive(EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE);
+    if (is_valid_instance && !allow_adoption_for_instance) {
+        // All instance entities don't allow adoption of any children entities added by the user
+        // Added this special case to allow ComponentInstances to adopt TriggerInstances
+        if (getNodeKind() == NODE_KIND::COMPONENT_INST) {
+            return { NODE_KIND::TRIGGER_INST };
+        } else {
+            return QSet<NODE_KIND>();
+        }
+    }
+    return getAcceptedNodeKinds();
+    
+    /*
     QSet<NODE_KIND> node_kinds = getAcceptedNodeKinds();
-
+    
     //If i am an instance nothing should be cosntructable
     const auto is_valid_instance = isInstance() && getDefinition();
     if(is_valid_instance && !IsEdgeRuleActive(EdgeRule::ALWAYS_ALLOW_ADOPTION_AS_INSTANCE)){
@@ -1335,6 +1369,7 @@ QSet<NODE_KIND> Node::getUserConstructableNodeKinds() const{
     }
 
     return node_kinds;
+    */
 }
 
 QSet<Node*> Node::getParentNodesForValidDefinition(){

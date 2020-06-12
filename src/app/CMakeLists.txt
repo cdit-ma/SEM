@@ -1,10 +1,37 @@
 set(PROJ_NAME MEDEA)
 project(${PROJ_NAME})
+#find_package(Qt5 COMPONENTS Widgets Network Charts Concurrent REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
+
+find_package(ZMQ REQUIRED)
+if (MSVC)
+    find_package(Protobuf CONFIG REQUIRED)
+else()
+    find_package(Protobuf REQUIRED)
+endif()
+
+# from https://stackoverflow.com/questions/44650008/cmake-install-third-party-dll-dependency
+MACRO(INSTALL_ADD_IMPORTED_DLLS target_list target_component destination_folder)
+  foreach(one_trg ${target_list})
+    get_target_property(one_trg_type ${one_trg} TYPE)
+    message("Checking target for imported dll to INSTALL based on type, which is: ${one_trg_type}")
+    if (NOT one_trg_type STREQUAL "INTERFACE_LIBRARY")
+       get_target_property(one_trg_dll_location ${one_trg} IMPORTED_LOCATION_RELEASE)
+        message("Imported target location: ${one_trg_dll_location}")
+       if( one_trg_dll_location MATCHES ".dll$")
+          install(FILES ${one_trg_dll_location} DESTINATION ${destination_folder} CONFIGURATIONS Release COMPONENT ${target_component})
+       endif()
+       get_target_property(one_trg_dll_location ${one_trg} IMPORTED_LOCATION_DEBUG)
+       if( one_trg_dll_location MATCHES ".dll$")
+          install(FILES ${one_trg_dll_location} DESTINATION ${destination_folder} CONFIGURATIONS Debug COMPONENT ${target_component})
+       endif()
+    endif()
+  endforeach()
+ENDMACRO()
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ActionController/actioncontroller.cpp
@@ -23,6 +50,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/aggregationproxy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.cpp
@@ -35,8 +63,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/nodeviewminimap.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/arrowline.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/compactnodeitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
@@ -60,9 +88,14 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemmodel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggertablemodel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggerbrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.cpp
@@ -82,7 +115,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.cpp
@@ -94,6 +126,64 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/overlaysplitter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/panelwidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartinputpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/hoverpopup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechartview.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/chartlist.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/chart.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/chartlabellist.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/chartlabel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/workerinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/componentinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/containerinstancedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/nodedata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portconnectiondata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/markersetdata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/portlifecyclerequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/porteventrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/workloadrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/workloadevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/networkutilisationevent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/porteventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/networkutilisationeventseries.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentrundata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/playbackcontrolswidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/timeprogressbar.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/nodegraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/componentinstancegraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.cpp
 )
 
 if(WIN32)
@@ -109,6 +199,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/JenkinsManager/jenkinsmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationenumerations.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/NotificationManager/notificationobject.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SearchManager/searchmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectioncontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SelectionController/selectionhandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/SettingsController/setting.h
@@ -118,6 +210,8 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewcontroller.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/ViewController/viewitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/WindowManager/windowmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/aggregationproxy.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Controllers/AggregationProxy/dummyresponsebuilder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/theme.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/actiongroup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/filehandler.h
@@ -132,52 +226,126 @@ SET(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Edge/edgeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/entityitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/basicnodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/compactnodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/defaultnodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/hardwarenodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/membernodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/deploymentcontainernodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/nodeitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/Node/stacknodeitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/NodeView/SceneItems/statictextitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationpopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Notification/notificationtoolbar.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosbrowser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/QOSBrowser/qosprofilemodel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/gotopopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchitemwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/Search/searchpopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatabledelegate.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablemodel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatableview.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Views/Table/datatablewidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemdelegate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggeritemmodel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggertablemodel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Views/TriggerBrowser/triggerbrowser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codebrowser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/codeeditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/CodeEditor/syntaxhighlighter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/customgroupbox.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/dataeditwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/appsettings.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/popupwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/progresspopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/shortcutdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dialogs/variabledialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/basedockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/defaultdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/docktitlebar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/invisibledockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/tooldockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/DockWidgets/viewdockwidget.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/filterwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/iconpicker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/loadmorewidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/consolemonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jenkinsmonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/jobmonitor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Monitors/monitor.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/optiongroupbox.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockitem.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/dockreparenterpopup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/viewmanagerwidget.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/ViewManager/windowitem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/basewindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/centralwindow.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/invisiblewindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/mainwindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/subwindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/viewwindow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Windows/welcomescreenwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/overlaysplitter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Panel/panelwidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/chartinputpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/hoverpopup.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/timelinechartview.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/chartlist.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Chart/chart.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/chartlabellist.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/chartlabel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisslider.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axisdisplay.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Timeline/Axis/axiswidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/workerinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/componentinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/containerinstancedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/nodedata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/portconnectiondata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/markersetdata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/portlifecyclerequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/porteventrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/workloadrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/markerrequest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/protomessagestructs.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/event.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portlifecycleevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/portevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/workloadevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/cpuutilisationevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/networkutilisationevent.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/porteventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/workloadeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/cpuutilisationeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/networkutilisationeventseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentrundata.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/dataflowgraphicsview.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/playbackcontrolswidget.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/PlaybackWidget/timeprogressbar.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/graphicslayoutitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/nodegraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/componentinstancegraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.h
 )
 
 set(RESOURCES
@@ -202,7 +370,7 @@ if(APPLE)
     # Bundle the MEDEA icon (icns) for mac
     set(MAC_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Resources/medea.icns)
     set_source_files_properties(${MAC_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-    
+
     # Copy Resources into .app file
     set(COPY_DEST "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app/Contents/MacOS/")
 
@@ -235,7 +403,11 @@ if(WIN32)
     target_link_libraries(${PROJ_NAME} PRIVATE Qt5::WinMain)
 endif()
 
+target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../re_common/")
+target_include_directories(${PROJ_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/../../re_common/")
+
 # Link against things
+target_link_libraries(${PROJ_NAME} PRIVATE aggregation_requester_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE medea_modelcontroller_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Widgets)
 target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Network)
@@ -244,7 +416,16 @@ target_link_libraries(${PROJ_NAME} PRIVATE Qt5::Concurrent)
 # Install should copy the MEDEA app into the bin folder
 INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
 
+set(THIRDPARTY_TARGETS
+    libzmq
+    protobuf::libprotobuf
+    protobuf::libprotobuf-lite
+    protobuf::libprotoc
+    )
+
 if(WIN32)
+     INSTALL_ADD_IMPORTED_DLLS("${THIRDPARTY_TARGETS}" ${PROJ_NAME} "./")
+
 	# Copy Resources as part of install for windows
     INSTALL(DIRECTORY ${REGEN_SRC_DIR} DESTINATION "./Resources" COMPONENT RE_GEN)
     INSTALL(DIRECTORY ${SCRIPTS_SRC_DIR} DESTINATION "./Resources" COMPONENT SCRIPTS)

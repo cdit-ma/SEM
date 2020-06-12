@@ -1,26 +1,23 @@
 #include "settingscontroller.h"
 #include "setting.h"
-#include <QDebug>
-#include <QApplication>
-#include <QSettings>
-#include <QStringBuilder>
-#include <QVariant>
-
 #include "../../theme.h"
 #include "../../Widgets/Dialogs/appsettings.h"
 
-SettingsController::SettingsController(QObject *parent) : QObject(parent)
+#include <QApplication>
+#include <QStringBuilder>
+#include <QVariant>
+
+SettingsController::SettingsController(QObject *parent)
+	: QObject(parent)
 {
-    intializeSettings();
+    initializeSettings();
 
     settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
-
     
     //Connect to the
     connect(Theme::theme(), &Theme::changeSetting, this, &SettingsController::setSetting);
     connect(this, &SettingsController::settingChanged, Theme::theme(), &Theme::settingChanged);
     
-
     //Place defaults in case nothing is set.
     emit settingChanged(SETTINGS::THEME_SETTHEME_DARKTHEME, true);
     emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
@@ -43,7 +40,7 @@ QVariant SettingsController::getSetting(SETTINGS ID)
     return QVariant();
 }
 
-void SettingsController::setSetting(SETTINGS ID, QVariant value)
+void SettingsController::setSetting(SETTINGS ID, const QVariant& value)
 {
     _setSetting(_getSetting(ID), value);
 }
@@ -59,34 +56,33 @@ bool SettingsController::isThemeSetting(SETTINGS key)
     return setting && setting->isThemeSetting();
 }
 
-QList<Setting *> SettingsController::getSettings()
+QList<Setting*> SettingsController::getSettings()
 {
-    QList<Setting*> s;
-    foreach(SETTINGS key, settingsKeys){
-       if(settingsHash.contains(key)){
-           s.append(settingsHash[key]);
-       }
+    QList<Setting*> settings;
+    for (SETTINGS key : settingsKeys) {
+        const auto& settingsVal = _getSetting(key);
+        if (settingsVal != nullptr) {
+            settings.append(settingsVal);
+        }
     }
-    return s;
+    return settings;
 }
 
-QList<SETTINGS> SettingsController::getSettingsKeys(QString category, QString section, QString name)
+QList<SETTINGS> SettingsController::getSettingsKeys(const QString& category, const QString& section, const QString& name)
 {
     QList<SETTINGS> keys;
-
     bool useCat = !category.isEmpty();
     bool useSect = !section.isEmpty();
     bool useName = !name.isEmpty();
 
-    foreach(SETTINGS key, settingsKeys){
+    for (SETTINGS key: settingsKeys) {
         Setting* s = _getSetting(key);
-
-        if(s){
-            if(useCat && s->getCategory() != category){
+        if (s) {
+            if (useCat && s->getCategory() != category) {
                 continue;
-            }else if(useSect && s->getSection() != section){
+            } else if (useSect && s->getSection() != section) {
                 continue;
-            }else if(useName && s->getName() != name){
+            } else if (useName && s->getName() != name) {
                 continue;
             }
             keys.append(key);
@@ -95,7 +91,7 @@ QList<SETTINGS> SettingsController::getSettingsKeys(QString category, QString se
     return keys;
 }
 
-void SettingsController::intializeSettings()
+void SettingsController::initializeSettings()
 {
     //General
     createSetting(SETTINGS::GENERAL_MODEL_PATH, SETTING_TYPE::PATH, "General", "MEDEA", "Default Model path", "Icons", "folder");
@@ -103,37 +99,29 @@ void SettingsController::intializeSettings()
 
     createSetting(SETTINGS::GENERAL_RE_CONFIGURE_PATH, SETTING_TYPE::FILE, "General", "Runtime Environment", "RE configure script path", "Icons", "file");
     createSetting(SETTINGS::GENERAL_CMAKE_GENERATOR, SETTING_TYPE::STRING, "General", "Runtime Environment", "CMake Generator", "Icons", "file");
-    
-
-    
-    
 
     createSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL, SETTING_TYPE::STRING, "General", "MEDEA", "MEDEA Wiki URL", "Icons", "book");
     createSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Window State on exit", "Icons", "floppyDisk");
     createSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT, SETTING_TYPE::BOOL, "General", "MEDEA", "Save Dock Widgets State on exit", "Icons", "floppyDisk");
-    createSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE, SETTING_TYPE::BOOL, "General", "MEDEA", "Zoom to mouse", "Icons", "zoom");
-    createSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION, SETTING_TYPE::INT, "General", "MEDEA", "Autosave wait delay (Mins)", "Icons", "clockDark");
-    
     createSetting(SETTINGS::GENERAL_SHOW_WORKER_ASPECT, SETTING_TYPE::BOOL, "General", "MEDEA", "Show Worker Aspect", "Icons", "spanner");
-
-    
+    createSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION, SETTING_TYPE::INT, "General", "MEDEA", "Autosave wait delay (Mins)", "Icons", "clockDark");
     createSetting(SETTINGS::GENERAL_RESET_SETTINGS, SETTING_TYPE::BUTTON, "General", "MEDEA", "Reset All Settings", "Icons", "bin");
     
-
-    
-    
+    // These are invisible settings
     createSetting(SETTINGS::GENERAL_RECENT_PROJECTS, SETTING_TYPE::STRINGLIST, "General", "MEDEA", "Recent Projects");
-
     createSetting(SETTINGS::WINDOW_INNER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Central Window Geometry");
     createSetting(SETTINGS::WINDOW_INNER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Central Window State");
     createSetting(SETTINGS::WINDOW_OUTER_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window Geometry");
     createSetting(SETTINGS::WINDOW_OUTER_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Window State");
-
     createSetting(SETTINGS::WINDOW_RIGHT_GEOMETRY, SETTING_TYPE::BYTEARRAY, "General", "Window", "Right Tool Window Geometry");
     createSetting(SETTINGS::WINDOW_RIGHT_STATE, SETTING_TYPE::BYTEARRAY, "General", "Window", "Right Tool Window State");
 
-    
+    createSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE, SETTING_TYPE::BOOL, "General", "Default Behaviour", "Zoom to cursor", "Icons", "zoom");
+    createSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_CENTER, SETTING_TYPE::BOOL, "General", "Default Behaviour", "Center on newly constructed entity", "Icons", "crosshair");
+    createSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT, SETTING_TYPE::BOOL, "General", "Default Behaviour", "Select newly constructed entity", "Icons", "mouse");
 
+    // Charts
+    createSetting(SETTINGS::CHARTS_AGGREGATION_BROKER_ENDPOINT, SETTING_TYPE::STRING, "Charts", "Aggregation Broker", "Aggregation Broker Endpoint", "Icons", "cloudCircle");
 
     /* TO REMOVE */
 
@@ -166,13 +154,11 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::JENKINS_REQUEST_USER_JOBS, SETTING_TYPE::BOOL, "Jenkins", "User", "Request only jobs constructed by this user", "Icons", "filterList");
     createSetting(SETTINGS::JENKINS_TEST, SETTING_TYPE::BUTTON, "Jenkins", "User", "Test Settings", "Icons", "circleTickDark");
     
-
+    // Theme
     createSetting(SETTINGS::THEME_SIZE_FONTSIZE, SETTING_TYPE::FONT, "Theme", "Size", "Select Font", "Icons", "format");
     createSetting(SETTINGS::THEME_SIZE_ICONSIZE, SETTING_TYPE::INT, "Theme", "Size", "Set Icon Size", "Icons", "zoomIn");
     createSetting(SETTINGS::THEME_INACTIVE_EDGE_OPACITY, SETTING_TYPE::PERCENTAGE, "Theme", "Size", "Set Inactive Edge Opacity", "Icons", "torch");
-    
 
-    
     createSetting(SETTINGS::THEME_SETTHEME_DARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Dark Theme");
     createSetting(SETTINGS::THEME_SETTHEME_LIGHTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Light Theme");
     createSetting(SETTINGS::THEME_SETTHEME_SOLARIZEDDARKTHEME, SETTING_TYPE::BUTTON, "Theme", "Theme Presets", "Solarised Dark Theme");
@@ -183,7 +169,6 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::THEME_BG_ALT_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Alternative Background");
     createSetting(SETTINGS::THEME_TEXT_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Text");
     createSetting(SETTINGS::THEME_ALTERNATE_TEXT_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Alternate Text");
-
     createSetting(SETTINGS::THEME_ICON_COLOR, SETTING_TYPE::COLOR, "Theme", "Default Colors", "Icon");
 
     //Theme - Disabled Colors
@@ -204,8 +189,6 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::THEME_ASPECT_BG_HARDWARE_COLOR, SETTING_TYPE::COLOR, "Theme", "Aspect Colors", "Hardware");
     createSetting(SETTINGS::THEME_SETASPECT_CLASSIC, SETTING_TYPE::BUTTON, "Theme", "Aspect Colors", "Classic");
     createSetting(SETTINGS::THEME_SETASPECT_COLORBLIND, SETTING_TYPE::BUTTON, "Theme", "Aspect Colors", "Color Blind");
-
-
     
     createSetting(SETTINGS::THEME_SEVERITY_RUNNING_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors", Notification::getSeverityString(Notification::Severity::RUNNING), "Notification", Notification::getSeverityString(Notification::Severity::RUNNING));
     createSetting(SETTINGS::THEME_SEVERITY_INFO_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors", Notification::getSeverityString(Notification::Severity::INFO), "Notification", Notification::getSeverityString(Notification::Severity::INFO));
@@ -213,25 +196,16 @@ void SettingsController::intializeSettings()
     createSetting(SETTINGS::THEME_SEVERITY_ERROR_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::ERROR), "Notification", Notification::getSeverityString(Notification::Severity::ERROR));
     createSetting(SETTINGS::THEME_SEVERITY_SUCCESS_COLOR, SETTING_TYPE::COLOR, "Theme", "Severity Colors",  Notification::getSeverityString(Notification::Severity::SUCCESS), "Notification", Notification::getSeverityString(Notification::Severity::SUCCESS));
     
-
     createSetting(SETTINGS::THEME_APPLY, SETTING_TYPE::NONE, "Theme", "Theme", "Apply Theme");
-
-
 
     _getSetting(SETTINGS::GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
     _getSetting(SETTINGS::GENERAL_CMAKE_GENERATOR)->setDefaultValue("Ninja");
     _getSetting(SETTINGS::GENERAL_REGEN_PATH)->setDefaultValue("Resources/re_gen");
 
-    
-
-
     _getSetting(SETTINGS::GENERAL_AUTOSAVE_DURATION)->setDefaultValue(3);
     _getSetting(SETTINGS::GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SETTINGS::GENERAL_SAVE_DOCKS_ON_EXIT)->setDefaultValue(false);
     _getSetting(SETTINGS::GENERAL_SHOW_WORKER_ASPECT)->setDefaultValue(false);
-    
-    
-    _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
     
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
@@ -259,12 +233,18 @@ void SettingsController::intializeSettings()
     _getSetting(SETTINGS::TOOLBAR_CONTRACT)->setDefaultValue(true);
     _getSetting(SETTINGS::TOOLBAR_VALIDATE)->setDefaultValue(true);
     
-
     _getSetting(SETTINGS::GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
     _getSetting(SETTINGS::JENKINS_JOBNAME)->setDefaultValue("deploy_model");
+
+    _getSetting(SETTINGS::GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(false);
+    _getSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_CENTER)->setDefaultValue(true);
+    _getSetting(SETTINGS::GENERAL_ON_CONSTRUCTION_SELECT)->setDefaultValue(false);
+
+    _getSetting(SETTINGS::CHARTS_AGGREGATION_BROKER_ENDPOINT)->setDefaultValue("tcp://localhost:12345");
 }
 
-QString getSettingKey(Setting* setting){
+QString getSettingKey(Setting* setting)
+{
     QString str;
     if(setting){
         str = QString::number(static_cast<uint>(setting->getID())) % "_" % setting->getName();
@@ -274,7 +254,8 @@ QString getSettingKey(Setting* setting){
     return str;
 }
 
-QString getSettingGroupKey(Setting* setting){
+QString getSettingGroupKey(Setting* setting)
+{
     QString str;
     if(setting){
         str = setting->getCategory() % "_" % setting->getSection();
@@ -284,17 +265,19 @@ QString getSettingGroupKey(Setting* setting){
     return str;
 }
 
-void SettingsController::writeSetting(Setting* setting, QVariant value){
+void SettingsController::writeSetting(Setting* setting, const QVariant& value)
+{
     if(setting && settingsFile){
         settingsFile->beginGroup(getSettingGroupKey(setting));
         settingsFile->setValue(getSettingKey(setting), value);
         settingsFile->endGroup();
     }
 }
+
 void SettingsController::loadSettingsFromFile()
 {
-    foreach(Setting* setting, settingsHash.values()){
-        if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
+    for (Setting* setting : settingsHash.values()) {
+        if (setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE) {
             continue;
         }
 
@@ -302,21 +285,21 @@ void SettingsController::loadSettingsFromFile()
         auto file_value = settingsFile->value(getSettingKey(setting));
         settingsFile->endGroup();
 
-        if(!file_value.isNull()){
-            if(setting->getType() == SETTING_TYPE::COLOR){
+        if (!file_value.isNull()) {
+            if (setting->getType() == SETTING_TYPE::COLOR) {
                 file_value = QColor(file_value.toString());
             }
-            if(!file_value.isNull()){
+            if (!file_value.isNull()) {
                 _setSetting(setting, file_value);
             }
-        }else{
+        } else {
             writeSetting(setting, setting->getDefaultValue());
         }
         emit settingChanged(setting->getID(), setting->getValue());
     }
 }
 
-void SettingsController::_setSetting(Setting *setting, QVariant value)
+void SettingsController::_setSetting(Setting *setting, const QVariant& value)
 {
     if(setting && setting->setValue(value)){
         emit settingChanged(setting->getID(), setting->getValue());
@@ -325,13 +308,12 @@ void SettingsController::_setSetting(Setting *setting, QVariant value)
             resetSettings();
         }
     }
-
 }
 
-Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, QString category, QString section, QString name, QString iconPath, QString iconName)
+Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, const QString& category, const QString& section, const QString& name, const QString& iconPath, const QString& iconName)
 {
     if(!settingsHash.contains(ID)){
-        Setting* setting = new Setting(ID, type, category, section, name);
+        auto setting = new Setting(ID, type, category, section, name);
         if(iconPath != "" && iconName != ""){
             setting->setIcon(iconPath, iconName);
         }
@@ -341,21 +323,18 @@ Setting *SettingsController::createSetting(SETTINGS ID, SETTING_TYPE type, QStri
     }else{
         qCritical() << "Duplicate setting created.";
     }
-    return 0;
+    return nullptr;
 }
 
 Setting *SettingsController::_getSetting(SETTINGS ID)
 {
-    if(settingsHash.contains(ID)){
-        return settingsHash[ID];
-    }
-    return 0;
+    return settingsHash.value(ID, nullptr);
 }
 
 void SettingsController::showSettingsWidget()
 {
     if(!settingsGUI){
-        settingsGUI = new AppSettings(0);
+        settingsGUI = new AppSettings(nullptr);
         connect(settingsGUI, &AppSettings::setSetting, this, &SettingsController::setSetting);
         connect(this, &SettingsController::settingChanged, settingsGUI, &AppSettings::settingChanged);
         connect(settingsGUI, &AppSettings::settingsApplied, this, &SettingsController::saveSettings);
@@ -366,10 +345,10 @@ void SettingsController::showSettingsWidget()
 
 void SettingsController::resetSettings()
 {
-    foreach(SETTINGS sk, settingsKeys){
+    for (SETTINGS sk : settingsKeys) {
         Setting* setting = _getSetting(sk);
-        if(setting){
-            if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
+        if (setting) {
+            if (setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE) {
                 continue;
             }
             //Reset to default
@@ -381,22 +360,21 @@ void SettingsController::resetSettings()
     emit settingChanged(SETTINGS::THEME_SETASPECT_COLORBLIND, true);
     emit settingChanged(SETTINGS::THEME_APPLY, true);
     emit settingsApplied();
+    
     //Write settings
     saveSettings();
 }
 
 void SettingsController::saveSettings()
 {
-    foreach(Setting* setting, settingsHash.values()){
+    for(Setting* setting : settingsHash.values()) {
         //Ignore writing Button and None Type settings
-        if(setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE){
+        if (setting->getType() == SETTING_TYPE::BUTTON || setting->getType() == SETTING_TYPE::NONE) {
             continue;
         }
-
         QVariant value = setting->getValue();
-
-        //Convert QColor to a String'd hex
         if(setting->getType() == SETTING_TYPE::COLOR){
+            //Convert QColor to a String'd hex
             QColor color = value.value<QColor>();
             value = Theme::QColorToHex(color);
         }
@@ -405,14 +383,8 @@ void SettingsController::saveSettings()
     settingsFile->sync();
 }
 
-SettingsController *SettingsController::settings()
+SettingsController* SettingsController::settings()
 {
     static SettingsController controller;
     return &controller;
 }
-
-void SettingsController::initializeSettings()
-{
-    settings();
-}
-

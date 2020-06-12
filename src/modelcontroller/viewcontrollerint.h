@@ -25,10 +25,10 @@ protected:
     virtual void EdgeConstructed(int id, EDGE_KIND edge_kind, int src_id, int dst_id) = 0;
     virtual void EntityDestructed(int id, GRAPHML_KIND kind) = 0;
     virtual void DataChanged(int id, DataUpdate data) = 0;
-    virtual void DataRemoved(int id, QString key_name) = 0;
+    virtual void DataRemoved(int id, const QString& key_name) = 0;
     virtual void NodeEdgeKindsChanged(int id) = 0;
     virtual void NodeTypesChanged(int id) = 0;
-    virtual void AddNotification(MODEL_SEVERITY severity, QString title, QString description, int id) = 0;
+    virtual void AddNotification(MODEL_SEVERITY severity, const QString& title, const QString& description, int id) = 0;
     virtual void ModelReady(bool ready) = 0;
 
 signals:
@@ -55,6 +55,8 @@ signals:
     void Replicate(QList<int> entity_ids);
 
     void constructDDSQOSProfile();
+    void constructTriggerDefinition();
+    
     void ConstructNodeAtIndex(int parent_id, NODE_KIND node_kind, int index);
     void ConstructNodeAtPos(int parent_id, NODE_KIND node_kind, QPointF position);
     

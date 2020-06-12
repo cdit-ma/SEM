@@ -3,8 +3,7 @@
 
 #include "basicnodeitem.h"
 
-class DefaultNodeItem : public BasicNodeItem
-{
+class DefaultNodeItem : public BasicNodeItem {
 public:
     DefaultNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
 };

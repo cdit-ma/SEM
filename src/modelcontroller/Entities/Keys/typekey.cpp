@@ -69,39 +69,67 @@ QString TypeKey::GetCPPPrimitiveType(const QString& type){
     return cpp_types.value(type, type);
 }
 
-QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
-    QString desired_type = data_value.toString();
-    QString new_type = desired_type;
+/**
+ * TODO: Handle the fail case in a more graceful manner than just setting
+ * label/namespace to a blank string
+ * @brief TypeKey::validateDataChange
+ * @param data
+ * @param data_value
+ * @return
+ */
+QVariant TypeKey::validateDataChange(Data* data, QVariant data_value)
+{
+    QString new_type = data_value.toString();
 
     auto entity = data->getParent();
 
-
-    if(!entity){
+    if (!entity) {
         return new_type;
     }
+
     auto node_kind = entity->isNode() ? ((Node*)entity)->getNodeKind() : NODE_KIND::NONE;
 
-    if(combine_namespace_kinds.contains(node_kind)){
+    if (combine_namespace_kinds.contains(node_kind)) {
+        QString namespace_value;
+        QString label_value;
         auto namespace_data = entity->getData(KeyName::Namespace);
         auto label_data = entity->getData(KeyName::Label);
 
-        auto namespace_value = namespace_data ? namespace_data->getValue().toString() : "";
-        auto label_value = label_data ? label_data->getValue().toString() : "";
+        if (namespace_data != nullptr) {
+            if (!namespace_data->getValue().isNull() && namespace_data->getValue().isValid()) {
+                auto namespace_data_val = namespace_data->getValue();
+                namespace_value = namespace_data_val.toString();
+            } else {
+                namespace_value = "";
+            }
+        } else {
+            namespace_value = "";
+        }
 
+        if (label_data != nullptr) {
+            if (!label_data->getValue().isNull() && label_data->getValue().isValid()){
+                label_value = label_data->getValue().toString();
+            } else {
+                label_value = "";
+            }
+        } else {
+            label_value = "";
+        }
         new_type = NamespaceKey::CombineNamespaces(namespace_value, label_value);
-    }else{
+
+    } else {
         auto inner_type_data = entity->getData(KeyName::InnerType);
         auto outer_type_data = entity->getData(KeyName::OuterType);
 
-        if(inner_type_data && outer_type_data){
+        if (inner_type_data && outer_type_data) {
             auto inner_type = inner_type_data->getValue().toString();
             auto outer_type = outer_type_data->getValue().toString();
             
-            if(outer_type.size()){
+            if (outer_type.size()) {
                 new_type = outer_type + "<" + inner_type + ">";
-            }else if(inner_type.size()){
+            } else if (inner_type.size()){
                 new_type = inner_type;
-            }else{
+            } else {
                 new_type = "";
             }
         }
@@ -109,8 +137,6 @@ QVariant TypeKey::validateDataChange(Data* data, QVariant data_value){
     }
     return Key::validateDataChange(data, new_type);
 }
-
-#include <QDebug>
 
 
 void TypeKey::BindNamespaceAndLabelToType(Node* node, bool bind){

@@ -1,12 +1,12 @@
 #include "nodeviewminimap.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "../../Widgets/DockWidgets/viewdockwidget.h"
+
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPen>
-#include <QDebug>
-#include "../../theme.h"
 #include <QTimer>
+
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
     setDragMode(NoDrag);
@@ -18,7 +18,11 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     updateTimer->setInterval(1000);
     updateTimer->start();
 
-    connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::update);
+    // NOTE: We reverted back to using the old connect notation because the new notation produces the following error:
+    //  error: no matching member function for call to 'connect'
+    //    connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::update);
+    //connect(updateTimer, &QTimer::timeout, this, &NodeViewMinimap::update);
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(update()));
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -34,44 +38,43 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
 
     zoomPixmap = Theme::theme()->getImage("Icons", "zoom", QSize(16, 16), Qt::white);
 
-
     connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &NodeViewMinimap::activeViewDockWidgetChanged);
-
     connect(Theme::theme(), &Theme::theme_Changed, this, &NodeViewMinimap::themeChanged);
     themeChanged();
 }
 
-void NodeViewMinimap::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockWidget *prevDock){
+void NodeViewMinimap::activeViewDockWidgetChanged(ViewDockWidget *viewDock, ViewDockWidget *prevDock)
+{
     //Unattach old view
-    if(prevDock){
+    if (prevDock) {
         auto prev_node_view = prevDock->getNodeView();
-        
-        if(prev_node_view){
+        if (prev_node_view) {
             disconnect(prev_node_view);
             prev_node_view->disconnect(this);
         }
     }
 
-    NodeView* node_view = 0;
+    NodeView* node_view = nullptr;
 
     //Attach new view
-    if(viewDock){
+    if (viewDock) {
         node_view = viewDock->getNodeView();
     }
 
-    if(node_view){
+    if (node_view) {
         setBackgroundColor(node_view->getBackgroundColor());
         setScene(node_view->scene());
         
-        connect(this, &NodeViewMinimap::minimap_CenterView, node_view, &NodeView::FitToScreen);
+        connect(this, &NodeViewMinimap::minimap_CenterView, node_view, &NodeView::fitToScreen);
         connect(this, &NodeViewMinimap::minimap_Pan, node_view, &NodeView::minimap_Pan);
         connect(this, &NodeViewMinimap::minimap_Zoom, node_view, &NodeView::minimap_Zoom);
         connect(node_view, &NodeView::viewport_changed, this, &NodeViewMinimap::viewportRectChanged);
         connect(node_view, &NodeView::scenerect_changed, this, &NodeViewMinimap::sceneRectChanged);
+        
         node_view->update_minimap();
-    }else{
+    } else {
         setBackgroundColor(QColor(0,0,0));
-        setScene(0);
+        setScene(nullptr);
     }
 }
 
@@ -109,7 +112,8 @@ void NodeViewMinimap::setMinimapPanning(bool pan)
     }
 }
 
-void NodeViewMinimap::themeChanged(){
+void NodeViewMinimap::themeChanged()
+{
     setStyleSheet(Theme::theme()->getNodeViewStyleSheet());
 }
 
@@ -133,7 +137,7 @@ QRectF NodeViewMinimap::zoomIcon() const
 
 QRectF NodeViewMinimap::zoomText() const
 {
-    return QRectF(zoomIcon().topRight(), infoBox().bottomRight());
+    return {zoomIcon().topRight(), infoBox().bottomRight()};
 }
 
 QRectF NodeViewMinimap::infoBox() const
@@ -141,18 +145,15 @@ QRectF NodeViewMinimap::infoBox() const
     QRectF rect;
     rect.setWidth(80);
     rect.setHeight(16);
-
     rect.moveBottomRight(this->rect().bottomRight());
     return rect;
 }
-
 
 bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 {
     QPointF scenePos = mapToScene(localPos.toPoint());
     return viewportRect.contains(scenePos);
 }
-
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
@@ -163,12 +164,11 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 
         //Mask off the current viewportRect
         painter->setClipRegion(maskArea);
-
+    
+        //Paint the background
         painter->setBrush(QColor(0, 0, 0, 100));
         painter->setPen(Qt::NoPen);
-        //Paint the background
         painter->drawRect(rect);
-
 
         painter->setClipping(false);
 
@@ -184,7 +184,9 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
         painter->setPen(pen);
         painter->drawRect(viewportRect);
     }
+    
     painter->resetTransform();
+    
     QFont font;
     font.setBold(true);
     font.setPixelSize(12);
@@ -194,8 +196,8 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     painter->setBrush(Qt::darkGray);
     painter->drawRect(infoBox());
     painter->setPen(Qt::white);
-
     painter->drawText(zoomText(), Qt::AlignCenter|Qt::AlignLeft, zoomPercent);
+    
     QRectF imageRect = zoomIcon();
     painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), zoomPixmap);
 }
@@ -215,16 +217,17 @@ void NodeViewMinimap::setEnabled(bool enabled)
 
 void NodeViewMinimap::setBackgroundColor(QColor color)
 {
-    backgroundColor = color;
+    backgroundColor = std::move(color);
     update();
 }
 
 void NodeViewMinimap::setScene(QGraphicsScene *scene)
 {
-    //Center View.
     QGraphicsView::setScene(scene);
+    
     //Update
-    drawRect = scene != 0;
+    drawRect = scene != nullptr;
+    //Center View.
     centerView();
 }
 
@@ -261,9 +264,6 @@ void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void NodeViewMinimap::update(){
-    QGraphicsView::update();
-}
 void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *)
 {
     setMinimapPanning(false);
@@ -273,7 +273,6 @@ void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
 {
     if(isPanning()){
         QPointF sceneDelta = previousScenePos - mapToScene(event->pos());
-
         emit minimap_Pan(sceneDelta);
         //Update the previous Scene position after the view has panned, such that we get smooth movement.
         previousScenePos = mapToScene(event->pos());

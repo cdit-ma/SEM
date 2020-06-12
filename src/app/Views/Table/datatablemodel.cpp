@@ -2,15 +2,24 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "../../theme.h"
 
-#include <QDebug>
+#include <keynames.h>
 
-const static QSet<QString> multiline_keys({"processes_to_log","code"});
-const static QSet<QString> icon_keys({"icon", "icon_prefix"});
-const static QSet<QString> ignoredKeys({"x", "y", "width", "height", "readOnly", "isExpanded"});
+const static QSet<QString> multiline_keys({KeyName::ProcessesToLog, KeyName::Code});
+const static QSet<QString> icon_keys({KeyName::Icon, KeyName::IconPrefix});
+const static QSet<QString> ignoredKeys({KeyName::X, KeyName::Y, KeyName::Width, KeyName::Height, KeyName::ReadOnly, KeyName::IsExpanded});
 
 //TODO: FIX ME
+/**
+ * @brief DataTableModel::DataTableModel
+ * @param item
+ * @throws std::invalid_argument
+ */
 DataTableModel::DataTableModel(ViewItem *item)
 {
+	if (item == nullptr) {
+		throw std::invalid_argument("DataTableModel::DataTableModel - view item cannot be null.");
+	}
+
     entity = item;
     //Register the table
     entity->registerObject(this);
@@ -40,7 +49,6 @@ void DataTableModel::removedData(const QString& keyName)
     if(row > -1){
         //Initiate the removal of the row.
         beginRemoveRows(QModelIndex(), row, row);
-
         //Remove it from the HashMap.
         editableKeys.removeAll(keyName);
         lockedKeys.removeAll(keyName);
@@ -51,21 +59,12 @@ void DataTableModel::removedData(const QString& keyName)
 void DataTableModel::addData(const QString& keyName)
 {
     //If we haven't seen this Data Before.
-
     if(editableKeys.contains(keyName) || lockedKeys.contains(keyName) || ignoredKeys.contains(keyName)){
         return;
     }
 
-    bool locked = false;//entity->isDataProtected(keyName);
-
-    int insertIndex = 0;
-    if(locked){
-        insertIndex = lockedKeys.size();
-        lockedKeys.append(keyName);
-    }else{
-        insertIndex = lockedKeys.size() + editableKeys.size();
-        editableKeys.append(keyName);
-    }
+    int insertIndex = lockedKeys.size() + editableKeys.size();
+	editableKeys.append(keyName);
 
     //Insert Rows.
     beginInsertRows(QModelIndex(), insertIndex, insertIndex);
@@ -155,9 +154,6 @@ QVariant DataTableModel::getData(const QModelIndex &index) const
     return data;
 }
 
-
-
-
 int DataTableModel::rowCount(const QModelIndex&) const
 {
     return editableKeys.size() + lockedKeys.size();
@@ -170,75 +166,73 @@ int DataTableModel::columnCount(const QModelIndex&) const
 
 QVariant DataTableModel::data(const QModelIndex &index, int role) const
 {
-    if (role == Qt::TextAlignmentRole) {
-        if(hasCodeEditor(index)){
-            return QVariant(Qt::AlignLeft | Qt::AlignTop);
-        }else{
-            return QVariant(Qt::AlignCenter);
+	switch (role) {
+		case Qt::DisplayRole:
+		case Qt::EditRole:
+		case Qt::ToolTipRole:
+			return getData(index);
+		case Qt::TextAlignmentRole:
+			if (hasCodeEditor(index)) {
+				return QVariant(Qt::AlignLeft | Qt::AlignTop);
+			} else {
+				return QVariant(Qt::AlignCenter);
+			}
+		case Qt::DecorationRole: {
+            if (isIndexProtected(index)) {
+                return Theme::theme()->getIcon("Icons", "lockClosed");
+            }
+            if (hasCodeEditor(index) || hasIconEditor(index)) {
+                return Theme::theme()->getIcon("Icons", "popOut");
+            }
+            // Return a hidden icon for everything else to keep the values aligned
+            auto hidden_icon = Theme::theme()->getImage("Icons", "blank", Theme::theme()->getIconSize());
+            hidden_icon.fill(Qt::transparent);
+            return hidden_icon;
         }
-    }
-    if (role == Qt::DecorationRole) {
-        if(isIndexProtected(index)){
-            return Theme::theme()->getIcon("Icons", "lockClosed");
-        }
-        if(hasCodeEditor(index) || hasIconEditor(index)){
-            return Theme::theme()->getIcon("Icons", "popOut");
-        }
-    }
-
-    if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
-        return getData(index);
-    }
-
-    if(role == MULTILINE_ROLE) {
-        return hasCodeEditor(index);
-    }
-
-    if(role == ICON_ROLE){
-        return hasIconEditor(index);
-    }
-
-    if(role == VALID_VALUES_ROLE){
-        if(entity){
-            QString keyName = getKey(index);
-            return entity->getValidValuesForKey(keyName);
-        }
-    }
-    if(role == ID_ROLE){
-        if(entity){
-            return entity->getID();
-        }
-    }
-
-    return QVariant();
+		case MULTILINE_ROLE:
+			return hasCodeEditor(index);
+		case ICON_ROLE:
+			return hasIconEditor(index);
+		case VALID_VALUES_ROLE:
+			if (entity) {
+				return entity->getValidValuesForKey(getKey(index));
+			}
+			break;
+		case ID_ROLE:
+			if (entity) {
+				return entity->getID();
+			}
+			break;
+		default:
+			break;
+	}
+	return QVariant();
 }
 
 QVariant DataTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if(orientation == Qt::Vertical){
-        auto key = getKey(section);
-        if(role == Qt::DisplayRole){
-            return key;
-        }/*//UNCOMMENT FOR ICONS IN TABLE
-        else if(role == Qt::DecorationRole){
-            return  Theme::theme()->getImage("Data", key, QSize(16,16), Theme::theme()->getTextColor());
-        }*/
-    }
-    if(role == Qt::DisplayRole && orientation == Qt::Horizontal){
-        if(section == 0){
-            return "Key";
-        }else{
-            return "Value";
-        }
-    }
-
-
-    if (role == Qt::ToolTipRole) {
-        if(isRowProtected(section)){
-            return "Data is Protected";
-        }
-    }
-    return QVariant();
+	if (role == Qt::DisplayRole) {
+		if (orientation == Qt::Vertical) {
+			return getKey(section);
+		} else {
+			if (section == 0) {
+				return "Key";
+			} else {
+				return "Value";
+			}
+		}
+	} else if (role == Qt::ToolTipRole) {
+		if (isRowProtected(section)) {
+			return "Data is protected";
+		}
+	}
+	// Uncomment for icons in the table
+	/*else if (role == Qt::DecorationRole) {
+		if (orientation == Qt::Vertical) {
+			return  Theme::theme()->getImage("Data", getKey(section), QSize(16,16), Theme::theme()->getTextColor());
+		}
+	}*/
+	return QVariant();
 }
 
 bool DataTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -254,7 +248,6 @@ bool DataTableModel::setData(const QModelIndex &index, const QVariant &value, in
     }
     return false;
 }
-
 
 Qt::ItemFlags DataTableModel::flags(const QModelIndex &index) const
 {
@@ -273,39 +266,35 @@ bool DataTableModel::isDataProtected(int row) const
     return entity->isDataProtected(keyName);
 }
 
-
 void DataTableModel::setupDataBinding()
 {
-    if(entity){
+    if (entity) {
         //Attach each data.
         auto key_list = entity->getKeys();
         std::sort(key_list.begin(), key_list.end());
-        for(auto key : key_list){
+        for (const auto& key : key_list) {
             addData(key);
         }
         connect(entity, &ViewItem::dataAdded, this, &DataTableModel::addData);
         connect(entity, &ViewItem::dataRemoved, this, &DataTableModel::removedData);
         connect(entity, &ViewItem::dataChanged, this, &DataTableModel::updatedData);
-
-
         connect(entity, &ViewItem::destructing, this, &DataTableModel::deleteLater);
     }
 }
 
-
-
 void DataTableModel::sort(int, Qt::SortOrder order)
 {
-    if(order == Qt::AscendingOrder){
-        qSort(lockedKeys.begin(), lockedKeys.end(), qLess<QString>());
-        qSort(editableKeys.begin(), editableKeys.end(), qLess<QString>());
-    }else{
-        qSort(lockedKeys.begin(), lockedKeys.end(), qGreater<QString>());
-        qSort(editableKeys.begin(), editableKeys.end(), qGreater<QString>());
-    }
+	if (order == Qt::AscendingOrder) {
+		std::sort(lockedKeys.begin(), lockedKeys.end(), std::less<QString>());
+		std::sort(editableKeys.begin(), editableKeys.end(), std::less<QString>());
+	} else {
+		std::sort(lockedKeys.begin(), lockedKeys.end(), std::greater<QString>());
+		std::sort(editableKeys.begin(), editableKeys.end(), std::greater<QString>());
+	}
 
     QModelIndex indexA = index(0, 0, QModelIndex());
     QModelIndex indexB = index(columnCount(QModelIndex()), rowCount(indexA), QModelIndex());
+
     //Do some sorting!
     emit dataChanged(indexA, indexB);
 }

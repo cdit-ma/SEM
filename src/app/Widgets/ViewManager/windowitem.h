@@ -1,34 +1,41 @@
 #ifndef WINDOWITEM_H
 #define WINDOWITEM_H
+
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Controllers/WindowManager/windowmanager.h"
 #include "viewmanagerwidget.h"
+
 #include <QToolBar>
 #include <QLabel>
 #include <QWidget>
 #include <QVBoxLayout>
 
-class WindowItem : public QWidget{
-    Q_OBJECT
+class WindowItem : public QWidget
+{
+     Q_OBJECT
+
 public:
     WindowItem(ViewManagerWidget* manager, BaseWindow* window);
-    ~WindowItem();
+
 private slots:
     void themeChanged();
-    void titleChanged(QString title="");
+    void titleChanged(const QString& title = "");
 
     void dockWidgetAdded(BaseDockWidget* widget);
-private:
 
+private:
     void setupLayout();
-    QLabel* label;
-    QAction* closeAction;
-    ViewManagerWidget* manager;
-    BaseWindow* window;
-    QWidget* dockContainer;
-    QVBoxLayout* viewContainerLayout;
-    QVBoxLayout* toolContainerLayout;
-    QToolBar* windowToolbar;
+
+    ViewManagerWidget* manager = nullptr;
+    BaseWindow* window = nullptr;
+
+    QLabel* label = nullptr;
+    QAction* closeAction = nullptr;
+    QWidget* dockContainer = nullptr;
+    QToolBar* windowToolbar = nullptr;
+
+    QVBoxLayout* viewContainerLayout = nullptr;
+    QVBoxLayout* toolContainerLayout = nullptr;
 };
 
 #endif // WINDOWITEM_H

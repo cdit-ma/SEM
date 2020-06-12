@@ -29,11 +29,11 @@ PeriodicEvent::PeriodicEvent(EntityFactoryBroker& broker, bool is_temp) : Node(b
     }
 
     auto frequency = (DataNode*)broker.ConstructChildNode(*this, NODE_KIND::ATTRIBUTE);
-    broker.AttachData(frequency, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(frequency, "icon", QVariant::String, ProtectedState::PROTECTED, "timeElapsed");
-    broker.AttachData(frequency, "label", QVariant::String, ProtectedState::PROTECTED, "Frequency");
-    broker.AttachData(frequency, "type", QVariant::String, ProtectedState::PROTECTED, "Double");
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(frequency, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(frequency, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "timeElapsedTwoTone");
+    broker.AttachData(frequency, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Frequency");
+    broker.AttachData(frequency, KeyName::Type, QVariant::String, ProtectedState::PROTECTED, "Double");
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
 
     frequency->setGlobalScopedDataLinker(true);
 }

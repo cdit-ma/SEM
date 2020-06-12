@@ -32,31 +32,28 @@ MEDEA::RequesterPortImpl::RequesterPortImpl(::EntityFactoryBroker& broker, bool 
     }
     
     //Setup Data
-    broker.AttachData(this, "type", QVariant::String, ProtectedState::PROTECTED);
-    broker.AttachData(this, "index", QVariant::Int, ProtectedState::UNPROTECTED);
+    broker.AttachData(this, KeyName::Type, QVariant::String, ProtectedState::PROTECTED);
+    broker.AttachData(this, KeyName::Index, QVariant::Int, ProtectedState::UNPROTECTED);
 
     auto timeout_param = broker.ConstructChildNode(*this, NODE_KIND::INPUT_PARAMETER);
-    broker.AttachData(timeout_param, "label", QVariant::String, ProtectedState::PROTECTED, "Timeout (MS)");
-    broker.AttachData(timeout_param, "inner_type", QVariant::String, ProtectedState::PROTECTED, "Integer");
-    broker.AttachData(timeout_param, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
-    broker.AttachData(timeout_param, "column", QVariant::Int, ProtectedState::PROTECTED, -1);
-    broker.AttachData(timeout_param, "index", QVariant::Int, ProtectedState::PROTECTED);
-    broker.AttachData(timeout_param, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(timeout_param, "icon", QVariant::String, ProtectedState::PROTECTED, "clockAlarm");
-    broker.AttachData(timeout_param, "value", QVariant::String, ProtectedState::UNPROTECTED, 1000);
-
+    broker.AttachData(timeout_param, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Timeout (MS)");
+    broker.AttachData(timeout_param, KeyName::InnerType, QVariant::String, ProtectedState::PROTECTED, "Integer");
+    broker.AttachData(timeout_param, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(timeout_param, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, -1);
+    broker.AttachData(timeout_param, KeyName::Index, QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(timeout_param, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(timeout_param, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "clockAlarm");
+    broker.AttachData(timeout_param, KeyName::Value, QVariant::String, ProtectedState::UNPROTECTED, 1000);
 
     auto success_param = broker.ConstructChildNode(*this, NODE_KIND::RETURN_PARAMETER);
-    broker.AttachData(success_param, "label", QVariant::String, ProtectedState::PROTECTED, "Success");
-    broker.AttachData(success_param, "inner_type", QVariant::String, ProtectedState::PROTECTED, "Boolean");
-    broker.AttachData(success_param, "row", QVariant::Int, ProtectedState::PROTECTED, 0);
-    broker.AttachData(success_param, "column", QVariant::Int, ProtectedState::PROTECTED, 1);
-    broker.AttachData(success_param, "index", QVariant::Int, ProtectedState::PROTECTED);
-    broker.AttachData(success_param, "icon_prefix", QVariant::String, ProtectedState::PROTECTED, "Icons");
-    broker.AttachData(success_param, "icon", QVariant::String, ProtectedState::PROTECTED, "circleTickDark");
-
+    broker.AttachData(success_param, KeyName::Label, QVariant::String, ProtectedState::PROTECTED, "Success");
+    broker.AttachData(success_param, KeyName::InnerType, QVariant::String, ProtectedState::PROTECTED, "Boolean");
+    broker.AttachData(success_param, KeyName::Row, QVariant::Int, ProtectedState::PROTECTED, 0);
+    broker.AttachData(success_param, KeyName::Column, QVariant::Int, ProtectedState::PROTECTED, 1);
+    broker.AttachData(success_param, KeyName::Index, QVariant::Int, ProtectedState::PROTECTED);
+    broker.AttachData(success_param, KeyName::IconPrefix, QVariant::String, ProtectedState::PROTECTED, "Icons");
+    broker.AttachData(success_param, KeyName::Icon, QVariant::String, ProtectedState::PROTECTED, "circleTickDark");
 }
-
 
 bool MEDEA::RequesterPortImpl::canAdoptChild(Node* child)
 {
