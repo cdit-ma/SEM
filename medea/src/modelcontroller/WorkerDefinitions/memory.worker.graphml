@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+    <key attr.name="kind" attr.type="string" for="all" id="kind"/>
+    <key attr.name="label" attr.type="string" for="all" id="label"/>
+
+    <key attr.name="value" attr.type="string" for="all" id="value"/>
+    <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    
+    <key attr.name="description" attr.type="string" for="all" id="description"/>
+
+    <key attr.name="worker" attr.type="string" for="all" id="worker"/>
+    <key attr.name="folder" attr.type="string" for="all" id="folder"/>
+    <key attr.name="file" attr.type="string" for="all" id="file"/>
+    <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+    <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
+    <key attr.name="operation" attr.type="string" for="all" id="operation"/>
+    <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
+
+    <graph id="G">
+        <node id="memoryworker">
+            <data key="kind">Class</data>
+            <data key="version">1.0.0</data>
+            <data key="worker">Memory_Worker</data>
+            <data key="label">Memory Worker</data>
+            <data key="description">Provides memory (RAM) functionality.</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">memoryCard</data>
+            <data key="folder">${RE_PATH}/src/workers/memory</data>
+            <data key="file">memory_worker</data>
+            <graph id="memoryworker:">
+                <node id="memoryworker::allocate">
+                    <data key="kind">Function</data>
+                    <data key="label">Allocate</data>
+                    <data key="operation">Allocate</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circlePlus</data>
+                    <data key="description">Allocates n bytes of memory.</data>
+                    <graph id="memoryworker::allocate:">
+                        <node id="memoryworker::allocate::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="memoryworker::allocate::in:">
+                                <node id="memoryworker::allocate::kilobytes">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Kilobytes</data>
+                                    <data key="type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="description">The number of bytes to allocate.</data>
+                                </node>
+                            </graph>
+                        </node>
+                        
+                    </graph>
+                </node>
+                <node id="memoryworker::deallocate">
+                    <data key="kind">Function</data>
+                    <data key="label">Deallocate</data>
+                    <data key="operation">Deallocate</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleMinus</data>
+                    <data key="description">Deallocates n kilobytes of memory.</data>
+                    <graph id="memoryworker::deallocate:">
+                        <node id="memoryworker::deallocate::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="memoryworker::deallocate::in:">
+                                <node id="memoryworker::deallocate::kilobytes">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Kilobytes</data>
+                                    <data key="type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="description">The number of kilobytes to deallocate.</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="memoryworker::getallocated">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Allocated Count</data>
+                    <data key="operation">GetAllocatedCount</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">listNumbered</data>
+                    <data key="description">Returns the number of kilobytes of memory currently allocated..</data>
+                    <graph id="memoryworker::getallocated:">
+                        <node id="memoryworker::getAllocated::in">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="memoryworker::getAllocated::out:">
+                                <node id="memoryworker::getallocated::kilobytes">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Kilobytes</data>
+                                    <data key="type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">memoryCard</data>
+                                    <data key="description">The number of kilobytes of allocated memory.</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+            </graph>
+        </node>
+    </graph>
+</graphml>

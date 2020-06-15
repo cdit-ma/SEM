@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+    <key attr.name="kind" attr.type="string" for="all" id="kind"/>
+    <key attr.name="label" attr.type="string" for="all" id="label"/>
+
+    <key attr.name="value" attr.type="string" for="all" id="value"/>
+    <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+    
+    <key attr.name="description" attr.type="string" for="all" id="description"/>
+
+    <key attr.name="worker" attr.type="string" for="all" id="worker"/>
+    <key attr.name="folder" attr.type="string" for="all" id="folder"/>
+    <key attr.name="file" attr.type="string" for="all" id="file"/>
+    <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+    <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
+    <key attr.name="operation" attr.type="string" for="all" id="operation"/>
+    <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="is_variadic" attr.type="boolean" for="all" id="is_variadic"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
+
+    <graph id="G">
+        <node id="utilityworker">
+            <data key="kind">Class</data>
+            <data key="version">1.3.1</data>
+            <data key="worker">Utility_Worker</data>
+            <data key="label">Utility Worker</data>
+            <data key="description">A Worker that provides utility functions for use in workload.</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">spanner</data>
+            <data key="folder">${RE_PATH}/src/workers/utility</data>
+            <data key="file">utility_worker</data>
+            <graph id="utilityworker:">
+                <node id="utilityworker::evaluatecomplexity">
+                    <data key="kind">Function</data>
+                    <data key="label">Evaluate Complexity</data>
+                    <data key="operation">EvaluateComplexity</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">sigma</data>
+                    <data key="description">Evaluate the complexity function given, may use one or more value parameters (eg n, m, x, y etc).</data>
+                    <data key="is_variadic">true</data>
+                    <graph id="utilityworker::evaluatecomplexity:">
+                        <node id="utilityworker::evaluatecomplexity::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::evaluatecomplexity::in:">
+                                <node id="utilityworker::evaluatecomplexity::in::complexity">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Complexity Function</data>
+                                    <data key="inner_type">String</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">sigma</data>
+                                    <data key="description">Mathematical expression for the complexity of an algorithm that will be simulated using a workload execution worker.</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="utilityworker::evaluatecomplexity::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::evaluatecomplexity::out:">
+                                <node id="utilityworker::evaluatecomplexity::out::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">Number of operations, or size of memory to be used in workload execution</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::log">
+                    <data key="kind">Function</data>
+                    <data key="label">Log</data>
+                    <data key="operation">Log</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">speechBubbleFilled</data>
+                    <data key="description">Logs a message to the database.</data>
+                    <data key="is_variadic">true</data>
+                    <graph id="utilityworker::log:">
+                        <node id="utilityworker::log::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::log::in:">
+                                <node id="utilityworker::log::in::message">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Message Format</data>
+                                    <data key="inner_type">String</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">format</data>
+                                    <data key="description">Message to Log.</data>
+                                </node>
+                                <node id="utilityworker::log::in::verbosity">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Verbosity</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="value">true</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">exclamationInBubble</data>
+                                    <data key="value">5</data>
+                                    <data key="description">The verbosity of this message (1-10).</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::marker">
+                    <data key="kind">Function</data>
+                    <data key="label">Marker</data>
+                    <data key="operation">Marker</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">flag</data>
+                    <data key="description">Logs a marker message to the database.</data>
+                    <graph id="utilityworker::marker:">
+                        <node id="utilityworker::marker::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::marker::in:">
+                                <node id="utilityworker::marker::in::label">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Label</data>
+                                    <data key="inner_type">String</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">label</data>
+                                    <data key="description">The label to give this marker.</data>
+                                </node>
+                                <node id="utilityworker::log::in::id">
+                                    <data key="kind">Member</data>
+                                    <data key="label">ID</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">label</data>
+                                    <data key="description">The unique id of this marker.</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::gettimeofdaystring">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Time Of Day String</data>
+                    <data key="operation">GetTimeOfDayString</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">clock</data>
+                    <data key="description">Get the time of day in a string (To Microseconds Precision).</data>
+                    <graph id="utilityworker::gettimeofdaystring:">
+                        <node id="utilityworker::gettimeofdaystring::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::gettimeofdaystring::out:">
+                                <node id="utilityworker::gettimeofdaystring::out::time">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Time</data>
+                                    <data key="inner_type">String</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">format</data>
+                                    <data key="description">Current Time of Day</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::gettimeofday">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Time Of Day</data>
+                    <data key="operation">GetTimeOfDay</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">clock</data>
+                    <data key="description">Get the time of day as a double (To Microseconds Precision).</data>
+                    <graph id="utilityworker::gettimeofday:">
+                        <node id="utilityworker::gettimeofday::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::gettimeofday::out:">
+                                <node id="utilityworker::gettimeofday::out::time">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Time</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">Current Time of Day</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::setrandomseed">
+                    <data key="kind">Function</data>
+                    <data key="label">Set Random Seed</data>
+                    <data key="operation">SetRandomSeed</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">drop</data>
+                    <data key="description">Sets the seed for the Random Number Generator used by this worker.</data>
+                    <graph id="utilityworker::setrandomseed:">
+                        <node id="utilityworker::setrandomseed::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::setrandomseed::in:">
+                                <node id="utilityworker::setrandomseed::in::seed">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Seed</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">format</data>
+                                    <data key="description">The seed value</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::usleep">
+                    <data key="kind">Function</data>
+                    <data key="label">U Sleep</data>
+                    <data key="operation">USleep</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">bed</data>
+                    <data key="description">Sleeps the current thread for x microseconds.</data>
+                    <graph id="utilityworker::usleep:">
+                        <node id="utilityworker::usleep::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::usleep::in:">
+                                <node id="utilityworker::usleep::in::duration">
+                                    <data key="kind">Member</data>
+                                    <data key="label">duration</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockDark</data>
+                                    <data key="description">Microseconds to sleep for</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::sleep">
+                    <data key="kind">Function</data>
+                    <data key="label">Sleep</data>
+                    <data key="operation">Sleep</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">bed</data>
+                    <data key="description">Sleeps the current thread for x seconds.</data>
+                    <graph id="utilityworker::sleep:">
+                        <node id="utilityworker::sleep::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::sleep::in:">
+                                <node id="utilityworker::sleep::in::duration">
+                                    <data key="kind">Member</data>
+                                    <data key="label">duration</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockDark</data>
+                                    <data key="description">Seconds to sleep for</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::getrandomuniformint">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Random Uniform Int</data>
+                    <data key="operation">RandomUniformInt</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartUniform</data>
+                    <data key="description">Gets a random Integer in an inclusive range (Lower Bound - Upper Bound)</data>
+                    <graph id="utilityworker::getrandomuniformint:">
+                        <node id="utilityworker::getrandomuniformint::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::getrandomuniformint::in:">
+                                <node id="utilityworker::getrandomuniformint::in::lowerbounds">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Lower Bound</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowLineLeft</data>
+                                    <data key="description">The lower bound</data>
+                                </node>
+                                <node id="utilityworker::getrandomuniformint::in::upperbounds">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Upper Bound</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowLineRight</data>
+                                    <data key="description">The upper bound</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="utilityworker::getrandomuniformint::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::getrandomuniformint::out:">
+                                <node id="utilityworker::getrandomuniformint::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">The random integer</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="utilityworker::getrandomuniformreal">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Random Uniform Real</data>
+                    <data key="operation">RandomUniformReal</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartUniform</data>
+                    <data key="description">Gets a random double in an inclusive range (Lower Bound - Upper Bound)</data>
+                    <graph id="utilityworker::getrandomuniformreal:">
+                        <node id="utilityworker::getrandomuniformreal::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::getrandomuniformreal::in:">
+                                <node id="utilityworker::getrandomuniformreal::in::lowerbound">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Lower Bound</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowLineLeft</data>
+                                    <data key="description">The lower bound</data>
+                                </node>
+                                <node id="utilityworker::getrandomuniformreal::in::upperbound">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Upper Bound</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowLineRight</data>
+                                    <data key="description">The upper bound</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="utilityworker::getrandomuniformreal::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::getrandomuniformreal::out:">
+                                <node id="utilityworker::getrandomuniformreal::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">The random double</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="utilityworker::getrandomnormalreal">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Random Normal Real</data>
+                    <data key="operation">RandomNormalReal</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartNormal</data>
+                    <data key="description">Gets a random double in a Normal distribution.</data>
+                    <graph id="utilityworker::getrandomnormalreal:">
+                        <node id="utilityworker::getrandomnormalreal::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::getrandomnormalreal::in:">
+                                <node id="utilityworker::getrandomnormalreal::in::mean">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Mean</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">chartMean</data>
+                                    <data key="description">The mean of the normal distribution</data>
+                                </node>
+                                <node id="utilityworker::getrandomnormalreal::in::standarddeviation">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Standard Deviation</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">chartStdDev</data>
+                                    <data key="description">The standard deviation of the normal distribution</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="utilityworker::getrandomnormalreal::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::getrandomnormalreal::out:">
+                                <node id="utilityworker::getrandomnormalreal::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">The random double</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+
+                <node id="utilityworker::getrandomexponentialreal">
+                    <data key="kind">Function</data>
+                    <data key="label">Get Random Exponential Real</data>
+                    <data key="operation">RandomExponentialReal</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">chartExponential</data>
+                    <data key="description">Gets a random double in an Exponential distribution. This distribution produces random numbers where each value represents the interval between two random events that are independent but statistically defined by a constant average rate of occurrence</data>
+                    <graph id="utilityworker::getrandomexponentialreal:">
+                        <node id="utilityworker::getrandomexponentialreal::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="utilityworker::getrandomexponentialreal::in:">
+                                <node id="utilityworker::getrandomexponentialreal::in::lambda">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Lambda</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">chartLambda</data>
+                                    <data key="description">The mean of the normal distribution</data>
+                                </node>
+                            </graph>
+                        </node>
+                        <node id="utilityworker::getrandomexponentialreal::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::getrandomexponentialreal::out:">
+                                <node id="utilityworker::getrandomexponentialreal::out::value">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Value</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">The random double</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="utilityworker::generateuuid">
+                    <data key="kind">Function</data>
+                    <data key="label">Get UUID</data>
+                    <data key="operation">GenerateUUID</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">fingerprint</data>
+                    <data key="description">Generates a 128-bit unique universal unique identifier, in the form of a string. Represented as 32 hexadecimal digits, displayed in five groups separated by hyphens, in the form 8-4-4-4-12.</data>
+                    <graph id="utilityworker::generateuuid:">
+                        <node id="utilityworker::generateuuid::out">
+                            <data key="kind">ReturnParameterGroup</data>
+                            <graph id="utilityworker::generateuuid::out:">
+                                <node id="utilityworker::generateuuid::out::uuid">
+                                    <data key="kind">Member</data>
+                                    <data key="label">UUID</data>
+                                    <data key="inner_type">String</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">squareEquals</data>
+                                    <data key="description">The uuid</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+            </graph>
+        </node>
+    </graph>
+</graphml>

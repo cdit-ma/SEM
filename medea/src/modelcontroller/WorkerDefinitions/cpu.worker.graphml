@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+    <key attr.name="kind" attr.type="string" for="all" id="kind"/>
+    <key attr.name="label" attr.type="string" for="all" id="label"/>
+
+    <key attr.name="value" attr.type="string" for="all" id="value"/>
+    <key attr.name="type" attr.type="string" for="all" id="type"/>
+    <key attr.name="inner_type" attr.type="string" for="all" id="inner_type"/>
+    <key attr.name="outer_type" attr.type="string" for="all" id="outer_type"/>
+
+    <key attr.name="description" attr.type="string" for="all" id="description"/>
+
+    <key attr.name="worker" attr.type="string" for="all" id="worker"/>
+    <key attr.name="folder" attr.type="string" for="all" id="folder"/>
+    <key attr.name="file" attr.type="string" for="all" id="file"/>
+    <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+    <key attr.name="icon_prefix" attr.type="string" for="all" id="icon_prefix"/>
+    <key attr.name="operation" attr.type="string" for="all" id="operation"/>
+    <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
+    <key attr.name="version" attr.type="string" for="all" id="version"/>
+
+    <graph id="G">
+        <node id="cpuworker">
+            <data key="kind">Class</data>
+            <data key="version">1.1.0</data>
+            <data key="worker">Cpu_Worker</data>
+            <data key="label">CPU Worker</data>
+            <data key="description">Provides CPU workload functionality.</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">cpu</data>
+            <data key="folder">${RE_PATH}/src/workers/cpu</data>
+            <data key="file">cpu_worker</data>
+            <graph id="cpuworker:">
+                <node id="cpuworker::intop">
+                    <data key="kind">Function</data>
+                    <data key="label">Int Op</data>
+                    <data key="operation">IntOp</data>
+                    <data key="description">Execute requested number of Integer Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cpu</data>
+                    <graph id="cpuworker::intop:">
+                        <node id="cpuworker::intop::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::intop::in:">
+                                <node id="cpuworker::intop::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::intop::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::intop::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="cpuworker::floatop">
+                    <data key="kind">Function</data>
+                    <data key="label">Float Op</data>
+                    <data key="operation">FloatOp</data>
+                    <data key="description">Execute requested number of Floating Point Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cpu</data>
+                    <graph id="cpuworker::floatop:">
+                        <node id="cpuworker::floatop::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::floatop::in:">
+                                <node id="cpuworker::floatop::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::floatop::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::floatop::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="cpuworker::whetstone">
+                    <data key="kind">Function</data>
+                    <data key="label">Whetstone</data>
+                    <data key="operation">Whetstone</data>
+                    <data key="description">Execute requested number of loops through the Whetstone benchmark. It is estimated that ten loops is equivalent to one Million Whetstone Instructions Performed (MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cpu</data>
+                    <graph id="cpuworker::whetstone:">
+                        <node id="cpuworker::whetstone::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::whetstone::in:">
+                                <node id="cpuworker::whetstone::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::whetstone::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::whetstone::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="cpuworker::mwip">
+                    <data key="kind">Function</data>
+                    <data key="label">MWIP</data>
+                    <data key="operation">MWIP</data>
+                    <data key="description">Execute requested number of Million Whetstone Instructions Performed (MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cpu</data>
+                    <graph id="cpuworker::mwip:">
+                        <node id="cpuworker::mwip::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::mwip::in:">
+                                <node id="cpuworker::mwip::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::mwip::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::mwip::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="cpuworker::dhrystone">
+                    <data key="kind">Function</data>
+                    <data key="label">Dhrystone</data>
+                    <data key="operation">Dhrystone</data>
+                    <data key="description">Execute requested number of loops through the Dhrystone benchmark. For one Dhrystone Millions of Instructions Performed (DMIP) it takes 1757 loops through this benchmark.This uses modified code taken from Dhrystone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cpu</data>
+                    <graph id="cpuworker::dhrystone:">
+                        <node id="cpuworker::dhrystone::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::dhrystone::in:">
+                                <node id="cpuworker::dhrystone::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::dhrystone::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::dhrystone::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="cpuworker::dmip">
+                    <data key="kind">Function</data>
+                    <data key="label">DMIP</data>
+                    <data key="operation">DMIP</data>
+                    <data key="description">Execute requested number of Dhrystone Millions of Instructions Performed (DMIP). This uses modified code taken from Dhrystone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cpu</data>
+                    <graph id="cpuworker::dmip:">
+                        <node id="cpuworker::dmip::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::dmip::in:">
+                                <node id="cpuworker::dmip::in::ops">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Operations</data>
+                                    <data key="inner_type">Double</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">clockCycle</data>
+                                    <data key="description">The number of operations to execute.</data>
+                                </node>
+                                <node id="cpuworker::dmip::in::threadcount">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Thread Count</data>
+                                    <data key="inner_type">Integer</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">numberOne</data>
+                                    <data key="description">The number of threads to utilize.</data>
+                                    <data key="value">1</data>
+                                </node>
+                                <node id="cpuworker::dmip::in::splitworkload">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Split Workload</data>
+                                    <data key="inner_type">Boolean</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowFork</data>
+                                    <data key="description">Divides the operations by the number of threads.</data>
+                                    <data key="value">true</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+                <node id="cpuworker::matrixmult">
+                    <data key="kind">Function</data>
+                    <data key="label">Matrix Mult</data>
+                    <data key="operation">MatrixMult</data>
+                    <data key="description">Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">grid3x3</data>
+                    <graph id="cpuworker::matrixmult:">
+                        <node id="cpuworker::matrixmult::in">
+                            <data key="kind">InputParameterGroup</data>
+                            <graph id="cpuworker::matrixmult::in:">
+                                <node id="cpuworker::matrixmult::matrixa">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Matrix A</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector_Member</data>
+                                    <data key="description">The first of the two matrix operands.</data>
+                                </node>
+                                <node id="cpuworker::matrixmult::matrixb">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Matrix B</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">EntityIcons</data>
+                                    <data key="icon">Vector_Member</data>
+                                    <data key="description">The second of the two matrix operands.</data>
+                                </node>
+                                <node id="cpuworker::matrixmult::matrixc">
+                                    <data key="kind">Member</data>
+                                    <data key="label">Matrix C</data>
+                                    <data key="inner_type">Float</data>
+                                    <data key="outer_type">Vector</data>
+                                    <data key="icon_prefix">Icons</data>
+                                    <data key="icon">arrowRight</data>
+                                    <data key="description">The matrix to be filled with the result of the multiplication.</data>
+                                </node>
+                            </graph>
+                        </node>
+                    </graph>
+                </node>
+            </graph>
+        </node>
+    </graph>
+</graphml>

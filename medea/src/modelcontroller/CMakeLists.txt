@@ -1,0 +1,226 @@
+set(PROJ_NAME medea_modelcontroller_lib)
+project(${PROJ_NAME})
+
+find_package(Qt5 COMPONENTS Core REQUIRED)
+
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/booleanexpression.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/callbackfunction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/callbackfunctioninst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/class.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/classinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/containernode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/externaltype.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/function.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/functioncall.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elsecondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elseifcondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifcondition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifstatement.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/inputparameter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/forloop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/whileloop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/parameter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/publisherportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/replierportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/requestreply/requesterportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/subscriberportimpl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/transitionfunction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/assemblydefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/attributeinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentassembly.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentcontainer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportassembly.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalpubsubdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/externalserverdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarecluster.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwaredefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarenode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingprofile.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/opencldevice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/openclplatform.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/publisherportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/pubsubportdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_qosprofile.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestportdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/replierportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/requestreply/requesterportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportdelegate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/subscriberportinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/edge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/aggregateedge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/assemblyedge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/dataedge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/definitionedge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/deploymentedge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/qosedge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/entity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/graphml.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/aggregateinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/attribute.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/component.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/datanode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enum.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enuminst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/enummember.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/eventport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/inputparametergroup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/inputparametergroupinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/interfacedefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/member.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/memberinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/namespace.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/publisherport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/requestreply/replierport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/requestreply/requesterport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/requestreply/serverinterface.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/returnparametergroup.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/returnparametergroupinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/shareddatatypes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/subscriberport.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/vectorinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/InterfaceDefinitions/voidtype.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/key.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/columnkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/exportidkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/frequencykey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/indexkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/innertypekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/labelkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/namespacekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/operationkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/outertypekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/replicatecountkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/rowkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/typekey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Keys/versionkey.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/node.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/workerdefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entityfactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entityfactorybroker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/entityfactoryregistrybroker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/keynames.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/viewcontrollerint.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/triggerdefinitions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/trigger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/triggerinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/strategyinst.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/triggeredge.cpp
+    )
+
+set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/attributeimpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/behaviourdefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/callbackfunction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/callbackfunctioninst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/code.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/componentimpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/functioncall.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/header.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elsecondition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/elseifcondition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifcondition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/IfStatement/ifstatement.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/inputparameter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/forloop.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/Loops/whileloop.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/parameter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/periodicport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/publisherportimpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/returnparameter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/setter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/subscriberportimpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variable.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variableparameter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/BehaviourDefinitions/variadicparameter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/data.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/assemblydefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/attributeinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentassembly.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/componentinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentattribute.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentcontainer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/deploymentdefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/eventportassembly.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarecluster.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwaredefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/hardwarenode.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingprofile.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/loggingserver.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/periodicportinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphmlprinter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/triggerdefinitions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/trigger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/triggerinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/DeploymentDefinitions/strategyinst.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Entities/Edges/triggeredge.h
+)
+
+
+
+set(RESOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
+    )
+
+# Pass Version info into cmakevars.h
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
+)
+
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
+
+# Include the binary directory to include the generated cmakevars.h
+target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+# Include the current source directory for those linking against us
+target_include_directories(${PROJ_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+# Publically link against QT5 Core
+target_link_libraries(${PROJ_NAME} PUBLIC Qt5::Core)
