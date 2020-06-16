@@ -1,0 +1,20 @@
+# MEDEA Autosaves
+*.autosave.*
+
+# Build dirs
+/build/
+/lib/
+/bin/
+/cmake-build-*/
+test/bin/*
+/docs/doxygen
+
+# IDE Config
+/.vscode/
+/.idea/
+*.user
+
+# Other
+.sql
+.DS_Store
+

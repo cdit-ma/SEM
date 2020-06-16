@@ -1,0 +1,6 @@
+#Set output directory to be in the source code directory for test. This allows easy directory navigation to load resource files
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tests)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/version_comparator")

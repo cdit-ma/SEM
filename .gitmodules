@@ -1,10 +1,13 @@
 [submodule "extern/googletest"]
 	path = re/extern/googletest
 	url = https://github.com/google/googletest
-
 [submodule "extern/DockerClient"]
 	path = re/extern/DockerClient
 	url = https://github.com/cdit-ma/DockerClient
 [submodule "extern/cuda-api-wrappers"]
 	path = re/extern/cuda-api-wrappers
 	url = https://github.com/eyalroz/cuda-api-wrappers.git
+[submodule "re"]
+	path = medea/re
+	url = https://github.com/cdit-ma/re
+
