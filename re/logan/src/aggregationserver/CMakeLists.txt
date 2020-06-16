@@ -7,7 +7,7 @@ project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-find_package(PQXX)
+find_package(libpqxx)
 
 if(NOT PQXX_FOUND)
 	message(WARNING "Could not find pqxx, not building aggregation broker and server")

@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
-project(re_top_level_project)
 
 project("re"
-        VERSION 3.4.2
+        VERSION ${PROJECT_VERSION}
         LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -33,7 +32,7 @@ option(BUILD_DOCS "Build re developer documentation" ON)
 option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
 
-# Get the RE_PATHRE_PATH
+# Get the RE_PATH
 set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 # Set the RE_GEN_PATH
 set(REGEN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re_gen")
@@ -46,7 +45,7 @@ set(RE_COMMON_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 
 # Set the binary and library locations
-set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}/lib")
