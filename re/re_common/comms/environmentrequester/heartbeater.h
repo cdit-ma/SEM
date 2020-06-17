@@ -1,12 +1,12 @@
 #ifndef ENVIRONMENTREQESTER_HEARTBEATER_H
 #define ENVIRONMENTREQESTER_HEARTBEATER_H
 
-#include <zmq/protorequester/protorequester.hpp>
+#include "protorequester.hpp"
 #ifdef _WIN32
 #pragma warning(push)
 #pragma warning(disable:4251)
 #endif
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif

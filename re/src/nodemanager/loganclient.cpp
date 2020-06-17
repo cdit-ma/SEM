@@ -1,5 +1,5 @@
 #include "loganclient.h"
-#include <client/logcontroller.h>
+#include "logcontroller.h"
 #include <iostream>
 
 LoganClient::LoganClient(const std::string& id){

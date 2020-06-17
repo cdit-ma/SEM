@@ -10,3 +10,4 @@ target_sources(${PROJ_NAME} PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}/protorequester.hpp
 		)
 target_link_libraries(${PROJ_NAME} PUBLIC zmq_protoregister)
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

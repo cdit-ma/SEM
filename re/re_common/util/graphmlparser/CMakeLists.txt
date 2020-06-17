@@ -44,13 +44,19 @@ else()
     target_include_directories(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_ROOT}/include)
 endif()
 
-target_link_libraries(${EXECUTION_PARSER_LIB} PRIVATE ${PUGIXML_LIBRARIES})
-target_link_libraries(${EXECUTION_PARSER_LIB} PUBLIC re_common_proto_control)
+target_include_directories(${EXECUTION_PARSER_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${EXECUTION_PARSER_LIB}
+        PRIVATE
+        ${PUGIXML_LIBRARIES}
+        PUBLIC
+        re_common_proto_control
+        )
 
 
 add_executable(${EXECUTION_PARSER} "")
 target_compile_features(${EXECUTION_PARSER} PRIVATE cxx_std_11)
 target_link_libraries(${EXECUTION_PARSER} PRIVATE ${EXECUTION_PARSER_LIB})
-target_sources(${EXECUTION_PARSER} PRIVATE
+target_sources(${EXECUTION_PARSER}
+        PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         )

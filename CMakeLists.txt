@@ -21,5 +21,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+add_subdirectory(src)
 add_subdirectory(re)
 #add_subdirectory(medea)

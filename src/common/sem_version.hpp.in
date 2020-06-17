@@ -1,0 +1,13 @@
+#ifndef SEM_VERSION_H
+#define SEM_VERSION_H
+
+#include <string_view>
+namespace SEM {
+constexpr auto GetVersion() -> std::string_view {
+  using namespace std::string_view_literals;
+  // Tokens at the @ Symbol will be replaced by CMake
+  return "@PROJECT_VERSION@"sv;
+}
+
+} // namespace SEM
+#endif // SEM_VERSION_H

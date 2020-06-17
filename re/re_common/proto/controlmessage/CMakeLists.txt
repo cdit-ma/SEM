@@ -11,11 +11,17 @@ target_compile_definitions(${PROJ_NAME} PUBLIC PROTOBUF_USE_DLLS)
 set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_sources(${PROJ_NAME} PRIVATE
-		${CMAKE_CURRENT_SOURCE_DIR}/helper.cpp
-		${PROTO_HDRS}
-		${PROTO_SRCS}
-		)
-target_include_directories(${PROJ_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PUBLIC ${RE_COMMON_SOURCE_DIR})
-target_include_directories(${PROJ_NAME} PUBLIC ${RE_COMMON_BINARY_DIR})
+        ${CMAKE_CURRENT_SOURCE_DIR}/helper.cpp
+        ${PROTO_HDRS}
+        ${PROTO_SRCS}
+        )
+
+target_include_directories(${PROJ_NAME}
+        PUBLIC
+        ${PROTOBUF_INCLUDE_DIRS}
+
+        # Add generated proto headers to our include exports
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 target_link_libraries(${PROJ_NAME} PUBLIC ${PROTOBUF_LIBRARIES})

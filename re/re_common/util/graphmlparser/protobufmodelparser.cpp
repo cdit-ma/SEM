@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iomanip>
 #include <google/protobuf/util/json_util.h>
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
 #include "graphmlparser.h"
 std::unique_ptr<NodeManager::Experiment> ProtobufModelParser::ParseModel(const std::string& filename, const std::string& experiment_id){

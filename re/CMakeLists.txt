@@ -58,9 +58,6 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4267")
 endif ()
 
-# Configure cmakevars.h to have correct string replaced vars
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/cmakevars.h @ONLY)
-
 # Build CUDA cpp wrapper library
 include(CheckLanguage)
 check_language(CUDA)
