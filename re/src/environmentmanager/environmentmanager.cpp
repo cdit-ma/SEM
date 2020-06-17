@@ -6,11 +6,9 @@
 #include <signal.h>
 #include <util/execution.hpp>
 
-#include "cmakevars.h"
+#include "sem_version.hpp"
 
 #include "deploymentregister.h"
-
-std::string VERSION_NAME = "re_environment_manager";
 
 Execution execution;
 
@@ -81,7 +79,7 @@ int main(int argc, char **argv){
     }
 
     auto deployment_register = std::unique_ptr<DeploymentRegister>(new DeploymentRegister(execution, ip_address, registration_port, qpid_address, tao_naming_service_address));
-    std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
+    std::cout << "-------[" << "re_environment_manager" <<" v" << SEM::GetVersion() << "]-------" << std::endl;
     std::cout << "* Endpoint: " << "tcp://" << ip_address << ":" << registration_port << std::endl;
     std::cout << "* Qpid Broker Address: " << qpid_address << std::endl;
     std::cout << "* Tao Naming Service Endpoint: " << tao_naming_service_address << std::endl << std::endl;
