@@ -27,16 +27,17 @@ target_sources(${LIB_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/slaveheartbeater.h
 )
-target_include_directories(${LIB_NAME} PUBLIC ${LOGAN_SOURCE_PATH})
-target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(${LIB_NAME} PUBLIC re_core)
-target_link_libraries(${LIB_NAME} PUBLIC re_loggers)
-target_link_libraries(${LIB_NAME} PUBLIC zmq_protoreceiver)
-target_link_libraries(${LIB_NAME} PUBLIC zmq_protoreplier)
-target_link_libraries(${LIB_NAME} PUBLIC zmq_protowriter)
-target_link_libraries(${LIB_NAME} PUBLIC zmq_environmentrequester)
-target_link_libraries(${LIB_NAME} PUBLIC logan_client_lib)
+target_link_libraries(${LIB_NAME} PUBLIC
+        re_core
+        re_loggers
+        zmq_protoreceiver
+        zmq_protoreplier
+        zmq_protowriter
+        zmq_environmentrequester
+        logan_client_lib
+        )
 
 # Link against pthread if unix
 if(UNIX)
@@ -51,9 +52,9 @@ target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
 target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
 )
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/..)
 target_link_libraries(${PROJ_NAME} PUBLIC ${LIB_NAME})
 target_link_libraries(${PROJ_NAME} PUBLIC re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${PROJ_NAME} PRIVATE sem_version)
 
 # Pass Version info into cmakevars.h

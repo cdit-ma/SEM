@@ -4,7 +4,7 @@
 #include <mutex>
 #include <memory>
 #include <functional>
-#include <zmq/protorequester/protorequester.hpp>
+#include "protorequester.hpp"
 #include "heartbeater.h"
 
 namespace NodeManager{

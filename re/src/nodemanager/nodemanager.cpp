@@ -2,22 +2,15 @@
 #include <vector>
 #include <string>
 // REVIEW (Mitch): use <csignal>
-#include <signal.h>
+#include <csignal>
 #include <boost/program_options.hpp>
 
 #include "deploymentmanager.h"
 #include "executionmanager.h"
 
-// REVIEW (Mitch): Refactor cmakevars.h.in to supply RE_VERSION as a type safe std::string_view
-//  rather than a #define
-#include "cmakevars.h"
+#include "sem_version.hpp"
 #include <util/execution.hpp>
 #include <comms/environmentrequester/environmentrequester.h>
-
-// REVIEW (Mitch): No reason for this string to have static storage duration.
-//  Also doesn't need to be a big ol' global
-//  Also isn't actually a version name
-std::string VERSION_NAME = "re_node_manager";
 
 // REVIEW (Mitch): Investigate wrapping this in a unique_ptr
 Execution execution;
@@ -145,7 +138,7 @@ int main(int argc, char **argv){
 
     // REVIEW (Mitch): This should just be a pretty print func
     // REVIEW (Mitch): Pretty printing should be achieved through a logger with a print sink?
-    std::cout << "-------[" + VERSION_NAME +" v" + RE_VERSION + "]-------" << std::endl;
+    std::cout << "-------[" << "re_node_manager" << " v" << SEM::GetVersion() << "]-------" << std::endl;
     if(is_master){
         std::cout << "* Master:" << std::endl;
         std::cout << "** Endpoint: " << ip_address << std::endl;

@@ -1,5 +1,0 @@
-#ifndef CMAKE_VARS_H
-#define CMAKE_VARS_H
-//Tokens at the @ Symbol will be replaced by CMake
-#define RE_VERSION "@PROJECT_VERSION@"
-#endif // CMAKE_VARS_H
