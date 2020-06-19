@@ -94,6 +94,17 @@ sudo cmake --build . --target install && \
 cd ~ && \
 rm libpqxx7-0-0.tar.gz libpqxx -rf
 
+# Install cppzmq
+wget https://github.com/zeromq/cppzmq/archive/v4.6.0.tar.gz -q && \
+tar xf v4.6.0.tar.gz && \
+cd cppzmq-4.6.0 && \
+mkdir build && \
+cd build && \
+cmake -G Ninja .. && \
+sudo cmake --build . --target install && \
+cd ~ && \
+rm cppzmq-4.6.0 v4.6.0.tar.gz -rf
+
 # Setup Jenkins Directory
 sudo mkdir /mnt/Jenkins && \
 sudo chown cdit-ma /mnt/Jenkins/

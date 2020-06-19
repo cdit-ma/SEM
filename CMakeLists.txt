@@ -15,11 +15,18 @@ endif ()
 # This needs to be done at top level to ensure that protobuf gets built against c++11.
 # Came to light as part of SEM-242, SEM-231
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # Ensure -std=c++xx instead of -std=g++xx
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Global build options
+option(BUILD_DOCS "Build re developer documentation" OFF)
+option(BUILD_TEST "Build testing" OFF)
+option(BUILD_REGEN_TEST "Build regen testing" OFF)
 
 add_subdirectory(src)
 add_subdirectory(re)

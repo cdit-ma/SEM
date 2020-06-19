@@ -6,8 +6,6 @@ project(MEDEA_PROJECT
 
 #Set CMake Options
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
@@ -19,24 +17,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-# Use CCache to speed up compilations on Clang/GCC
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
-
 if(NOT DEFINED ENV{Qt5_DIR})
-    message(FATAL_ERROR "Environment Variable: 'Qt5_DIR' not set!")
+    message(WARNING "Environment Variable: 'Qt5_DIR' not set!")
 endif()
 
 #Boost 1.70 requires BUILD_SHARED_LIBS to be set to on (required for MSVC 2019)
 if(MSVC)
     set(BUILD_SHARED_LIBS ON)
-endif()
-
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/re/CMakeLists.txt)
-   message(FATAL_ERROR "'re' submodule does not exist! Have you run git submodule init && git submodule update?")
 endif()
 
 #Set MEDEA Options
@@ -52,8 +39,6 @@ set(CMAKE_AUTORCC ON)
 #Add Options for building projects, default to build everything
 option(BUILD_APP "Build MEDEA App" ON)
 option(BUILD_CLI "Build MEDEA CLI" ON)
-option(BUILD_TEST "Build MEDEA Test" OFF)
-option(BUILD_DOCS "Build MEDEA Developer documentation" ON)
 
 if(BUILD_APP OR BUILD_CLI OR BUILD_TEST)
     message(STATUS "Building MEDEA Core")
@@ -74,7 +59,6 @@ if(BUILD_APP)
     endif()
 
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re/re_common")
 endif(BUILD_APP)
 
 if(BUILD_TEST)
