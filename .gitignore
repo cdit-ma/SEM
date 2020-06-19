@@ -9,6 +9,8 @@
 /.vscode/
 **/.idea/
 
+/re/extern/**
+
 # Scripts and other artifacts
 .DS_Store
 scripts/configure.bat

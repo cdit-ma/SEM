@@ -7,12 +7,7 @@ project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 find_package(Protobuf REQUIRED)
 find_package(cppzmq REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-find_package(libpqxx)
-
-if(NOT PQXX_FOUND)
-	message(WARNING "Could not find pqxx, not building aggregation broker and server")
-	return()
-endif()
+find_package(libpqxx REQUIRED)
 
 # Build the DatabaseClient library
 set(LOGAN_DB_CLIENT_LIB "logan_database_client_lib")
@@ -26,12 +21,11 @@ target_sources(${LOGAN_DB_CLIENT_LIB} PRIVATE
 
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${LOGAN_SRC_PATH})
-target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${PQXX_INCLUDE_DIRECTORIES})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
-target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${PQXX_LIBRARIES})
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} libpqxx::pqxx)
 target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${PROTOBUF_LIBRARIES})
 
@@ -88,7 +82,6 @@ endif()
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
-target_include_directories(${PROJ_NAME} PRIVATE ${PQXX_INCLUDE_DIRECTORIES})
 
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
@@ -101,7 +94,7 @@ target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} re_common_proto_control)
 target_link_libraries(${PROJ_NAME} re_common_proto_systemevent)
-target_link_libraries(${PROJ_NAME} ${PQXX_LIBRARIES})
+target_link_libraries(${PROJ_NAME} libpqxx::pqxx)
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 
