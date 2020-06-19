@@ -210,12 +210,6 @@ set(RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/workers.qrc
     )
 
-# Pass Version info into cmakevars.h
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h
-)
-
 add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${RESOURCES})
 
 # Include the binary directory to include the generated cmakevars.h
@@ -223,4 +217,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 # Include the current source directory for those linking against us
 target_include_directories(${PROJ_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 # Publically link against QT5 Core
-target_link_libraries(${PROJ_NAME} PUBLIC Qt5::Core)
+target_link_libraries(${PROJ_NAME}
+        PUBLIC
+        sem_version
+        Qt5::Core)

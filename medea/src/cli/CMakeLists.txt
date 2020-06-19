@@ -1,17 +1,14 @@
-set(PROJ_NAME medea_cli)
-project(${PROJ_NAME})
+project(medea_cli)
 
 set(CMAKE_AUTOMOC OFF)
 set(CMAKE_AUTORCC OFF)
 
-set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/medeacli.cpp
-)
 
-set(HEADERS
-)
 
-add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
-target_link_libraries(${PROJ_NAME} PUBLIC medea_modelcontroller_lib)
+add_executable(medea_cli)
+target_sources(medea_cli
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/medeacli.cpp)
+target_link_libraries(medea_cli PUBLIC medea_modelcontroller_lib)
 
-INSTALL(TARGETS ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
+INSTALL(TARGETS medea_cli RUNTIME DESTINATION . COMPONENT medea_cli)

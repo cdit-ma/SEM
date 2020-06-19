@@ -964,7 +964,7 @@ void ViewController::setupEntityKindItems()
 
 void ViewController::_showGitHubPage(const QString& relURL)
 {
-    QString URL = APP_URL() % relURL;
+    QString URL = Version::GetMedeaUrl() % relURL;
     _showWebpage(URL);
 }
 
@@ -1880,8 +1880,8 @@ void ViewController::aboutQt()
 void ViewController::aboutMEDEA()
 {
     QString aboutString =
-    "<h3>MEDEA " % APP_VERSION() % "</h3>"
-    "<a href=\"" % APP_URL() % "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
+    "<h3>MEDEA " % Version::GetMedeaVersion() % "</h3>"
+    "<a href=\"" % Version::GetMedeaUrl() % "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
     "The University of Adelaide<hr /><br />"
     "Team:"
     "<ul>"
@@ -1896,7 +1896,7 @@ void ViewController::aboutMEDEA()
     "<li>Matthew Hart</li>"
     "</ul>";
     BaseWindow* window = WindowManager::manager()->getActiveWindow();
-    QMessageBox::about(window, "About MEDEA " % APP_VERSION(), aboutString);
+    QMessageBox::about(window, "About MEDEA " % Version::GetMedeaVersion(), aboutString);
 }
 
 void ViewController::cut()

@@ -13,7 +13,7 @@ int main(int argc, char** argv){
     auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("medea_cli");
-    QCoreApplication::setApplicationVersion("v" + APP_VERSION());
+    QCoreApplication::setApplicationVersion("v" + Version::GetMedeaVersion());
 
     QCommandLineParser parser;
     parser.addHelpOption();
