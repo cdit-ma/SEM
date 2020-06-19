@@ -5,7 +5,7 @@ project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #Find packages
 find_package(Protobuf REQUIRED)
-find_package(ZMQ REQUIRED)
+find_package(cppzmq REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 set(SOURCES
@@ -43,7 +43,6 @@ endif()
 
 
 target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${ZMQ_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
 

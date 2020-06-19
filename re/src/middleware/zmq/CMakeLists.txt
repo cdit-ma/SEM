@@ -2,7 +2,7 @@ set(PROJ_NAME zmq_helper)
 project(${PROJ_NAME}
         VERSION ${PROJECT_VERSION})
 
-find_package(ZMQ)
+find_package(cppzmq)
 
 if(NOT ZMQ_FOUND)
     message(STATUS "Cannot find ZMQ cannot build project ${PROJ_NAME}")
@@ -16,5 +16,4 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.h
 )
-target_include_directories(${PROJ_NAME} PUBLIC ${ZMQ_INCLUDE_DIRS})
-target_link_libraries(${PROJ_NAME} PUBLIC ${ZMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} PUBLIC cppzmq)

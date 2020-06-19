@@ -4,12 +4,10 @@ project("re"
         VERSION ${PROJECT_VERSION}
         LANGUAGES CXX)
 
-set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # Extern dependency builds on mac require at least cpp11
 # Sub-projects can (and should) set requirements for newer cpp versions as they need to
-set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_CXX_STANDARD 11)
 
 if (APPLE)
@@ -19,18 +17,7 @@ elseif (UNIX)
     set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
 endif ()
 
-# Use CCache where possible
-find_program(CCACHE_FOUND ccache)
-if (CCACHE_FOUND)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif (CCACHE_FOUND)
-
 set(RE_VERSION ${PROJECT_VERSION})
-
-option(BUILD_DOCS "Build re developer documentation" ON)
-option(BUILD_TEST "Build testing" OFF)
-option(BUILD_REGEN_TEST "Build regen testing" OFF)
 
 # Get the RE_PATH
 set(RE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")

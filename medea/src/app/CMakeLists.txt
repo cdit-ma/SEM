@@ -1,13 +1,11 @@
 set(PROJ_NAME MEDEA)
 project(${PROJ_NAME})
-#find_package(Qt5 COMPONENTS Widgets Network Charts Concurrent REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
 
-find_package(ZMQ REQUIRED)
 if (MSVC)
     find_package(Protobuf CONFIG REQUIRED)
 else()

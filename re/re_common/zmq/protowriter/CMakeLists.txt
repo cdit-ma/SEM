@@ -3,7 +3,7 @@ project (${PROJ_NAME})
 
 find_package(Boost 1.30.0 COMPONENTS filesystem system REQUIRED)
 find_package(Protobuf REQUIRED)
-find_package(ZMQ REQUIRED)
+find_package(cppzmq REQUIRED)
 
 add_library(${PROJ_NAME} STATIC "")
 target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
@@ -21,9 +21,8 @@ target_sources(${PROJ_NAME} PRIVATE
         )
 target_include_directories(${PROJ_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(${PROJ_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PUBLIC ${ZMQ_INCLUDE_DIRS})
 
 target_link_libraries(${PROJ_NAME} PUBLIC ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME} PUBLIC ${ZMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} PUBLIC cppzmq)
 target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_FILESYSTEM_LIBRARY})
