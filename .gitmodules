@@ -7,7 +7,4 @@
 [submodule "extern/cuda-api-wrappers"]
 	path = re/extern/cuda-api-wrappers
 	url = https://github.com/eyalroz/cuda-api-wrappers.git
-[submodule "re"]
-	path = medea/re
-	url = https://github.com/cdit-ma/re
 
