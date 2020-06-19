@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10...3.17)
 project(SEM
         VERSION 4.0.0
         DESCRIPTION "Jackson to fill in"
-        LANGUAGES CXX)
+        LANGUAGES CXX
+        HOMEPAGE_URL "https://github.com/cdit-ma/SEM")
 
 find_program(CCACHE_PROGRAM ccache)
 if (CCACHE_PROGRAM)
@@ -30,4 +31,4 @@ option(BUILD_REGEN_TEST "Build regen testing" OFF)
 
 add_subdirectory(src)
 add_subdirectory(re)
-#add_subdirectory(medea)
+add_subdirectory(medea)

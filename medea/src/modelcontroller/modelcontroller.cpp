@@ -62,8 +62,8 @@ ModelController::ModelController(const QString& application_dir):
 QObject(0),
 lock_(QReadWriteLock::Recursive)
 {
-    if(!VersionKey::IsVersionValid(APP_VERSION())){
-        throw std::runtime_error("MEDEA Version is invalid: '" + APP_VERSION().toStdString() + "'");
+    if(!VersionKey::IsVersionValid(Version::GetMedeaVersion())){
+        throw std::runtime_error("MEDEA Version is invalid: '" + Version::GetMedeaVersion().toStdString() + "'");
     }
     this->application_dir = application_dir;
     controller_thread = new QThread();
@@ -2036,7 +2036,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     
     auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-    QString model_import_version = APP_VERSION();
+    QString model_import_version = Version::GetMedeaVersion();
 
     while(xml.readNext() != QXmlStreamReader::EndDocument){
         auto kind = getGraphMLKindFromString(xml.name());
@@ -2081,7 +2081,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                             model_import_version = value;
                             int model_version = 0;
                             try {
-                                model_version = VersionKey::CompareVersion(value, APP_VERSION());
+                                model_version = VersionKey::CompareVersion(value, Version::GetMedeaVersion());
                             } catch(const std::invalid_argument& ex){
                                 qCritical() << "ImportGraphML: Invalid version number format id in medea_version: " << ex.what();
                                 error_count ++;
@@ -2094,12 +2094,12 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                                 emit Notification(MODEL_SEVERITY::WARNING, title, description);
                             }else if(model_version < 0){
                                 QString title = "Loading model from legacy MEDEA";
-                                QString description = "Model was created in MEDEA (v" % value % "). Some functionality may have changed. Model version updated to: " % APP_VERSION();
+                                QString description = "Model was created in MEDEA (v" % value % "). Some functionality may have changed. Model version updated to: " % Version::GetMedeaVersion();
                                 emit Notification(MODEL_SEVERITY::INFO, title, description);
                                 //Update
-                                value = APP_VERSION();
+                                value = Version::GetMedeaVersion();
                             }else{
-                                value = APP_VERSION();
+                                value = Version::GetMedeaVersion();
                             }
                         }
                         //Add the data to the entity

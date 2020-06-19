@@ -39,7 +39,7 @@ int launchMEDEA(int argc, char *argv[])
 
         //Setup QApplication
         a.setApplicationName("MEDEA");
-        a.setApplicationVersion(APP_VERSION());
+        a.setApplicationVersion(Version::GetMedeaVersion());
         a.setOrganizationName("CDIT-MA");
         a.setOrganizationDomain("https://github.com/cdit-ma/");
 

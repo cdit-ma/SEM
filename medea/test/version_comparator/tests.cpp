@@ -72,7 +72,7 @@ void VersionKeyTests::Test_Comparators_data()
 
 void VersionKeyTests::Test_MEDEAVersion(){
     //Test to check MEDEA Version is valid
-    QCOMPARE(VersionKey::IsVersionValid(APP_VERSION()), true);
+    QCOMPARE(VersionKey::IsVersionValid(Version::GetMedeaVersion()), true);
 }
 
 void VersionKeyTests::Test_Validity_data(){

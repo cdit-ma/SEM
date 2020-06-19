@@ -32,7 +32,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     auto title_layout = new QVBoxLayout();
     medea_icon = new QLabel(this);
     medea_label = new QLabel("MEDEA");
-    medea_version_label = new QLabel("Version " % APP_VERSION());
+    medea_version_label = new QLabel("Version " % Version::GetMedeaVersion());
 
     title_layout->setSpacing(2);
     title_layout->addWidget(medea_icon, 0, Qt::AlignCenter);

@@ -1,19 +1,14 @@
 //Auto Generated File
 #include "version.h"
-#include "cmakevars.h"
+#include "sem_version.hpp"
 
-QString APP_URL(){
-    #ifdef MEDEA_URL
-        return MEDEA_URL "/";
-    #else
-        return "?";
-    #endif
+namespace Version {
+QString GetMedeaUrl(){
+    return QString::fromStdString(std::string(SEM::GetUrl()));
 }
 
-QString APP_VERSION(){
-    #ifdef MEDEA_VERSION
-        return MEDEA_VERSION;
-    #else
-        return "?";
-    #endif
+QString GetMedeaVersion(){
+    // XXX: Eugh
+    return QString::fromStdString(std::string(SEM::GetVersion()));
+}
 }

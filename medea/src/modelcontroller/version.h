@@ -2,7 +2,10 @@
 #define VERSION_H
 #include <QString>
 
-extern QString APP_URL();
-extern QString APP_VERSION();
+namespace Version {
 
-#endif
+extern QString GetMedeaUrl();
+extern QString GetMedeaVersion();
+} // namespace Version
+
+#endif //VERSION_H
