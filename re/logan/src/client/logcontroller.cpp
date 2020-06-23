@@ -3,12 +3,17 @@
 #endif
 
 #include "logcontroller.h"
+#include "systeminfo.h"
 
+#include <algorithm>
 #include <chrono>
 #include <iostream>
-#include <algorithm>
 
+#ifdef CDIT_MA_SIGAR_FOUND
 #include "sigarsysteminfo.h"
+#else
+#include "dummysysteminfo.h"
+#endif //CDIT_MA_SIGAR_FOUND
 
 #include <proto/systemevent/systemevent.pb.h>
 #include <zmq/protowriter/cachedprotowriter.h>
@@ -17,7 +22,11 @@
 
 //Constructor used for print only call
 LogController::LogController():
+#ifdef CDIT_MA_SIGAR_FOUND
     system_(SigarSystemInfo::GetSystemInfo()),
+#else
+    system_(DummySystemInfo::GetSystemInfo()),
+#endif
     listener_id_(system_.RegisterListener())
 {
 

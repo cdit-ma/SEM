@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 #include <set>
 #include <mutex>
 #include <unordered_map>

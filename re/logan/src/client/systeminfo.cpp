@@ -1,8 +1,6 @@
 #include "systeminfo.h"
-#include <proto/systemevent/systemevent.pb.h>
 #include <google/protobuf/util/time_util.h>
-
-
+#include <proto/systemevent/systemevent.pb.h>
 
 std::unique_ptr<google::protobuf::Timestamp> convert_timestamp(const std::chrono::milliseconds& timestamp){
     using namespace google::protobuf;
