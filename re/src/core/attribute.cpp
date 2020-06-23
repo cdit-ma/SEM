@@ -1,4 +1,5 @@
 #include "attribute.h"
+#include <stdexcept>
 
 Attribute::Attribute(const ATTRIBUTE_TYPE type, const std::string name){
     name_ = name;
