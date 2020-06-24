@@ -4,6 +4,7 @@
 #include <memory>
 #include <exception>
 #include <string>
+#include <stdexcept>
 
 namespace Base{
     template <class BaseType, class MiddlewareType>

@@ -147,7 +147,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/modelcontroller.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tempentity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/version.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/viewcontrollerint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/triggerdefinitions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entities/TriggerDefinitions/trigger.cpp
