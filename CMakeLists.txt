@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10...3.17)
 
 project(SEM
         VERSION 4.0.0
-        DESCRIPTION "Jackson to fill in"
+        DESCRIPTION "TODO: Fill in description"
         LANGUAGES CXX
         HOMEPAGE_URL "https://github.com/cdit-ma/SEM")
 
@@ -28,7 +28,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 option(BUILD_DOCS "Build re developer documentation" OFF)
 option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
+option(BUILD_MEDEA "Build MEDEA" ON)
 
 add_subdirectory(src)
 add_subdirectory(re)
-add_subdirectory(medea)
+
+if (BUILD_GUI)
+    add_subdirectory(medea)
+endif ()
