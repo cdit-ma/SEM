@@ -1,10 +1,10 @@
 #include "welcomescreenwidget.h"
 #include "../../theme.h"
 #include "../../Controllers/ActionController/actioncontroller.h"
-#include "../../../modelcontroller/version.h"
 
-#include <QVBoxLayout>
 #include <QStringBuilder>
+#include <QVBoxLayout>
+#include "sem_version.hpp"
 
 #define MIN_WIDTH 800
 
@@ -32,7 +32,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* action_controller, QW
     auto title_layout = new QVBoxLayout();
     medea_icon = new QLabel(this);
     medea_label = new QLabel("MEDEA");
-    medea_version_label = new QLabel("Version " % Version::GetMedeaVersion());
+    medea_version_label = new QLabel("Version " % QString::fromStdString(std::string{SEM::GetVersion()}));
 
     title_layout->setSpacing(2);
     title_layout->addWidget(medea_icon, 0, Qt::AlignCenter);

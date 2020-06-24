@@ -12,7 +12,7 @@
 #include <QXmlStreamReader>
 #include <QCoreApplication>
 
-#include "version.h"
+#include "sem_version.hpp"
 
 #include "entityfactory.h"
 #include "entityfactorybroker.h"
@@ -62,8 +62,8 @@ ModelController::ModelController(const QString& application_dir):
 QObject(0),
 lock_(QReadWriteLock::Recursive)
 {
-    if(!VersionKey::IsVersionValid(Version::GetMedeaVersion())){
-        throw std::runtime_error("MEDEA Version is invalid: '" + Version::GetMedeaVersion().toStdString() + "'");
+    if(!VersionKey::IsVersionValid(QString::fromStdString(std::string(SEM::GetVersion())))){
+        throw std::runtime_error("MEDEA Version is invalid: '" + std::string{SEM::GetVersion()} + "'");
     }
     this->application_dir = application_dir;
     controller_thread = new QThread();
@@ -108,17 +108,17 @@ bool ModelController::SuppressImportNodeError(const TempEntity& parent_entity, c
     //This check is to remove the errors about Function, CallbackFunction and ClassInstance children being no-longer valid children of ClassInstance's in the Assembly Aspect
     if(VersionKey::IsVersionOlder(version, "3.3.5")){
         const static QSet<NODE_KIND> now_invalid_child_kinds{NODE_KIND::FUNCTION, NODE_KIND::CALLBACK_FNC, NODE_KIND::CLASS_INST};
-        
+
         auto child_kind = entity_factory->getNodeKind(child_entity.getKind());
 
         if(now_invalid_child_kinds.contains(child_kind)){
             const static QList<NODE_KIND> assembly_stack{NODE_KIND::MODEL, NODE_KIND::DEPLOYMENT_DEFINITIONS, NODE_KIND::ASSEMBLY_DEFINITIONS};
             const static QList<NODE_KIND> component_stack{NODE_KIND::COMPONENT_INST, NODE_KIND::CLASS_INST};
-            
+
             const auto& stack = child_entity.getParentStack();
             const auto& in_assembly = ListInList(stack, assembly_stack);
             const auto& in_class_instance = ListInList(stack, component_stack);
-            
+
             if(in_assembly && in_class_instance){
                 return true;
             }
@@ -144,7 +144,7 @@ bool ModelController::SuppressImportEdgeError(const TempEntity& edge_entity, con
             //Check the Source stack for being in the right spot
             const static QList<NODE_KIND> assembly_stack{NODE_KIND::MODEL, NODE_KIND::DEPLOYMENT_DEFINITIONS, NODE_KIND::ASSEMBLY_DEFINITIONS};
             const static QList<NODE_KIND> component_stack{NODE_KIND::COMPONENT_INST, NODE_KIND::CLASS_INST};
-            
+
             const auto& stack = src_entity->getParentStack();
             const auto& in_assembly = ListInList(stack, assembly_stack);
             const auto& in_class_instance = ListInList(stack, component_stack);
@@ -178,7 +178,7 @@ void ModelController::ConnectViewController(ViewControllerInterface* view_contro
         connect(view_controller, &ViewControllerInterface::ConstructEdges, this, &ModelController::constructEdges, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::DestructEdges, this, &ModelController::destructEdges, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::DestructAllEdges, this, &ModelController::destructAllEdges, Qt::QueuedConnection);
-        
+
 
         connect(view_controller, &ViewControllerInterface::Undo, this, &ModelController::undo, Qt::QueuedConnection);
         connect(view_controller, &ViewControllerInterface::Redo, this, &ModelController::redo, Qt::QueuedConnection);
@@ -202,7 +202,7 @@ bool ModelController::SetupController(const QString& file_path)
         setModelAction(MODEL_ACTION::OPEN);
         success = importGraphML(file.second, model);
         unsetModelAction(MODEL_ACTION::OPEN);
-        
+
         if(success){
             //Update the project filePath
             setProjectPath(file_path);
@@ -227,7 +227,7 @@ void ModelController::loadWorkerDefinitions()
     if(workerDefinitions){
         QList<QDir> worker_directories{QDir(":/WorkerDefinitions"), QDir(application_dir + "/Resources/WorkerDefinitions/")};
         QStringList extensions{"*.worker.graphml"};
-        
+
         setModelAction(MODEL_ACTION::IMPORT);
         for(auto dir : worker_directories){
             for(auto file : dir.entryList(extensions)){
@@ -306,7 +306,7 @@ bool ModelController::setData_(Entity *entity, const QString& key_name, QVariant
  * @param addAction - Add an undo state
  */
 bool ModelController::destructData_(Entity* entity, const QString& key_name)
-{  
+{
     if(entity){
         //Get the data
         auto data = entity->getData(key_name);
@@ -409,7 +409,7 @@ Node* ModelController::construct_node(Node* parent_node, NODE_KIND node_kind, in
     auto persistent_node = get_persistent_node(node_kind);
     if(!persistent_node){
         //Construct node with default data
-        auto node = entity_factory->CreateNode(node_kind, true); 
+        auto node = entity_factory->CreateNode(node_kind, true);
         if(index != -1){
             node->setDataValue(KeyName::Index, index);
         }
@@ -433,7 +433,7 @@ Node* ModelController::construct_child_node(Node* parent_node, NODE_KIND node_ki
                 current_parent = node->getParentNode();
             }
 
-            //If we couldn't attach to the parent_node, we should remove 
+            //If we couldn't attach to the parent_node, we should remove
             if(current_parent != parent_node){
                 entity_factory->DestructEntity(node);
                 //Free Memory
@@ -449,7 +449,7 @@ void ModelController::addDependantsToDependants(Node* parent_node, Node* source)
         if(isUserAction() && source->isDefinition()){
             for(auto dependant : parent_node->getDependants()){
                 QList<QSet<NODE_KIND> > dependant_kind_list;
-                
+
                 if(dependant->isInstance()){
                     dependant_kind_list.append(source->getInstanceKinds());
                 }else{
@@ -487,7 +487,7 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
 
         auto source_parent_node = source->getParentNode();
 
-        
+
         if(source_parent_node == parent_node && source_parent_node){
             auto edge = construct_edge(edge_kind, source, destination, false);
             if(edge){
@@ -516,7 +516,7 @@ Node* ModelController::construct_connected_node(Node* parent_node, NODE_KIND nod
 Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind, int index){
     //Add undo step
     triggerAction("Constructing Child Node");
-    
+
     Node* node = 0;
     switch(kind){
         case NODE_KIND::COMPONENT:{
@@ -528,7 +528,7 @@ Node* ModelController::constructNode(Node* parent_node, NODE_KIND kind, int inde
             break;
         }
     }
-    
+
     if(node){
         addDependantsToDependants(parent_node, node);
     }
@@ -579,7 +579,7 @@ void ModelController::constructNodeAtIndex(int parent_id, NODE_KIND kind, int in
 
 void ModelController::constructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE_KIND edge_kind){
     QWriteLocker lock(&lock_);
-    
+
     auto src_nodes = getNodes(src_ids);
     auto dst_nodes = getNodes(dst_ids);
     bool success = true;
@@ -607,7 +607,7 @@ void ModelController::destructEdges(QList<int> src_ids, QList<int> dst_ids, EDGE
     triggerAction("Destructing edges");
 
     QList<Entity*> edges;
-    
+
     for(auto src_id : src_ids){
         auto src = entity_factory->GetNode(src_id);
 
@@ -638,7 +638,7 @@ void ModelController::destructAllEdges(QList<int> src_ids, EDGE_KIND edge_kind, 
         for(auto edge : src->getEdgesOfKind(edge_kind)){
             if(edge){
                 auto is_source = edge->getSource() == src;
-                
+
                 auto direction_to_delete = is_source ? EDGE_DIRECTION::TARGET : EDGE_DIRECTION::SOURCE;
 
                 if(edge_directions.contains(direction_to_delete)){
@@ -656,7 +656,7 @@ Node* ModelController::construct_component_node(Node* parent, int index){
         triggerAction("Constructing Component");
 
         auto node = construct_child_node(parent, NODE_KIND::COMPONENT, index);
-        
+
         if(node){
             auto impl = construct_connected_node(behaviourDefinitions, NODE_KIND::COMPONENT_IMPL, node, EDGE_KIND::DEFINITION);
             return node;
@@ -734,7 +734,7 @@ void ModelController::triggerAction(const QString& actionName)
 }
 
 void ModelController::undo()
-{   
+{
     if(canUndo()){
         ProgressUpdated_("Undoing");
         setModelAction(MODEL_ACTION::UNDO);
@@ -742,7 +742,7 @@ void ModelController::undo()
         unsetModelAction(MODEL_ACTION::UNDO);
         emit ShowProgress(false);
     }
-    
+
     emit ActionFinished();
 }
 
@@ -878,10 +878,10 @@ QHash<EDGE_DIRECTION, int> ModelController::getConnectableNodes(QList<int> src_i
 
 QHash<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> src_nodes, EDGE_KIND edge_kind){
     QHash<EDGE_DIRECTION, Node*> node_map;
-    
+
     bool srcs_accept_source_edge = true;
     bool srcs_accept_target_edge = true;
-    
+
     //Check if they can all accept edges of the kind we care about.
     for(auto src : src_nodes){
         if(!src->canCurrentlyAcceptEdgeKind(edge_kind, EDGE_DIRECTION::SOURCE)){
@@ -896,7 +896,7 @@ QHash<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> 
     //Only itterate if we have nodes
     if((srcs_accept_source_edge || srcs_accept_target_edge) && src_nodes.size()){
         if(srcs_accept_source_edge){
-            
+
             for(auto dst : entity_factory->GetNodesWhichAcceptEdgeKinds(edge_kind, EDGE_DIRECTION::TARGET)){
                 bool src2dst_valid = true;
 
@@ -904,7 +904,7 @@ QHash<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> 
                     //Only check if for edge adoption if true, otherwise something can't adopt and thus no need to check
                     src2dst_valid = src2dst_valid ? src->canAcceptEdge(edge_kind, dst) : false;
                 }
-                
+
                 if(src2dst_valid){
                     node_map.insertMulti(EDGE_DIRECTION::TARGET, dst);
                 }
@@ -917,7 +917,7 @@ QHash<EDGE_DIRECTION, Node*> ModelController::_getConnectableNodes(QList<Node*> 
                 for(auto src : src_nodes){
                     dst2src_valid = dst2src_valid ? dst->canAcceptEdge(edge_kind, src) : false;
                 }
-                
+
                 if(dst2src_valid){
                     node_map.insertMulti(EDGE_DIRECTION::SOURCE, dst);
                 }
@@ -951,7 +951,7 @@ QList<Entity*> ModelController::getOrderedEntities(QList<Entity*> entities){
 
     //return entities;
     QList<Entity*> top_entities;
-    
+
     //Foreach node
     for(auto node : entities){
         bool got_parent = false;
@@ -976,7 +976,7 @@ QList<QVariant> ModelController::getValidKeyValues(int id, const QString& key_na
 {
     QReadLocker lock(&lock_);
     QList<QVariant> valid_values;
-    
+
     auto entity = entity_factory->GetEntity(id);
     if(entity){
         auto data = entity->getData(key_name);
@@ -1016,7 +1016,7 @@ VIEW_ASPECT ModelController::getNodeViewAspect(int ID){
     QReadLocker lock(&lock_);
     VIEW_ASPECT aspect = VIEW_ASPECT::NONE;
     auto node = entity_factory->GetNode(ID);
-    
+
     if(node){
         aspect = node->getViewAspect();
     }
@@ -1090,7 +1090,7 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
                 auto node = (Node*) item;
                 connect(node, &Node::acceptedEdgeKindsChanged, [=](){emit NodeEdgeKindsChanged(id);});
                 connect(node, &Node::typesChanged, [=](){emit NodeTypesChanged(id);});
-                
+
                 emit NodeConstructed(node->getParentNodeID(), id, node->getNodeKind());
                 inserted = true;
             }
@@ -1104,7 +1104,7 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
         }
 
         if(inserted){
-            
+
             connect(item, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
                 DataUpdate data;
                 data.key_name = key_name;
@@ -1113,7 +1113,7 @@ bool ModelController::storeEntity(Entity* item, int desired_id)
 
                 emit DataChanged(ID, data);
             });
-            
+
             connect(item, &Entity::dataRemoved, this, &ModelController::DataRemoved, Qt::UniqueConnection);
         }
         success = inserted;
@@ -1140,7 +1140,7 @@ bool ModelController::attachChildNode(Node *parent_node, Node *node, bool notify
     if(parent_node->addChild(node)){
         if(notify_view){
             storeNode(node);
-        }   
+        }
         return true;
     }
     return false;
@@ -1180,23 +1180,23 @@ QList<Entity *> ModelController::getUnorderedEntities(const QList<int>& ids){
 //Look inside target_node for things which could become a dependant of the the definition
 QList<Node*> ModelController::get_matching_dependant_of_definition(Node* target_node, Node* definition){
     QList<QSet<NODE_KIND> > dependant_kind_list;
-    
+
     if(target_node->isInstance()){
         dependant_kind_list.append(definition->getInstanceKinds());
     }else{
         dependant_kind_list.append(definition->getImplKinds());
         dependant_kind_list.append(definition->getInstanceKinds());
     }
-    
+
     QList<Node*> matching_nodes;
-    
+
     for(auto &dependant_kinds : dependant_kind_list){
         //For each child in parent, check to see if any Nodes match Label/Type
         for(auto target_child : target_node->getChildrenOfKinds(dependant_kinds)){
             if(target_child->getDefinition() == definition){
                 matching_nodes << target_child;
             }else if(target_child->getDefinition()){
-                
+
             }else{
                 auto target_type_data = target_child->getData(KeyName::Type);
                 auto definition_type_data = definition->getData(KeyName::Type);
@@ -1217,7 +1217,7 @@ void ModelController::destructEdge_(Edge *edge){
         auto edge_kind = edge->getEdgeKind();
         auto src = edge->getSource();
         auto dst = edge->getDestination();
-        
+
         if(src && dst){
             switch(edge_kind){
             case EDGE_KIND::DEFINITION:{
@@ -1283,24 +1283,24 @@ void ModelController::destructEntities(QList<Entity*> entities)
 
         action.xml = GraphmlPrinter({GraphmlPrinter::ExportFlags::EXPORT_ALL_EDGES}).ToGraphml(edges.toList());
         addActionToStack(action);
-        
+
 
         std::for_each(edges.begin(), edges.end(), [this](Entity* edge){
             destructEdge_((Edge*)edge);
             }
             );
     }
-    
+
     for(auto entity : sorted_nodes){
         auto node = (Node*) entity;
-        
+
         //Don't do this
         if(!isModelAction(MODEL_ACTION::DESTRUCTING)){
             auto action = getNewAction(GRAPHML_KIND::NODE);
             action.entity_id = node->getID();
             action.parent_id = node->getParentNodeID();
             action.Action.type = ACTION_TYPE::DESTRUCTED;
-            
+
             action.xml = GraphmlPrinter().ToGraphml({node});
             addActionToStack(action);
         }
@@ -1321,7 +1321,7 @@ void ModelController::destructNode_(Node* node){
 
 
 bool ModelController::reverseAction(HistoryAction action)
-{   
+{
     switch(action.Action.type){
     case ACTION_TYPE::CONSTRUCTED:{
         auto entity = entity_factory->GetEntity(action.entity_id);
@@ -1408,7 +1408,7 @@ bool ModelController::undoRedo()
     triggerAction(action_name);
 
     QList<HistoryAction> reverse_actions;
-    
+
     while(!action_stack.empty()){
         auto action = action_stack.top();
         if(action.Action.id == action_id){
@@ -1419,10 +1419,10 @@ bool ModelController::undoRedo()
             break;
         }
     }
-    
+
     double action_count = reverse_actions.size() / 100.0;
     int actions_reversed = 0;
-    
+
     bool success = true;
     for(auto action : reverse_actions){
         if(reverseAction(action)){
@@ -1568,7 +1568,7 @@ bool ModelController::storeNode(Node* node, int desired_id, bool store_children,
                         storeEntity(child, -1);
                     }
                 }
-                
+
                 for(auto edge : node->getAllEdges()){
                     if(edge->isImplicitlyConstructed()){
                         storeEntity(edge, -1);
@@ -1599,7 +1599,7 @@ void ModelController::setupModel()
         for(auto child : model->getChildren()){
             set_persistent_node(child);
         }
-        
+
         connect(model, &Entity::dataChanged, [=](int ID, QString key_name, QVariant value, bool is_protected){
             if (key_name == KeyName::Label) {
                 emit ProjectNameChanged(value.toString());
@@ -1662,9 +1662,9 @@ bool ModelController::setupDefinitionRelationship(Node* instance, Node* definiti
                     dependant_kind_list.append(def_child->getInstanceKinds());
                 }
 
-                
+
                 for(auto &dependant_kinds : dependant_kind_list){
-                    bool got_node = false;    
+                    bool got_node = false;
                     //Try Either
                     for(auto kind : dependant_kinds){
                         auto dependant_child = construct_connected_node(instance, kind, def_child, EDGE_KIND::DEFINITION);
@@ -1680,7 +1680,7 @@ bool ModelController::setupDefinitionRelationship(Node* instance, Node* definiti
             }
         }
     }
-    
+
     return true;
 }
 
@@ -1702,7 +1702,7 @@ bool ModelController::setupAggregateRelationship(Node *src, Node *dst, bool setu
         bool construct_instance = setup && isUserAction() && !eventport->IsEdgeRuleActive(Node::EdgeRule::IGNORE_REQUIRED_INSTANCE_DEFINITIONS);
         //Only auto construct if we are processing a user action.
         if(construct_instance){
-            
+
             QList<Node*> instances_to_make;
             if(dst_nodekind == NODE_KIND::AGGREGATE){
                 instances_to_make += dst;
@@ -1812,7 +1812,7 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
         default:
             break;
         }
-        
+
     }
     return success;
 }
@@ -1820,7 +1820,7 @@ bool ModelController::storeEdge(Edge *edge, int desired_id)
 QString ModelController::getProjectAsGraphML(bool human_readable, bool functional_export)
 {
     QReadLocker locker(&lock_);
-    
+
     QSet<GraphmlPrinter::ExportFlags> flags;
     if(human_readable){
         flags += GraphmlPrinter::ExportFlags::HUMAN_READABLE_DATA;
@@ -1902,7 +1902,7 @@ QPair<QSet<EDGE_KIND>, QSet<EDGE_KIND> > ModelController::getValidEdgeKinds(QLis
 
 QList<int> ModelController::getConstructablesConnectableNodes(int constructable_parent_id, NODE_KIND constructable_node_kind, EDGE_KIND connection_edge_kind){
     QWriteLocker lock(&lock_);
-    
+
     QList<Node*> nodes;
 
     auto parent_node = entity_factory->GetNode(constructable_parent_id);
@@ -1915,7 +1915,7 @@ QList<int> ModelController::getConstructablesConnectableNodes(int constructable_
             entity_factory->DestructEntity(child_node);
         }
     }
-    
+
     return getIDs(nodes);
 }
 
@@ -2033,10 +2033,10 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         ProgressUpdated_("Parsing Project");
         ProgressChanged_(-1);
     }
-    
+
     auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-    QString model_import_version = Version::GetMedeaVersion();
+    auto model_import_version = QString::fromStdString(std::string{SEM::GetVersion()});
 
     while(xml.readNext() != QXmlStreamReader::EndDocument){
         auto kind = getGraphMLKindFromString(xml.name());
@@ -2072,7 +2072,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                     if(current_entity && key){
                         auto key_name = key->getName();
                         auto value = xml.readElementText();
-                        
+
                         if(key_name == KeyName::UUID){
                             //Run the UUID through
                             value = ExportIDKey::GetUUIDOfValue(value);
@@ -2081,7 +2081,10 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                             model_import_version = value;
                             int model_version = 0;
                             try {
-                                model_version = VersionKey::CompareVersion(value, Version::GetMedeaVersion());
+                                model_version =
+                                    VersionKey::CompareVersion(value,
+                                                               QString::fromStdString(
+                                                                   std::string{SEM::GetVersion()}));
                             } catch(const std::invalid_argument& ex){
                                 qCritical() << "ImportGraphML: Invalid version number format id in medea_version: " << ex.what();
                                 error_count ++;
@@ -2094,12 +2097,12 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                                 emit Notification(MODEL_SEVERITY::WARNING, title, description);
                             }else if(model_version < 0){
                                 QString title = "Loading model from legacy MEDEA";
-                                QString description = "Model was created in MEDEA (v" % value % "). Some functionality may have changed. Model version updated to: " % Version::GetMedeaVersion();
+                                QString description = "Model was created in MEDEA (v" % value % "). Some functionality may have changed. Model version updated to: " % QString::fromStdString(std::string{SEM::GetVersion()});
                                 emit Notification(MODEL_SEVERITY::INFO, title, description);
                                 //Update
-                                value = Version::GetMedeaVersion();
+                                value = QString::fromStdString(std::string{SEM::GetVersion()});
                             }else{
-                                value = Version::GetMedeaVersion();
+                                value = QString::fromStdString(std::string{SEM::GetVersion()});
                             }
                         }
                         //Add the data to the entity
@@ -2160,7 +2163,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         }
     }
 
-    
+
     auto parsing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
     //qCritical() << "Parsing took: " <<  parsing_finished - start << "MS";
 
@@ -2171,7 +2174,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     QSet<Node*> uuid_changed_entities;
     QSet<QString> uuids_changed;
-    
+
     //Handle unique ids
     for(auto id : unique_entity_ids){
         auto entity = entity_hash.value(id, 0);
@@ -2196,13 +2199,13 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             //If we have a uuid, we should set the entity as read-only
             entity->addData(KeyName::ReadOnly, true);
             entity->setUUIDMatched(true);
-            
-            //Lookup the entity in the 
+
+            //Lookup the entity in the
             auto matched_entity = entity_factory->GetEntityByUUID(uuid);
             if(matched_entity && matched_entity->isNode()){
                 auto matched_node = (Node*) matched_entity;
                 //Produce a notification for updating shared_datatypes
-                
+
                 if(matched_node->getNodeKind() == NODE_KIND::SHARED_DATATYPES || matched_node->getNodeKind() == NODE_KIND::CLASS){
                     auto version = entity->getDataValue(KeyName::Version).toString();
                     auto old_version = matched_entity->getDataValue(KeyName::Version).toString();
@@ -2253,7 +2256,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                     for(auto child : entity->getChildren()){
                         required_uuids << child->getDataValue(KeyName::UUID).toString();
                     }
-                    
+
                     //Remove all visual data.
                     for(const auto& key_name : entity->getKeys()){
                         if(isKeyNameVisual(key_name)){
@@ -2277,8 +2280,8 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     //Get the ordered list of entities to remove
     to_remove = getOrderedEntities(to_remove);
-    
-    //unset any entities which 
+
+    //unset any entities which
     destructEntities(to_remove);
 
 
@@ -2287,7 +2290,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
 
     auto removing_finished = QDateTime::currentDateTime().toMSecsSinceEpoch();
     //qCritical() << "Removing entities took: " <<  removing_finished - parsing_finished << "MS";
-    
+
     //This is will update as a percentage
     double entities_total_perc = entity_hash.size() / 100.0;
     double entities_made = 0;
@@ -2339,13 +2342,13 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             }
         }
         auto parent_node = entity_factory->GetNode(parent_entity->getID());
-        
+
         if(!parent_node){
             qCritical() << "ImportGraphML: Node with ID:" << id << " Has a parent entity: " << parent_entity->getID() << " which doesn't exist in the Entity Factory";
             error_count ++;
             continue;
         }
-        
+
         auto parent_kind = parent_node->getNodeKind();
         auto kind = entity_factory->getNodeKind(entity->getKind());
 
@@ -2355,7 +2358,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             //Get the already existant node.
             node = entity_factory->GetNode(entity->getID());
         }
-        
+
         if(!node){
             if(parent_entity->GotImplicitlyConstructedNodeID(kind)){
                 //Get the ID of the next auto constructed ID
@@ -2397,12 +2400,12 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             bool requires_parenting = !got_parent && !is_model;
             bool implicitly_created = node->isImplicitlyConstructed();
             bool need_to_store = false;
-            
+
             if(requires_parenting || implicitly_created){
                 //If the node is not attached to a parent, or it was implicilty constructed, set the data ahead of time
                 for(const auto& key_name : entity->getKeys()){
                     const auto& value = entity->getDataValue(key_name);
-                    
+
                     //Don't overwrite implicitly set data with a blank value
                     if(implicitly_created && node->gotData(key_name) && value == ""){
                         continue;
@@ -2538,7 +2541,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         }
     }
 
-    
+
 
     auto entity_fac = entity_factory;
 
@@ -2550,7 +2553,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
         if(is_a_edge && is_b_edge){
             auto a_node = entity_fac->GetNode(a->getTargetID());
             auto b_node = entity_fac->GetNode(b->getTargetID());
-            
+
             //Proper depth
             auto a_depth = a_node->getDepth();
             auto b_depth = b_node->getDepth();
@@ -2581,9 +2584,9 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     while(true){
         int constructed_edges = 0;
         QQueue<TempEntity*> unconstructed_edges;
-        
+
         auto current_edge_kind = EDGE_KIND::NONE;
-        
+
         //Find the first index which still has edges left
         for(auto edge_kind : edge_kind_keys){
             if(edge_map_2[edge_kind].size()){
@@ -2591,7 +2594,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
                 break;
             }
         }
-        
+
         if(current_edge_kind == EDGE_KIND::NONE){
             break;
         }
@@ -2607,7 +2610,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
             Edge* edge = 0;
             if(src_node && dst_node){
                 bool need_to_store = false;
-                
+
                 //Check if we have an edge first
                 edge = src_node->getEdgeTo(dst_node, current_edge_kind);
 
@@ -2676,7 +2679,7 @@ bool ModelController::importGraphML(const QString& document, Node *parent)
     if(UPDATE_PROGRESS){
         ProgressChanged_(100);
     }
-    
+
     QSet<Node*> nodes_to_remove;
     for(const auto& uuid : uuids_changed){
         auto matched_entity = entity_factory->GetEntityByUUID(uuid);
@@ -2751,14 +2754,14 @@ QSet<Node*> ModelController::UpdateDefinitions(Node* definition, Node* instance)
     auto def_def = definition->getDefinition(true);
     auto def = def_def ? def_def : definition;
 
-    
+
     //Get the children of the definition
     for(auto child : def->getChildren(0)){
         if(child->isDefinition()){
             //Check if the child itself has a definition
             auto c_def = child->getDefinition(true);
             auto def = c_def ? c_def : child;
-            //Add this to the list of nodes 
+            //Add this to the list of nodes
             definition_nodes += def;
         }
     }
@@ -2822,7 +2825,7 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
     QSet<SELECTION_PROPERTIES> properties;
 
     auto item = entity_factory->GetEntity(active_id);
-    
+
     auto unordered_items = getUnorderedEntities(ids);
     //Got a list of entites
     auto ordered_items = getOrderedEntities(unordered_items);
@@ -2875,7 +2878,7 @@ QSet<SELECTION_PROPERTIES> ModelController::getSelectionProperties(int active_id
         }
     }
 
-    
+
 
     //Check Active Selection
     if(item){
@@ -2914,8 +2917,8 @@ bool ModelController::canCut(const QList<Entity *>& ordered_selection)
         for(const auto& item : ordered_selection){
             if(item->isNode()){
                 Node* node = (Node*) item;
-               
-                //Dont allow copy from any definitions, except 
+
+                //Dont allow copy from any definitions, except
                 if(node->isDefinition()){
                     return false;
                 }
@@ -2942,7 +2945,7 @@ bool ModelController::canCopy(const QList<Entity *>& ordered_selection)
 
             auto current_parent = node->getParentNode();
 
-            //Dont allow copy from any definitions, except 
+            //Dont allow copy from any definitions, except
             if(node->isDefinition()){
                 switch(node->getNodeKind()){
                     case NODE_KIND::ENUM:

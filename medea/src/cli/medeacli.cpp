@@ -1,19 +1,19 @@
 #include <QCommandLineParser>
+#include <QDateTime>
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
-#include <QDateTime>
 #include <QTextStream>
+#include "sem_version.hpp"
 
 #include "../modelcontroller/modelcontroller.h"
 #include "../modelcontroller/utils.h"
-#include "../modelcontroller/version.h"
 
 int main(int argc, char** argv){
     auto start = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("medea_cli");
-    QCoreApplication::setApplicationVersion("v" + Version::GetMedeaVersion());
+    QCoreApplication::setApplicationVersion(QString::fromStdString("v" + std::string{SEM::GetVersion()}));
 
     QCommandLineParser parser;
     parser.addHelpOption();

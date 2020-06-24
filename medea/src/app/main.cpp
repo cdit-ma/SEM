@@ -5,9 +5,9 @@
 #include "Controllers/ViewController/viewcontroller.h"
 #include "Controllers/WindowManager/windowmanager.h"
 #include "Widgets/Windows/mainwindow.h"
-#include "../modelcontroller/version.h"
 
 #include <iostream>
+#include "sem_version.hpp"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -39,7 +39,7 @@ int launchMEDEA(int argc, char *argv[])
 
         //Setup QApplication
         a.setApplicationName("MEDEA");
-        a.setApplicationVersion(Version::GetMedeaVersion());
+        a.setApplicationVersion(QString::fromStdString(std::string{SEM::GetVersion()}));
         a.setOrganizationName("CDIT-MA");
         a.setOrganizationDomain("https://github.com/cdit-ma/");
 
@@ -59,9 +59,9 @@ int launchMEDEA(int argc, char *argv[])
         //Initialize important singletons
         Theme::theme();
         SettingsController::settings();
-        
+
         view_controller.reset(new ViewController());
-        
+
         auto window = WindowManager::manager()->constructMainWindow(view_controller.data());
         if (project_paths.size() == 1) {
             view_controller->OpenExistingProject(project_paths.first());
