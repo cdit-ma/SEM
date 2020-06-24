@@ -1,6 +1,6 @@
 #include "tests.h"
 #include <Entities/Keys/versionkey.h>
-#include "sem_version.h"
+#include "sem_version.hpp"
 #include <QtTest/QtTest>
 
 QTEST_APPLESS_MAIN(VersionKeyTests)
@@ -72,7 +72,7 @@ void VersionKeyTests::Test_Comparators_data()
 
 void VersionKeyTests::Test_MEDEAVersion(){
     //Test to check MEDEA Version is valid
-    QCOMPARE(VersionKey::IsVersionValid(Version::GetMedeaVersion()), true);
+    QCOMPARE(VersionKey::IsVersionValid(QString::fromStdString(std::string{SEM::GetVersion()})), true);
 }
 
 void VersionKeyTests::Test_Validity_data(){
