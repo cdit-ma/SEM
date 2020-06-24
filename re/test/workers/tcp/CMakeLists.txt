@@ -2,7 +2,7 @@ set(PROJ_NAME test_tcpworker)
 project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 # See TCP Worker page on the wiki for reasoning behind Apple builds
-if (NOT tcp_worker)
+if (NOT TARGET tcp_worker)
     message(WARNING "TCP worker library not found - skipping TCP Worker tests")
     return()
 endif()
