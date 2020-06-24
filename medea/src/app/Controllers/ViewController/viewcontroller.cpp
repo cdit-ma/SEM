@@ -14,7 +14,6 @@
 #include "../../Controllers/SearchManager/searchmanager.h"
 #include "../../../modelcontroller/modelcontroller.h"
 #include "../../../modelcontroller/entityfactory.h"
-#include "../../../modelcontroller/version.h"
 
 #include <QtConcurrent/QtConcurrentRun>
 #include <QMessageBox>
@@ -29,6 +28,7 @@
 #include <QJsonArray>
 
 #include <iostream>
+#include "sem_version.hpp"
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
@@ -964,7 +964,7 @@ void ViewController::setupEntityKindItems()
 
 void ViewController::_showGitHubPage(const QString& relURL)
 {
-    QString URL = Version::GetMedeaUrl() % relURL;
+    QString URL = QString::fromStdString(std::string{SEM::GetUrl()}) % relURL;
     _showWebpage(URL);
 }
 
@@ -1880,8 +1880,8 @@ void ViewController::aboutQt()
 void ViewController::aboutMEDEA()
 {
     QString aboutString =
-    "<h3>MEDEA " % Version::GetMedeaVersion() % "</h3>"
-    "<a href=\"" % Version::GetMedeaUrl() % "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
+    "<h3>MEDEA " % QString::fromStdString(std::string{SEM::GetVersion()}) % "</h3>"
+    "<a href=\"" % QString::fromStdString(std::string{SEM::GetUrl()}) % "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
     "The University of Adelaide<hr /><br />"
     "Team:"
     "<ul>"
@@ -1896,7 +1896,7 @@ void ViewController::aboutMEDEA()
     "<li>Matthew Hart</li>"
     "</ul>";
     BaseWindow* window = WindowManager::manager()->getActiveWindow();
-    QMessageBox::about(window, "About MEDEA " % Version::GetMedeaVersion(), aboutString);
+    QMessageBox::about(window, "About MEDEA " % QString::fromStdString(std::string{SEM::GetVersion()}), aboutString);
 }
 
 void ViewController::cut()

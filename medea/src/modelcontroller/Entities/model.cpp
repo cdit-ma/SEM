@@ -1,6 +1,6 @@
 #include "model.h"
+#include "sem_version.hpp"
 #include "../nodekinds.h"
-#include "../version.h"
 #include "../entityfactorybroker.h"
 #include "../entityfactoryregistrybroker.h"
 #include "../entityfactoryregistrybroker.h"
@@ -27,7 +27,8 @@ Model::Model(EntityFactoryBroker& broker, bool is_temp) : Node(broker, node_kind
     }
  
     //Setup Data
-    broker.AttachData(this, KeyName::MedeaVersion, QVariant::String, ProtectedState::PROTECTED, Version::GetMedeaVersion());
+    broker.AttachData(this, KeyName::MedeaVersion, QVariant::String, ProtectedState::PROTECTED,
+                      QString::fromStdString(std::string{SEM::GetVersion()}));
     broker.AttachData(this, KeyName::Description, QVariant::String, ProtectedState::PROTECTED);
 
     //Attach Children

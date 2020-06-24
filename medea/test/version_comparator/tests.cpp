@@ -1,6 +1,6 @@
 #include "tests.h"
 #include <Entities/Keys/versionkey.h>
-#include <version.h>
+#include "sem_version.h"
 #include <QtTest/QtTest>
 
 QTEST_APPLESS_MAIN(VersionKeyTests)
