@@ -408,6 +408,7 @@ target_link_libraries(${PROJ_NAME}
         Qt5::Widgets
         Qt5::Network
         Qt5::Concurrent
+        sem_version
         )
 
 # Install should copy the MEDEA app into the bin folder

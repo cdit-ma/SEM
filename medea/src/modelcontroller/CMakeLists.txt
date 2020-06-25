@@ -218,5 +218,7 @@ target_include_directories(${PROJ_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 # Publically link against QT5 Core
 target_link_libraries(${PROJ_NAME}
         PUBLIC
+        Qt5::Core
+        PRIVATE
         sem_version
-        Qt5::Core)
+        )
