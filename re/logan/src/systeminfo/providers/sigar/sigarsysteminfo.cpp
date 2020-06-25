@@ -6,7 +6,7 @@
 #include <iostream>
 #include <algorithm>
 
-SystemInfo& SigarSystemInfo::GetSystemInfo(){
+SystemInfo& GetSystemInfo(){
     static SigarSystemInfo system_info;
     return system_info;
 }
@@ -856,7 +856,7 @@ void SigarSystemInfo::ignore_processes(const std::string& process_name){
     }
 }
 
-void SigarSystemInfo::ignore_processes(){
+void SigarSystemInfo::clear_monitored_processes(){
     tracked_process_names_.clear();
 }
 

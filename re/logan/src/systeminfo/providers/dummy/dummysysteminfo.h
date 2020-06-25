@@ -6,6 +6,9 @@
 #define SEM_DUMMYSYSTEMINFO_H
 
 #include "systeminfo.h"
+
+SystemInfo& GetSystemInfo();
+
 class DummySystemInfo : public SystemInfo {
 public:
     std::chrono::milliseconds get_update_timestamp() const override;
@@ -59,7 +62,7 @@ public:
     void monitor_process(const int pid) override;
     void ignore_process(const int pid) override;
     std::set<int> get_monitored_pids() const override;
-    void ignore_processes() override;
+    void clear_monitored_processes() override;
     const std::set<std::string>& get_monitored_processes_names() const override;
     int get_monitored_process_cpu(const int pid) const override;
     double get_monitored_process_cpu_utilization(const int pid) const override;
@@ -72,7 +75,7 @@ public:
     uint64_t get_monitored_process_disk_written_kB(const int pid) const override;
     uint64_t get_monitored_process_disk_read_kB(const int pid) const override;
     uint64_t get_monitored_process_disk_total_kB(const int pid) const override;
-    static SystemInfo& GetSystemInfo();
+
 protected:
     std::chrono::milliseconds UpdateData() override;
 };

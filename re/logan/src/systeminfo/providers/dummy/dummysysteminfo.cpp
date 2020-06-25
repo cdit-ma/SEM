@@ -4,7 +4,8 @@
 
 #include "dummysysteminfo.h"
 
-SystemInfo& DummySystemInfo::GetSystemInfo(){
+SystemInfo& GetSystemInfo()
+{
     static DummySystemInfo system_info;
     return system_info;
 }
@@ -198,7 +199,7 @@ std::set<int> DummySystemInfo::get_monitored_pids() const
 {
     throw std::logic_error("SIGAR NOT INSTALLED");
 }
-void DummySystemInfo::ignore_processes() {}
+void DummySystemInfo::clear_monitored_processes() {}
 const std::set<std::string>& DummySystemInfo::get_monitored_processes_names() const
 {
     throw std::logic_error("SIGAR NOT INSTALLED");

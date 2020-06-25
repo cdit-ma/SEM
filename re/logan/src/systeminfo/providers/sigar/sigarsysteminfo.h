@@ -17,10 +17,10 @@ extern "C"{
     #include "sigar_ptql.h"
 }
 
+SystemInfo& GetSystemInfo();
+
 class SigarSystemInfo: public SystemInfo{
     public:
-        static SystemInfo& GetSystemInfo();
-
         SigarSystemInfo();
         ~SigarSystemInfo();
 
@@ -75,7 +75,7 @@ class SigarSystemInfo: public SystemInfo{
 
         void monitor_processes(const std::string& processName);
         void ignore_processes(const std::string& processName);
-        void ignore_processes();
+        void clear_monitored_processes();
         const std::set<std::string>& get_monitored_processes_names() const;
 
         int get_monitored_process_cpu(const int pid) const;

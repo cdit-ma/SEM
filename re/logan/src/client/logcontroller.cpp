@@ -3,30 +3,19 @@
 #endif
 
 #include "logcontroller.h"
-#include "systeminfo.h"
 
 #include <algorithm>
 #include <chrono>
 #include <iostream>
 
-#ifdef CDIT_MA_SIGAR_FOUND
-#include "sigarsysteminfo.h"
-#else
-#include "dummysysteminfo.h"
-#endif //CDIT_MA_SIGAR_FOUND
-
-#include <proto/systemevent/systemevent.pb.h>
-#include <zmq/protowriter/cachedprotowriter.h>
-#include <zmq/protowriter/monitor.h>
+#include "systemevent.pb.h"
+#include "cachedprotowriter.h"
+#include "monitor.h"
+#include "systeminfohandler.h"
 #include <google/protobuf/util/json_util.h>
 
 //Constructor used for print only call
 LogController::LogController():
-#ifdef CDIT_MA_SIGAR_FOUND
-    system_(SigarSystemInfo::GetSystemInfo()),
-#else
-    system_(DummySystemInfo::GetSystemInfo()),
-#endif
     listener_id_(system_.RegisterListener())
 {
 
@@ -63,10 +52,10 @@ void LogController::Start(const std::string& publisher_endpoint, double frequenc
         frequency = std::max(1.0 / 60.0, frequency);
 
         //Ignore the system
-        system_.ignore_processes();
+        system_.ClearMonitoredProcesses();
         //Subscribe to our desired process names
         for(const auto& process_name : processes){
-            system_.monitor_processes(process_name);
+            system_.MonitorProcess(process_name);
         }
 
         std::promise<void> startup_promise;
