@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-// REVIEW (Mitch): use <csignal>
 #include <csignal>
 #include <boost/program_options.hpp>
 

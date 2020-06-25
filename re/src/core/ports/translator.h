@@ -2,7 +2,6 @@
 #define BASE_TRANSLATOR_H
 
 #include <memory>
-#include <exception>
 #include <string>
 #include <stdexcept>
 

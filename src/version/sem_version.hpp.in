@@ -3,14 +3,15 @@
 
 #include <string_view>
 namespace SEM {
-using namespace std::string_view_literals;
 constexpr auto GetVersion() -> std::string_view {
-  // Tokens at the @ Symbol will be replaced by CMake
-  return "@PROJECT_VERSION@"sv;
+    // Tokens at the @ Symbol will be replaced by CMake
+    using namespace std::string_view_literals;
+    return "@PROJECT_VERSION@"sv;
 }
 
 constexpr auto GetUrl() -> std::string_view {
-  return "@PROJECT_HOMEPAGE_URL@"sv;
+    using namespace std::string_view_literals;
+    return "@PROJECT_HOMEPAGE_URL@"sv;
 }
 
 } // namespace SEM
