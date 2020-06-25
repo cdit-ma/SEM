@@ -13,11 +13,7 @@
 
 # Scripts and other artifacts
 .DS_Store
-scripts/configure.bat
-build.bat
-run.bat
 CMakeSettings.json.bak
-/src/workers/opencl/binaries/*
 
 # Compiled Object files
 *.slo
@@ -45,12 +41,6 @@ CMakeSettings.json.bak
 *.exe
 *.out
 *.app
-
-# CMake
-CMakeCache.txt
-CMakeFiles
-Makefile
-cmake_install.cmake
 
 #Cached
 .vscode
