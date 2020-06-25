@@ -36,6 +36,7 @@ target_link_libraries(${LIB_NAME} PUBLIC
         zmq_protoreplier
         zmq_protowriter
         zmq_environmentrequester
+        PRIVATE
         logan_client_lib
         )
 

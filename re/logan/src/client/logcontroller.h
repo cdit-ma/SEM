@@ -6,10 +6,8 @@
 #include <future>
 #include <vector>
 #include <atomic>
+#include "systeminfohandler.h"
 
-#include "systeminfo.h"
-
-//Forward declare
 namespace re_common{
     class SystemInfo;
     class SystemStatus;
@@ -29,7 +27,7 @@ class LogController{
         void GotNewConnection(int event_type, std::string address);
         void QueueOneTimeInfo();
 
-        SystemInfo& system_;
+        SystemInfoHandler system_;
         const int listener_id_;
         
         std::mutex future_mutex_;

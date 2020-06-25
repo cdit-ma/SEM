@@ -114,11 +114,11 @@ class SystemInfo{
     
     virtual void monitor_process(const int pid) = 0;
     virtual void ignore_process(const int pid) = 0;
-    
+    virtual void clear_monitored_processes() = 0;
+
     virtual std::set<int> get_monitored_pids() const = 0;
 
-    virtual void ignore_processes() = 0;
-    
+
     virtual const std::set<std::string>& get_monitored_processes_names() const = 0;
 
 
@@ -136,29 +136,7 @@ class SystemInfo{
     virtual uint64_t get_monitored_process_disk_read_kB(const int pid) const = 0;
     virtual uint64_t get_monitored_process_disk_total_kB(const int pid) const = 0;
 
-
-
-    //Refresh
-    std::unique_ptr<SystemEvent::StatusEvent> GetSystemStatus(const int listener_id);
-    std::unique_ptr<SystemEvent::InfoEvent> GetSystemInfo(const int listener_id);
-    void Update();
-    int RegisterListener();
-private:
-    std::mutex mutex_;
-    //don't send onetime info for any contained pids
-    std::unordered_map<int, std::chrono::milliseconds> pid_updated_times_;
-    
-    int listener_count_ = 0;
-
-    //listener ID to PIDs Seen
-    std::unordered_map<int, std::set<int> > pid_lookups_;
-
-    //listener ID to Count Seen
-    std::unordered_map<int, int> listener_message_count_;
-
-    //listener ID to last updated time
-    std::unordered_map<int, std::chrono::milliseconds> listener_updated_times_;
-protected:
     virtual std::chrono::milliseconds UpdateData() = 0;
+
 };
 #endif // SYSTEMINFO_H

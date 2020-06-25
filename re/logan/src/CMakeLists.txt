@@ -1,8 +1,7 @@
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmakevars.h.in ${CMAKE_CURRENT_BINARY_DIR}/cmakevars.h)
-
 if(BUILD_CLIENT)
 	message(STATUS "Building logan_client")
 	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/client")
+    add_subdirectory(systeminfo)
 endif(BUILD_CLIENT)
 
 if(BUILD_SERVER)
