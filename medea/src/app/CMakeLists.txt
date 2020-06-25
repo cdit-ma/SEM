@@ -431,16 +431,16 @@ if (WIN32)
 endif ()
 
 # Run the qt deploy program to copy required binaries into the directories
-get_target_property(CDIT-MA_qmake_executable Qt5::qmake IMPORTED_LOCATION)
-get_filename_component(CDIT-MA_qt_bin_dir "${CDIT-MA_qmake_executable}" DIRECTORY)
+get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
 if (WIN32)
-    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${CDIT-MA_qt_bin_dir}")
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
     add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
             COMMAND ${WINDEPLOYQT_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
             COMMENT "Running windeployqt..."
             )
 elseif (APPLE)
-    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_qt_bin_dir}")
+    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${QT_BIN_DIR}")
     add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
             COMMAND ${MACDEPLOY_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
             COMMENT "Running macdeployqt..."
