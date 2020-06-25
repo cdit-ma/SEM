@@ -8,7 +8,7 @@ target_sources(${PROJ_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJ_NAME}
-        PUBLIC
+        PRIVATE
         Qt5::Test
         medea_modelcontroller_lib
         sem_version)
