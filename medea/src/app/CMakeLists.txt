@@ -431,18 +431,18 @@ if (WIN32)
 endif ()
 
 # Run the qt deploy program to copy required binaries into the directories
-if (DEFINED ENV{Qt5_DIR})
-    if (WIN32)
-        add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
-                COMMAND $ENV{Qt5_DIR}/bin/windeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
-                COMMENT "Running windeployqt..."
-                )
-    elseif (APPLE)
-        add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
-                COMMAND $ENV{Qt5_DIR}/bin/macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
-                COMMENT "Running macdeployqt..."
-                )
-    endif ()
-else ()
-    message("Environment Variable: 'Qt5_DIR' not set!")
+get_target_property(CDIT-MA_qmake_executable Qt5::qmake IMPORTED_LOCATION)
+get_filename_component(CDIT-MA_qt_bin_dir "${CDIT-MA_qmake_executable}" DIRECTORY)
+if (WIN32)
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${CDIT-MA_qt_bin_dir}")
+    add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
+            COMMAND ${WINDEPLOYQT_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
+            COMMENT "Running windeployqt..."
+            )
+elseif (APPLE)
+    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_qt_bin_dir}")
+    add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
+            COMMAND ${MACDEPLOY_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
+            COMMENT "Running macdeployqt..."
+            )
 endif ()
