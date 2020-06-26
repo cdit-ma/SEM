@@ -1,9 +1,9 @@
-#include <signal.h>
+#include <csignal>
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <util/execution.hpp>
 #include "managedserver.h"
-#include "cmakevars.h"
+#include "sem_version.hpp"
 
 
 Execution execution;
@@ -17,8 +17,7 @@ int main(int ac, char** av){
 
     // Set up string constants inside execution context
     const std::string program_name = "logan_managedserver";
-    // Pull logan version from cmakevars.h
-    const std::string pretty_program_name = program_name + LOGAN_VERSION;
+    const std::string pretty_program_name = program_name + std::string(SEM::GetVersion());
 
     //Connect the SIGINT/SIGTERM signals to our handler.
 	signal(SIGINT, signal_handler);

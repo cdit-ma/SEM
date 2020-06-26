@@ -22,6 +22,7 @@ target_link_libraries(${LOGAN_CLIENT_LIB}
         re_common_proto_control
         zmq_protowriter
         system_info_handler
+        re_common_proto_systemevent
         PRIVATE
         )
 

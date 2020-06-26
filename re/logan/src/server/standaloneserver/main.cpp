@@ -1,11 +1,11 @@
-#include <signal.h>
+#include <csignal>
 #include <condition_variable>
 #include <mutex>
 #include <iostream>
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "cmakevars.h"
+#include "sem_version.hpp"
 
 #include "../server.h"
 
@@ -24,7 +24,7 @@ int main(int ac, char** av)
     // Set up string constants inside execution context
     const std::string program_name = "logan_server";
     // Pull logan version from cmakevars.h
-    const std::string pretty_program_name = program_name + LOGAN_VERSION;
+    const std::string pretty_program_name = program_name + std::string(SEM::GetVersion());
     const std::string default_db_file_name = "out.sql";
 
     //Connect the SIGINT/SIGTERM signals to our handler.

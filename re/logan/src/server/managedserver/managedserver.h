@@ -4,7 +4,7 @@
 #include <util/execution.hpp>
 #include <comms/environmentrequester/environmentrequester.h>
 
-#include <server/server.h>
+#include "server.h"
 
 namespace NodeManager{
     class EnvironmentMessage;
