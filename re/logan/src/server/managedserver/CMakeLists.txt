@@ -12,11 +12,10 @@ target_sources(${PROJ_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/managedserver.h
         )
-target_include_directories(${PROJ_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SOURCE_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-# Include parent binary directory to get cmakevars.h for version number
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/../..)
-target_link_libraries(${PROJ_NAME} PUBLIC logan_server_lib)
-target_link_libraries(${PROJ_NAME} PUBLIC zmq_environmentrequester)
-target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(${PROJ_NAME}
+        PRIVATE
+        sem_version
+        logan_server_lib
+        zmq_environmentrequester
+        ${Boost_PROGRAM_OPTIONS_LIBRARY}
+        )

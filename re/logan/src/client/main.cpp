@@ -17,7 +17,6 @@ int main(int ac, char** av){
 
     // Set up string constants inside execution context
     const std::string program_name = "logan_server";
-    // Pull logan version from cmakevars.h
     const std::string pretty_program_name = program_name + std::string(SEM::GetVersion());
 
     //Handle the SIGINT/SIGTERM signal

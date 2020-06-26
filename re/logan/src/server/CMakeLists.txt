@@ -45,7 +45,6 @@ target_sources(${PROJ_NAME} PRIVATE
 
 # Include source dirs s.t. sql headers are available when we build tests
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/..)
 
 if(UNIX)
     target_link_libraries(${PROJ_NAME} PUBLIC dl)
