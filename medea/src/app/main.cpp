@@ -40,6 +40,8 @@ int launchMEDEA(int argc, char *argv[])
         //Setup QApplication
         a.setApplicationName("MEDEA");
         a.setApplicationVersion(QString::fromStdString(std::string{SEM::GetVersion()}));
+        // TODO: Move these string defs to sem_version.hpp, rename sem_version.hpp to
+        //  project_info.hpp
         a.setOrganizationName("CDIT-MA");
         a.setOrganizationDomain("https://github.com/cdit-ma/");
 
