@@ -1,6 +1,6 @@
-add_subdirectory(providers)
+find_package(Sigar)
 
-find_package(SIGAR)
+add_subdirectory(providers)
 
 add_library(system_info INTERFACE)
 target_compile_features(system_info INTERFACE cxx_std_11)

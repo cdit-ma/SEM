@@ -4,7 +4,8 @@ project(${PROJ_NAME})
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 COMPONENTS Widgets Network Concurrent REQUIRED)
+find_package(Qt5 5.14
+	COMPONENTS Widgets Network Concurrent REQUIRED)
 
 if (MSVC)
     find_package(Protobuf CONFIG REQUIRED)

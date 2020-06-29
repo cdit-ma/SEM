@@ -25,7 +25,7 @@ target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${CMAKE_CURRENT_BINARY
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
-target_link_libraries(${LOGAN_DB_CLIENT_LIB} libpqxx::pqxx)
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} pqxx)
 target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${PROTOBUF_LIBRARIES})
 
@@ -94,7 +94,7 @@ target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} re_common_proto_control)
 target_link_libraries(${PROJ_NAME} re_common_proto_systemevent)
-target_link_libraries(${PROJ_NAME} libpqxx::pqxx)
+target_link_libraries(${PROJ_NAME} pqxx)
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 
