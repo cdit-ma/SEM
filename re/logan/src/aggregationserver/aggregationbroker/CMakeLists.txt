@@ -52,7 +52,7 @@ target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
 target_link_libraries(${PROJ_NAME} zmq_protoreplier)
 target_link_libraries(${PROJ_NAME} re_common_proto_aggregation_message)
-target_link_libraries(${PROJ_NAME} libpqxx::pqxx)
+target_link_libraries(${PROJ_NAME} pqxx)
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 

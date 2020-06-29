@@ -12,5 +12,7 @@ target_include_directories(sigar_system_info_provider
         )
 
 target_link_libraries(sigar_system_info_provider
+	PUBLIC
+	system_info
         PRIVATE
         ${SIGAR_LIBRARIES})
