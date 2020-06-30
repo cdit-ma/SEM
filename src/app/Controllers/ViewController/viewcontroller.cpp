@@ -185,30 +185,53 @@ void ViewController::ShowJenkinsBuildDialog(const QString& job_name, QList<Jenki
 {
     VariableDialog dialog("Jenkins: " + job_name + " Parameters");
 
-    for(const auto& parameter : parameters){
+    for (const auto& parameter : parameters) {
+
+        const auto& param_name = parameter.name;
         auto default_value = parameter.defaultValue;
-        bool is_file_model = parameter.name == "model" && (parameter.type == SETTING_TYPE::FILE);
-        
-        if(is_file_model){
+
+        bool is_file_model = param_name == "model" && (parameter.type == SETTING_TYPE::FILE);
+        if (is_file_model) {
             default_value = getTempFileForModel();
         }
 
-        dialog.addOption(parameter.name, parameter.type, default_value);
-        dialog.setOptionIcon(parameter.name, "Icons", "label");
-        //Disable model upload
-        dialog.setOptionEnabled(parameter.name, !is_file_model);
+        // Add a default experiment name
+        if (param_name == "experiment_name") {
+            default_value = "untitled_experiment";
+        }
+
+        dialog.addOption(param_name, parameter.type, default_value);
+        dialog.setOptionIcon(param_name, "Icons", "label");
+
+        // Disable model upload
+        dialog.setOptionEnabled(param_name, !is_file_model);
     }
 
+    // NOTE: getOptions calls exec() on the dialog and blocks until the user closes the dialog
     auto options = dialog.getOptions();
     auto got_options = options.size() == parameters.size();
-
-    if(got_options){
-        //Update the parameters
-        for(auto& parameter : parameters){
-            parameter.value = dialog.getOptionValue(parameter.name).toString();
-        }
-        jenkins_manager->BuildJob(job_name, parameters);
+    if (!got_options) {
+        return;
     }
+
+    // Update the parameters
+    for (auto& parameter : parameters) {
+        const auto& param_name = parameter.name;
+        const auto& option_val = dialog.getOptionValue(param_name).toString();
+        parameter.value = option_val;
+
+        // TODO: Find a better solution!
+        if (option_val.isEmpty()) {
+            // Force the experiment name not to be empty
+            if (param_name == "experiment_name") {
+                parameter.value = "untitled_experiment";
+            } else {
+                parameter.value = parameter.defaultValue;
+            }
+        }
+    }
+
+    jenkins_manager->BuildJob(job_name, parameters);
 }
 
 void ViewController::RequestJenkinsBuildJob()

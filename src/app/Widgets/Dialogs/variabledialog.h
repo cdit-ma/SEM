@@ -21,6 +21,8 @@ public:
     QVariant getOptionValue(const QString& option);
     QHash<QString, QVariant> getOptions();
 
+    void setAcceptEnabled(bool enabled);
+
 private:
     void setupLayout();
     void themeChanged();
