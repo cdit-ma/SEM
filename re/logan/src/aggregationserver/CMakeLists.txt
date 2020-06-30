@@ -29,10 +29,12 @@ target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR
 
 if (TARGET libpqxx::pqxx)
         target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx)
-else ()
-        # This fallback triggers on Ubuntu
+elseif (TARGET libpqxx::pqxx_static)
+        # This fallback triggers on Ubuntu and centos
 	message(WARNING "libpqxx::pqxx target not found, falling back to libpqxx::pqxx_static")
         target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx_static)
+else ()
+        message(FATAL_ERROR "No viable libpqxx target found (couldn't find libpqxx::pqxx or libpqxx::pqxx_static")
 endif ()
 target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC ${PROTOBUF_LIBRARIES})
 
