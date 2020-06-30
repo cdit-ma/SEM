@@ -17,7 +17,9 @@ target_sources(${LOGAN_DB_CLIENT_LIB} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/utils.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils.h
+		${CMAKE_CURRENT_SOURCE_DIR}/unboundedtimerange.hpp
+		)
 
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${LOGAN_SRC_PATH})
@@ -25,9 +27,8 @@ target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${CMAKE_CURRENT_BINARY
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
-target_link_libraries(${LOGAN_DB_CLIENT_LIB} pqxx)
-target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(${LOGAN_DB_CLIENT_LIB} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx)
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC ${PROTOBUF_LIBRARIES})
 
 
 add_subdirectory("aggregationbroker")
@@ -94,7 +95,6 @@ target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} re_common_proto_control)
 target_link_libraries(${PROJ_NAME} re_common_proto_systemevent)
-target_link_libraries(${PROJ_NAME} pqxx)
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 
