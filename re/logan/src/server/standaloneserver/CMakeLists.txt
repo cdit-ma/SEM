@@ -16,4 +16,3 @@ target_link_libraries(${PROJ_NAME}
         logan_server_lib
         ${Boost_PROGRAM_OPTIONS_LIBRARY}
         )
-target_link_libraries(${PROJ_NAME} PRIVATE )
