@@ -27,7 +27,13 @@ target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${CMAKE_CURRENT_BINARY
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
-target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx)
+if (TARGET libpqxx::pqxx)
+        target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx)
+else ()
+        # This fallback triggers on Ubuntu
+	message(WARNING "libpqxx::pqxx target not found, falling back to libpqxx::pqxx_static")
+        target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx_static)
+endif ()
 target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC ${PROTOBUF_LIBRARIES})
 
 
