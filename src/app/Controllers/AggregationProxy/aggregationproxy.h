@@ -12,6 +12,7 @@
 #include <google/protobuf/util/time_util.h>
 #include <comms/aggregationrequester/aggregationrequester.h>
 
+#include "../NotificationManager/notificationenumerations.h"
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"
 #include "../../Widgets/Charts/Data/Events/cpuutilisationevent.h"
@@ -50,6 +51,20 @@ private:
     QString error_;
 };
 
+class MalformedProtoException : public QException {
+public:
+    explicit MalformedProtoException(QString error)
+        : error_(std::move(error)) {}
+
+    QString What() const{
+        return error_;
+    }
+    void raise() const override { throw *this; }
+    MalformedProtoException *clone() const override { return new MalformedProtoException(*this); }
+private:
+    QString error_;
+};
+
 
 class AggregationProxy : public QObject
 {
@@ -69,6 +84,9 @@ public:
     QFuture<QVector<PortEvent*>> RequestPortEvents(const PortEventRequest& request) const;
     QFuture<QVector<NetworkUtilisationEvent*>> RequestNetworkUtilisationEvents(const UtilisationRequest& request) const;
 
+signals:
+    void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity) const;
+
 private:
     AggregationProxy();
 
@@ -86,6 +104,8 @@ private:
     QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request) const;
     QVector<PortEvent*> GetPortEvents(const PortEventRequest& request) const;
     QVector<NetworkUtilisationEvent*> GetNetworkUtilisationEvents(const UtilisationRequest& request) const;
+
+    QVector<AggServerResponse::ExperimentRun> ConstructExperimentRuns(const AggServer::Experiment& experiment) const;
 
     // Static Helpers
     static std::unique_ptr<google::protobuf::Timestamp> ConstructTimestampFromMS(qint64 milliseconds);

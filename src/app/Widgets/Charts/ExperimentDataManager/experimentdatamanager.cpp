@@ -26,6 +26,8 @@ ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
     connect(&vc, &ViewController::vc_viewItemsInChart, this, &ExperimentDataManager::filterRequestsBySelectedEntities);
 
     connect(&chartPopup_, &ChartInputPopup::visualiseExperimentRunData, this, &ExperimentDataManager::visualiseSelectedExperimentRun);
+
+    connect(&aggregationProxy(), &AggregationProxy::toastNotification, this, &ExperimentDataManager::toastNotification);
 }
 
 /**
@@ -384,7 +386,7 @@ void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationReq
  * It stores the experiment runs' data with its associated experiment, and sets the ChartInputPopup's stringlist model for the menu
  * @param experiment_name
  * @param experiment_runs
- * @throws std::runtime_error
+ * @throws MalformedProtoException
  */
 void ExperimentDataManager::processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs)
 {
@@ -397,7 +399,7 @@ void ExperimentDataManager::processExperimentRuns(const QString& experiment_name
         for (const auto& exp_run : experiment_runs) {
             const auto& exp_run_name = exp_run.experiment_name;
             if (exp_run_name.isEmpty()) {
-                throw std::runtime_error("ExperimentDataManager::processExperimentRuns - Experiment run name cannot be empty");
+                throw MalformedProtoException("ExperimentDataManager::processExperimentRuns - Experiment run name cannot be empty");
             }
             auto exp_data = getExperimentData(exp_run_name);
             if (exp_data == nullptr) {

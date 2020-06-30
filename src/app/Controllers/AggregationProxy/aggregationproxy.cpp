@@ -182,15 +182,10 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
         
         auto results = requester_->GetExperimentRuns(request);
         for (const auto& exp : results->experiments()) {
-            const auto& exp_name = ConstructQString(exp.name());
-            for (auto& exp_run : exp.runs()) {
-                AggServerResponse::ExperimentRun run;
-                run.experiment_name = exp_name;
-                run.experiment_run_id = static_cast<qint32>(exp_run.experiment_run_id());
-                run.job_num = exp_run.job_num();
-                run.start_time = ConstructQDateTime(exp_run.start_time()).toMSecsSinceEpoch();
-                run.end_time = ConstructQDateTime(exp_run.end_time()).toMSecsSinceEpoch();
-                runs.append(run);
+            try {
+                runs.append(ConstructExperimentRuns(exp));
+            } catch (const MalformedProtoException& ex) {
+                emit toastNotification(ex.What(), "chart", Notification::Severity::ERROR);
             }
         }
 
@@ -199,6 +194,33 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
     } catch (const std::exception& ex) {
         throw RequestException(ex.what());
     }
+}
+
+
+/**
+ * @brief AggregationProxy::ConstructExperimentRuns
+ * @param experiment
+ * @throws MalformedProtoException
+ * @return
+ */
+QVector<AggServerResponse::ExperimentRun> AggregationProxy::ConstructExperimentRuns(const AggServer::Experiment& experiment) const
+{
+    const auto& exp_name = ConstructQString(experiment.name());
+    if (exp_name.isEmpty()) {
+        throw MalformedProtoException("Exception occurred during construction of experiment runs: Experiment name is empty");
+    }
+
+    QVector<AggServerResponse::ExperimentRun> runs;
+    for (const auto& exp_run : experiment.runs()) {
+        AggServerResponse::ExperimentRun run;
+        run.experiment_name = exp_name;
+        run.experiment_run_id = static_cast<qint32>(exp_run.experiment_run_id());
+        run.job_num = exp_run.job_num();
+        run.start_time = ConstructQDateTime(exp_run.start_time()).toMSecsSinceEpoch();
+        run.end_time = ConstructQDateTime(exp_run.end_time()).toMSecsSinceEpoch();
+        runs.append(run);
+    }
+    return runs;
 }
 
 
