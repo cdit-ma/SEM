@@ -216,18 +216,18 @@ void ViewController::ShowJenkinsBuildDialog(const QString& job_name, QList<Jenki
 
     // Update the parameters
     for (auto& parameter : parameters) {
-        const auto& param_name = parameter.name;
-        const auto& option_val = dialog.getOptionValue(param_name).toString();
+        const auto& option_val = dialog.getOptionValue(parameter.name).toString();
         parameter.value = option_val;
 
-        // TODO: Find a better solution!
+        // Don't run the job if any of the parameters is empty
         if (option_val.isEmpty()) {
-            // Force the experiment name not to be empty
-            if (param_name == "experiment_name") {
-                parameter.value = "untitled_experiment";
-            } else {
-                parameter.value = parameter.defaultValue;
-            }
+            NotificationManager::manager()->AddNotification("Can't run Jenkins job; missing job parameter(s)",
+                                                            "Icons",
+                                                            "cross",
+                                                            Notification::Severity::ERROR,
+                                                            Notification::Type::APPLICATION,
+                                                            Notification::Category::NONE);
+            return;
         }
     }
 
