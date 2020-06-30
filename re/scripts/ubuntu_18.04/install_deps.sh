@@ -1,6 +1,10 @@
 #Build Deps
 #UBUNTU
 sudo apt-get update && sudo apt-get install -y \
+  apt-transport-https \
+  ca-certificates \
+  gnupg \
+  software-properties-common \
   git \
   cmake \
   build-essential \
@@ -8,9 +12,18 @@ sudo apt-get update && sudo apt-get install -y \
   ninja-build \
   openjdk-11-jre-headless \
   ccache \
-  libpq-dev postgresql-server-dev-all \
+  libpq-dev \
+  postgresql-server-dev-all \
   libcurl4-openssl-dev \
   chrony
+
+# Install latest version of cmake
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
+    | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
+    sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
+    sudo apt-get update && \
+    sudo apt-get install cmake
+
 
 # Install Docker
 sudo apt-get install -y \
