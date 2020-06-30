@@ -9,6 +9,8 @@ sudo yum install epel-release git wget java-1.8.0-openjdk chrony && \
     sudo yum install libpq && \
     sudo yum install libcurl-devel && \
     sudo ln -s /usr/bin/cmake3 /usr/bin/cmake && \
+    sudo yum install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm && \
+    sudo yum install postgresql10-devel && \
     . /opt/rh/devtoolset-7/enable
 
 # Install Boost
