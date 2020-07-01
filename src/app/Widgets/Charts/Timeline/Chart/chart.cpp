@@ -502,27 +502,38 @@ void Chart::displayDataMinMax(QPainter& painter)
     if (containsYRange_) {
         painter.save();
 
+        /*
+        // TODO: Display the min/max utilisation elsewhere in the chart
         auto minStr = QString::number(floor(dataMinY_ * 100)) + "%";
         auto maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
         if (series_pointers_.contains(ChartDataKind::NETWORK_UTILISATION)) {
             minStr = NetworkUtilisationEventSeries::getByteString(dataMinY_);
             maxStr = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
         }
+        */
+
+        static const auto min_str = "0%";
+        static const auto max_str = "100%";
 
         static const int padding = 5;
-        int h = fontMetrics().height() + padding;
-        int w = qMax(fontMetrics().horizontalAdvance(minStr), fontMetrics().horizontalAdvance(maxStr)) + padding;
+        static const int h = fontMetrics().height() + padding;
+        static const int w = fontMetrics().horizontalAdvance(max_str) + padding;
 
+        static const qreal half_pen_w = 0.5;
         painter.setPen(textColor_);
         painter.setBrush(hoveredRectColor_);
 
-        QRectF maxRect(width() - w, 0, w, h);
+        QRectF maxRect(width() - w, half_pen_w, w, h);
         painter.drawRect(maxRect);
-        painter.drawText(maxRect, maxStr, QTextOption(Qt::AlignCenter));
+        painter.drawText(maxRect.adjusted(half_pen_w, half_pen_w, -half_pen_w, -half_pen_w),
+                         max_str,
+                         QTextOption(Qt::AlignCenter));
 
-        QRectF minRect(width() - w, height() - h, w, h);
+        QRectF minRect(width() - w, height() - h - half_pen_w, w, h);
         painter.drawRect(minRect);
-        painter.drawText(minRect, minStr, QTextOption(Qt::AlignCenter));
+        painter.drawText(minRect.adjusted(half_pen_w, half_pen_w, -half_pen_w, -half_pen_w),
+                         min_str,
+                         QTextOption(Qt::AlignCenter));
 
         painter.restore();
     }
