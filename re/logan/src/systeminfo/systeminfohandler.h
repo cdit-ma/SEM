@@ -8,9 +8,9 @@
 #include "systemevent.pb.h"
 class SystemInfo;
 extern SystemInfo& GetSystemInfo();
-class SystemInfoHandler {
+class SystemInfoBroker {
 public:
-    SystemInfoHandler();
+    SystemInfoBroker();
     std::unique_ptr<SystemEvent::StatusEvent> GetSystemStatus(const int listener_id);
     std::unique_ptr<SystemEvent::InfoEvent> GetSystemInfo(const int listener_id);
     void Update();

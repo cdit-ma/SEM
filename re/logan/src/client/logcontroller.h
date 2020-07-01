@@ -27,7 +27,7 @@ class LogController{
         void GotNewConnection(int event_type, std::string address);
         void QueueOneTimeInfo();
 
-        SystemInfoHandler system_;
+        SystemInfoBroker system_;
         const int listener_id_;
         
         std::mutex future_mutex_;
