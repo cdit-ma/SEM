@@ -2,7 +2,7 @@
 #define RE_COREDATA_H
 
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
-#include <types/uuid.h>
+#include "uuid.h"
 
 namespace re::Representation {
 class CoreData {

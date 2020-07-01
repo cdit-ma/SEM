@@ -22,7 +22,7 @@
 #include "workerdefinition.h"
 #include "workerinstance.h"
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
-#include <types/uuid.h>
+#include "uuid.h"
 namespace re::Representation {
 
 class ExperimentDefinition {

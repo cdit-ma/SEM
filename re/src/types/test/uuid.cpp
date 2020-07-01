@@ -1,6 +1,6 @@
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <types/uuid.h>
+#include "uuid.h"
 
 #include "gtest/gtest.h"
 

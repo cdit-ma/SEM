@@ -1,18 +1,20 @@
-project(re_types_proto_testmessage VERSION ${PROJECT_VERSION})
-
 find_package(Protobuf REQUIRED)
-
-if (NOT PROTOBUF_FOUND)
-    # Find package Protobuf
-    find_package(Protobuf REQUIRED)
-endif ()
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/testmessage.proto)
 
-add_library(${PROJECT_NAME} STATIC ${SOURCE} ${HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
+add_library(re_types_proto_testmessage STATIC)
+
+target_sources(re_types_proto_testmessage
+        PRIVATE
+        ${PROTO_SRCS}
+        ${PROTO_HDRS}
+        )
 
 # Include Directories
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(re_types_proto_testmessage
+        PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}
+        )
 
 if (MSVC)
     #Windows requires protobuf in DLLs
@@ -22,4 +24,7 @@ if (MSVC)
 endif ()
 
 # Link Libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIBRARIES})
+target_link_libraries(re_types_proto_testmessage
+        PUBLIC
+        protobuf::libprotobuf
+        )

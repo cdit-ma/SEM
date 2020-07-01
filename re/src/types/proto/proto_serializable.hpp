@@ -3,7 +3,7 @@
 
 #include <google/protobuf/message.h>
 #include <type_traits>
-#include <types/serializable.hpp>
+#include "serializable.hpp"
 #include <utility>
 
 namespace re::types {

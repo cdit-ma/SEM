@@ -3,7 +3,7 @@
 
 #include "modelentity.h"
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
-#include <types/uuid.h>
+#include "uuid.h"
 #include <vector>
 namespace re::Representation {
 

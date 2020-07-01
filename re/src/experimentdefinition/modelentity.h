@@ -4,7 +4,7 @@
 #include "coredata.h"
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
 #include <string>
-#include <types/uuid.h>
+#include "uuid.h"
 namespace re::Representation {
 
 // This *MUST* remain pure virtual to avoid all manner of inheritance, diamond problemey footguns
