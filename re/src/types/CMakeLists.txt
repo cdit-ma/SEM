@@ -4,13 +4,14 @@ add_library(re_types STATIC)
 target_compile_features(re_types PUBLIC cxx_std_17)
 target_compile_options(re_types PRIVATE -fPIC)
 target_sources(re_types
-        PRIVATE
+        PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/serializable.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/uuid.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/timeout.h
         ${CMAKE_CURRENT_SOURCE_DIR}/uuid.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ipv4.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/socketaddress.hpp
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/uuid.cpp
         )
 
 
