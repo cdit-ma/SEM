@@ -25,7 +25,7 @@ convert_duration(const std::chrono::milliseconds& duration)
 }
 
 // Refresh
-std::unique_ptr<SystemEvent::StatusEvent> SystemInfoHandler::GetSystemStatus(const int listener_id)
+std::unique_ptr<SystemEvent::StatusEvent> SystemInfoBroker::GetSystemStatus(const int listener_id)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -129,7 +129,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfoHandler::GetSystemStatus(con
     return system_status;
 }
 
-std::unique_ptr<SystemEvent::InfoEvent> SystemInfoHandler::GetSystemInfo(const int listener_id)
+std::unique_ptr<SystemEvent::InfoEvent> SystemInfoBroker::GetSystemInfo(const int listener_id)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -181,22 +181,22 @@ std::unique_ptr<SystemEvent::InfoEvent> SystemInfoHandler::GetSystemInfo(const i
     return system_info;
 }
 
-void SystemInfoHandler::Update()
+void SystemInfoBroker::Update()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto update_time = system_info_.UpdateData();
 };
 
-int SystemInfoHandler::RegisterListener()
+int SystemInfoBroker::RegisterListener()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return ++listener_count_;
 }
-SystemInfoHandler::SystemInfoHandler() : system_info_(::GetSystemInfo()) {}
-void SystemInfoHandler::ClearMonitoredProcesses() {
+SystemInfoBroker::SystemInfoBroker() : system_info_(::GetSystemInfo()) {}
+void SystemInfoBroker::ClearMonitoredProcesses() {
     system_info_.clear_monitored_processes();
 }
-void SystemInfoHandler::MonitorProcess(const std::string& process) {
+void SystemInfoBroker::MonitorProcess(const std::string& process) {
     system_info_.monitor_processes(process);
 }
 
