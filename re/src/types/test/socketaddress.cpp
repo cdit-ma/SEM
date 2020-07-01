@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <types/socketaddress.hpp>
+#include "socketaddress.hpp"
 
 namespace re::types::test {
 TEST(re_types_socketaddress, equality_operator)

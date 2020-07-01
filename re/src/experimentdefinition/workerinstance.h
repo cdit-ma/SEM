@@ -2,7 +2,7 @@
 #define RE_WORKERINSTANCE_H
 
 #include "modelentity.h"
-#include <types/uuid.h>
+#include "uuid.h"
 namespace re::Representation {
 
 class WorkerInstance : public DefaultModelEntity {

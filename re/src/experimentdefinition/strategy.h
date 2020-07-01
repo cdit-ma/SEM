@@ -3,7 +3,7 @@
 
 #include "modelentity.h"
 #include <string>
-#include <types/uuid.h>
+#include "uuid.h"
 namespace re::Representation {
 
 class Strategy : public DefaultModelEntity {

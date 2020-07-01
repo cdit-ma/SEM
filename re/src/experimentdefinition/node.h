@@ -3,7 +3,7 @@
 
 #include "modelentity.h"
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
-#include <types/ipv4.hpp>
+#include "ipv4.hpp"
 namespace re::Representation {
 
 class Node : public DefaultModelEntity {

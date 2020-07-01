@@ -3,7 +3,7 @@
 
 #include "modelentity.h"
 #include <string>
-#include <types/uuid.h>
+#include "uuid.h"
 #include <vector>
 
 namespace re::Representation {

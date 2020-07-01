@@ -1,6 +1,6 @@
-#include "testprotomessage/testmessage.pb.h"
+#include "proto_serializable.hpp"
+#include "testmessage.pb.h"
 #include <iostream>
-#include <types/proto/serializable.hpp>
 
 #include "gtest/gtest.h"
 
