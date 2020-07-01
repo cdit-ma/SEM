@@ -523,13 +523,13 @@ void Chart::displayDataMinMax(QPainter& painter)
         painter.setPen(textColor_);
         painter.setBrush(hoveredRectColor_);
 
-        QRectF maxRect(width() - w, half_pen_w, w, h);
+        QRectF maxRect(0, half_pen_w, w, h);
         painter.drawRect(maxRect);
         painter.drawText(maxRect.adjusted(half_pen_w, half_pen_w, -half_pen_w, -half_pen_w),
                          max_str,
                          QTextOption(Qt::AlignCenter));
 
-        QRectF minRect(width() - w, height() - h - half_pen_w, w, h);
+        QRectF minRect(0, height() - h - half_pen_w, w, h);
         painter.drawRect(minRect);
         painter.drawText(minRect.adjusted(half_pen_w, half_pen_w, -half_pen_w, -half_pen_w),
                          min_str,
