@@ -1,30 +1,33 @@
-import glob, time, subprocess, os, sys
-
 import argparse
-
+import glob
+import os
+import subprocess
+import sys
+import time
 from xml.sax.saxutils import quoteattr
 
 cd_stack = []
+
+
 def push_cd(new_dir):
     global cd_stack
     cd_stack = [os.getcwd()] + cd_stack
     os.chdir(new_dir)
+
 
 def pop_cd():
     global cd_stack
     new_dir = cd_stack.pop(0)
     os.chdir(new_dir)
 
-def make_dir(dir):
-    try:
-        os.makedirs(dir)
-    except:
-        None
+
+def make_dir(dir_name):
+    os.makedirs(dir_name)
+
 
 def run_command(args):
     start_time = time.time()
     success = True
-    output = ""
     try:
         output = subprocess.check_output(args, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
@@ -33,31 +36,34 @@ def run_command(args):
     return [success, output.decode(), time.time() - start_time]
 
 
-def run_regen_generation(model_path):
+def run_regen_generation(model_path_name):
     global RE_GEN_PATH
-    args = ['java', '-jar', RE_GEN_PATH + 'saxon.jar', '-xsl:' + RE_GEN_PATH + 'generate_project.xsl', '-s:' + model_path]
+    args = ['java', '-jar', RE_GEN_PATH + 'saxon.jar', '-xsl:' + RE_GEN_PATH + 'generate_project.xsl',
+            '-s:' + model_path_name]
     return run_command(args)
+
 
 def run_cmake_generation():
     args = ['cmake', '-G', 'Ninja', '..']
     return run_command(args)
+
 
 def run_cmake_build():
     args = ['cmake', '--build', '.']
     return run_command(args)
 
 
-def get_model_name(model_path):
-    base = os.path.basename(model_path)
+def get_model_name(model_path_name):
+    base = os.path.basename(model_path_name)
     return os.path.splitext(base)[0]
 
 
-def get_test_case(test_name, test_pass, test_time, fail_string = ""):
-    args = 'name="' + test_name + '" status="run" time="' + str(test_time) + '"'
+def get_test_case(test_name, test_pass, test_time_param, fail_string=""):
+    args = 'name="' + test_name + '" status="run" time="' + str(test_time_param) + '"'
     tab = '\t\t'
-    
+
     output = ""
-    if(test_pass):
+    if test_pass:
         output += tab + '<testcase ' + args + '/>\n'
     else:
         output += tab + '<testcase ' + args + '>\n'
@@ -65,22 +71,30 @@ def get_test_case(test_name, test_pass, test_time, fail_string = ""):
         output += tab + '</testcase>\n'
     return output
 
-def get_test_suite_open(suite_name, test_count, failure_count, test_time):
-    return '\t<testsuite name="' + suite_name + '" tests="' + str(test_count) + '" failures="' + str(failure_count) + '" errors="0" disabled="0" time="' + str(test_time) + '">\n'
+
+def get_test_suite_open(suite_name, test_count_param, failure_count, test_time_param):
+    return '\t<testsuite name="' + suite_name + '" tests="' + str(test_count_param) + '" failures="' + str(
+        failure_count) + '" errors="0" disabled="0" time="' + str(test_time_param) + '">\n'
+
 
 def get_test_suite_close():
     return "\t</testsuite>\n"
 
-def get_test_suites_open(suite_name, test_count, failure_count, test_time):
-    return '<testsuites name="' + suite_name + '" tests="' + str(test_count) + '" failures="' + str(failure_count) + '" errors="0" disabled="0" time="' + str(test_time) + '">\n'
+
+def get_test_suites_open(suite_name, test_count_param, failure_count, test_time_param):
+    return '<testsuites name="' + suite_name + '" tests="' + str(test_count_param) + '" failures="' + str(
+        failure_count) + '" errors="0" disabled="0" time="' + str(test_time_param) + '">\n'
+
 
 def get_test_suites_close():
     return "</testsuites>\n"
 
+
 def get_xml_preamble():
     return '<?xml version="1.0" encoding="UTF-8"?>\n'
 
-parser  = argparse.ArgumentParser(description='Run re_gen tests and collate the results in JUnit XML format')
+
+parser = argparse.ArgumentParser(description='Run re_gen tests and collate the results in JUnit XML format')
 parser.add_argument('-o', '--output_file',
                     help='The xml file test output should be written to',
                     default='output.xml'
@@ -89,7 +103,6 @@ parser.add_argument('--re_path',
                     help='The path the the RE directory being tested',
                     )
 cmd_args = parser.parse_args()
-
 
 output_file = cmd_args.output_file
 
@@ -147,14 +160,14 @@ for model_path in glob.glob('models/**.graphml'):
     total_time += test_time
 
     passed_count = test_count - fail_count
-    print("Test: " + model_name + " [" + str(passed_count) + "/" + str(test_count) + "]" + (" FAILED!" if fail_count > 0 else ""))
+    print("Test: " + model_name + " [" + str(passed_count) + "/" + str(test_count) + "]" + (
+        " FAILED!" if fail_count > 0 else ""))
 
 # Write the Junit into a string
 junit_output = get_xml_preamble()
 junit_output += get_test_suites_open("regen_tests", total_tests, total_fails, total_time)
 junit_output += all_suite_output
 junit_output += get_test_suites_close()
-
 
 print("Writing JUnit: " + output_file)
 f = open(output_file, "w")
