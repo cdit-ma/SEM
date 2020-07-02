@@ -1,8 +1,3 @@
-#Set output directory to be in the source code directory for test. This allows easy directory navigation to load resource files
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/test)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/test)
-
 if(MSVC)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 endif(MSVC)
