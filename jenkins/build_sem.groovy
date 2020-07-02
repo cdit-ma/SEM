@@ -29,20 +29,19 @@ pipeline{
     stages{
         stage("Checkout/Bundle"){
             steps{
-                node("master"){
-                    script{
-                        deleteDir()
-                        checkout scm
-                        stash includes: "**", name: "source_code"
+                script{
+                    deleteDir()
+                    checkout scm
+                    stash includes: "**", name: "source_code"
 
 //                         if(utils.runScript('git-archive-all sem.tar.gz') != 0){
 //                             error("Cannot create git archive")
 //                         }
 
-                        //Read the VERSION.MD
-                        if(fileExists("VERSION.md")){
-                            RELEASE_DESCRIPTION = readFile("VERSION.md")
-                        }
+                    //Read the VERSION.MD
+                    if(fileExists("VERSION.md")){
+                        RELEASE_DESCRIPTION = readFile("VERSION.md")
+                    }
 
 //                         def rollout_file = "sem-${GIT_ID}-rollout.tar.gz"
 //
@@ -51,7 +50,6 @@ pipeline{
 //                             error("Cannot tar git archives")
 //                         }
 //                         archiveArtifacts(rollout_file)
-                    }
                 }
             }
         }
