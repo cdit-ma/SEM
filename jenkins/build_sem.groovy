@@ -35,22 +35,22 @@ pipeline{
                         checkout scm
                         stash includes: "**", name: "source_code"
 
-                        if(utils.runScript('git-archive-all re.tar.gz') != 0){
-                            error("Cannot create git archive")
-                        }
+//                         if(utils.runScript('git-archive-all sem.tar.gz') != 0){
+//                             error("Cannot create git archive")
+//                         }
 
                         //Read the VERSION.MD
                         if(fileExists("VERSION.md")){
                             RELEASE_DESCRIPTION = readFile("VERSION.md")
                         }
 
-                        def rollout_file = "re-${GIT_ID}-rollout.tar.gz"
-
-                        //Create rollout archive
-                        if(utils.runScript("tar -czf ${rollout_file} re.bundle re.tar.gz") != 0){
-                            error("Cannot tar git archives")
-                        }
-                        archiveArtifacts(rollout_file)
+//                         def rollout_file = "sem-${GIT_ID}-rollout.tar.gz"
+//
+//                         //Create rollout archive
+//                         if(utils.runScript("tar -czf ${rollout_file} sem.bundle sem.tar.gz") != 0){
+//                             error("Cannot tar git archives")
+//                         }
+//                         archiveArtifacts(rollout_file)
                     }
                 }
             }
@@ -159,41 +159,6 @@ pipeline{
 
                         //Set the Display Name
                         currentBuild.displayName = "#${env.BUILD_ID} - " + get_test_status()
-                    }
-                }
-            }
-        }
-
-        stage("Release Upload"){
-            when{buildingTag()}
-            steps{
-                node("master"){
-                    script{
-                        withCredentials([usernamePassword(credentialsId: "cditma-github-auth", passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GIT_USERNAME')]){
-                            def release_name = "re ${GIT_ID}"
-                            def git_args = "--user cdit-ma --repo re --tag ${GIT_ID}"
-
-                            //Write a VERSION.md to be used as the Git Release Description
-                            writeFile(file: "VERSION.md", text: "${RELEASE_DESCRIPTION}\n\n" + get_test_status())
-
-                            def release_success = utils.runScript("github-release release ${git_args} --name \"${release_name}\" -d - < VERSION.md") == 0
-                            if(!release_success){
-                                release_success = utils.runScript("github-release edit ${git_args} --name \"${release_name}\" -d - < VERSION.md") == 0
-                            }
-
-                            if(release_success){
-                                dir("binaries"){
-                                    unarchive mapping: ['*' : '.']
-                                    for(def file : findFiles(glob: '*')){
-                                        def file_path = file.name
-                                        //Upload binaries, replacing if they exist
-                                        utils.runScript("github-release upload ${git_args} -R --file \"${file_path}\" --name \"${file_path}\"")
-                                    }
-                                }
-                            }else{
-                                error("GitHub Release failed to be created")
-                            }
-                        }
                     }
                 }
             }
