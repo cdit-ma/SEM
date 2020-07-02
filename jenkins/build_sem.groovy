@@ -116,18 +116,18 @@ pipeline{
                                         deleteDir()
                                     }
                                 }
-                                dir("re/test/re_gen"){
-                                    def test_suite_xml = "${node_name}_regen_tests.xml"
-
-                                    if(utils.runScript("python run_tests.py -o ${test_suite_xml} --re_path ${re_path}") != 0){
-                                        error("Running run_tests.py Failed!")
-                                    }
-
-                                    junit test_suite_xml
-                                    dir("build"){
-                                        deleteDir()
-                                    }
-                                }
+//                                 dir("re/test/re_gen"){
+//                                     def test_suite_xml = "${node_name}_regen_tests.xml"
+//
+//                                     if(utils.runScript("python run_tests.py -o ${test_suite_xml} --re_path ${re_path}") != 0){
+//                                         error("Running run_tests.py Failed!")
+//                                     }
+//
+//                                     junit test_suite_xml
+//                                     dir("build"){
+//                                         deleteDir()
+//                                     }
+//                                 }
                                 // TODO: add qt tests
                                 //  live in bin/test/qttest
                             }
