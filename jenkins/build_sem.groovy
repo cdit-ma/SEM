@@ -31,6 +31,7 @@ pipeline{
             steps{
                 node("master"){
                     script{
+                        println(CI_BUILD_NODES)
                         deleteDir()
                         checkout scm
                         stash includes: "**", name: "source_code"
