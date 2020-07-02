@@ -87,7 +87,7 @@ pipeline{
                         test_map[node_name] = {
                             node(node_name){
                                 def re_path = pwd()
-                                dir("build/bin"){
+                                dir("build/bin/test/gtest"){
                                     def glob_str = "test_*"
 
                                     def tests_list = findFiles glob: glob_str
@@ -128,6 +128,8 @@ pipeline{
                                         deleteDir()
                                     }
                                 }
+                                // TODO: add qt tests
+                                //  live in bin/test/qttest
                             }
                         }
                     }
