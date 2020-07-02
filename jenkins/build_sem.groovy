@@ -87,7 +87,7 @@ pipeline{
                         test_map[node_name] = {
                             node(node_name){
                                 def re_path = pwd()
-                                dir("build/bin/test"){
+                                dir("build/bin"){
                                     def glob_str = "test_*"
 
                                     def tests_list = findFiles glob: glob_str
