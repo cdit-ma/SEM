@@ -26,13 +26,13 @@ target_link_libraries(system_info_handler
         re_common_proto_systemevent
         )
 
-if (SIGAR_FOUND)
+if (Sigar_FOUND)
     target_link_libraries(system_info_handler
             PRIVATE
             sigar_system_info_provider
             )
 else ()
-    message(WARNING "SIGAR libraries not found, building dummy_system_info_provider")
+    message(WARNING "Sigar libraries not found, building dummy_system_info_provider")
     target_link_libraries(system_info_handler
             PRIVATE
             dummy_system_info_provider)

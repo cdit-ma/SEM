@@ -9,10 +9,13 @@ target_sources(sigar_system_info_provider
 target_include_directories(sigar_system_info_provider
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        PRIVATE
+        ${Sigar_INCLUDE_DIRS}
         )
 
 target_link_libraries(sigar_system_info_provider
-	PUBLIC
-	system_info
+        PUBLIC
+        system_info
         PRIVATE
-        ${SIGAR_LIBRARIES})
+        ${Sigar_LIBRARIES}
+        )
