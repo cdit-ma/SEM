@@ -19,8 +19,12 @@ target_sources(re_types
 target_include_directories(re_types
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+
+target_link_libraries(re_types
         PRIVATE
-        ${Boost_INCLUDE_DIRS}
+        # Include boost headers to get uuid.hpp and uuid_generators.hpp
+        Boost::boost
         )
 
 add_subdirectory(proto)
