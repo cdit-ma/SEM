@@ -20,4 +20,6 @@ target_link_libraries(test_re_types
         re_types
         gtest
         gtest_main
+        # Include boost headers for uuid.hpp and uuid_generators.hpp
+        Boost::boost
         )

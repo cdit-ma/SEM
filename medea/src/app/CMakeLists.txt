@@ -413,7 +413,9 @@ target_link_libraries(${PROJ_NAME}
         )
 
 # Install should copy the MEDEA app into the bin folder
-INSTALL(TARGETS ${PROJ_NAME} BUNDLE DESTINATION . COMPONENT ${PROJ_NAME} RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
+install(TARGETS ${PROJ_NAME}
+        BUNDLE DESTINATION . COMPONENT ${PROJ_NAME}
+        RUNTIME DESTINATION . COMPONENT ${PROJ_NAME})
 
 set(THIRDPARTY_TARGETS
         libzmq
@@ -452,7 +454,7 @@ elseif (APPLE)
     find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${QT_BIN_DIR}")
     if (MACDEPLOYQT_EXECUTABLE)
         add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
-                COMMAND ${MACDEPLOY_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
+                COMMAND ${MACDEPLOYQT_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
                 COMMENT "Running macdeployqt..."
                 )
     else()
