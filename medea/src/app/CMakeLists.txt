@@ -5,7 +5,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 5.14
-	COMPONENTS Widgets Network Concurrent REQUIRED)
+        COMPONENTS Widgets Network Concurrent REQUIRED)
 
 if (MSVC)
     find_package(Protobuf CONFIG REQUIRED)
@@ -437,14 +437,27 @@ get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
 if (WIN32)
     find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
-    add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
-            COMMAND ${WINDEPLOYQT_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
-            COMMENT "Running windeployqt..."
-            )
+
+    if (WINDEPLOYQT_EXECUTABLE)
+        add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
+                COMMAND ${WINDEPLOYQT_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.exe
+                COMMENT "Running windeployqt..."
+                )
+    else()
+        message(WARNING "Could not find windeployqt executable, not running deploy!
+                Your MEDEA binary directory may be missing crucial binaries.")
+    endif()
+
 elseif (APPLE)
     find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${QT_BIN_DIR}")
-    add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
-            COMMAND ${MACDEPLOY_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
-            COMMENT "Running macdeployqt..."
-            )
+    if (MACDEPLOYQT_EXECUTABLE)
+        add_custom_command(TARGET ${PROJ_NAME} POST_BUILD
+                COMMAND ${MACDEPLOY_EXECUTABLE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJ_NAME}.app
+                COMMENT "Running macdeployqt..."
+                )
+    else()
+        message(WARNING "Could not find macdeployqt executable, not running deploy!
+                Your MEDEA binary directory may be missing crucial binaries.")
+    endif ()
+
 endif ()
