@@ -1,8 +1,8 @@
 #include "print_logger.h"
 #include <iostream>
-#include <core/component.h>
-#include <core/ports/port.h>
-#include <core/worker.h>
+#include "component.h"
+#include "ports/port.h"
+#include "worker.h"
 
 // REVIEW (Mitch): Document that this class is a singleton
 Print::Logger& Print::Logger::get_logger(){
@@ -83,7 +83,7 @@ void Print::Logger::LogMessage(const Activatable& entity, const std::string& mes
 }
 
 void Print::Logger::LogException(const Activatable& entity, const std::string& message){
-    auto log_level = GetWorkloadLogLevel(Logger::WorkloadEvent::ERROR);
+    auto log_level = GetWorkloadLogLevel(Logger::WorkloadEvent::Error);
     if(ShouldPrint(log_level)){
         std::lock_guard<std::mutex> lock(mutex_);
         auto& stream = GetStream(log_level);

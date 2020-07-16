@@ -4,9 +4,9 @@
 #include <queue>
 #include <algorithm>
 #include <vector>
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 #include "node.h"
-#include <zmq/zmqutils.hpp>
+#include "zmqutils.hpp"
 #include <regex>
 #include <functional>
 #include <google/protobuf/util/time_util.h>

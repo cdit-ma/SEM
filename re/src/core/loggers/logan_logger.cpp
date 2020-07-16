@@ -1,10 +1,10 @@
 
 #include "logan_logger.h"
-#include <proto/modelevent/modelevent.pb.h>
+#include "modelevent.pb.h"
 
-#include <core/ports/port.h>
-#include <core/component.h>
-#include <core/worker.h>
+#include "ports/port.h"
+#include "component.h"
+#include "worker.h"
 #include <google/protobuf/util/time_util.h>
 
 // REVIEW (Mitch): The following Fill* functions should be namespaced

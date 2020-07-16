@@ -7,11 +7,11 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 #include "uniquequeue.hpp"
 #include "experiment.h"
 #include "porttracker.h"
-#include <zmq/protowriter/protowriter.h>
+#include "protowriter.h"
 
 namespace EnvironmentManager{
 

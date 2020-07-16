@@ -2,7 +2,6 @@ set(PROJ_NAME zmq_helper)
 project(${PROJ_NAME}
         VERSION ${PROJECT_VERSION})
 
-find_package(cppzmq)
 
 if(NOT ZMQ_FOUND)
     message(STATUS "Cannot find ZMQ cannot build project ${PROJ_NAME}")

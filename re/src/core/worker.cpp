@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <stdarg.h>
-#include <core/component.h>
+#include "component.h"
 
 Worker::Worker(const BehaviourContainer& container, const std::string& class_name, const std::string& inst_name, const bool is_worker):
     BehaviourContainer(Class::WORKER, inst_name),
@@ -83,5 +83,5 @@ void Worker::Log(const std::string& function_name, const Logger::WorkloadEvent& 
 }
 
 void Worker::LogException(const std::string& function_name, const std::exception& ex, int work_id){
-    Log(function_name, Logger::WorkloadEvent::ERROR, work_id, ex.what());
+    Log(function_name, Logger::WorkloadEvent::Error, work_id, ex.what());
 }

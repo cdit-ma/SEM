@@ -2,7 +2,7 @@
 #define CORE_NODEMANAGER_LOGANCLIENT_H
 
 #include <memory>
-#include <core/activatable.h>
+#include "activatable.h"
 
 class LogController;
 

@@ -1,17 +1,15 @@
-set(PROJ_NAME tcp_worker)
-project(${PROJ_NAME}
-        VERSION ${PROJECT_VERSION})
-
 # See the TCP Worker wiki page for the reasoning.
 if (APPLE)
     message(WARNING "Not building TCP Worker on apple platforms due to bug that causes hangs")
     return()
 endif(APPLE)
 
-add_library(${PROJ_NAME} SHARED "")
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
+find_package(Boost 1.67.0 REQUIRED COMPONENTS thread regex)
 
-target_sources(${PROJ_NAME} PRIVATE
+add_library(tcp_worker)
+target_compile_features(tcp_worker PRIVATE cxx_std_17)
+
+target_sources(tcp_worker PRIVATE
         # Sources
         ${CMAKE_CURRENT_SOURCE_DIR}/tcp_worker.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tcpworkerimpl.cpp
@@ -20,7 +18,14 @@ target_sources(${PROJ_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/tcpworkerimpl.h
         )
 
-target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(tcp_worker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(${PROJ_NAME} PUBLIC re_core)
-target_link_libraries(${PROJ_NAME} PUBLIC re_loggers)
+target_link_libraries(tcp_worker 
+        PUBLIC
+        re_core
+        re_loggers
+        Boost::dynamic_linking
+        Boost::boost
+        Boost::thread
+        Boost::regex
+        )

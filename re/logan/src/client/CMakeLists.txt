@@ -1,46 +1,46 @@
-set(LOGAN_CLIENT "logan_client")
-set(LOGAN_CLIENT_LIB ${LOGAN_CLIENT}_lib)
-set(PROJ_NAME ${LOGAN_CLIENT})
-project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
+set(PROJ_NAME logan_client)
+project(logan_client VERSION ${PROJECT_VERSION})
 
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 # Library
-add_library(${LOGAN_CLIENT_LIB} STATIC "")
-target_compile_features(${LOGAN_CLIENT_LIB} PRIVATE cxx_std_11)
+add_library(logan_client_lib STATIC)
+target_compile_features(logan_client_lib PRIVATE cxx_std_11)
 
-target_sources(${LOGAN_CLIENT_LIB}
+target_sources(logan_client_lib
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/logcontroller.h
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/logcontroller.cpp
         )
-target_include_directories(${LOGAN_CLIENT_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${LOGAN_CLIENT_LIB}
+target_include_directories(logan_client_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(logan_client_lib
         PUBLIC
         re_common_proto_systemevent
         re_common_proto_control
         zmq_protowriter
         system_info_handler
         re_common_proto_systemevent
-        PRIVATE
+        protobuf::libprotobuf
         )
 
 if (UNIX)
-    target_link_libraries(${LOGAN_CLIENT_LIB} PUBLIC pthread)
+    target_link_libraries(logan_client_lib PUBLIC pthread)
 endif (UNIX)
 
 
 # Executable
-add_executable(${LOGAN_CLIENT} "")
-target_compile_features(${LOGAN_CLIENT} PRIVATE cxx_std_11)
+add_executable(logan_client)
+target_compile_features(logan_client PRIVATE cxx_std_11)
 
-target_sources(${LOGAN_CLIENT} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
-target_include_directories(${LOGAN_CLIENT} PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(${LOGAN_CLIENT}
+target_sources(logan_client
         PRIVATE
-        ${LOGAN_CLIENT_LIB}
-        ${Boost_PROGRAM_OPTIONS_LIBRARY}
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        )
+target_link_libraries(logan_client
+        PRIVATE
+        logan_client_lib
+        Boost::program_options
         sem_version
         execution_helper
         )

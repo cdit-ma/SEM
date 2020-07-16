@@ -6,7 +6,7 @@
 #include "attribute.h"
 #include "worker.h"
 #include "container.h"
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
 using namespace EnvironmentManager;
 
@@ -244,7 +244,7 @@ Container& Node::GetMasterEligibleContainer() const{
     throw std::invalid_argument("No eligible container found");
 }
 
-std::string Node::GetMessage() const {
+std::string Node::GetLogMessage() const {
     return std::string("Node: " + GetName() + " Deploys: " + std::to_string(GetDeployedComponentCount()) + " Components");
 }
 

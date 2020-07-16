@@ -8,7 +8,7 @@ target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
 
 # Compile with bigobj on windows (for sqlite amalgamation file)
 if(MSVC)
-    target_compile_options(${PROJ_NAME} "/bigobj")
+    #target_compile_options(${PROJ_NAME} "/bigobj")
 endif(MSVC)
 
 # Disable model logging if flag set during cmake generation

@@ -24,6 +24,7 @@ auto ComponentDefinition::ToProto() const -> std::unique_ptr<PbType>
     for(const auto& trigger_uuid : trigger_definition_uuids_) {
         out->add_trigger_definition_uuids(trigger_uuid.to_string());
     }
+    return out;
 }
 
 ComponentDefinition::ComponentDefinition(const PbType& pb) : DefaultModelEntity{pb.core_data()}

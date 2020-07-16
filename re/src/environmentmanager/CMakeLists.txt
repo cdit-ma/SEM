@@ -1,16 +1,9 @@
-set(PROJ_NAME "re_environment_manager")
-project(${PROJ_NAME}
-        VERSION ${PROJECT_VERSION})
-
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-add_executable(${PROJ_NAME} "")
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
-target_compile_definitions(${PROJ_NAME} PRIVATE BOOST_ALL_DYN_LINK)
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/..)
+add_executable(re_environment_manager)
+target_compile_features(re_environment_manager PRIVATE cxx_std_11)
 
-target_sources(${PROJ_NAME} PRIVATE
+target_sources(re_environment_manager PRIVATE
     # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
@@ -51,13 +44,18 @@ target_sources(${PROJ_NAME} PRIVATE
 )
 
 # Link Libraries
-target_link_libraries(${PROJ_NAME} PRIVATE re_common_proto_control)
-target_link_libraries(${PROJ_NAME} PRIVATE re_common_proto_environmentcontrol)
-target_link_libraries(${PROJ_NAME} PRIVATE zmq_protoreplier)
-target_link_libraries(${PROJ_NAME} PRIVATE zmq_protowriter)
-target_link_libraries(${PROJ_NAME} PRIVATE sem_version)
-target_link_libraries(${PROJ_NAME} PRIVATE ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(re_environment_manager 
+        PRIVATE
+        re_common_proto_control
+        re_common_proto_environmentcontrol
+        zmq_protoreplier
+        zmq_protowriter
+        sem_version
+        execution_helper
+        zmq_utils
+        Boost::program_options
+        )
 
 if(UNIX)
-    target_link_libraries(${PROJ_NAME} PRIVATE pthread)
+    target_link_libraries(re_environment_manager PRIVATE pthread)
 endif(UNIX)

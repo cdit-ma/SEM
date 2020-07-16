@@ -2,7 +2,7 @@
 #include <random>
 
 #include <gtest/gtest.h>
-#include <core/statemachine.h>
+#include "statemachine.h"
 
 class Re_Core_StateMachine_FSM: public ::testing::Test {
     protected:

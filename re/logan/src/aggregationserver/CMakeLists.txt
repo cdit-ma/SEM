@@ -4,8 +4,6 @@ set(PROJ_NAME ${AGGREGATION_SERVER})
 project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
 #Find packages
-find_package(Protobuf REQUIRED)
-find_package(cppzmq REQUIRED)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 find_package(libpqxx REQUIRED)
 
@@ -78,12 +76,7 @@ set(HEADERS
 add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 
-if (MSVC)
-    # Windows requires protobuf in DLLs
-	add_definitions(-DPROTOBUF_USE_DLLS)
-	# Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-else()
+if (UNIX)
 	# Unix needs to include pthread
 	target_link_libraries(${PROJ_NAME} pthread)
     target_link_libraries(${PROJ_NAME} dl)

@@ -8,11 +8,11 @@
 #pragma warning(push)
 #pragma warning(disable : 4251)
 #endif
-#include <proto/aggregationmessage/aggregationmessage.pb.h>
+#include "aggregationmessage.pb.h"
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-#include <zmq/protorequester/protorequester.hpp>
+#include "protorequester.hpp"
 
 namespace AggServer {
 class Requester {

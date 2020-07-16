@@ -35,7 +35,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE zmq_protoreplier)
 target_link_libraries(${PROJECT_NAME} PRIVATE zmq_protowriter)
 target_link_libraries(${PROJECT_NAME} PRIVATE re_common_proto_aggregation_message)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE docker-cpp)
+#target_link_libraries(${PROJECT_NAME} PRIVATE docker-cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main)
 target_link_libraries(${PROJECT_NAME} PRIVATE gmock)

@@ -41,6 +41,8 @@ option(BUILD_TEST "Build testing" OFF)
 option(BUILD_REGEN_TEST "Build regen testing" OFF)
 option(BUILD_MEDEA "Build MEDEA" ON)
 
+
+add_subdirectory(extern)
 add_subdirectory(src)
 add_subdirectory(re)
 set(REGEN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/re/re_gen")

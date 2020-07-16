@@ -2,9 +2,6 @@
 set(PROJ_NAME test_qpid_requestreply)
 project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
-#Find protobuf
-find_package(Protobuf REQUIRED)
-
 # Find package QPID
 find_package(QPID)
 

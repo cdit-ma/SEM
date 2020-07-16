@@ -2,6 +2,7 @@
 
 #include <QTextStream>
 #include <QDateTime>
+#include <stdexcept>
 
 std::atomic<int> MEDEA::EventSeries::eventSeries_ID(0);
 

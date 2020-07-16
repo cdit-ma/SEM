@@ -6,12 +6,12 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <comms/environmentrequester/environmentrequester.h>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <zmq/protowriter/protowriter.h>
-#include <zmq/protoreplier/protoreplier.hpp>
-#include <util/execution.hpp>
-#include <core/loggers/experiment_logger.h>
+#include "environmentrequester.h"
+#include "controlmessage.pb.h"
+#include "protowriter.h"
+#include "protoreplier.hpp"
+#include "execution.hpp"
+#include "loggers/experiment_logger.h"
 
 // REVIEW (Mitch): Remove forward decl
 namespace zmq{class ProtoWriter;};
@@ -24,10 +24,10 @@ class ExecutionManager{
         // REVIEW (Mitch): no reason for this enum to be public
         enum class SlaveState{
             OFFLINE = 0,
-            REGISTERED = 1,
+            Registered = 1,
             CONFIGURED = 2,
             TERMINATED = 3,
-            ERROR_ = 4
+            Error = 4
         };
 
         // REVIEW (Mitch): no reason for this struct to be public

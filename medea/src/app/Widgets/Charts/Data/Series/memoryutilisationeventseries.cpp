@@ -1,5 +1,5 @@
 #include "memoryutilisationeventseries.h"
-
+#include <stdexcept>
 /**
  * @brief MemoryUtilisationEventSeries::MemoryUtilisationEventSeries
  * @param ID

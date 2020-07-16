@@ -2,7 +2,7 @@
 #define CORE_LOGGERPROXY_H
 
 #include <string>
-#include <core/logger.h>
+#include "logger.h"
 #include <functional>
 #include <vector>
 #include <mutex>

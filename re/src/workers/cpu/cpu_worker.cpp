@@ -1,6 +1,6 @@
 #include "cpu_worker.h"
 #include "cpu_worker_impl.h"
-#include <core/component.h>
+#include "component.h"
 #include <list>
 #include <functional>
 #include <future>

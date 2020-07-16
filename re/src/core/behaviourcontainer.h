@@ -2,7 +2,7 @@
 #define BEHAVIOUR_CONTAINER_H
 
 #include "activatable.h"
-#include <boost/thread.hpp>
+#include "boost/thread.hpp"
 #include <unordered_map>
 
 class Worker;

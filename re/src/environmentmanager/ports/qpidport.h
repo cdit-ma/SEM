@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include <memory>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 #include "port.h"
 

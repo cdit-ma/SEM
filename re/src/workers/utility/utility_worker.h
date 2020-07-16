@@ -2,7 +2,7 @@
 #define WORKERS_UTILITY_UTILITYWORKER_H
 
 #include <string>
-#include <core/worker.h>
+#include "worker.h"
 
 class Utility_Worker_Impl;
 class Utility_Worker : public Worker{

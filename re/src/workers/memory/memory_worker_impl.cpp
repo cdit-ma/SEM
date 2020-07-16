@@ -1,6 +1,7 @@
 #include "memory_worker_impl.h"
 #include <iostream>
 #include <stdint.h>
+#include <string>
 
 const size_t MEMORY_CHUNK_SIZE(1024);
 

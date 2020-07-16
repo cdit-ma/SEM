@@ -30,12 +30,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "[cC][lL][aA][nN][gG]") #Case insensitive matc
 	target_compile_options(${PROJECT_NAME} PRIVATE -Wdocumentation )
 endif()
 
-if (MSVC)
-    # Windows requires protobuf in DLLs
-	add_definitions(-DPROTOBUF_USE_DLLS)
-	# Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-else()
+if(UNIX)
 	# Unix needs to include pthread
 	target_link_libraries(${PROJ_NAME} pthread)
     target_link_libraries(${PROJ_NAME} dl)

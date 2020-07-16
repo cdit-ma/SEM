@@ -1,6 +1,6 @@
 #include "deploymenthandler.h"
 #include <iostream>
-#include <zmq/zmqutils.hpp>
+#include "zmqutils.hpp"
 
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
                                     const std::string& environment_manager_ip_address,

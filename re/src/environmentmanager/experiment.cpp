@@ -3,7 +3,7 @@
 #include "node.h"
 #include "container.h"
 #include "ports/port.h"
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 #include <algorithm>
 #include <numeric>
 #include <google/protobuf/util/time_util.h>
@@ -53,7 +53,7 @@ Environment &Experiment::GetEnvironment() const {
 
 void Experiment::SetConfigured() {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (state_ == ExperimentState::REGISTERED) {
+    if (state_ == ExperimentState::Registered) {
         state_ = ExperimentState::CONFIGURED;
     } else {
         throw std::runtime_error("Invalid state transition (REGISTERED -> ![CONFIGURED]");
@@ -76,7 +76,7 @@ bool Experiment::IsConfigured() const {
 
 bool Experiment::IsRegistered() const {
     std::unique_lock<std::mutex> lock(mutex_);
-    return state_ == ExperimentState::REGISTERED;
+    return state_ == ExperimentState::Registered;
 }
 
 bool Experiment::IsActive() const {
@@ -491,7 +491,7 @@ std::vector<std::reference_wrapper<Experiment::ExternalPort>> Experiment::GetExt
     return external_ports;
 }
 
-std::string Experiment::GetMessage() const {
+std::string Experiment::GetLogMessage() const {
     using NodeMapPair = std::pair<const std::string, std::unique_ptr<Node> >;
 
     std::stringstream message_stream;
@@ -499,7 +499,7 @@ std::string Experiment::GetMessage() const {
 
     for(const auto& node : node_map_){
         if(node.second->GetDeployedComponentCount() > 0){
-            message_stream << experiment_name << node.second->GetMessage() << "\n";
+            message_stream << experiment_name << node.second->GetLogMessage() << "\n";
         }
     }
 

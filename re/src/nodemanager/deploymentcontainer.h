@@ -5,13 +5,13 @@
 #include <functional>
 #include <memory>
 
-#include <core/component.h>
-#include <core/ports/libportexport.h>
-#include <core/libcomponentexport.h>
+#include "component.h"
+#include "ports/libportexport.h"
+#include "libcomponentexport.h"
 
 
-#include <core/loggers/logan_logger.h>
-#include <core/loggers/print_logger.h>
+#include "loggers/logan_logger.h"
+#include "loggers/print_logger.h"
 
 #include "dllloader.h"
 #include "loganclient.h"

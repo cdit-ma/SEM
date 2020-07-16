@@ -1,8 +1,8 @@
 #ifndef LOGAN_MANAGEDSERVER_H
 #define LOGAN_MANAGEDSERVER_H
 
-#include <util/execution.hpp>
-#include <comms/environmentrequester/environmentrequester.h>
+#include "execution.hpp"
+#include "environmentrequester.h"
 
 #include "server.h"
 

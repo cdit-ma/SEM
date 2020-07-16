@@ -1,5 +1,6 @@
 #include "porteventseries.h"
 #include <QDebug>
+#include <stdexcept>
 
 /**
  * @brief PortEventSeries::PortEventSeries

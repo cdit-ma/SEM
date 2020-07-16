@@ -5,7 +5,7 @@
 #ifndef PROJECT_TCPWORKER_H
 #define PROJECT_TCPWORKER_H
 
-#include <core/worker.h>
+#include "worker.h"
 #include <functional>
 
 class TcpWorkerImpl;

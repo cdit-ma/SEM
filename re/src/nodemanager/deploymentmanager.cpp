@@ -3,11 +3,11 @@
 #include <iostream>
 #include <memory>
 
-#include <util/execution.hpp>
+#include "execution.hpp"
 
-#include <comms/environmentrequester/environmentrequester.h>
-#include <proto/controlmessage/helper.h>
-#include <zmq/protoreceiver/protoreceiver.h>
+#include "environmentrequester.h"
+#include "helper.h"
+#include "protoreceiver.h"
 
 DeploymentManager::DeploymentManager(Execution& execution,
                                      const std::string& experiment_name,

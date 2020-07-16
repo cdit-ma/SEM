@@ -6,6 +6,7 @@
 #include "../node.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
+#include <stdexcept>
 
 const auto edge_kind = EDGE_KIND::TRIGGER;
 const QString kind_string = "Edge_Trigger";

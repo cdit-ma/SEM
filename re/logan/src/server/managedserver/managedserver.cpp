@@ -1,5 +1,5 @@
 #include "managedserver.h"
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 #include <zmq.hpp>
 #include <iostream>
 

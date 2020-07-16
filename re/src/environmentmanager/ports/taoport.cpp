@@ -3,7 +3,7 @@
 #include "../component.h"
 #include "../node.h"
 #include "../container.h"
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
 using namespace EnvironmentManager;
 

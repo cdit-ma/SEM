@@ -19,7 +19,7 @@ class AttributeInstanceInterface : public ModelEntity {
 public:
     [[nodiscard]] virtual auto ToProto() const -> std::unique_ptr<AttributeInstancePb> = 0;
 
-    [[nodiscard]] virtual auto GetDefinition() const -> AttributeDefinition = 0;
+    //[[nodiscard]] virtual auto GetDefinition() const -> AttributeDefinition = 0;
 
     template<typename AttributeType>[[nodiscard]] auto As() -> AttributeType;
 };
@@ -41,7 +41,9 @@ public:
 
     [[nodiscard]] auto GetCoreData() const -> CoreData final { return core_data_; };
 
-    [[nodiscard]] auto GetDefinition() const -> AttributeDefinition final{};
+    //[[nodiscard]] auto GetDefinition() const -> AttributeDefinition final
+    //{
+    //};
 
     auto SetCoreData(const CoreData& core_data) -> void { core_data_ = core_data; };
 

@@ -30,7 +30,7 @@ void Memory_Worker::Allocate(int kilobytes){
         impl_->Allocate(kilobytes);
         Log(func_name, Logger::WorkloadEvent::FINISHED, work_id);
     }catch(const std::exception& ex){
-        Log(func_name, Logger::WorkloadEvent::ERROR, work_id, "Allocation failed with exception: " + std::string(ex.what()));
+        Log(func_name, Logger::WorkloadEvent::Error, work_id, "Allocation failed with exception: " + std::string(ex.what()));
     }
 }
 
@@ -48,7 +48,7 @@ void Memory_Worker::Deallocate(int kilobytes){
         impl_->Deallocate(kilobytes);
         Log(func_name, Logger::WorkloadEvent::FINISHED, work_id);
     }catch(const std::exception& ex){
-        Log(func_name, Logger::WorkloadEvent::ERROR, work_id, "Deallocation failed with exception: " + std::string(ex.what()));
+        Log(func_name, Logger::WorkloadEvent::Error, work_id, "Deallocation failed with exception: " + std::string(ex.what()));
     }
 }
 

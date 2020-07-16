@@ -1,7 +1,7 @@
 
-#include <core/component.h>
-#include <workers/memory/memory_worker.h>
-#include <workers/memory/memory_worker_impl.h>
+#include "component.h"
+#include "memory_worker.h"
+#include "memory_worker_impl.h"
 
 #include "gtest/gtest.h"
 #include <limits>

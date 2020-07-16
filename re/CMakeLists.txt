@@ -60,7 +60,7 @@ if (BUILD_DOCS)
 endif ()
 
 # Build Docker client library
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/DockerClient")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/DockerClient")
 
 if (BUILD_TEST)
     #Build tests

@@ -53,7 +53,7 @@ class Logger{
             FINISHED = 1,
             MESSAGE = 2,
             WARNING = 3,
-            ERROR = 4,
+            Error = 4,
             MARKER = 5
         };
 

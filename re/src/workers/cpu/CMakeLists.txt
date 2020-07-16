@@ -1,19 +1,15 @@
-set(PROJ_NAME cpu_worker)
-project(${PROJ_NAME}
-        VERSION ${PROJECT_VERSION})
-
-add_library(${PROJ_NAME} SHARED "")
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
-set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(cpu_worker SHARED)
+target_compile_features(cpu_worker PRIVATE cxx_std_11)
+set_target_properties(cpu_worker PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # Disable Optimizing
 if (UNIX)
     SET(NO_OPTIMIZE_FLAG "-O0")
 elseif(MSVC)
-    SET(NO_OPTIMIZE_FLAG "-Od /wd4996 /wd4244")
+    #SET(NO_OPTIMIZE_FLAG "-Od /wd4996 /wd4244")
 endif(UNIX)
-target_compile_options(${PROJ_NAME} PRIVATE ${NO_OPTIMIZE_FLAG})
+target_compile_options(cpu_worker PRIVATE ${NO_OPTIMIZE_FLAG})
 
-target_sources(${PROJ_NAME} PRIVATE
+target_sources(cpu_worker PRIVATE
     # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker_impl.cpp
@@ -26,6 +22,11 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dhry.h
 )
-target_link_libraries(${PROJ_NAME} PUBLIC re_core)
+target_link_libraries(cpu_worker
+        PUBLIC 
+        re_core
+        )
+
+target_include_directories(cpu_worker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/profiler")
