@@ -1,8 +1,7 @@
-
 include(FetchContent)
 
+# Pugixml
 set(BUILD_TESTS OFF)
-set(protobuf_BUILD_TESTS OFF)
 FetchContent_Declare(
     pugixml
     GIT_REPOSITORY https://github.com/zeux/pugixml.git
@@ -13,12 +12,13 @@ if(NOT pugixml_POPULATE)
     add_subdirectory(${pugixml_SOURCE_DIR} ${pugixml_BINARY_DIR})
 endif()
 
+# Protobuf
+set(protobuf_BUILD_TESTS OFF)
 FetchContent_Declare(
     protobuf
     GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
     GIT_TAG v3.11.2
     )
-
 if(NOT protobuf_POPULATE)
     FetchContent_Populate(protobuf)
     add_subdirectory(${protobuf_SOURCE_DIR}/cmake ${protobuf_BINARY_DIR})
@@ -26,6 +26,7 @@ if(NOT protobuf_POPULATE)
 endif()
 find_package(protobuf)
 
+# ZeroMQ
 FetchContent_Declare(
     zeromq
     GIT_REPOSITORY https://github.com/zeromq/libzmq.git
@@ -36,6 +37,7 @@ if(NOT zeromq_POPULATE)
     add_subdirectory(${zeromq_SOURCE_DIR} ${zeromq_BINARY_DIR})
 endif()
 
+# cppzmq
 set(CPPZMQ_BUILD_TESTS OFF)
 FetchContent_Declare(
     cppzmq
