@@ -1,3 +1,4 @@
+find_package(protobuf REQUIRED)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/modelevent.proto)
 
 add_library(re_common_proto_modelevent)

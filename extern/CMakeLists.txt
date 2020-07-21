@@ -12,17 +12,6 @@ if (NOT pugixml_POPULATE)
     add_subdirectory(${pugixml_SOURCE_DIR} ${pugixml_BINARY_DIR})
 endif ()
 
-# gtest
-FetchContent_Declare(
-        gtest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.10.0
-)
-if (NOT gtest_POPULATE)
-    FetchContent_Populate(gtest)
-    add_subdirectory(${gtest_SOURCE_DIR} ${gtest_BINARY_DIR})
-endif ()
-
 # Protobuf
 set(protobuf_BUILD_TESTS OFF)
 FetchContent_Declare(
@@ -36,6 +25,20 @@ if (NOT protobuf_POPULATE)
     set(Protobuf_IMPORT_DIRS ${protobuf_SOURCE_DIR}/src PARENT_SCOPE)
 endif ()
 find_package(protobuf)
+
+if (BUILD_TEST)
+    # gtest
+    FetchContent_Declare(
+            gtest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG release-1.10.0
+    )
+    if (NOT gtest_POPULATE AND NOT TARGET gtest AND NOT TARGET gmock)
+    #if (NOT gtest_POPULATE)
+        FetchContent_Populate(gtest)
+        add_subdirectory(${gtest_SOURCE_DIR} ${gtest_BINARY_DIR})
+    endif ()
+endif ()
 
 # ZeroMQ
 FetchContent_Declare(
