@@ -1,7 +1,10 @@
 #!groovy
-@Library('cditma-utils') _
+
+// This isn't actually importing a jenkins library. Find information regarding jenkins shared libraries.
+//  See sem/src/jenkins/Utils.groovy
+@Library('jenkins') _
 import hudson.tasks.test.AbstractTestResultAction
-def utils = new cditma.Utils(this)
+def utils = new jenkins.Utils(this)
 
 final Boolean IS_TAG = env.TAG_NAME
 final GIT_ID = IS_TAG ? env.TAG_NAME : env.BRANCH_NAME

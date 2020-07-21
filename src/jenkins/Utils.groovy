@@ -63,7 +63,7 @@ class Utils implements Serializable {
         }
         else{
             if(return_status){
-                return context.powershell(returnStatus:true, script: script)
+                return context.powershell(returnStatus: true, script: script)
             }else{
                 return context.powershell(returnStdout: true, script: script)
             }
