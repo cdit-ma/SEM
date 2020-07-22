@@ -1,6 +1,4 @@
-find_package(protobuf REQUIRED)
-
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/testmessage.proto)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/testmessage.proto)
 
 add_library(re_types_proto_testmessage STATIC)
 

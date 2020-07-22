@@ -1,7 +1,7 @@
 
-#include <core/ports/primitivetranslator.hpp>
+#include "ports/primitivetranslator.hpp"
 #include <limits>
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 typedef int RE_integer;
 typedef float RE_float;

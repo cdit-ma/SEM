@@ -1,6 +1,4 @@
-find_package(protobuf REQUIRED)
-
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/experimentdefinition.proto)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/experimentdefinition.proto)
 
 add_library(experiment_definition_protocol)
 target_compile_features(experiment_definition_protocol PRIVATE cxx_std_14)

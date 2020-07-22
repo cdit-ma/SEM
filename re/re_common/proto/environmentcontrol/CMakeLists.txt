@@ -1,4 +1,4 @@
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontrol.proto)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontrol.proto)
 
 add_library(re_common_proto_environmentcontrol)
 target_compile_features(re_common_proto_environmentcontrol PRIVATE cxx_std_11)

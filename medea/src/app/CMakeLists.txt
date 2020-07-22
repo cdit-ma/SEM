@@ -7,8 +7,6 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt5 5.14
         COMPONENTS Widgets Network Concurrent REQUIRED)
 
-find_package(protobuf REQUIRED)
-
 # from https://stackoverflow.com/questions/44650008/cmake-install-third-party-dll-dependency
 MACRO(INSTALL_ADD_IMPORTED_DLLS target_list target_component destination_folder)
     foreach (one_trg ${target_list})

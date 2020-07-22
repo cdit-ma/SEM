@@ -1,7 +1,6 @@
-find_package(protobuf REQUIRED)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/modelevent.proto)
-
 add_library(re_common_proto_modelevent)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/modelevent.proto)
+
 target_compile_features(re_common_proto_modelevent PRIVATE cxx_std_11)
 set_target_properties(re_common_proto_modelevent PROPERTIES POSITION_INDEPENDENT_CODE ON)
 

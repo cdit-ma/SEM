@@ -63,10 +63,10 @@ target_link_libraries(re_core
         PUBLIC
         zmq_protowriter
         re_common_proto_modelevent
-        re_common_proto_control
         re_core_singletons
         Boost::boost
         PRIVATE
+        re_common_proto_control
         Boost::thread
         )
 # Have to use old CMake boost syntax TODO: Build all of Boost

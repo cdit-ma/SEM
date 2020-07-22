@@ -24,9 +24,10 @@ target_sources(re_node_manager_lib PRIVATE
 )
 target_include_directories(re_node_manager_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(re_node_manager_lib PUBLIC
-        re_core
+target_link_libraries(re_node_manager_lib
+        PUBLIC
         re_loggers
+        re_core
         zmq_protoreceiver
         zmq_protoreplier
         zmq_protowriter
@@ -50,10 +51,9 @@ target_sources(re_node_manager PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
 )
 target_link_libraries(re_node_manager
-        PUBLIC
-        re_node_manager_lib
-        re_core_singletons
         PRIVATE
+        re_core_singletons
+        re_node_manager_lib
         Boost::program_options
         sem_version
         )

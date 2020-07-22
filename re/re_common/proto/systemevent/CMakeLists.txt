@@ -1,5 +1,5 @@
 add_library(re_common_proto_systemevent)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/systemevent.proto)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/systemevent.proto)
 
 target_compile_features(re_common_proto_systemevent PRIVATE cxx_std_11)
 set_target_properties(re_common_proto_systemevent PROPERTIES POSITION_INDEPENDENT_CODE ON)

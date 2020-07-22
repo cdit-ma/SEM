@@ -19,8 +19,9 @@ target_include_directories(re_loggers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(re_loggers
         PUBLIC
         zmq_protowriter
-        re_core
         re_core_singletons
         Boost::dynamic_linking
         Boost::thread
+        PRIVATE
+        re_core
         )

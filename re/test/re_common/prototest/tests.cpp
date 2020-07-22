@@ -1,5 +1,5 @@
-#include <zmq/protoreceiver/protoreceiver.h>
-#include <zmq/protowriter/protowriter.h>
+#include "protoreceiver.h"
+#include "protowriter.h"
 #include <google/protobuf/util/time_util.h>
 #include "gtest/gtest.h"
 
