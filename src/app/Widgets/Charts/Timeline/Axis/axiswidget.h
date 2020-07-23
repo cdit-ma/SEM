@@ -26,6 +26,8 @@ public:
 
     void setDisplayFormat(TIME_DISPLAY_FORMAT format);
 
+    void setTimePadding(double padding) { time_padding_ = padding; } ;
+
     void setRange(QPair<double, double> range, bool updateDisplay = false);
     void setRange(double min, double max, bool updateDisplay = false);
     void setDisplayRange(double min, double max);
@@ -61,6 +63,8 @@ private:
     double min_;
     double max_;
     double range_;
+
+    double time_padding_ = 0.01;
     double zoomFactor_ = 1.1;
 };
 

@@ -87,16 +87,24 @@ private:
     void requestPortEvents(const PortEventRequest& request, PortInstanceData* requester);
     void requestNetworkUtilisationEvents(const UtilisationRequest& request, NodeData* requester);
 
+    void processExperimentRuns(MEDEA::ExperimentData* requester, const QString& exp_name, const QVector<AggServerResponse::ExperimentRun>& exp_runs);
+    void processExperimentState(MEDEA::ExperimentRunData* requester, const AggServerResponse::ExperimentState& exp_state);
+    void processPortLifecycleEvents(PortInstanceData* requester, const QVector<PortLifecycleEvent*>& events);
+    void processPortEvents(PortInstanceData* requester, const QVector<PortEvent*>& events);
+    void processWorkloadEvents(WorkerInstanceData* requester, const QVector<WorkloadEvent*>& events);
+    void processMarkerEvents(MarkerSetData* requester, const QString& exp_name, quint32 exp_run_id, const QVector<MarkerEvent*>& events);
+    void processCPUUtilisationEvents(NodeData* requester, const QVector<CPUUtilisationEvent*>& events);
+    void processMemoryUtilisationEvents(NodeData* requester, const QVector<MemoryUtilisationEvent*>& events);
+    void processNetworkUtilisationEvents(NodeData* requester, const QVector<NetworkUtilisationEvent*>& events);
+
+    MEDEA::ExperimentData* constructExperimentData(const QString& exp_name);
+    MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
+    MEDEA::ExperimentRunData& getExperimentRunData(const QString& exp_name, quint32 exp_run_id) const;
+
     void showDataForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
     void showPulseForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
     void showChartsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
     void showChartForSeries(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data);
-
-    void processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs);
-
-    MEDEA::ExperimentData* constructExperimentData(const QString& experiment_name);
-    MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
-    MEDEA::ExperimentRunData& getExperimentRunData(const QString& exp_name, quint32 exp_run_id) const;
 
     DataflowDialog* dataflowDialog_ = nullptr;
     ChartDialog* chartDialog_ = nullptr;

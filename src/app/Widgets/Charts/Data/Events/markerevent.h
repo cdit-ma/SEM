@@ -18,12 +18,13 @@ public:
 
     const QString& getID() const override;
 
+    QString getMarkerName() const;
     qint64 getMarkerID() const;
 
 private:
     QString id_;
-    QString marker_name_;
 
+    QString marker_name_;
     qint64 markerID_;
 };
 

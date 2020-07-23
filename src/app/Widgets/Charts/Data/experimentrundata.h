@@ -29,9 +29,14 @@ public:
     qint64 end_time() const;
     qint64 last_updated_time() const;
 
-    QList<NodeData*> getNodeData(const QString& hostname = "") const;
-    QList<PortConnectionData*> getPortConnectionData(const QString& id = "") const;
-    QList<MarkerSetData*> getMarkerSetData(const QString& id = "") const;
+    QList<NodeData*> getNodeData() const;
+    NodeData* getNodeData(const QString& hostname) const;
+
+    QList<PortConnectionData*> getPortConnectionData() const;
+    PortConnectionData* getPortConnectionData(const QString& id) const;
+
+    QList<MarkerSetData*> getMarkerSetData() const;
+    MarkerSetData* getMarkerSetData(const QString& marker_name) const;
 
     QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
     QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
@@ -39,9 +44,10 @@ public:
     QList<QPointer<const MEDEA::EventSeries>> getCPUUtilisationSeries() const;
     QList<QPointer<const MEDEA::EventSeries>> getMemoryUtilisationSeries() const;
     QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries() const;
-    //QList<QPointer<const MEDEA::EventSeries>> getMarkerEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getMarkerEventSeries() const;
 
     void updateData(const AggServerResponse::ExperimentState& exp_state);
+    MarkerSetData& addMarkerSetData(const QString& marker_name);
 
 signals:
     void requestData(quint32 exp_run_id);
@@ -50,7 +56,7 @@ signals:
 
 private:
     void addNodeData(const AggServerResponse::Node& node);
-    void addPortConnection(const AggServerResponse::PortConnection& port_connection);
+    void addPortConnectionData(const AggServerResponse::PortConnection& port_connection);
     void addMarkerSet(const QString& marker_name);
 
     QString experiment_name_;

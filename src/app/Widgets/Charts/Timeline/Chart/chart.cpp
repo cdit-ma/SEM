@@ -15,7 +15,7 @@ using namespace MEDEA;
 const double Chart::background_opacity_ = 0.25;
 const double Chart::border_width_ = 0.5;
 const double Chart::default_bin_width_ = 22.0;
-const double Chart::default_ellipse_width_ = 8.0;
+const double Chart::default_ellipse_width_ = 6.0;
 
 /**
  * @brief Chart::Chart
@@ -136,10 +136,10 @@ QPair<qint64, qint64> Chart::getHoveredTimeRange(ChartDataKind kind) const
  */
 void Chart::setRange(double min, double max)
 {
-	// add 1% on either side to include border values
+    // add a time padding on either side to include border values
 	auto range = max - min;
-	min = min - (range * 0.01);
-	max = max + (range * 0.01);
+	min = min - (range * time_padding_);
+	max = max + (range * time_padding_);
 
 	dataMinX_ = min;
 	dataMaxX_ = max;
@@ -349,9 +349,9 @@ void Chart::themeChanged()
     hoveredRectColor_ = theme->getActiveWidgetBorderColor();
 
     defaultTextPen_ = QPen(textColor_, 2.0);
-    defaultRectPen_ = QPen(theme->getAltTextColor(), border_width_);
-    defaultEllipsePen_ = QPen(theme->getAltTextColor(), 1.0);
-    highlightPen_ = QPen(theme->getHighlightColor(), 1.5);
+    defaultRectPen_ = QPen(theme->getAltBackgroundColor(), 1.0);
+    defaultEllipsePen_ = QPen(theme->getAltBackgroundColor(), 1.0);
+    highlightPen_ = QPen(theme->getHighlightColor(), 1.0);
     highlightBrush_ = QBrush(getContrastingColor(textColor_));
 
     setupPaintValues(*theme);
@@ -367,16 +367,16 @@ void Chart::setupPaintValues(Theme& theme)
     port_event_paint_vals_.paint_val.series_color = std::move(theme.getSeverityColor(Notification::Severity::WARNING));
     workload_event_paint_vals_.paint_val.series_color = std::move(QColor(0, 206, 209));
     marker_event_paint_vals_.series_color = std::move(QColor(221, 188, 153));
-    cpu_util_paint_vals_.series_color = std::move(QColor(40, 154, 255));
-    memory_util_paint_vals_.series_color = std::move(theme.getSeverityColor(Notification::Severity::SUCCESS));
 
-    network_util_paint_vals_.combined_color = Qt::blue;
+    cpu_util_paint_vals_.series_color = std::move(QColor(40,144,255));
+    memory_util_paint_vals_.series_color = std::move(QColor(30,185,30));
+    network_util_paint_vals_.received_color = std::move(QColor(199,41,153));
+    network_util_paint_vals_.combined_color = std::move(QColor(219,112,147));
+
     if (theme.getTextColor() == theme.black()) {
         network_util_paint_vals_.sent_color = Qt::darkCyan;
-        network_util_paint_vals_.received_color = Qt::darkMagenta;
     } else {
-        network_util_paint_vals_.sent_color = Qt::cyan;
-        network_util_paint_vals_.received_color = Qt::magenta;
+        network_util_paint_vals_.sent_color = std::move(QColor(85, 188, 190));
     }
 }
 
@@ -790,6 +790,7 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
 
     auto current_bin_index = 0;
     auto current_bin_itr = bin_end_times.constBegin();
+    auto start_time_itr = start_times.constBegin();
 
     while (current_bin_itr != bin_end_times.constEnd()) {
 
@@ -797,33 +798,32 @@ void Chart::paintMarkerEventSeries(QPainter& painter, const QPointer<const Marke
         auto total_duration = 0.0;
         auto number_of_id_sets = 0;
 
-        for (auto start_time_itr = start_times.constBegin(); start_time_itr != start_times.constEnd(); start_time_itr++) {
+        while (start_time_itr != start_times.constEnd()) {
             const auto& start_time = *start_time_itr;
             // Skip start times that are out of the display range
-            if (start_time < display_min) {
+            if (start_time < display_min || start_time >= display_max) {
+                start_time_itr++;
                 continue;
-            }
-            if (start_time >= display_max) {
-                break;
             }
             if (start_time > current_bin_end_time) {
                 break;
             }
             // Calculate average duration
             const auto& id_sets_at_start_time = start_times_map.value(start_time);
-            for (auto ID : id_sets_at_start_time) {
-                total_duration += id_set_duration.value(ID);
+            for (auto id : id_sets_at_start_time) {
+                total_duration += id_set_duration.value(id);
                 number_of_id_sets++;
             }
+            start_time_itr++;
         }
 
-        // Store the average duration at the current bin
+        // Calculate the average duration at the current bin
+        auto avg_duration = 0.0;
         if (number_of_id_sets > 0) {
-            bins[current_bin_index] = total_duration / number_of_id_sets;
-        } else {
-            bins[current_bin_index] = 0;
+            avg_duration = total_duration / number_of_id_sets;
         }
 
+        bins[current_bin_index] = avg_duration;
         current_bin_itr++;
         current_bin_index++;
 
@@ -1209,7 +1209,7 @@ void Chart::drawLineFromRects(QPainter& painter, const QList<QRectF>& rects, con
         painter.drawEllipse(rect);
         rectHovered(series_kind, rect);
     } else {
-        QPen linePen(color, 3.0);
+        QPen linePen(color, 2.0);
         for (int i = 0; i < rects.count() - 1; i++) {
             auto rect1 = rects.at(i);
             auto rect2 = rects.at(i + 1);
@@ -1362,7 +1362,7 @@ double Chart::getBinWidth(double target_bin_width) const
  * @brief Chart::getDisplayMin
  * @return
  */
-double Chart::getDisplayMin() const
+qint64 Chart::getDisplayMin() const
 {
     return (dataMaxX_ - dataMinX_) * minRatio_ + dataMinX_;
 }
@@ -1371,7 +1371,7 @@ double Chart::getDisplayMin() const
  * @brief Chart::getDisplayMax
  * @return
  */
-double Chart::getDisplayMax() const
+qint64 Chart::getDisplayMax() const
 {
     return (dataMaxX_ - dataMinX_) * maxRatio_ + dataMinX_;
 }
@@ -1397,5 +1397,5 @@ double Chart::mapTimeToPixel(double time)
 {
 	auto timeRange = getDisplayMax() - getDisplayMin();
 	auto adjustedTime = time - getDisplayMin();
-	return adjustedTime / timeRange * width();
+	return (double)adjustedTime / timeRange * width();
 }
