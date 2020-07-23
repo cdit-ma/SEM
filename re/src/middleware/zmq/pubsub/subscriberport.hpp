@@ -1,11 +1,11 @@
 #ifndef ZMQ_PORT_SUBSCRIBER_HPP
 #define ZMQ_PORT_SUBSCRIBER_HPP
 
-#include <core/threadmanager.h>
-#include <core/ports/pubsub/subscriberport.hpp>
-#include <middleware/proto/prototranslator.h>
-#include <middleware/zmq/zmqhelper.h>
-#include <zmq/zmqutils.hpp>
+#include "threadmanager.h"
+#include "ports/pubsub/subscriberport.hpp"
+#include "prototranslator.hpp"
+#include "zmqhelper.h"
+#include "zmqutils.hpp"
 
 namespace zmq{
     template <class BaseType, class ProtoType>

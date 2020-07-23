@@ -7,9 +7,9 @@
 // Include the proto convert functions for the port type
 #include "basic.pb.h"
 
-#include <core/ports/libportexport.h>
-#include <middleware/zmq/requestreply/replierport.hpp>
-#include <middleware/zmq/requestreply/requesterport.hpp>
+#include "ports/libportexport.h"
+#include "requestreply/replierport.hpp"
+#include "requestreply/requesterport.hpp"
 
 static int port_id = 7000;
 

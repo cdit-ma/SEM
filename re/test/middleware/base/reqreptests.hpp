@@ -1,7 +1,7 @@
 
 #include "basic.hpp"
-#include <core/ports/requestreply/requesterport.hpp>
-#include <core/ports/requestreply/replierport.hpp>
+#include "ports/requestreply/requesterport.hpp"
+#include "ports/requestreply/replierport.hpp"
 #include "../../core/testfunctions.h"
 
 namespace ReqRep{

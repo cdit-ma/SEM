@@ -7,9 +7,9 @@
 // Include the proto convert functions for the port type
 #include "basic.pb.h"
 
-#include <core/ports/libportexport.h>
-#include <middleware/zmq/pubsub/publisherport.hpp>
-#include <middleware/zmq/pubsub/subscriberport.hpp>
+#include "ports/libportexport.h"
+#include "pubsub/publisherport.hpp"
+#include "pubsub/subscriberport.hpp"
 
 static int port_id = 7000;
 
@@ -156,8 +156,9 @@ TEST(Re_Port_PubSub_Zmq, Basic_Terminate){
     RunTest(pub_port, sub_port, rx_callback_count);
 }
 
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <nodemanager/deploymentcontainer.h>
+#include "controlmessage.pb.h"
+#include "deploymentcontainer.h"
+#include "component.h"
 
 TEST(Re_Port_PubSub_Zmq, Deadlock){
     using namespace ::PubSub::Basic::Terminate;
@@ -193,8 +194,8 @@ TEST(Re_Port_PubSub_Zmq, Deadlock){
         EXPECT_TRUE(setup_pub_port(*pub_port, port_number));
         EXPECT_TRUE(setup_sub_port(*sub_port, port_number));
 
-        component_sptr->AddPort(std::move(pub_port));
-        component_sptr->AddPort(std::move(sub_port));
+        component_sptr->AddEventPort(std::move(pub_port));
+        component_sptr->AddEventPort(std::move(sub_port));
 
         //Attach a Logan
         std::string id{"logan_id"};

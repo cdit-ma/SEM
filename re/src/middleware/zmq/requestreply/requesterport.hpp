@@ -1,10 +1,10 @@
 #ifndef ZMQ_PORT_REQUESTER_HPP
 #define ZMQ_PORT_REQUESTER_HPP
 
-#include <core/ports/requestreply/requesterport.hpp>
-#include <middleware/proto/prototranslator.h>
-#include <middleware/zmq/zmqhelper.h>
-#include <zmq/zmqutils.hpp>
+#include "ports/requestreply/requesterport.hpp"
+#include "prototranslator.hpp"
+#include "zmqhelper.h"
+#include "zmqutils.hpp"
 
 namespace zmq{
 
