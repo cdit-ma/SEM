@@ -1,10 +1,10 @@
 #ifndef QPID_PORT_SUBSCRIBER_HPP
 #define QPID_PORT_SUBSCRIBER_HPP
 
-#include <core/threadmanager.h>
-#include <middleware/proto/prototranslator.h>
-#include <core/ports/pubsub/subscriberport.hpp>
-#include <middleware/qpid/qpidhelper.h>
+#include "threadmanager.h"
+#include "prototranslator.hpp"
+#include "ports/pubsub/subscriberport.hpp"
+#include "qpidhelper.h"
 
 #include <iostream>
 #include <mutex>

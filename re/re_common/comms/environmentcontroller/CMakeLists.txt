@@ -17,6 +17,10 @@ target_link_libraries(re_environment_controller_lib
         re_graphml_parser_lib
         re_common_proto_control
         )
+target_include_directories(re_environment_controller_lib
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 
 # Executable
 add_executable(re_environment_controller)

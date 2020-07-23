@@ -1,10 +1,10 @@
 #ifndef QPID_PORT_REPLIER_HPP
 #define QPID_PORT_REPLIER_HPP
 
-#include <core/threadmanager.h>
-#include <core/ports/requestreply/replierport.hpp>
-#include <middleware/proto/prototranslator.h>
-#include <middleware/qpid/qpidhelper.h>
+#include "threadmanager.h"
+#include "ports/requestreply/replierport.hpp"
+#include "prototranslator.hpp"
+#include "qpidhelper.h"
 
 #include <mutex>
 
