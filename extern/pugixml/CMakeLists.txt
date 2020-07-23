@@ -1,8 +1,7 @@
 
 # Pugixml
 message(STATUS "Fetching PugiXML")
-set(BUILD_TESTS OFF)
-cmake_policy(SET CMP0077 NEW)
+set(BUILD_TESTS OFF CACHE BOOL "")
 FetchContent_Declare(
         pugixml
         GIT_REPOSITORY https://github.com/zeux/pugixml.git

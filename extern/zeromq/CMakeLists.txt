@@ -1,6 +1,9 @@
 
 # ZeroMQ
 message(STATUS "Fetching ZeroMQ")
+set(BUILD_TESTS OFF CACHE BOOL "")
+set(ENABLE_DRAFTS OFF CACHE BOOL "")
+set(WITH_PERF_TOOL OFF CACHE BOOL "")
 FetchContent_Declare(
         zeromq
         GIT_REPOSITORY https://github.com/zeromq/libzmq.git
@@ -14,7 +17,7 @@ endif ()
 # cppzmq
 message(STATUS "Fetching cppzmq")
 message(WARNING "Pulling cppzmq from HEAD. Consider pinning to version/tag once cppzmq release version > 4.6.0")
-set(CPPZMQ_BUILD_TESTS OFF)
+set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "")
 cmake_policy(SET CMP0077 NEW)
 FetchContent_Declare(
         cppzmq

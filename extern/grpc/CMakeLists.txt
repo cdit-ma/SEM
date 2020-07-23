@@ -6,12 +6,22 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/grpc/grpc.git
         GIT_TAG v1.30.2
 )
+set(gRPC_BUILD_TESTS OFF CACHE BOOL "")
+set(gRPC_BUILD_CSHARP_EXT OFF CACHE BOOL "")
+set(gRPC_BUILD_GRPC_CSHARP_PLUGIN OFF CACHE BOOL "")
+set(gRPC_BUILD_GRPC_NODE_PLUGIN OFF CACHE BOOL "")
+set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "")
+set(gRPC_BUILD_GRPC_PHP_PLUGIN OFF CACHE BOOL "")
+set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "")
+set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "")
 if (NOT grpc_POPULATE)
     FetchContent_Populate(grpc)
     add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR})
     set(Protobuf_IMPORT_DIRS ${grpc_SOURCE_DIR}/third_party/protobuf/src PARENT_SCOPE)
 endif ()
 
+
+# CDIT-MA grpc/protobuf generation helper funcs
 function(CDIT_MA_GENERATE_PROTOBUF_CPP SRCS HDRS)
     if(NOT ARGN)
         message(SEND_ERROR "Error: CDIT_MA_GENERATE_PROTOBUF_CPP() called without any proto files")
