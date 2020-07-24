@@ -3,8 +3,6 @@
 message(STATUS "Fetching gRPC")
 FetchContent_Declare(
         grpc
-        GIT_REPOSITORY https://github.com/grpc/grpc.git
-        GIT_TAG v1.30.2
 )
 set(gRPC_BUILD_TESTS OFF CACHE BOOL "")
 set(gRPC_BUILD_CSHARP_EXT OFF CACHE BOOL "")
@@ -14,8 +12,14 @@ set(gRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN OFF CACHE BOOL "")
 set(gRPC_BUILD_GRPC_PHP_PLUGIN OFF CACHE BOOL "")
 set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "")
 set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "")
+
 if (NOT grpc_POPULATE)
-    FetchContent_Populate(grpc)
+    FetchContent_Populate(grpc
+            GIT_REPOSITORY https://github.com/grpc/grpc.git
+            GIT_TAG v1.30.2
+            GIT_SHALLOW TRUE
+            GIT_PROGRESS TRUE
+            )
     add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR})
     set(Protobuf_IMPORT_DIRS ${grpc_SOURCE_DIR}/third_party/protobuf/src PARENT_SCOPE)
 endif ()
@@ -23,38 +27,38 @@ endif ()
 
 # CDIT-MA grpc/protobuf generation helper funcs
 function(CDIT_MA_GENERATE_PROTOBUF_CPP SRCS HDRS)
-    if(NOT ARGN)
+    if (NOT ARGN)
         message(SEND_ERROR "Error: CDIT_MA_GENERATE_PROTOBUF_CPP() called without any proto files")
         return()
-    endif()
+    endif ()
 
-    if(PROTOBUF_GENERATE_CPP_APPEND_PATH) # This variable is common for all types of output.
+    if (PROTOBUF_GENERATE_CPP_APPEND_PATH) # This variable is common for all types of output.
         # Create an include path for each file specified
-        foreach(FIL ${ARGN})
+        foreach (FIL ${ARGN})
             get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
             get_filename_component(ABS_PATH ${ABS_FIL} PATH)
             list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
-            if(${_contains_already} EQUAL -1)
+            if (${_contains_already} EQUAL -1)
                 list(APPEND _protobuf_include_path -I ${ABS_PATH})
-            endif()
-        endforeach()
-    else()
+            endif ()
+        endforeach ()
+    else ()
         set(_protobuf_include_path -I ${CMAKE_CURRENT_SOURCE_DIR})
-    endif()
+    endif ()
 
-    if(DEFINED Protobuf_IMPORT_DIRS)
-        foreach(DIR ${Protobuf_IMPORT_DIRS})
+    if (DEFINED Protobuf_IMPORT_DIRS)
+        foreach (DIR ${Protobuf_IMPORT_DIRS})
             get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
             list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
-            if(${_contains_already} EQUAL -1)
+            if (${_contains_already} EQUAL -1)
                 list(APPEND _protobuf_include_path -I ${ABS_PATH})
-            endif()
-        endforeach()
-    endif()
+            endif ()
+        endforeach ()
+    endif ()
 
     set(${SRCS})
     set(${HDRS})
-    foreach(FIL ${ARGN})
+    foreach (FIL ${ARGN})
         get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
         get_filename_component(FIL_WE ${FIL} NAME_WE)
 
@@ -64,13 +68,13 @@ function(CDIT_MA_GENERATE_PROTOBUF_CPP SRCS HDRS)
         add_custom_command(
                 OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
                 "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-                COMMAND  $<TARGET_FILE:protoc>
+                COMMAND $<TARGET_FILE:protoc>
                 ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
                 ${_protobuf_include_path} ${ABS_FIL}
                 DEPENDS ${ABS_FIL} $<TARGET_FILE:protoc>
                 COMMENT "Running C++ protocol buffer compiler on ${FIL}"
                 VERBATIM)
-    endforeach()
+    endforeach ()
 
     set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
     set(${SRCS} ${${SRCS}} PARENT_SCOPE)
@@ -79,38 +83,38 @@ endfunction()
 
 
 function(CDIT_MA_GENERATE_GRPC_CPP SRCS HDRS)
-    if(NOT ARGN)
+    if (NOT ARGN)
         message(SEND_ERROR "Error: CDIT_MA_GENERATE_GRPC_CPP() called without any proto files")
         return()
-    endif()
+    endif ()
 
-    if(PROTOBUF_GENERATE_CPP_APPEND_PATH) # This variable is common for all types of output.
+    if (PROTOBUF_GENERATE_CPP_APPEND_PATH) # This variable is common for all types of output.
         # Create an include path for each file specified
-        foreach(FIL ${ARGN})
+        foreach (FIL ${ARGN})
             get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
             get_filename_component(ABS_PATH ${ABS_FIL} PATH)
             list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
-            if(${_contains_already} EQUAL -1)
+            if (${_contains_already} EQUAL -1)
                 list(APPEND _protobuf_include_path -I ${ABS_PATH})
-            endif()
-        endforeach()
-    else()
+            endif ()
+        endforeach ()
+    else ()
         set(_protobuf_include_path -I ${CMAKE_CURRENT_SOURCE_DIR})
-    endif()
+    endif ()
 
-    if(DEFINED Protobuf_IMPORT_DIRS)
-        foreach(DIR ${Protobuf_IMPORT_DIRS})
+    if (DEFINED Protobuf_IMPORT_DIRS)
+        foreach (DIR ${Protobuf_IMPORT_DIRS})
             get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
             list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
-            if(${_contains_already} EQUAL -1)
+            if (${_contains_already} EQUAL -1)
                 list(APPEND _protobuf_include_path -I ${ABS_PATH})
-            endif()
-        endforeach()
-    endif()
+            endif ()
+        endforeach ()
+    endif ()
 
     set(${SRCS})
     set(${HDRS})
-    foreach(FIL ${ARGN})
+    foreach (FIL ${ARGN})
         get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
         get_filename_component(FIL_WE ${FIL} NAME_WE)
 
@@ -127,7 +131,7 @@ function(CDIT_MA_GENERATE_GRPC_CPP SRCS HDRS)
                 DEPENDS ${ABS_FIL} $<TARGET_FILE:protoc>
                 COMMENT "Running gRPC C++ protocol buffer compiler on ${FIL}"
                 VERBATIM)
-    endforeach()
+    endforeach ()
 
     set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
     set(${SRCS} ${${SRCS}} PARENT_SCOPE)
