@@ -54,3 +54,6 @@ CMakeSettings.json.bak
 
 # CLion virtual environment for Python development
 /venv/
+/CMakeSettings.json
+/.vs
+/out/build/x64-Debug

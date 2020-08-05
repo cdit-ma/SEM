@@ -1,6 +1,6 @@
 # TODO: Reevaluate use of SHARED here, changed from STATIC to SHARED to get build working reliably on WSLUbuntu and
 #        ArchLinux
-add_library(re_common_proto_control SHARED)
+add_library(re_common_proto_control STATIC)
 cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
 
 target_compile_features(re_common_proto_control PRIVATE cxx_std_11)
