@@ -1,8 +1,8 @@
 #ifndef RE_OPENCL_WORKER_H
 #define RE_OPENCL_WORKER_H
 
-#include <core/component.h>
-#include <core/worker.h>
+#include "component.h"
+#include "worker.h"
 #include <optional>
 
 #include "buffer.hpp"
@@ -79,7 +79,7 @@ template<typename T> Re::OpenCL::Buffer<T> OpenCL_Worker::CreateBuffer(std::vect
         new_buffer.Track(*manager_);
         WriteBuffer(new_buffer, data, blocking);
     } catch(const std::exception& e) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
             std::string("Unable to create an OpenCL buffer from a vector: ") + e.what());
     }
     return new_buffer;
@@ -91,7 +91,7 @@ template<typename T> void OpenCL_Worker::ReleaseBuffer(Re::OpenCL::Buffer<T>& bu
         buffer.Untrack(*manager_);
         manager_->ReleaseBuffer(buffer);
     } catch(const std::exception& e) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
             std::string("Unable to release an OpenCL buffer: ") + e.what());
     }
 }
@@ -100,7 +100,7 @@ template<typename T>
 bool OpenCL_Worker::WriteBuffer(Re::OpenCL::Buffer<T>& buffer, const std::vector<T>& data, bool blocking)
 {
     if(devices_.size() == 0) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
             "Cannot write to buffer when worker has no associated devices");
         return false;
     }
@@ -114,7 +114,7 @@ bool OpenCL_Worker::WriteBuffer(Re::OpenCL::Buffer<T>& buffer, const std::vector
     for(const auto& dev_wrapper : devices_) {
         bool success = buffer.WriteData(data, dev_wrapper.get(), blocking);
         if(!success) {
-            Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+            Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
                 "Failed to write to Re::OpenCL::Buffer for device " + dev_wrapper.get().GetName());
             did_all_succeed = false;
         }
@@ -125,19 +125,19 @@ bool OpenCL_Worker::WriteBuffer(Re::OpenCL::Buffer<T>& buffer, const std::vector
 template<typename T> std::vector<T> OpenCL_Worker::ReadBuffer(const Re::OpenCL::Buffer<T>& buffer, bool blocking)
 {
     if(!IsBufferValid(buffer)) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
             "Cannot read from buffer when buffer is invalid");
         return std::vector<T>();
     }
 
     if(devices_.size() == 0) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
             "Cannot read from buffer when worker has no associated devices");
         return std::vector<T>();
     }
 
     if(devices_.size() > 1) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
             "Cannot read buffer using a worker that has multiple associated devices");
         return std::vector<T>();
     }
@@ -145,7 +145,7 @@ template<typename T> std::vector<T> OpenCL_Worker::ReadBuffer(const Re::OpenCL::
     try {
         return buffer.ReadData(devices_.at(0), blocking);
     } catch(const std::exception& e) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, get_new_work_id(),
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, get_new_work_id(),
             std::string("An error occurred while calling ReadBuffer:\n") + e.what());
         return std::vector<T>();
     }

@@ -6,7 +6,7 @@
 
 #include "opencl_worker.h"
 
-#include <core/worker.h>
+#include "worker.h"
 
 #include <algorithm>
 #include <fstream>

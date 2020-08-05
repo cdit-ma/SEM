@@ -6,7 +6,7 @@
 #include <mutex>
 #include <string>
 
-#include <core/worker.h>
+#include "worker.h"
 
 #include "kernel.hpp"
 #include "queue.h"

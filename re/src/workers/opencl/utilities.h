@@ -1,7 +1,7 @@
 #ifndef RE_OPENCL_UTILITIES_H
 #define RE_OPENCL_UTILITIES_H
 
-#include <core/logger.h>
+#include "logger.h"
 #include <iostream>
 #include <string>
 

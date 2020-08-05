@@ -6,8 +6,8 @@
 #include <optional>
 #include <unordered_map>
 
-#include <core/logger.h>
-#include <core/worker.h>
+#include "logger.h"
+#include "worker.h"
 
 #include "buffer.hpp"
 #include "device.h"
