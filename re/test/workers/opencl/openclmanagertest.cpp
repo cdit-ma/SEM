@@ -3,12 +3,12 @@
 #include <iostream>
 #include <random>
 #include <vector>
-#include <workers/opencl/manager.h>
-#include <workers/opencl/opencl_worker.h>
-#include <workers/opencl/utilities.h>
+#include "manager.h"
+#include "opencl_worker.h"
+#include "utilities.h"
 
 #include "common.h"
-#include <core/loggers/print_logger.h>
+#include "print_logger.h"
 
 using namespace Re::OpenCL;
 

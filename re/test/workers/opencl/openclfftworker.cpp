@@ -1,5 +1,5 @@
 #include "common.h"
-#include <workers/opencl/opencl_worker.h>
+#include "opencl_worker.h"
 
 #include <cmath>
 #include <random>
