@@ -1,6 +1,7 @@
 include(FetchContent)
 add_subdirectory(gtest)
 add_subdirectory(pugixml)
+add_subdirectory(sigar)
 add_subdirectory(grpc)
 add_subdirectory(zeromq)
 set(Protobuf_IMPORT_DIRS ${Protobuf_IMPORT_DIRS} PARENT_SCOPE)

@@ -1,4 +1,4 @@
-if (Sigar_FOUND)
+if (TARGET sigar)
     add_subdirectory(sigar)
 else ()
     add_subdirectory(dummy)

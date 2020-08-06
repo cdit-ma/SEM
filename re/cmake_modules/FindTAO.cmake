@@ -56,7 +56,7 @@ if(NOT ACE_ROOT)
 endif()
 
 if(NOT ACE_ROOT)
-    message(STATUS "Error: ACE_ROOT not set as an Environment Variable")
+    message(WARNING "ACE_ROOT not set as an Environment Variable")
     return()
 endif()
 
