@@ -348,7 +348,7 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
         
         std::cout << "* Activating Deployment" << std::endl;
 
-        PushStateChange(ControlMessage::ACTIVATE);
+        PushStateChange(ControlMessage_Type_ACTIVATE);
         
 
         if(terminate_future.valid()){
@@ -366,10 +366,10 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
                 }
             }
         }
-        PushStateChange(ControlMessage::PASSIVATE);
+        PushStateChange(ControlMessage_Type_PASSIVATE);
     }
 
-    PushStateChange(ControlMessage::TERMINATE);
+    PushStateChange(ControlMessage_Type_TERMINATE);
 
     std::cout << "--------[Slave De-registration]--------" << std::endl;
     {
