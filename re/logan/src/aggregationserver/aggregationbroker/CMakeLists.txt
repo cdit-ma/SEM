@@ -23,7 +23,7 @@ target_sources(aggregation_broker PRIVATE
 #target_compile_definitions(aggregation_broker PRIVATE -DBOOST_ALL_DYN_LINK)
 target_compile_features(aggregation_broker PRIVATE cxx_std_17)
 if (CMAKE_CXX_COMPILER_ID MATCHES "[cC][lL][aA][nN][gG]") #Case insensitive match
-	target_compile_options(${PROJECT_NAME} PRIVATE -Wdocumentation )
+	target_compile_options(aggregation_broker PRIVATE -Wdocumentation )
 endif()
 
 # Review (Jackson): Are these libraries really needed from this location?
