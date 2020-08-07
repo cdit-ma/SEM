@@ -42,10 +42,13 @@ configure_file(sqlstrings.h.in sqlstrings.h @ONLY)
 add_executable(aggregation_server)
 target_compile_features(aggregation_server PRIVATE cxx_std_17)
 
-if (UNIX)
+# Review (Jackson): Are these libraries really needed from this location?
+if(UNIX)
 	# Unix needs to include pthread
-	target_link_libraries(aggregation_server pthread)
-    target_link_libraries(aggregation_server dl)
+	target_link_libraries(aggregation_server
+		PUBLIC
+		pthread
+		dl)
 endif()
 
 target_sources(aggregation_server

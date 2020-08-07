@@ -26,10 +26,13 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "[cC][lL][aA][nN][gG]") #Case insensitive matc
 	target_compile_options(${PROJECT_NAME} PRIVATE -Wdocumentation )
 endif()
 
+# Review (Jackson): Are these libraries really needed from this location?
 if(UNIX)
 	# Unix needs to include pthread
-	target_link_libraries(aggregation_broker pthread)
-    target_link_libraries(aggregation_broker dl)
+	target_link_libraries(aggregation_broker
+		PUBLIC
+		pthread
+		dl)
 endif()
 
 
