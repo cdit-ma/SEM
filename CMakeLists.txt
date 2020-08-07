@@ -16,7 +16,7 @@ endif ()
 # Enforce AT LEAST c++11. This project requires c++17 in most places aside from some dependencies (protobuf).
 # This needs to be done at top level to ensure that protobuf gets built against c++11.
 # Came to light as part of SEM-242, SEM-231
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 # Ensure -std=c++xx instead of -std=g++xx
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED true)

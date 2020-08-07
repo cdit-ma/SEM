@@ -891,20 +891,20 @@ void AggregationReplier::FillContainerState(Container& container,
     }
 }
 
-void AggregationReplier::FillInterfaceState(NetworkInterface& interface,
+void AggregationReplier::FillInterfaceState(NetworkInterface& network_interface,
                                             const pqxx::row& interface_values,
                                             int experiment_run_id)
 {
     int network_interface_id = -1;
     try {
         network_interface_id = interface_values.at("InterfaceID").as<int>();
-        interface.set_name(interface_values.at("Name").as<std::string>());
-        interface.set_type(interface_values.at("Type").as<std::string>());
-        interface.set_description(interface_values.at("Description").as<std::string>());
-        interface.set_ipv4(interface_values.at("IPv4").as<std::string>());
-        interface.set_ipv6(interface_values.at("IPv6").as<std::string>());
-        interface.set_mac_address(interface_values.at("MAC").as<std::string>());
-        interface.set_speed(interface_values.at("Speed").as<int64_t>());
+        network_interface.set_name(interface_values.at("Name").as<std::string>());
+        network_interface.set_type(interface_values.at("Type").as<std::string>());
+        network_interface.set_description(interface_values.at("Description").as<std::string>());
+        network_interface.set_ipv4(interface_values.at("IPv4").as<std::string>());
+        network_interface.set_ipv6(interface_values.at("IPv6").as<std::string>());
+        network_interface.set_mac_address(interface_values.at("MAC").as<std::string>());
+        network_interface.set_speed(interface_values.at("Speed").as<int64_t>());
     } catch(const std::exception& e) {
         std::cerr << "An exception occurred while populating ExperimentStateResponse "
                      "NetworkInterface with ID="

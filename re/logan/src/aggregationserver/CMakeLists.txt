@@ -1,11 +1,5 @@
-set(AGGREGATION_SERVER "aggregation_server")
-set(PROJ_NAME ${AGGREGATION_SERVER})
-
-project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
-
 #Find packages
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
-find_package(libpqxx REQUIRED)
 
 # Build the DatabaseClient library
 set(LOGAN_DB_CLIENT_LIB "logan_database_client_lib")
@@ -25,16 +19,16 @@ target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${CMAKE_CURRENT_BINARY
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_BINARY_DIR})
 target_include_directories(${LOGAN_DB_CLIENT_LIB} PRIVATE ${RE_COMMON_SOURCE_DIR})
 
-if (TARGET libpqxx::pqxx)
-        target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx)
-elseif (TARGET libpqxx::pqxx_static)
+if (TARGET pqxx)
+        target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC pqxx)
+elseif (TARGET pqxx_static)
         # This fallback triggers on Ubuntu and centos
-	message(WARNING "libpqxx::pqxx target not found, falling back to libpqxx::pqxx_static")
-        target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC libpqxx::pqxx_static)
+	message(WARNING "pqxx target not found, falling back to pqxx_static")
+        target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC pqxx_static)
 else ()
-        message(FATAL_ERROR "No viable libpqxx target found (couldn't find libpqxx::pqxx or libpqxx::pqxx_static")
+        message(FATAL_ERROR "No viable libpqxx target found (couldn't find pqxx or pqxx_static")
 endif ()
-target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC ${PROTOBUF_LIBRARIES})
+target_link_libraries(${LOGAN_DB_CLIENT_LIB} PUBLIC protobuf::libprotobuf)
 
 
 add_subdirectory("aggregationbroker")
@@ -44,7 +38,19 @@ add_subdirectory("aggregationbroker")
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/aggserverschema.sql SQL_INIT_DB_SCHEMA)
 configure_file(sqlstrings.h.in sqlstrings.h @ONLY)
 
-set(SOURCES
+# Construct an aggregation_server binary
+add_executable(aggregation_server)
+target_compile_features(aggregation_server PRIVATE cxx_std_17)
+
+if (UNIX)
+	# Unix needs to include pthread
+	target_link_libraries(aggregation_server pthread)
+    target_link_libraries(aggregation_server dl)
+endif()
+
+target_sources(aggregation_server
+    PRIVATE
+    # Sources
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/aggregationprotohandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerprotohandler.cpp
@@ -53,8 +59,7 @@ set(SOURCES
         #    ${CMAKE_CURRENT_SOURCE_DIR}/databaseclient.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/experimenttracker.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
-)
-set(HEADERS
+    # Headers
 	${CMAKE_CURRENT_SOURCE_DIR}/aggregationserver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/aggregationprotohandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerprotohandler.h
@@ -67,53 +72,26 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/sqlstrings.h.in
 	${CMAKE_CURRENT_SOURCE_DIR}/unboundedtimerange.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/prototimerange.hpp
-
     ${CMAKE_CURRENT_BINARY_DIR}/sqlstrings.h
-		)
+)
+target_include_directories(aggregation_server
+        PRIVATE
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${LOGAN_SRC_PATH}
+        ${RE_COMMON_BINARY_DIR}
+        ${RE_COMMON_SOURCE_DIR}
+        )
 
 
-# Construct an aggregation_server binary
-add_executable(${PROJ_NAME} ${SOURCES} ${HEADERS})
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
-
-if (UNIX)
-	# Unix needs to include pthread
-	target_link_libraries(${PROJ_NAME} pthread)
-    target_link_libraries(${PROJ_NAME} dl)
-endif()
-
-target_include_directories(${PROJ_NAME} PRIVATE ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PRIVATE ${LOGAN_SRC_PATH})
-
-target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_BINARY_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${RE_COMMON_SOURCE_DIR})
-
-
-target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
-target_link_libraries(${PROJ_NAME} zmq_protorequester)
-target_link_libraries(${PROJ_NAME} zmq_protowriter)
-target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
-target_link_libraries(${PROJ_NAME} re_common_proto_control)
-target_link_libraries(${PROJ_NAME} re_common_proto_systemevent)
-target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-
-target_link_libraries(${PROJ_NAME} ${LOGAN_DB_CLIENT_LIB})
-
-#if(NOT DISABLE_MODEL_LOGGING)
-#    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/modelprotohandler")
-#    target_link_libraries(${LOGAN_SERVER_LIB} modelprotohandler)
-#else()
-#    target_compile_definitions(${LOGAN_SERVER_LIB} PRIVATE DISABLE_MODEL_HANDLER)
-#endif()
-
-#if(NOT DISABLE_HARDWARE_LOGGING)
-#    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/hardwareprotohandler")
-#    target_link_libraries(${LOGAN_SERVER_LIB} hardwareprotohandler)
-#else()
-#    target_compile_definitions(${LOGAN_SERVER_LIB} PRIVATE DISABLE_HARDWARE_HANDLER)
-#endif()
-
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/managedserver")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/standaloneserver")
+target_link_libraries(aggregation_server
+        PUBLIC
+        Boost::program_options
+        PRIVATE
+        zmq_protoreceiver
+        zmq_protorequester
+        zmq_protowriter
+        re_common_proto_modelevent
+        re_common_proto_control
+        re_common_proto_systemevent
+        ${LOGAN_DB_CLIENT_LIB}
+        )

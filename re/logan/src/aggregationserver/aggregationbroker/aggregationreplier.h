@@ -144,7 +144,7 @@ private:
      * @param interface_values A row returned from a pqxx database query that is associated with a particular interface
      * @param experiment_run_id The identifier for the experiment run this interface is associated with
      */
-    void FillInterfaceState(AggServer::NetworkInterface& interface,
+    void FillInterfaceState(AggServer::NetworkInterface& network_interface,
                             const pqxx::row& interface_values,
                             int experiment_run_id);
 
