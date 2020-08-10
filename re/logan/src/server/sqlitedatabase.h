@@ -13,7 +13,11 @@ class sqlite3;
 
 class SQLiteDatabase{
     public:
+
+        /// Creates sqlite database handle pointing to sqlite database at databaseFilepath
         SQLiteDatabase(const std::string& databaseFilepath);
+        /// Creates "in memory" sqlite database
+        SQLiteDatabase();
         ~SQLiteDatabase();
         
         sqlite3_stmt* GetSqlStatement(const std::string& query);

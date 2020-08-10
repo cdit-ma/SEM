@@ -8,7 +8,7 @@
 #include <limits>
 
 TEST(Logan, TableCreation){
-    SQLiteDatabase db(":memory");
+    SQLiteDatabase db{};
 
     Table table1(db, "table1");
     
@@ -23,7 +23,7 @@ TEST(Logan, TableCreation){
 }
 
 TEST(Logan, TableInsertion_BigInts){
-    SQLiteDatabase db(":memory:");
+    SQLiteDatabase db{};
     Table table(db, "test_table");
     
     //Construct 4 tables
