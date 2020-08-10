@@ -24,7 +24,7 @@ ToType TranslatePrimitive(const FromType& value){
         throw std::invalid_argument("Can't convert from large unsigned to other type");
     }
     
-   if(translated_type != value){
+    if(translated_type != value){
         std::string except = "Can't convert from type: '";
         except += std::string(typeid(FromType).name());
         except += "' TO '";
