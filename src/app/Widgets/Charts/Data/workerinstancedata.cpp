@@ -76,6 +76,7 @@ const WorkloadRequest& WorkerInstanceData::getWorkloadRequest() const
 void WorkerInstanceData::addWorkloadEvents(const QVector<WorkloadEvent*>& events)
 {
     for (const auto& event : events) {
+        // TODO: Once the request filtering is fixed, this check can be removed
         if (event->getWorkerInstPath() != path_) {
             continue;
         }
@@ -126,7 +127,8 @@ void WorkerInstanceData::updateData(qint64 new_last_updated_time)
  */
 void WorkerInstanceData::setupRequests()
 {
-    // TODO: There is currently a bug with the filtering - we also get events with different worker instance paths
+    // TODO: There is currently a bug with the filtering
+    //  We get events with different worker instance paths
     workload_request_.setExperimentRunID(experiment_run_id_);
     workload_request_.setWorkerInstanceIDs({graphml_id_});
     workload_request_.setWorkerInstancePaths({path_});
@@ -134,6 +136,7 @@ void WorkerInstanceData::setupRequests()
     // INSPECT: These extra request fields are returning unexpected events
     //  When they are added, they also return workload events from other children ports of the parenting ComponentInstance
     // TODO: Find out what is causing this
+    // Update: Filtering doesn’t work in the aggregation broker for certain combinations of filter strings on certain types of events, particularly workload events
     //workload_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
     //workload_request_.setComponentInstancePaths({comp_inst.getPath()});
 }

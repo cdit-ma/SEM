@@ -531,6 +531,7 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_IMPL);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_INST);
+    chart_valid_node_kinds.insert(NODE_KIND::FUNCTION_CALL);
     chart_valid_node_kinds.insert(NODE_KIND::CLASS_INST);
     chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_NODE);
     chart_valid_node_kinds.insert(NODE_KIND::INTERFACE_DEFINITIONS);
@@ -558,6 +559,9 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
                 return validDataKinds;
             }
             if ((nodeKind == NODE_KIND::CLASS_INST) && !nodeItem->getData(KeyName::IsWorker).toBool()) {
+                return validDataKinds;
+            }
+            if ((nodeKind == NODE_KIND::FUNCTION_CALL) && nodeItem->getData(KeyName::Label).toString() != "Marker") {
                 return validDataKinds;
             }
             selectedKinds.insert(nodeKind);
@@ -594,6 +598,9 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::PORT_SUBSCRIBER_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_EVENT);
+                break;
+            case NODE_KIND::FUNCTION_CALL:
+                validDataKinds.insert(MEDEA::ChartDataKind::MARKER);
                 break;
             case NODE_KIND::CLASS_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);

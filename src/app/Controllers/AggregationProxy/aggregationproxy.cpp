@@ -147,8 +147,8 @@ void AggregationProxy::SetServerEndpoint(const QString &endpoint)
 {
     try {
         requester_.reset(new AggServer::Requester(endpoint.toStdString()));
-    } catch (const std::invalid_argument& ia) {
-        throw NoRequesterException(ia.what());
+    } catch (const std::exception& ex) {
+        throw NoRequesterException(ex.what());
     }
 }
 

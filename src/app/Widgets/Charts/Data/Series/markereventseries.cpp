@@ -142,6 +142,10 @@ void MarkerEventSeries::addEvent(MEDEA::Event* event)
         } else {
             startTimeMap_[minTime].insert(markerID);
         }
+        for (const auto& m : markerIDSetDurations_) {
+            auto id = markerIDSetDurations_.key(m);
+            auto range = markerIDSetRanges_.value(id);
+        }
 
         addEventToList(*event);
     }

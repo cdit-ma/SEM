@@ -215,8 +215,10 @@ void TimelineChartView::setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format)
 {
 	timelineAxis_->setDisplayFormat(format);
 	timeDisplayFormat_ = format;
+    updateTimelineRange();
 
-    updateTimelineRange(false);
+    // TODO: Figure out how to change the displayed time format without resetting the current displayed range
+    //updateTimelineRange(false);
 }
 
 /**
@@ -604,6 +606,7 @@ void TimelineChartView::decrementSeriesCountForExperimentRun(quint32 experimentR
  */
 void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
 {
+    static const qint64 time_padding = 1;
 	auto startTime = totalTimeRange_.first;
 	auto duration = totalTimeRange_.second - totalTimeRange_.first;
 

@@ -29,22 +29,29 @@ public:
     qint64 end_time() const;
     qint64 last_updated_time() const;
 
-    QList<NodeData*> getNodeData() const;
-    NodeData* getNodeData(const QString& hostname) const;
-
-    QList<PortConnectionData*> getPortConnectionData() const;
-    PortConnectionData* getPortConnectionData(const QString& id) const;
+    QList<NodeData*> getNodeData(const QString& hostname = "") const;
+    QList<PortConnectionData*> getPortConnectionData(const QString& id = "") const;
 
     QList<MarkerSetData*> getMarkerSetData() const;
     MarkerSetData* getMarkerSetData(const QString& marker_name) const;
 
     QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const;
+
     QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const;
+
     QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getCPUUtilisationSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getMemoryUtilisationSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getMarkerEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& worker_inst_paths) const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getCPUUtilisationSeries(const QString& hostname = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getCPUUtilisationSeries(const QStringList& hostnames) const;
+    QList<QPointer<const MEDEA::EventSeries>> getMemoryUtilisationSeries(const QString& hostname = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getMemoryUtilisationSeries(const QStringList& hostnames) const;
+    QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries(const QString& hostname = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries(const QStringList& hostnames) const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getMarkerEventSeries(const QString& marker_name = "") const;
 
     void updateData(const AggServerResponse::ExperimentState& exp_state);
     MarkerSetData& addMarkerSetData(const QString& marker_name);
@@ -57,7 +64,6 @@ signals:
 private:
     void addNodeData(const AggServerResponse::Node& node);
     void addPortConnectionData(const AggServerResponse::PortConnection& port_connection);
-    void addMarkerSet(const QString& marker_name);
 
     QString experiment_name_;
     quint32 experiment_run_id_;
