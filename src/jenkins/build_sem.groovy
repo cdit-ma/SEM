@@ -90,7 +90,13 @@ pipeline{
                         test_map[node_name] = {
                             node(node_name){
                                 def re_path = pwd()
-                                dir("build/bin/test/gtest"){
+                                def test_dir = "/build/bin/test/gtest"
+                                // If windows, use top level binary directory s.t. we don't run into dll linking issues.
+                                // TODO: Change tests to build into libs and run through single "test runner" binary
+                                if(!isUnix()) {
+                                    test_dir = "build/bin"
+								}
+                                dir(test_dir){
                                     def glob_str = "test_*"
 
                                     def tests_list = findFiles glob: glob_str

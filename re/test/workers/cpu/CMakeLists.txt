@@ -10,6 +10,6 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
 )
 
-target_link_libraries(${PROJ_NAME} PRIVATE cpu_worker)
+target_link_libraries(${PROJ_NAME} PUBLIC cpu_worker)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest_main)
