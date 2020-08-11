@@ -2,7 +2,7 @@
 #define WORKERS_DIS_DISWORKER_H
 
 #include <memory>
-#include <core/worker.h>
+#include "worker.h"
 #include <functional>
 
 #define DIS_VERSION 5
@@ -10,7 +10,7 @@
 // DIS uses dynamic exception specifications in their headers
 // This macro replaces any instance of throw(<exception_type>) in the wrapped header with throw()
 // Necessary for cxx_std_17 compliance
-#if __cplusplus > 201703L
+#if __cplusplus >= 201703L
 #define throw(...) throw()
 #include <KDIS/Extras/PDU_Factory.h>
 #undef throw
