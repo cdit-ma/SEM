@@ -1,7 +1,7 @@
 #ifndef OSPL_DATAREADERLISTENER_H
 #define OSPL_DATAREADERLISTENER_H
 
-#include <core/ports/pubsub/subscriberport.hpp>
+#include "ports/pubsub/subscriberport.hpp"
 
 #include <dds/dds.hpp>
 

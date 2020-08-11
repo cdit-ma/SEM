@@ -1,9 +1,9 @@
 #ifndef RTI_PORT_SUBSCRIBER_HPP
 #define RTI_PORT_SUBSCRIBER_HPP
 
-#include <middleware/rti/helper.hpp>
-#include <middleware/rti/pubsub/datareaderlistener.hpp>
-#include <core/ports/pubsub/subscriberport.hpp>
+#include "helper.hpp"
+#include "pubsub/datareaderlistener.hpp"
+#include "ports/pubsub/subscriberport.hpp"
 
 #include <string>
 #include <thread>

@@ -1,8 +1,8 @@
 #ifndef RTI_PORT_PUBLISHER_HPP
 #define RTI_PORT_PUBLISHER_HPP
 
-#include <middleware/rti/helper.hpp>
-#include <core/ports/pubsub/publisherport.hpp>
+#include "helper.hpp"
+#include "ports/pubsub/publisherport.hpp"
 
 
 #include <string>

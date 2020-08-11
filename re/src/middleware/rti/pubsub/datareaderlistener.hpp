@@ -1,7 +1,7 @@
 #ifndef RTI_DATAREADERLISTENER_H
 #define RTI_DATAREADERLISTENER_H
 
-#include <core/ports/pubsub/subscriberport.hpp>
+#include "ports/pubsub/subscriberport.hpp"
 
 #include <rti/rti.hpp>
 

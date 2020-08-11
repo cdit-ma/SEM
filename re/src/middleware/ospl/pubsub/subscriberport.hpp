@@ -1,9 +1,9 @@
 #ifndef OSPL_PORT_SUBSCRIBER_HPP
 #define OSPL_PORT_SUBSCRIBER_HPP
 
-#include <middleware/ospl/helper.hpp>
-#include <middleware/ospl/pubsub/datareaderlistener.hpp>
-#include <core/ports/pubsub/subscriberport.hpp>
+#include "helper.hpp"
+#include "pubsub/datareaderlistener.hpp"
+#include "ports/pubsub/subscriberport.hpp"
 
 #include <string>
 #include <thread>

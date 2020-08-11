@@ -17,4 +17,5 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
 )
 target_include_directories(${PROJ_NAME} PUBLIC ${OSPL_DDS_INCLUDE_DIRS})
+target_include_directories(${PROJ_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJ_NAME} PUBLIC ${OSPL_DDS_LIBRARIES})
