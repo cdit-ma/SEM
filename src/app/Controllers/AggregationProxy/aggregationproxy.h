@@ -26,9 +26,9 @@ class NoRequesterException : public QException {
 public:
     NoRequesterException() = default;
     explicit NoRequesterException(QString error)
-            : error_(std::move(error)) {}
-
-    QString What() const{
+            : error_(std::move(error.trimmed())) {}
+// TODO: We should make sure we pass the info string to the base std:exception class so that exception::what() works as expected
+    QString toString() const{
         return error_;
     }
     void raise() const override { throw *this; }
@@ -40,9 +40,9 @@ private:
 class RequestException : public QException {
 public:
     explicit RequestException(QString error)
-            : error_(std::move(error)) {}
+            : error_(std::move(error.trimmed())) {}
 
-    QString What() const{
+    QString toString() const{
         return error_;
     }
     void raise() const override { throw *this; }
@@ -54,9 +54,9 @@ private:
 class MalformedProtoException : public QException {
 public:
     explicit MalformedProtoException(QString error)
-        : error_(std::move(error)) {}
+        : error_(std::move(error.trimmed())) {}
 
-    QString What() const{
+    QString toString() const{
         return error_;
     }
     void raise() const override { throw *this; }

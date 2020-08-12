@@ -180,12 +180,12 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experiment_name.toStdString());
         
-        auto results = requester_->GetExperimentRuns(request);
+        const auto& results = requester_->GetExperimentRuns(request);
         for (const auto& exp : results->experiments()) {
             try {
                 runs.append(ConstructExperimentRuns(exp));
             } catch (const MalformedProtoException& ex) {
-                emit toastNotification(ex.What(), "chart", Notification::Severity::ERROR);
+                emit toastNotification(ex.toString(), "chart", Notification::Severity::ERROR);
             }
         }
 
@@ -385,7 +385,7 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const Ut
             agg_request.add_node_hostnames(name.toStdString());
         }
 
-        auto results = requester_->GetCPUUtilisation(agg_request);
+        const auto& results = requester_->GetCPUUtilisation(agg_request);
         for (const auto& node : results->nodes()) {
             const auto& host_name = ConstructQString(node.node_info().hostname());
             for (const auto& e : node.events()) {
@@ -425,7 +425,7 @@ QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(co
             agg_request.add_node_hostnames(name.toStdString());
         }
 
-        auto results = requester_->GetMemoryUtilisation(agg_request);
+        const auto& results = requester_->GetMemoryUtilisation(agg_request);
         for (const auto& node : results->nodes()) {
             const auto& host_name = ConstructQString(node.node_info().hostname());
             for (const auto& e : node.events()) {
@@ -474,7 +474,7 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
             agg_request.add_worker_instance_paths(path.toStdString());
         }
 
-        auto results = requester_->GetMarkers(agg_request);
+        const auto& results = requester_->GetMarkers(agg_request);
         for (const auto& nameSet : results->marker_name_sets()) {
             const auto& name = ConstructQString(nameSet.name());
             for (const auto& idSet : nameSet.marker_id_set()) {
@@ -537,7 +537,7 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest& requ
 
         return events;
 
-    } catch (const std::exception &ex) {
+    } catch (const std::exception& ex) {
         throw RequestException(ex.what());
     }
 }

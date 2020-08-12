@@ -141,9 +141,9 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 		}
 
 	} catch (const NoRequesterException& ex) {
-		toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.What(), "chart", Notification::Severity::ERROR);
+		toastNotification("ExperimentDataManager::requestExperimentData - Failed to set up the aggregation server: " + ex.toString(), "chart", Notification::Severity::ERROR);
 	} catch (const RequestException& ex) {
-		toastNotification("ExperimentDataManager::requestExperimentData - Failed to request experiment data: " + ex.What(), "chart", Notification::Severity::ERROR);
+		toastNotification("ExperimentDataManager::requestExperimentData - Failed to request experiment data: " + ex.toString(), "chart", Notification::Severity::ERROR);
 	} catch (const std::exception& ex) {
 		toastNotification("ExperimentDataManager::requestExperimentData: " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
 	}
@@ -161,6 +161,8 @@ void ExperimentDataManager::requestExperimentRuns(const QString& experimentName,
     connect(futureWatcher, &QFutureWatcher<QVector<AggServerResponse::ExperimentRun>>::finished, [this, experimentName, futureWatcher, requester]() {
         try {
             processExperimentRuns(requester, experimentName, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get experiment runs - " + ex.toString(), "chart", Notification::Severity::ERROR);
         } catch(const std::exception& ex) {
             toastNotification("Failed to get experiment runs - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
         }
@@ -180,6 +182,8 @@ void ExperimentDataManager::requestExperimentState(const quint32 experimentRunID
     connect(futureWatcher, &QFutureWatcher<AggServerResponse::ExperimentState>::finished, [this, futureWatcher, requester]() {
         try {
             processExperimentState(requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get experiment state - " + ex.toString(), "chart", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get experiment state - " + QString::fromStdString(ex.what()), "chart", Notification::Severity::ERROR);
         }
@@ -199,6 +203,8 @@ void ExperimentDataManager::requestPortLifecycleEvents(const PortLifecycleReques
     connect(futureWatcher, &QFutureWatcher<QVector<PortLifecycleEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             processPortLifecycleEvents(requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get port lifecycle events - " + ex.toString(), "plug", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port lifecycle events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -218,8 +224,12 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
     connect(futureWatcher, &QFutureWatcher<QVector<WorkloadEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             processWorkloadEvents(request_filters_, requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get workload events - " + ex.toString(), "spanner", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get workload events - " + QString::fromStdString(ex.what()), "spanner", Notification::Severity::ERROR);
+            // TODO: Ask Jackson why this causes a crash
+            //throw;
         }
     });
     futureWatcher->setFuture(future);
@@ -237,6 +247,8 @@ void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest
     connect(futureWatcher, &QFutureWatcher<QVector<CPUUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             processCPUUtilisationEvents(requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get cpu utilisation events - " + ex.toString(), "cpu", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get cpu utilisation events - " + QString::fromStdString(ex.what()), "cpu", Notification::Severity::ERROR);
         }
@@ -256,6 +268,8 @@ void ExperimentDataManager::requestMemoryUtilisationEvents(const UtilisationRequ
     connect(futureWatcher, &QFutureWatcher<QVector<MemoryUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             processMemoryUtilisationEvents(requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get memory utilisation events - " + ex.toString(), "memoryCard", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
         }
@@ -275,6 +289,8 @@ void ExperimentDataManager::requestMarkerEvents(const MarkerRequest& request, Ma
     connect(futureWatcher, &QFutureWatcher<QVector<MarkerEvent*>>::finished, [this, futureWatcher, request, requester]() {
         try {
             processMarkerEvents(requester, request.experiment_name(), request.experiment_run_id(), futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get marker events - " + ex.toString(), "bookmark", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get marker events - " + QString::fromStdString(ex.what()), "bookmark", Notification::Severity::ERROR);
         }
@@ -294,6 +310,8 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, P
     connect(futureWatcher, &QFutureWatcher<QVector<PortEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             processPortEvents(requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get port events - " + ex.toString(), "plug", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get port events - " + QString::fromStdString(ex.what()), "plug", Notification::Severity::ERROR);
         }
@@ -313,6 +331,8 @@ void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationReq
     connect(futureWatcher, &QFutureWatcher<QVector<NetworkUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
         try {
             processNetworkUtilisationEvents(requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get network utilisation events - " + ex.toString(), "waveEmit", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);
         }
@@ -474,7 +494,7 @@ void ExperimentDataManager::processMarkerEvents(MarkerSetData* requester, const 
             try {
                 // Add a new MarkerSetData to the ExperimentRunData
                 marker_set_data = &exp_run_data.addMarkerSetData(marker_name);
-            } catch (const std::logic_error &ex) {
+            } catch (const std::logic_error& ex) {
                 toastNotification(ex.what(), "charts", Notification::Severity::ERROR);
             }
         }
