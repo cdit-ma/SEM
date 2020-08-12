@@ -49,10 +49,11 @@ const QString& NodeData::getIP() const
  */
 void NodeData::addContainerInstanceData(const AggServerResponse::Container& container)
 {
-    auto container_data = container_inst_data_hash_.value(container.graphml_id, nullptr);
+    const auto& container_id = container.graphml_id;
+    auto container_data = container_inst_data_hash_.value(container_id, nullptr);
     if (container_data == nullptr) {
         container_data = new ContainerInstanceData(experiment_run_id_, container, this);
-        container_inst_data_hash_.insert(container_data->getGraphmlID(), container_data);
+        container_inst_data_hash_.insert(container_id, container_data);
     } else {
         container_data->updateData(container, last_updated_time_);
     }
@@ -69,39 +70,90 @@ QList<ContainerInstanceData*> NodeData::getContainerInstanceData() const
 
 /**
  * @brief NodeData::getPortLifecycleSeries
+ * @param port_path
  * @return
  */
-QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortLifecycleSeries() const
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortLifecycleSeries(const QString& port_path) const
 {
     QList<QPointer<const MEDEA::EventSeries>> series;
     for (const auto& container_inst : getContainerInstanceData()) {
-        series.append(container_inst->getPortLifecycleSeries());
+        series.append(container_inst->getPortLifecycleSeries(port_path));
+    }
+    return series;
+}
+
+/**
+ * @brief NodeData::getPortLifecycleSeries
+ * @param comp_names
+ * @param comp_inst_paths
+ * @param port_paths
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortLifecycleSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& container_inst : getContainerInstanceData()) {
+        series.append(container_inst->getPortLifecycleSeries(comp_names, comp_inst_paths, port_paths));
     }
     return series;
 }
 
 /**
  * @brief NodeData::getPortEventSeries
+ * @param port_path
  * @return
  */
-QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortEventSeries() const
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortEventSeries(const QString& port_path) const
 {
     QList<QPointer<const MEDEA::EventSeries>> series;
     for (const auto& container_inst : getContainerInstanceData()) {
-        series.append(container_inst->getPortEventSeries());
+        series.append(container_inst->getPortEventSeries(port_path));
+    }
+    return series;
+}
+
+/**
+ * @brief NodeData::getPortEventSeries
+ * @param comp_names
+ * @param comp_inst_paths
+ * @param port_paths
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getPortEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& container_inst : getContainerInstanceData()) {
+        series.append(container_inst->getPortEventSeries(comp_names, comp_inst_paths, port_paths));
     }
     return series;
 }
 
 /**
  * @brief NodeData::getWorkloadEventSeries
+ * @param worker_inst_path
  * @return
  */
-QList<QPointer<const MEDEA::EventSeries>> NodeData::getWorkloadEventSeries() const
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getWorkloadEventSeries(const QString& worker_inst_path) const
 {
     QList<QPointer<const MEDEA::EventSeries>> series;
     for (const auto& container_inst : getContainerInstanceData()) {
-        series.append(container_inst->getWorkloadEventSeries());
+        series.append(container_inst->getWorkloadEventSeries(worker_inst_path));
+    }
+    return series;
+}
+
+/**
+ * @brief NodeData::getWorkloadEventSeries
+ * @param comp_names
+ * @param comp_inst_paths
+ * @param worker_inst_paths
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getWorkloadEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& worker_inst_paths) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& container_inst : getContainerInstanceData()) {
+        series.append(container_inst->getWorkloadEventSeries(comp_names, comp_inst_paths, worker_inst_paths));
     }
     return series;
 }
@@ -110,7 +162,7 @@ QList<QPointer<const MEDEA::EventSeries>> NodeData::getWorkloadEventSeries() con
  * @brief NodeData::getCPUUtilisationRequest
  * @return
  */
-const UtilisationRequest &NodeData::getCPUUtilisationRequest() const
+const UtilisationRequest& NodeData::getCPUUtilisationRequest() const
 {
     return cpu_utilisation_request_;
 }
@@ -119,7 +171,7 @@ const UtilisationRequest &NodeData::getCPUUtilisationRequest() const
  * @brief NodeData::getMemoryUtilisationRequest
  * @return
  */
-const UtilisationRequest &NodeData::getMemoryUtilisationRequest() const
+const UtilisationRequest& NodeData::getMemoryUtilisationRequest() const
 {
     return memory_utilisation_request_;
 }
@@ -132,7 +184,6 @@ const UtilisationRequest& NodeData::getNetworkUtilisationRequest() const
 {
     return network_utilisation_request_;
 }
-
 
 /**
  * @brief NodeData::addCPUUtilisationEvents

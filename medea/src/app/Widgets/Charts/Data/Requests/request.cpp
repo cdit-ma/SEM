@@ -10,6 +10,15 @@ void Request::setExperimentRunID(const quint32 experiment_run_id)
 }
 
 /**
+ * @brief Request::setExperimentName
+ * @param experiment_name
+ */
+void Request::setExperimentName(const QString& experiment_name)
+{
+    experimentName_ = experiment_name;
+}
+
+/**
  * @brief Request::setTimeInterval
  * @param time_interval
  */
@@ -25,6 +34,15 @@ void Request::setTimeInterval(const QVector<qint64>& time_interval)
 quint32 Request::experiment_run_id() const
 {
     return experimentRunID_;
+}
+
+/**
+ * @brief Request::experiment_name
+ * @return
+ */
+QString Request::experiment_name() const
+{
+    return experimentName_;
 }
 
 /**

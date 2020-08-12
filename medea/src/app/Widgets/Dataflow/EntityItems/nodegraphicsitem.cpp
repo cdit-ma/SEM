@@ -181,7 +181,8 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void NodeGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
     if (icon_pixmap_item_->geometry().contains(event->pos())) {
-        toggleExpanded();
+        // TODO: Re-enable when the updateEdgePos has been refactored to use the node graphics item's pos() for any edges attached to it, when it is contracted
+        //toggleExpanded();
     }
     QGraphicsWidget::mouseDoubleClickEvent(event);
 }

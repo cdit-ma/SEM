@@ -185,30 +185,53 @@ void ViewController::ShowJenkinsBuildDialog(const QString& job_name, QList<Jenki
 {
     VariableDialog dialog("Jenkins: " + job_name + " Parameters");
 
-    for(const auto& parameter : parameters){
+    for (const auto& parameter : parameters) {
+
+        const auto& param_name = parameter.name;
         auto default_value = parameter.defaultValue;
-        bool is_file_model = parameter.name == "model" && (parameter.type == SETTING_TYPE::FILE);
-        
-        if(is_file_model){
+
+        bool is_file_model = param_name == "model" && (parameter.type == SETTING_TYPE::FILE);
+        if (is_file_model) {
             default_value = getTempFileForModel();
         }
 
-        dialog.addOption(parameter.name, parameter.type, default_value);
-        dialog.setOptionIcon(parameter.name, "Icons", "label");
-        //Disable model upload
-        dialog.setOptionEnabled(parameter.name, !is_file_model);
+        // Add a default experiment name
+        if (param_name == "experiment_name") {
+            default_value = "untitled_experiment";
+        }
+
+        dialog.addOption(param_name, parameter.type, default_value);
+        dialog.setOptionIcon(param_name, "Icons", "label");
+
+        // Disable model upload
+        dialog.setOptionEnabled(param_name, !is_file_model);
     }
 
+    // NOTE: getOptions calls exec() on the dialog and blocks until the user closes the dialog
     auto options = dialog.getOptions();
     auto got_options = options.size() == parameters.size();
-
-    if(got_options){
-        //Update the parameters
-        for(auto& parameter : parameters){
-            parameter.value = dialog.getOptionValue(parameter.name).toString();
-        }
-        jenkins_manager->BuildJob(job_name, parameters);
+    if (!got_options) {
+        return;
     }
+
+    // Update the parameters
+    for (auto& parameter : parameters) {
+        const auto& option_val = dialog.getOptionValue(parameter.name).toString();
+        parameter.value = option_val;
+
+        // Don't run the job if any of the parameters is empty
+        if (option_val.isEmpty()) {
+            NotificationManager::manager()->AddNotification("Can't run Jenkins job; missing job parameter(s)",
+                                                            "Icons",
+                                                            "cross",
+                                                            Notification::Severity::ERROR,
+                                                            Notification::Type::APPLICATION,
+                                                            Notification::Category::NONE);
+            return;
+        }
+    }
+
+    jenkins_manager->BuildJob(job_name, parameters);
 }
 
 void ViewController::RequestJenkinsBuildJob()
@@ -508,6 +531,7 @@ QSet<NODE_KIND> ViewController::getValidChartNodeKinds()
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_IMPL);
     chart_valid_node_kinds.insert(NODE_KIND::PORT_SUBSCRIBER_INST);
+    chart_valid_node_kinds.insert(NODE_KIND::FUNCTION_CALL);
     chart_valid_node_kinds.insert(NODE_KIND::CLASS_INST);
     chart_valid_node_kinds.insert(NODE_KIND::HARDWARE_NODE);
     chart_valid_node_kinds.insert(NODE_KIND::INTERFACE_DEFINITIONS);
@@ -535,6 +559,9 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
                 return validDataKinds;
             }
             if ((nodeKind == NODE_KIND::CLASS_INST) && !nodeItem->getData(KeyName::IsWorker).toBool()) {
+                return validDataKinds;
+            }
+            if ((nodeKind == NODE_KIND::FUNCTION_CALL) && nodeItem->getData(KeyName::Label).toString() != "Marker") {
                 return validDataKinds;
             }
             selectedKinds.insert(nodeKind);
@@ -571,6 +598,9 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
             case NODE_KIND::PORT_SUBSCRIBER_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_LIFECYCLE);
                 validDataKinds.insert(MEDEA::ChartDataKind::PORT_EVENT);
+                break;
+            case NODE_KIND::FUNCTION_CALL:
+                validDataKinds.insert(MEDEA::ChartDataKind::MARKER);
                 break;
             case NODE_KIND::CLASS_INST:
                 validDataKinds.insert(MEDEA::ChartDataKind::WORKLOAD);

@@ -24,9 +24,14 @@ public:
 
     QList<ContainerInstanceData*> getContainerInstanceData() const;
 
-    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries(const QString& port_path = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries(const QString& port_path = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries(const QString& worker_inst_path = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& worker_inst_paths) const;
 
     const UtilisationRequest& getCPUUtilisationRequest() const;
     const UtilisationRequest& getMemoryUtilisationRequest() const;

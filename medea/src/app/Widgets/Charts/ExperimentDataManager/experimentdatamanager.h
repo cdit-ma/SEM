@@ -75,6 +75,44 @@ private:
     static AggregationProxy& aggregationProxy();
     TimelineChartView& timelineChartView();
 
+    struct RequestFilters {
+    public:
+        void clear() {
+            experiment_name.clear();
+            experiment_run_id = -1;
+
+            show_charts = false;
+            show_pulse = false;
+
+            filter_by_selection = false;
+            requested_data_kinds.clear();
+
+            component_names.clear();
+            component_inst_paths.clear();
+            port_paths.clear();
+            worker_inst_paths.clear();
+            node_hostnames.clear();
+            marker_names.clear();
+        }
+
+        QString experiment_name;
+        qint32 experiment_run_id;
+
+        bool show_charts = false;
+        bool show_pulse = false;
+
+        QList<MEDEA::ChartDataKind> requested_data_kinds;
+        bool filter_by_selection = false;
+
+        QStringList component_names;
+        QStringList component_inst_paths;
+        QStringList port_paths;
+        QStringList worker_inst_paths;
+        QStringList node_hostnames;
+        QStringList marker_names;
+
+    } request_filters_;
+
     void requestExperimentData(ExperimentDataRequestType request_type, const QVariant& request_param, QObject* requester = nullptr);
     void requestExperimentRuns(const QString& experimentName, MEDEA::ExperimentData* requester = nullptr);
     void requestExperimentState(quint32 experimentRunID, MEDEA::ExperimentRunData* requester = nullptr);
@@ -87,27 +125,30 @@ private:
     void requestPortEvents(const PortEventRequest& request, PortInstanceData* requester);
     void requestNetworkUtilisationEvents(const UtilisationRequest& request, NodeData* requester);
 
+    void processExperimentRuns(MEDEA::ExperimentData* requester, const QString& exp_name, const QVector<AggServerResponse::ExperimentRun>& exp_runs);
+    void processExperimentState(MEDEA::ExperimentRunData* requester, const AggServerResponse::ExperimentState& exp_state);
+    void processPortLifecycleEvents(PortInstanceData* requester, const QVector<PortLifecycleEvent*>& events);
+    void processPortEvents(PortInstanceData* requester, const QVector<PortEvent*>& events);
+    void processWorkloadEvents(RequestFilters request_filters, WorkerInstanceData* requester, const QVector<WorkloadEvent*>& events);
+    void processMarkerEvents(MarkerSetData* requester, const QString& exp_name, quint32 exp_run_id, const QVector<MarkerEvent*>& events);
+    void processCPUUtilisationEvents(NodeData* requester, const QVector<CPUUtilisationEvent*>& events);
+    void processMemoryUtilisationEvents(NodeData* requester, const QVector<MemoryUtilisationEvent*>& events);
+    void processNetworkUtilisationEvents(NodeData* requester, const QVector<NetworkUtilisationEvent*>& events);
+
+    MEDEA::ExperimentData* constructExperimentData(const QString& exp_name);
+    MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
+    MEDEA::ExperimentRunData& getExperimentRunData(const QString& exp_name, quint32 exp_run_id) const;
+
     void showDataForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
     void showPulseForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
     void showChartsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
     void showChartForSeries(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data);
 
-    void processExperimentRuns(const QString& experiment_name, const QVector<AggServerResponse::ExperimentRun>& experiment_runs);
-
-    MEDEA::ExperimentData* constructExperimentData(const QString& experiment_name);
-    MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
-    MEDEA::ExperimentRunData& getExperimentRunData(const QString& exp_name, quint32 exp_run_id) const;
+    void setupRequestFilters(const QVector<ViewItem*>& view_items, const QList<MEDEA::ChartDataKind>& data_kinds);
 
     DataflowDialog* dataflowDialog_ = nullptr;
     ChartDialog* chartDialog_ = nullptr;
     ChartInputPopup chartPopup_;
-
-    QVector<ViewItem*> selectedViewItems_;
-    QList<MEDEA::ChartDataKind> selectedDataKinds_;
-    AggServerResponse::ExperimentRun selectedExperimentRun_;
-
-    bool show_in_charts_ = false;
-    bool show_in_pulse_ = false;
 
     QHash<QString, MEDEA::ExperimentData*> experiment_data_hash_;
     QHash<quint32, int> exp_run_timers_;

@@ -19,12 +19,20 @@ public:
     const QString& getPath() const;
     const QString& getType() const;
 
-    QList<PortInstanceData*> getPortInstanceData() const;
-    QList<WorkerInstanceData*> getWorkerInstanceData() const;
+    QList<PortInstanceData*> getPortInstanceData(const QString& path = "") const;
+    QList<PortInstanceData*> getPortInstanceData(const QStringList& paths) const;
 
-    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries() const;
-    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries() const;
+    QList<WorkerInstanceData*> getWorkerInstanceData(const QString& path = "") const;
+    QList<WorkerInstanceData*> getWorkerInstanceData(const QStringList& paths) const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries(const QString& path = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortLifecycleSeries(const QStringList& paths) const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries(const QString& path = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getPortEventSeries(const QStringList& paths) const;
+
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries(const QString& path = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getWorkloadEventSeries(const QStringList& paths) const;
 
     void updateData(const AggServerResponse::ComponentInstance& component_instance, qint64 new_last_updated_time);
 
@@ -43,6 +51,7 @@ private:
     QString path_;
     QString type_;
 
+    // These data classes are hashed by their paths
     QHash<QString, PortInstanceData*> port_inst_data_hash_;
     QHash<QString, WorkerInstanceData*> worker_inst_data_hash_;
 };
