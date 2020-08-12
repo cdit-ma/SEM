@@ -177,40 +177,48 @@ pipeline{
         }
 
         stage("Archive + Pack") {
-            step_archive[node_name] = {
-                node(node_name){
-                    dir("build"){
-                        def os_name = utils.getNodeOSName(node_name)
+            steps{
+                script{
+                    def test_map = [:]
+                    for(n in CI_BUILD_NODES){
+                        def node_name = n
+                        step_archive[node_name] = {
+                            node(node_name){
+                                dir("build"){
+                                    def os_name = utils.getNodeOSName(node_name)
 
-                        def globstr = ""
-                        if(os_name == "Linux"){
-                            //Dont run package for linux nodes
-                            return;
-                        }else if(os_name == "Mac OS X"){
-                            globstr = '*.dmg'
-                        }else if(os_name == "Windows"){
-                            globstr = '*.exe'
+                                    def globstr = ""
+                                    if(os_name == "Linux"){
+                                        //Dont run package for linux nodes
+                                        return;
+                                    }else if(os_name == "Mac OS X"){
+                                        globstr = '*.dmg'
+                                    }else if(os_name == "Windows"){
+                                        globstr = '*.exe'
+                                    }
+
+                                    utils.runScript("cpack")
+                                    dir("installers"){
+                                        def file_list = findFiles glob: globstr
+
+                                        def archiveName = utils.trimExtension(file_list[0].name) + "-installer.zip"
+                                        zip glob: globstr, zipFile: archiveName
+
+                                        archiveArtifacts "*.zip"
+                                
+                                        //Clean up the directory after
+                                        deleteDir()
+                                    }
+                                }
+                            }
                         }
 
-                        utils.runScript("cpack")
-                        dir("installers"){
-                            def file_list = findFiles glob: globstr
-
-                            def archiveName = utils.trimExtension(file_list[0].name) + "-installer.zip"
-                            zip glob: globstr, zipFile: archiveName
-
-                            archiveArtifacts "*.zip"
-                    
-                            //Clean up the directory after
-                            deleteDir()
+                        if(BUILD_PACKAGE) {
+                            parallel(step_archive)
                         }
                     }
                 }
             }
-
-            if(BUILD_PACKAGE) {
-                parallel(step_archive)
-			}
 		}
     }
 }
