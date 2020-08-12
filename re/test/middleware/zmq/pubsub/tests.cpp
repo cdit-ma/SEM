@@ -11,7 +11,7 @@
 #include "pubsub/publisherport.hpp"
 #include "pubsub/subscriberport.hpp"
 
-static int port_id = 7000;
+static int port_id = 50000;
 
 bool setup_pub_port(Port& port, int test_id){
     auto address = port.GetAttribute("publisher_address").lock();
