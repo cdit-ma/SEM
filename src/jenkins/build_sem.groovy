@@ -179,7 +179,7 @@ pipeline{
         stage("Archive + Pack") {
             steps{
                 script{
-                    def test_map = [:]
+                    def step_archive = [:]
                     for(n in CI_BUILD_NODES){
                         def node_name = n
                         step_archive[node_name] = {
@@ -212,10 +212,9 @@ pipeline{
                                 }
                             }
                         }
-
-                        if(BUILD_PACKAGE) {
-                            parallel(step_archive)
-                        }
+                    }
+                    if(BUILD_PACKAGE) {
+                        parallel(step_archive)
                     }
                 }
             }
