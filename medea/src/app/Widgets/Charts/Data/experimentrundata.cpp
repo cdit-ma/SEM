@@ -1,4 +1,5 @@
 #include "experimentrundata.h"
+#include <stdexcept>
 
 /**
  * @brief MEDEA::ExperimentRunData::ExperimentRunData
