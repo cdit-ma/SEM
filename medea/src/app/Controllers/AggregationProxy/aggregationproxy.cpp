@@ -147,8 +147,8 @@ void AggregationProxy::SetServerEndpoint(const QString &endpoint)
 {
     try {
         requester_.reset(new AggServer::Requester(endpoint.toStdString()));
-    } catch (const std::invalid_argument& ia) {
-        throw NoRequesterException(ia.what());
+    } catch (const std::exception& ex) {
+        throw NoRequesterException(ex.what());
     }
 }
 
@@ -180,17 +180,12 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
         AggServer::ExperimentRunRequest request;
         request.set_experiment_name(experiment_name.toStdString());
         
-        auto results = requester_->GetExperimentRuns(request);
+        const auto& results = requester_->GetExperimentRuns(request);
         for (const auto& exp : results->experiments()) {
-            const auto& exp_name = ConstructQString(exp.name());
-            for (auto& exp_run : exp.runs()) {
-                AggServerResponse::ExperimentRun run;
-                run.experiment_name = exp_name;
-                run.experiment_run_id = static_cast<qint32>(exp_run.experiment_run_id());
-                run.job_num = exp_run.job_num();
-                run.start_time = ConstructQDateTime(exp_run.start_time()).toMSecsSinceEpoch();
-                run.end_time = ConstructQDateTime(exp_run.end_time()).toMSecsSinceEpoch();
-                runs.append(run);
+            try {
+                runs.append(ConstructExperimentRuns(exp));
+            } catch (const MalformedProtoException& ex) {
+                emit toastNotification(ex.toString(), "chart", Notification::Severity::ERROR);
             }
         }
 
@@ -199,6 +194,33 @@ QVector<AggServerResponse::ExperimentRun> AggregationProxy::GetExperimentRuns(co
     } catch (const std::exception& ex) {
         throw RequestException(ex.what());
     }
+}
+
+
+/**
+ * @brief AggregationProxy::ConstructExperimentRuns
+ * @param experiment
+ * @throws MalformedProtoException
+ * @return
+ */
+QVector<AggServerResponse::ExperimentRun> AggregationProxy::ConstructExperimentRuns(const AggServer::Experiment& experiment) const
+{
+    const auto& exp_name = ConstructQString(experiment.name());
+    if (exp_name.isEmpty()) {
+        throw MalformedProtoException("Exception occurred during construction of experiment runs: Experiment name is empty");
+    }
+
+    QVector<AggServerResponse::ExperimentRun> runs;
+    for (const auto& exp_run : experiment.runs()) {
+        AggServerResponse::ExperimentRun run;
+        run.experiment_name = exp_name;
+        run.experiment_run_id = static_cast<qint32>(exp_run.experiment_run_id());
+        run.job_num = exp_run.job_num();
+        run.start_time = ConstructQDateTime(exp_run.start_time()).toMSecsSinceEpoch();
+        run.end_time = ConstructQDateTime(exp_run.end_time()).toMSecsSinceEpoch();
+        runs.append(run);
+    }
+    return runs;
 }
 
 
@@ -363,7 +385,7 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const Ut
             agg_request.add_node_hostnames(name.toStdString());
         }
 
-        auto results = requester_->GetCPUUtilisation(agg_request);
+        const auto& results = requester_->GetCPUUtilisation(agg_request);
         for (const auto& node : results->nodes()) {
             const auto& host_name = ConstructQString(node.node_info().hostname());
             for (const auto& e : node.events()) {
@@ -403,7 +425,7 @@ QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(co
             agg_request.add_node_hostnames(name.toStdString());
         }
 
-        auto results = requester_->GetMemoryUtilisation(agg_request);
+        const auto& results = requester_->GetMemoryUtilisation(agg_request);
         for (const auto& node : results->nodes()) {
             const auto& host_name = ConstructQString(node.node_info().hostname());
             for (const auto& e : node.events()) {
@@ -452,7 +474,7 @@ QVector<MarkerEvent*> AggregationProxy::GetMarkerEvents(const MarkerRequest &req
             agg_request.add_worker_instance_paths(path.toStdString());
         }
 
-        auto results = requester_->GetMarkers(agg_request);
+        const auto& results = requester_->GetMarkers(agg_request);
         for (const auto& nameSet : results->marker_name_sets()) {
             const auto& name = ConstructQString(nameSet.name());
             for (const auto& idSet : nameSet.marker_id_set()) {
@@ -515,7 +537,7 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest& requ
 
         return events;
 
-    } catch (const std::exception &ex) {
+    } catch (const std::exception& ex) {
         throw RequestException(ex.what());
     }
 }

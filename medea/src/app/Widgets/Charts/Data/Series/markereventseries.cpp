@@ -66,7 +66,7 @@ QString MarkerEventSeries::getHoveredDataString (
     auto upper = std::upper_bound(startTimes.constBegin(), startTimes.constEnd(), toTimeMS, [](const qint64 &time, const qint64 &idSetStartTime) {
         return time < idSetStartTime;
     });
-    
+
     return getDataString(current, upper);
 }
 
@@ -83,8 +83,8 @@ QString MarkerEventSeries::getDataString (
     // calculate the average duration between from time and to time
     qint64 totalDurationMS = 0;
     int numberOfIDSets = 0;
-    auto current = from;
 
+    auto current = from;
     while (current != to) {
         auto currentStartTime = (*current);
         const auto& markerIDsAtStartTime = startTimeMap_.value(currentStartTime);
@@ -101,7 +101,7 @@ QString MarkerEventSeries::getDataString (
     QTextStream stream(&hoveredData);
 
     if (numberOfIDSets > 0) {
-        auto avgDuration = static_cast<double>(totalDurationMS / numberOfIDSets);
+        auto avgDuration = totalDurationMS / (double)numberOfIDSets;
         stream << "Marker ID Sets Started#: " << numberOfIDSets << "\n"
                << "Average Duration: " << avgDuration << "ms \n\n";
     }
@@ -127,7 +127,7 @@ void MarkerEventSeries::addEvent(MEDEA::Event* event)
         auto markerEvent = qobject_cast<MarkerEvent*>(event);
         auto markerID = markerEvent->getMarkerID();
         qint64 eventTime = markerEvent->getTimeMS();
-        qint64 minTime = 0, maxTime = 0;
+        qint64 minTime = eventTime, maxTime = eventTime;
 
         if (markerIDSetRanges_.contains(markerID)) {
             minTime = qMin(eventTime, markerIDSetRanges_.value(markerID).first);
@@ -141,6 +141,10 @@ void MarkerEventSeries::addEvent(MEDEA::Event* event)
             startTimeMap_.insert(minTime, {markerID});
         } else {
             startTimeMap_[minTime].insert(markerID);
+        }
+        for (const auto& m : markerIDSetDurations_) {
+            auto id = markerIDSetDurations_.key(m);
+            auto range = markerIDSetRanges_.value(id);
         }
 
         addEventToList(*event);

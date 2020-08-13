@@ -348,17 +348,18 @@ bool MEDEA::EventSeries::contains(MEDEA::Event* event) const
  */
 void MEDEA::EventSeries::addEventToList(MEDEA::Event& event)
 {
-
     auto&& new_event = &event;
     if (contains(new_event)) {
         throw std::invalid_argument("MEDEA::EventSeries::addEventToList - Cannot add an already existing event");
     }
 
-    // Add the new event to the list, update the time range
-    // and send the signal to notify that a new event has been added
+    // Add the new event to the list, then update the time range
+    // TODO: Combine these 2 lists into a singular hash
     events_.append(new_event);
-    event_ids_.append(event.getID());
+    event_ids_.append(new_event->getID());
     updateTimeRange(new_event->getTimeMS());
+
+    // Send a signal to notify that a new event has been added
     emit eventAdded(new_event);
 }
 

@@ -133,10 +133,10 @@ void AxisWidget::setRange(QPair<double, double> range, bool updateDisplay)
  */
 void AxisWidget::setRange(double min, double max, bool updateDisplay)
 {
-	// add 1% on either side to include border values
+	// add a time padding on either side to include border values
 	auto range = max - min;
-	min = min - (range * 0.01);
-	max = max + (range * 0.01);
+	min = min - (range * time_padding_);
+	max = max + (range * time_padding_);
 	
 	min_ = min;
 	max_ = max;

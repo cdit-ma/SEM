@@ -1,5 +1,5 @@
 #include "portevent.h"
-#include <QDebug>
+
 /**
  * @brief PortEvent::PortEvent
  * @param port
