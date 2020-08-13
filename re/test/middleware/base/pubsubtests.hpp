@@ -43,17 +43,11 @@ void PubSub::Basic::Stable::RunTest(::PublisherPort<Base::Basic>& pub_port, ::Su
                 Base::Basic b;
                 b.int_val = (send_count * i) + j;
                 b.str_val = std::to_string(b.int_val);
-                //std::cerr << "send" << std::endl;
                 pub_port.Send(b);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                // std::cerr << "send" << std::endl;
             }
         }, future_send);
         futures.push_back(std::move(future));
     }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
 
     futures.clear();
     
