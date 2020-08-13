@@ -1,4 +1,5 @@
 #include "experimentrundata.h"
+#include <stdexcept>
 
 /**
  * @brief MEDEA::ExperimentRunData::ExperimentRunData
@@ -82,6 +83,8 @@ QList<NodeData*> MEDEA::ExperimentRunData::getNodeData(const QString& hostname) 
     if (hostname.isEmpty()) {
         return node_data_hash_.values();
     } else {
+        // NOTE: QHash.values(const Key &key) overload will be removed from Qt 5.15 onwards
+        // TODO: Fix when fixing other deprecations
         return node_data_hash_.values(hostname);
     }
 }
@@ -102,16 +105,21 @@ QList<PortConnectionData*> MEDEA::ExperimentRunData::getPortConnectionData(const
 
 /**
  * @brief MEDEA::ExperimentRunData::getMarkerSetData
- * @param id
  * @return
  */
-QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData(const QString& id) const
+QList<MarkerSetData*> MEDEA::ExperimentRunData::getMarkerSetData() const
 {
-    if (id.isEmpty()) {
-        return marker_set_hash_.values();
-    } else {
-        return marker_set_hash_.values(id);
-    }
+    return marker_set_hash_.values();
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getMarkerSetData
+ * @param marker_name
+ * @return
+ */
+MarkerSetData* MEDEA::ExperimentRunData::getMarkerSetData(const QString& marker_name) const
+{
+    return marker_set_hash_.value(marker_name, nullptr);
 }
 
 /**
@@ -123,6 +131,22 @@ QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortLifec
     QList<QPointer<const MEDEA::EventSeries>> series;
     for (const auto& node_data : getNodeData()) {
         series.append(node_data->getPortLifecycleSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getPortLifecycleSeries
+ * @param comp_names
+ * @param comp_inst_paths
+ * @param port_paths
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortLifecycleSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getPortLifecycleSeries(comp_names, comp_inst_paths, port_paths));
     }
     return series;
 }
@@ -141,6 +165,22 @@ QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortEvent
 }
 
 /**
+ * @brief MEDEA::ExperimentRunData::getPortEventSeries
+ * @param comp_names
+ * @param comp_inst_paths
+ * @param port_paths
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getPortEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& port_paths) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getPortEventSeries(comp_names, comp_inst_paths, port_paths));
+    }
+    return series;
+}
+
+/**
  * @brief MEDEA::ExperimentRunData::getWorkloadEventSeries
  * @return
  */
@@ -154,40 +194,131 @@ QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getWorkloadE
 }
 
 /**
- * @brief MEDEA::ExperimentRunData::getCPUUtilisationSeries
+ * @brief MEDEA::ExperimentRunData::getWorkloadEventSeries
+ * @param comp_names
+ * @param comp_inst_paths
+ * @param worker_inst_paths
  * @return
  */
-QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getCPUUtilisationSeries() const
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getWorkloadEventSeries(const QStringList& comp_names, const QStringList& comp_inst_paths, const QStringList& worker_inst_paths) const
 {
     QList<QPointer<const MEDEA::EventSeries>> series;
     for (const auto& node_data : getNodeData()) {
+        series.append(node_data->getWorkloadEventSeries(comp_names, comp_inst_paths, worker_inst_paths));
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getCPUUtilisationSeries
+ * @param hostname
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getCPUUtilisationSeries(const QString& hostname) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData(hostname)) {
         series.append(node_data->getCPUUtilisationSeries());
     }
     return series;
 }
 
 /**
- * @brief MEDEA::ExperimentRunData::getMemoryUtilisationSeries
+ * @brief MEDEA::ExperimentRunData::getCPUUtilisationSeries
+ * @param hostname
  * @return
  */
-QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getMemoryUtilisationSeries() const
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getCPUUtilisationSeries(const QStringList& hostnames) const
+{
+    if (hostnames.isEmpty()) {
+        return getCPUUtilisationSeries();
+    }
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& hostname : hostnames) {
+        series.append(getCPUUtilisationSeries(hostname));
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getMemoryUtilisationSeries
+ * @param hostname
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getMemoryUtilisationSeries(const QString& hostname) const
 {
     QList<QPointer<const MEDEA::EventSeries>> series;
-    for (const auto& node_data : getNodeData()) {
+    for (const auto& node_data : getNodeData(hostname)) {
         series.append(node_data->getMemoryUtilisationSeries());
     }
     return series;
 }
 
 /**
- * @brief MEDEA::ExperimentRunData::getNetworkUtilisationSeries
+ * @brief MEDEA::ExperimentRunData::getMemoryUtilisationSeries
+ * @param hostnames
  * @return
  */
-QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getNetworkUtilisationSeries() const
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getMemoryUtilisationSeries(const QStringList& hostnames) const
+{
+    if (hostnames.isEmpty()) {
+        return getMemoryUtilisationSeries();
+    }
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& hostname : hostnames) {
+        series.append(getMemoryUtilisationSeries(hostname));
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getNetworkUtilisationSeries
+ * @param hostname
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getNetworkUtilisationSeries(const QString& hostname) const
 {
     QList<QPointer<const MEDEA::EventSeries>> series;
-    for (const auto& node_data : getNodeData()) {
+    for (const auto& node_data : getNodeData(hostname)) {
         series.append(node_data->getNetworkUtilisationSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getNetworkUtilisationSeries
+ * @param hostnames
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getNetworkUtilisationSeries(const QStringList& hostnames) const
+{
+    if (hostnames.isEmpty()) {
+        return getNetworkUtilisationSeries();
+    }
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& hostname : hostnames) {
+        series.append(getNetworkUtilisationSeries(hostname));
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getMarkerEventSeries
+ * @param marker_name
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getMarkerEventSeries(const QString& marker_name) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    if (marker_name.isEmpty()) {
+        for (const auto& marker_set_data : getMarkerSetData()) {
+            series.append(marker_set_data->getMarkerEventSeries());
+        }
+    } else {
+        auto marker_data = getMarkerSetData(marker_name);
+        if (marker_data != nullptr) {
+            series.append(marker_data->getMarkerEventSeries());
+        }
     }
     return series;
 }
@@ -202,13 +333,13 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
     if (state_last_updated_time > last_updated_time_) {
 
         // NOTE: last_updated_time_ is passed through to update the children data
-        //  Therefore, it needs to be updated before calling addNodeData and addPortConnection
+        //  Therefore, it needs to be updated before calling addNodeData and addPortConnectionData
         last_updated_time_ = state_last_updated_time;
         for (const auto& node : exp_state.nodes) {
             addNodeData(node);
         }
         for (const auto& p_c : exp_state.port_connections) {
-            addPortConnection(p_c);
+            addPortConnectionData(p_c);
         }
         emit dataUpdated(last_updated_time_);
 
@@ -222,44 +353,47 @@ void MEDEA::ExperimentRunData::updateData(const AggServerResponse::ExperimentSta
 }
 
 /**
+ * MEDEA::ExperimentRunData::addMarkerSetData
+ * @param marker_name
+ * @throws std::invalid_argument
+ * @return
+ */
+MarkerSetData& MEDEA::ExperimentRunData::addMarkerSetData(const QString& marker_name)
+{
+    if (marker_set_hash_.contains(marker_name)) {
+        throw std::logic_error("ExperimentRunData::addMarkerSetData - A MarkerSetData with name "
+                               + marker_name.toStdString() + " already exists.");
+    }
+    auto marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);
+    marker_set_hash_.insert(marker_name, marker_set_data);
+    return *marker_set_data;
+}
+
+/**
  * @brief MEDEA::ExperimentRunData::addNodeData
  * @param node
  */
 void MEDEA::ExperimentRunData::addNodeData(const AggServerResponse::Node& node)
 {
-    auto node_data = node_data_hash_.value(node.hostname, nullptr);
+    const auto& hostname = node.hostname;
+    auto node_data = node_data_hash_.value(hostname, nullptr);
     if (node_data == nullptr) {
         node_data = new NodeData(experiment_run_id_, node, this);
-        node_data_hash_.insert(node_data->getHostname(), node_data);
+        node_data_hash_.insert(hostname, node_data);
     } else {
-        node_data->updateData(node, last_updated_time_);
+        node_data->updateData(node, last_updated_time());
     }
 }
 
 /**
- * @brief MEDEA::ExperimentRunData::addPortConnection
+ * @brief MEDEA::ExperimentRunData::addPortConnectionData
  * @param port_connection
  */
-void MEDEA::ExperimentRunData::addPortConnection(const AggServerResponse::PortConnection& port_connection)
+void MEDEA::ExperimentRunData::addPortConnectionData(const AggServerResponse::PortConnection& port_connection)
 {
     auto&& connection_id = port_connection.from_port_graphml + port_connection.to_port_graphml;
     if (!port_connection_hash_.contains(connection_id)) {
         auto port_connection_data = new PortConnectionData(experiment_run_id_, port_connection, this);
         port_connection_hash_.insert(connection_id, port_connection_data);
-    }
-}
-
-/**
- * @brief MEDEA::ExperimentRunData::addMarkerSet
- * @param marker_name
- */
-void MEDEA::ExperimentRunData::addMarkerSet(const QString& marker_name)
-{
-    // NOTE: Marker events used to be grouped by CompInst.graphml_id + marker_name
-    // TODO: Ask Jackson what they should be grouped by
-    auto&& marker_set_id = marker_name + QString::number(experiment_run_id());
-    if (!marker_set_hash_.contains(marker_set_id)) {
-        auto marker_set_data = new MarkerSetData(experiment_run_id_, marker_name, this);
-        marker_set_hash_.insert(marker_set_id, marker_set_data);
     }
 }

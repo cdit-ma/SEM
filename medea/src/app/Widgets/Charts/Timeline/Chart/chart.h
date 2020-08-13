@@ -53,6 +53,8 @@ public:
     void updateRange(double startTime, double duration);
     void setRange(double min, double max);
 
+    void setTimePadding(double padding) { time_padding_ = padding; } ;
+
     void setDisplayMinRatio(double ratio);
     void setDisplayMaxRatio(double ratio);
     void setDisplayRangeRatio(double minRatio, double maxRatio);
@@ -132,8 +134,8 @@ private:
     qint64 mapPixelToTime(double x);
 	double mapTimeToPixel(double time);
 
-    double getDisplayMin() const;
-    double getDisplayMax() const;
+    qint64 getDisplayMin() const;
+    qint64 getDisplayMax() const;
 
 	static QColor getContrastingColor(const QColor& color);
 
@@ -145,6 +147,8 @@ private:
 
     bool containsYRange_ = false;
     bool hovered_ = false;
+
+    double time_padding_ = 0.01;
 
     double dataMinX_ = DBL_MAX;
     double dataMaxX_ = DBL_MIN;

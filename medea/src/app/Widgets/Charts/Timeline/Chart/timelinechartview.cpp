@@ -17,6 +17,7 @@
 
 using namespace MEDEA;
 
+const double TimelineChartView::time_padding_ = 0.1;
 const ChartDataKind TimelineChartView::no_data_kind_ = ChartDataKind::DATA;
 
 /**
@@ -99,6 +100,7 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
 
     chart = new Chart(exp_run_id, exp_start_time, this);
     chart->addSeries(series);
+    chart->setTimePadding(time_padding_);
     chartList_->addChart(chart);
     charts_[series_id] = chart;
 
@@ -213,8 +215,10 @@ void TimelineChartView::setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format)
 {
 	timelineAxis_->setDisplayFormat(format);
 	timeDisplayFormat_ = format;
+    updateTimelineRange();
 
-    updateTimelineRange(false);
+    // TODO: Figure out how to change the displayed time format without resetting the current displayed range
+    //updateTimelineRange(false);
 }
 
 /**
@@ -602,6 +606,7 @@ void TimelineChartView::decrementSeriesCountForExperimentRun(quint32 experimentR
  */
 void TimelineChartView::updateTimelineRange(bool updateDisplayRange)
 {
+    static const qint64 time_padding = 1;
 	auto startTime = totalTimeRange_.first;
 	auto duration = totalTimeRange_.second - totalTimeRange_.first;
 
@@ -668,6 +673,7 @@ void TimelineChartView::setupLayout()
 
 	timelineAxis_ = new AxisWidget(Qt::Horizontal, Qt::AlignBottom, VALUE_TYPE::DATE_TIME, this);
 	timelineAxis_->setZoomFactor(ZOOM_FACTOR);
+	timelineAxis_->setTimePadding(time_padding_);
 
 	connect(timelineAxis_, &AxisWidget::minRatioChanged, this, &TimelineChartView::minSliderMoved);
 	connect(timelineAxis_, &AxisWidget::maxRatioChanged, this, &TimelineChartView::maxSliderMoved);

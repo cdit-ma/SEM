@@ -40,6 +40,15 @@ const QString& MarkerEvent::getID() const
 }
 
 /**
+ * @brief MarkerEvent::getMarkerName
+ * @return
+ */
+QString MarkerEvent::getMarkerName() const
+{
+    return marker_name_;
+}
+
+/**
  * @brief MarkerEvent::getMarkerID
  * @return
  */

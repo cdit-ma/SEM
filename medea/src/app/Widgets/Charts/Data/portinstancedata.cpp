@@ -206,7 +206,7 @@ void PortInstanceData::setupRequests()
 
     // INSPECT: These extra request fields are returning unexpected events
     //  When they are added, they also return port events from other children ports of the parenting ComponentInstance
-    // TODO: Find out what is causing this
+    // TODO: Find out what is causing this - Update: This is because the results per filter are (OR)ed
     //port_lifecycle_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});
     //port_lifecycle_request_.setComponentInstancePaths({comp_inst.getPath()});
     //port_event_request_.setComponentInstanceIDS({comp_inst.getGraphmlID()});

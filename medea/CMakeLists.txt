@@ -37,7 +37,7 @@ endif(BUILD_CLI)
 
 if(BUILD_APP)
     message(STATUS "Building MEDEA App")
-    
+
     set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
     if (NOT CMAKE_MODULE_PATH)
         set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re/cmake_modules")

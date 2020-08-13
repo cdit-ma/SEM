@@ -112,6 +112,7 @@ private:
     QHash<QString, MEDEA::ChartLabel*> chartLabels_;
     QHash<QString, MEDEA::Chart*> charts_;
 
+    static const double time_padding_;
     static const MEDEA::ChartDataKind no_data_kind_;
 };
 
