@@ -98,7 +98,7 @@ const std::vector<int>& Component::GetReplicationIndices() const{
     return replication_indices_;
 }
 
-std::weak_ptr<Port> Component::AddPort(std::unique_ptr<Port> event_port){
+std::weak_ptr<Port> Component::AddEventPort(std::unique_ptr<Port> event_port){
     if(event_port){
         boost::unique_lock<boost::shared_mutex> lock{port_mutex_};
         const auto& port_name = event_port->get_name();

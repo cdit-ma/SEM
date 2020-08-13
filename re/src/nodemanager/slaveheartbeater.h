@@ -1,7 +1,7 @@
 #ifndef SLAVE_HEARTBEATER_H
 #define SLAVE_HEARTBEATER_H
 
-#include <zmq/protorequester/protorequester.hpp>
+#include "protorequester.hpp"
 
 class SlaveHeartbeater{
     public:

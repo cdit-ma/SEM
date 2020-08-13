@@ -7,10 +7,10 @@
 #include <condition_variable>
 
 #include "attribute.h"
-#include <boost/thread.hpp>
+#include "boost/thread.hpp"
 
-#include <core/loggerproxy.h>
-#include <core/statemachine.h>
+#include "loggerproxy.h"
+#include "statemachine.h"
 
 class Activatable{
     // REVIEW: Ultimately this should be an interface, specifying the behaviour expected of

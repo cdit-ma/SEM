@@ -1,10 +1,10 @@
 #include "deploymentcontainer.h"
 
-#include <core/translate.h>
-#include <core/worker.h>
-#include <core/ports/periodicport.h>
+#include "translate.h"
+#include "worker.h"
+#include "ports/periodicport.h"
 
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 
 #include <iostream>
@@ -53,7 +53,7 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPeriodicPort(std::weak_ptr<C
         try{
             const auto& callback = component->GetCallback<void, BaseMessage>(port_name);
             auto u_ptr = std::unique_ptr<Port>(new PeriodicPort(weak_component, port_name, callback, 1000));
-            return component->AddPort(std::move(u_ptr)).lock();
+            return component->AddEventPort(std::move(u_ptr)).lock();
         }catch(const std::exception& ex){
             throw std::runtime_error("Component: '" + component->get_name() + "' Cannot construct Periodic Port '" + ex.what());
         }
@@ -524,7 +524,7 @@ std::shared_ptr<Port> DeploymentContainer::ConstructPublisherPort(const std::str
         auto component_shared = component.lock();
 
         if(component_shared){
-            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+            port = component_shared->AddEventPort(std::unique_ptr<Port>(port_ptr)).lock();
         }else{
             port = std::shared_ptr<Port>(port_ptr);
         }
@@ -548,7 +548,7 @@ std::shared_ptr<Port> DeploymentContainer::ConstructRequesterPort(const std::str
         auto component_shared = component.lock();
 
         if(component_shared){
-            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+            port = component_shared->AddEventPort(std::unique_ptr<Port>(port_ptr)).lock();
         }else{
             port = std::shared_ptr<Port>(port_ptr);
         }
@@ -572,7 +572,7 @@ std::shared_ptr<Port> DeploymentContainer::ConstructReplierPort(const std::strin
         auto component_shared = component.lock();
 
         if(component_shared){
-            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+            port = component_shared->AddEventPort(std::unique_ptr<Port>(port_ptr)).lock();
         }else{
             port = std::shared_ptr<Port>(port_ptr);
         }
@@ -596,7 +596,7 @@ std::shared_ptr<Port> DeploymentContainer::ConstructSubscriberPort(const std::st
         auto component_shared = component.lock();
 
         if(component_shared){
-            port = component_shared->AddPort(std::unique_ptr<Port>(port_ptr)).lock();
+            port = component_shared->AddEventPort(std::unique_ptr<Port>(port_ptr)).lock();
         }else{
             port = std::shared_ptr<Port>(port_ptr);
         }

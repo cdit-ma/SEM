@@ -6,8 +6,8 @@
 #include <set>
 
 #include <mutex>
-#include <zmq/protoreceiver/protoreceiver.h>
-#include <proto/modelevent/modelevent.pb.h>
+#include "protoreceiver.h"
+#include "modelevent.pb.h"
 
 #include "../../sqlitedatabase.h"
 #include "../../protohandler.h"

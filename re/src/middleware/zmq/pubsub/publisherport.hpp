@@ -1,10 +1,10 @@
 #ifndef ZMQ_PORT_PUBLISHER_HPP
 #define ZMQ_PORT_PUBLISHER_HPP
 
-#include <core/ports/pubsub/publisherport.hpp>
-#include <middleware/proto/prototranslator.h>
-#include <middleware/zmq/zmqhelper.h>
-#include <zmq/zmqutils.hpp>
+#include "ports/pubsub/publisherport.hpp"
+#include "prototranslator.hpp"
+#include "zmqhelper.h"
+#include "zmqutils.hpp"
 
 
 namespace zmq{

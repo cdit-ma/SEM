@@ -11,15 +11,15 @@
 #include <memory>
 #include <future>
 
-#include <core/logger.h>
+#include "logger.h"
 #include "deploymentcontainer.h"
 #include "slaveheartbeater.h"
 
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <zmq/protoreceiver/protoreceiver.h>
-#include <zmq/protorequester/protorequester.hpp>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <util/execution.hpp>
+#include "controlmessage.pb.h"
+#include "protoreceiver.h"
+#include "protorequester.hpp"
+#include "controlmessage.pb.h"
+#include "execution.hpp"
 
 // REVIEW (Mitch): DOCUMENTATION: One of these started per node used in the experiment.
 //  A "node" in this context is either an instance of re_node_manager running on a node or

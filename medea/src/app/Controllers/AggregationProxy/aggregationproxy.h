@@ -10,7 +10,7 @@
 #include <utility>
 
 #include <google/protobuf/util/time_util.h>
-#include <comms/aggregationrequester/aggregationrequester.h>
+#include "aggregationrequester.h"
 
 #include "../../Widgets/Charts/Data/Events/portlifecycleevent.h"
 #include "../../Widgets/Charts/Data/Events/workloadevent.h"

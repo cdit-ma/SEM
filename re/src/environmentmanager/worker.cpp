@@ -1,7 +1,7 @@
 #include "worker.h"
 #include "attribute.h"
 #include "component.h"
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
 using namespace EnvironmentManager;
 

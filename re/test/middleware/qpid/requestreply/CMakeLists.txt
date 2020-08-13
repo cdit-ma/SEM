@@ -2,9 +2,6 @@
 set(PROJ_NAME test_qpid_requestreply)
 project(${PROJ_NAME} VERSION ${PROJECT_VERSION})
 
-#Find protobuf
-find_package(Protobuf REQUIRED)
-
 # Find package QPID
 find_package(QPID)
 
@@ -25,6 +22,7 @@ target_sources(${PROJ_NAME} PRIVATE
 target_link_libraries(${PROJ_NAME} PRIVATE re_core)
 target_link_libraries(${PROJ_NAME} PRIVATE gtest)
 target_link_libraries(${PROJ_NAME} PRIVATE qpid_helper)
+target_link_libraries(${PROJ_NAME} PRIVATE qpid_ports)
 target_link_libraries(${PROJ_NAME} PRIVATE re_core_singletons)
 target_link_libraries(${PROJ_NAME} PRIVATE re_environment_controller_lib)
 target_link_libraries(${PROJ_NAME} PRIVATE lib_test_basic_proto)

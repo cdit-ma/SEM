@@ -703,6 +703,7 @@ void PrintError(int e){
             error = "SIGAR_OS_START_ERROR";
             break;
         }
+        #ifndef _WIN32
         case SIGAR_ENOENT:{
             error = "SIGAR_ENOENT";
             break;
@@ -715,6 +716,7 @@ void PrintError(int e){
             error = "SIGAR_ENXIO";
             break;
         }
+        #endif
     }
     std::cerr << e << " " << error << std::endl;
 }

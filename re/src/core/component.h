@@ -12,7 +12,7 @@
 #include <typeinfo>
 #include <typeindex>
 
-#include <boost/thread.hpp>
+#include "boost/thread.hpp"
 
 #include "ports/port.h"
 class Worker;
@@ -82,7 +82,7 @@ class Component : public BehaviourContainer{
         virtual ~Component();
 
         //Port
-        std::weak_ptr<Port> AddPort(std::unique_ptr<Port> port);
+        std::weak_ptr<Port> AddEventPort(std::unique_ptr<Port> port);
         std::weak_ptr<Port> GetPort(const std::string& port_name);
 
         template<class PortType>

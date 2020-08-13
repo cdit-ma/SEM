@@ -2,6 +2,7 @@
 #include "node.h"
 #include "data.h"
 #include <QDebug>
+#include <stdexcept>
 
 #include "../entityfactorybroker.h"
 #include "../edgekinds.h"

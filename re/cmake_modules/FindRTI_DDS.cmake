@@ -91,7 +91,7 @@ endif()
 
 
 if(NOT RTI_DDS_ROOT)
-    message(STATUS "Error: Either RTI_DDS_ROOT or NDDSHOME are not set, have you run the RTI configure script?")
+    message(WARNING "Either RTI_DDS_ROOT or NDDSHOME are not set, have you run the RTI configure script?")
     return()
 endif()
 

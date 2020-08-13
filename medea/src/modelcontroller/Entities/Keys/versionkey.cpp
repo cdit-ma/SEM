@@ -3,6 +3,7 @@
 #include "../node.h"
 #include <QDebug>
 #include <QRegularExpression>
+#include <stdexcept>
 
 const QRegularExpression VERSION_REGEX{R"(^(\d+)\.(\d+)\.(\d+)(-.+)?$)"};
 

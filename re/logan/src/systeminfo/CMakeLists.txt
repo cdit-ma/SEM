@@ -1,5 +1,3 @@
-find_package(Sigar)
-
 add_subdirectory(providers)
 
 add_library(system_info INTERFACE)
@@ -26,7 +24,7 @@ target_link_libraries(system_info_handler
         re_common_proto_systemevent
         )
 
-if (Sigar_FOUND)
+if (TARGET sigar)
     target_link_libraries(system_info_handler
             PRIVATE
             sigar_system_info_provider

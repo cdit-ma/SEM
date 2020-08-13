@@ -2,7 +2,7 @@
 #define ACTIVATABLE_FSM_TESTER_H
 
 #include <random>
-#include <core/component.h>
+#include "component.h"
 
 std::string get_long_test_name(){
     auto test_info = testing::UnitTest::GetInstance()->current_test_info();

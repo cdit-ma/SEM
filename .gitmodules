@@ -1,6 +1,3 @@
-[submodule "extern/googletest"]
-	path = re/extern/googletest
-	url = https://github.com/google/googletest
 [submodule "extern/DockerClient"]
 	path = re/extern/DockerClient
 	url = https://github.com/cdit-ma/DockerClient

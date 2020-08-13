@@ -57,9 +57,12 @@ else()
 endif(OPENCL_HAS_FFT)
 
 target_include_directories(${PROJ_NAME} PRIVATE ${RE_TEST_SOURCE_DIR})
-target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
+#target_include_directories(${PROJ_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
 
-target_link_libraries(${PROJ_NAME} PRIVATE opencl_worker)
-target_link_libraries(${PROJ_NAME} PRIVATE re_loggers)
-target_link_libraries(${PROJ_NAME} PRIVATE gtest)
-target_link_libraries(${PROJ_NAME} PRIVATE gtest_main)
+target_link_libraries(${PROJ_NAME}
+        PRIVATE
+        opencl_worker
+        re_loggers
+        gtest
+        gtest_main
+        )

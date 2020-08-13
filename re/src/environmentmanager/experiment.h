@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include <unordered_map>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 #include "ports/port.h"
 #include "uniquequeue.hpp"
 
@@ -37,7 +37,7 @@ class Experiment{
         };
 
         enum class ExperimentState{
-            REGISTERED,
+            Registered,
             CONFIGURED,
             ACTIVE
         };
@@ -58,7 +58,7 @@ class Experiment{
         const std::string& GetName() const;
 
         void ConfigureMaster();
-        std::string GetMessage() const;
+        std::string GetLogMessage() const;
 
         std::string GetManagerPort() const;
         void SetManagerPort(const std::string& manager_port);
@@ -140,7 +140,7 @@ class Experiment{
         //external port unique label -> internal port id
         std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
 
-        ExperimentState state_ = ExperimentState::REGISTERED;
+        ExperimentState state_ = ExperimentState::Registered;
 
         //Set dirty flag when we've added a public port to the environment that this experiment cares about.
         //On next heartbeat we should send a control message with the endpoint of the public port that we want to subscribe or publish to

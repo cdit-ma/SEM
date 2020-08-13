@@ -1,5 +1,5 @@
 #include "requestbuilder.h"
-
+#include <stdexcept>
 /**
  * @brief RequestBuilder::build
  */

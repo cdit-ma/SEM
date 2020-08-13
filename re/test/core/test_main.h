@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 #include <boost/program_options.hpp>
-#include <comms/environmentcontroller/environmentcontroller.h>
+#include "environmentcontroller.h"
 
 namespace cditma{
   static std::string environment_manager_endpoint;

@@ -1,17 +1,16 @@
-set(PROJ_NAME zmq_protowriter)
-project (${PROJ_NAME})
-
 find_package(Boost 1.30.0 COMPONENTS filesystem system REQUIRED)
-find_package(Protobuf REQUIRED)
-find_package(cppzmq REQUIRED)
 
-add_library(${PROJ_NAME} STATIC "")
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
-target_compile_definitions(${PROJ_NAME} PUBLIC BOOST_ALL_DYN_LINK)
-target_compile_definitions(${PROJ_NAME} PUBLIC PROTOBUF_USE_DLLS)
-set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(zmq_protowriter)
+target_compile_features(zmq_protowriter PRIVATE cxx_std_11)
 
-target_sources(${PROJ_NAME}
+target_compile_definitions(zmq_protowriter
+        PUBLIC
+        BOOST_ALL_DYN_LINK
+        )
+
+set_target_properties(zmq_protowriter PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_sources(zmq_protowriter
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/monitor.h
         ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.h
@@ -21,11 +20,16 @@ target_sources(${PROJ_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/monitor.cpp
         )
-target_include_directories(${PROJ_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(zmq_protowriter
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 
-target_link_libraries(${PROJ_NAME} PUBLIC ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME} PUBLIC cppzmq)
-target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_SYSTEM_LIBRARY})
-target_link_libraries(${PROJ_NAME} PUBLIC ${Boost_FILESYSTEM_LIBRARY})
+target_link_libraries(zmq_protowriter
+        PUBLIC
+        cppzmq
+        protobuf::libprotobuf
+        PRIVATE
+        Boost::system
+        Boost::filesystem
+        )

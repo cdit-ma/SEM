@@ -25,6 +25,8 @@ SQLiteDatabase::SQLiteDatabase(const std::string& dbFilepath){
     }
 }
 
+SQLiteDatabase::SQLiteDatabase() : SQLiteDatabase(":memory:") {}
+
 SQLiteDatabase::~SQLiteDatabase(){
     std::unique_lock<std::mutex> lock(mutex_);
     //Flush any messages still in the queue

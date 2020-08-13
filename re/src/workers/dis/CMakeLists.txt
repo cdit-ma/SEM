@@ -1,7 +1,3 @@
-set(PROJ_NAME dis_worker)
-project(${PROJ_NAME}
-        VERSION ${PROJECT_VERSION})
-
 set(DIS_VERSION 7)
 set(KDIS_LIB "kdis")
 
@@ -13,13 +9,14 @@ if(NOT KDIS_FOUND)
     return()
 endif()
 
-add_library(${PROJ_NAME} SHARED "")
-target_compile_features(${PROJ_NAME} PRIVATE cxx_std_11)
-set_target_properties(${PROJ_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(dis_worker SHARED)
+target_compile_features(dis_worker PRIVATE cxx_std_11)
+set_target_properties(dis_worker PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # Suppress dynamic exception and auto_ptr deprecation warnings
-target_compile_options(${PROJ_NAME} PRIVATE -Wno-deprecated -Wno-deprecated-declarations)
+target_compile_options(dis_worker PRIVATE -Wno-deprecated -Wno-deprecated-declarations)
 
-target_sources(${PROJ_NAME} PRIVATE
+target_sources(dis_worker
+    PRIVATE
     # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/dis_worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dis_worker_impl.cpp
@@ -27,8 +24,16 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/dis_worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/dis_worker_impl.h
 )
-target_include_directories(${PROJ_NAME} PUBLIC ${KDIS_INCLUDE_DIRS})
-target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PROJ_NAME} PUBLIC re_core)
-target_link_libraries(${PROJ_NAME} PUBLIC re_loggers)
-target_link_libraries(${PROJ_NAME} PUBLIC ${KDIS_LIBRARIES})
+
+target_include_directories(dis_worker
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+target_link_libraries(dis_worker
+    PUBLIC 
+    re_core
+    re_loggers
+    kdis
+    )
+

@@ -1,5 +1,5 @@
 #include "workloadeventseries.h"
-
+#include <stdexcept>
 /**
  * @brief WorkloadEventSeries::WorkloadEventSeries
  * @param ID

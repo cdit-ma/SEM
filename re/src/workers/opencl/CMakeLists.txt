@@ -32,7 +32,12 @@ target_compile_features(${PROJ_NAME} PRIVATE cxx_std_17)
 # Suppress ignored cl_int alignment attribute warning in opencl library
 target_compile_options(${PROJ_NAME} PRIVATE -Wno-ignored-attributes)
 
-target_sources(${PROJ_NAME} PRIVATE
+target_sources(${PROJ_NAME}
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/buffer.hpp
+
+    PRIVATE
     # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/manager.cpp
@@ -53,11 +58,9 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities.h
     ${CMAKE_CURRENT_SOURCE_DIR}/manager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/genericbuffer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/buffer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/bufferbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/kernelbase.h
     ${CMAKE_CURRENT_SOURCE_DIR}/kernel.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/opencl_worker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/loadbalancer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/device.h
     ${CMAKE_CURRENT_SOURCE_DIR}/openclexception.h
@@ -110,11 +113,17 @@ get_filename_component(KERNEL_FILEPATH kernels.cl ABSOLUTE CACHE)
 
 target_compile_definitions(${PROJ_NAME} PUBLIC -DKERNEL_FILEPATH="${KERNEL_FILEPATH}")
 
-target_include_directories(${PROJ_NAME} PUBLIC ${OPENCL_INCLUDE_PATH})
+target_include_directories(${PROJ_NAME}
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${OPENCL_INCLUDE_PATH})
 
 # Link Libraries
-target_link_libraries(${PROJ_NAME} PUBLIC re_core)
-target_link_libraries(${PROJ_NAME} PUBLIC ${OPENCL_LIB})
+target_link_libraries(${PROJ_NAME}
+        PUBLIC
+        re_core
+        ${OPENCL_LIB}
+        )
 
 # Specify the subprojects that depend on OpenCL
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list_devices")

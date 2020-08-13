@@ -8,8 +8,8 @@
 #include "executionmanager.h"
 
 #include "sem_version.hpp"
-#include <util/execution.hpp>
-#include <comms/environmentrequester/environmentrequester.h>
+#include "execution.hpp"
+#include "environmentrequester.h"
 
 // REVIEW (Mitch): Investigate wrapping this in a unique_ptr
 Execution execution;

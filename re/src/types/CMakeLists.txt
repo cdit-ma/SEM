@@ -22,9 +22,10 @@ target_include_directories(re_types
         )
 
 target_link_libraries(re_types
+        PUBLIC
+        Boost::boost
         PRIVATE
         # Include boost headers to get uuid.hpp and uuid_generators.hpp
-        Boost::boost
         )
 
 add_subdirectory(proto)

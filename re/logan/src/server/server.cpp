@@ -4,7 +4,7 @@
 
 #include "sqlitedatabase.h"
 #include "protohandler.h"
-#include <zmq/protoreceiver/protoreceiver.h>
+#include "protoreceiver.h"
 
 #ifndef DISABLE_HARDWARE_HANDLER
 #include "protohandlers/systemevent/protohandler.h"

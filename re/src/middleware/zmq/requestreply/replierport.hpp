@@ -1,11 +1,11 @@
 #ifndef ZMQ_PORT_REPLIER_HPP
 #define ZMQ_PORT_REPLIER_HPP
 
-#include <core/threadmanager.h>
-#include <core/ports/requestreply/replierport.hpp>
-#include <middleware/proto/prototranslator.h>
-#include <middleware/zmq/zmqhelper.h>
-#include <zmq/zmqutils.hpp>
+#include "threadmanager.h"
+#include "ports/requestreply/replierport.hpp"
+#include "prototranslator.hpp"
+#include "zmqhelper.h"
+#include "zmqutils.hpp"
 
 namespace zmq{
     template <class BaseReplyType, class ProtoReplyType, class BaseRequestType, class ProtoRequestType>

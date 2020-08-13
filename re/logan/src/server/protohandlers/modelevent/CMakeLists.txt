@@ -8,6 +8,10 @@ target_sources(${PROJ_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/protohandler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/protohandler.h
         )
-target_link_libraries(${PROJ_NAME} PUBLIC zmq_protowriter)
-target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_modelevent)
-target_link_libraries(${PROJ_NAME} PUBLIC logan_server_lib)
+target_link_libraries(${PROJ_NAME}
+        PUBLIC
+        zmq_protowriter
+        re_common_proto_modelevent
+        logan_server_lib
+        zmq_protoreceiver
+        )

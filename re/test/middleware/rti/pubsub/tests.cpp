@@ -7,9 +7,9 @@
 // Include the proto convert functions for the port type
 #include "basic.hpp"
 
-#include <core/ports/libportexport.h>
-#include <middleware/rti/pubsub/publisherport.hpp>
-#include <middleware/rti/pubsub/subscriberport.hpp>
+#include "ports/libportexport.h"
+#include "pubsub/publisherport.hpp"
+#include "pubsub/subscriberport.hpp"
 
 bool setup_port(Port& port, const std::string& topic_name){
     auto d = port.GetAttribute("domain_id").lock();

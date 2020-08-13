@@ -5,12 +5,12 @@
 
 #include <common/common.h>
 
-#include <core/loggers/print_logger.h>
+#include "print_logger.h"
 #include <iostream>
 #include <vector>
-#include <workers/opencl/manager.h>
-#include <workers/opencl/opencl_worker.h>
-#include <workers/opencl/utilities.h>
+#include "manager.h"
+#include "opencl_worker.h"
+#include "utilities.h"
 
 #define EPS 1e-6
 

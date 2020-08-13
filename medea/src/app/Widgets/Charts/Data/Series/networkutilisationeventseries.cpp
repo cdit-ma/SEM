@@ -1,6 +1,6 @@
 #include "networkutilisationeventseries.h"
 #include <cmath>
-
+#include <stdexcept>
 /**
  * @brief NetworkUtilisationEventSeries::NetworkUtilisationEventSeries
  * @param ID

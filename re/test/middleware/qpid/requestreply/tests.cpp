@@ -7,9 +7,9 @@
 // Include the proto convert functions for the port type
 #include "basic.pb.h"
 
-#include <core/ports/libportexport.h>
-#include <middleware/qpid/requestreply/replierport.hpp>
-#include <middleware/qpid/requestreply/requesterport.hpp>
+#include "ports/libportexport.h"
+#include "requestreply/replierport.hpp"
+#include "requestreply/requesterport.hpp"
 
 #include "../../../core/test_main.h"
 

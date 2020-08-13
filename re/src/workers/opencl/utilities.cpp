@@ -1,8 +1,8 @@
 #include "utilities.h"
 
 #include <algorithm>
-#include <core/logger.h>
-#include <core/worker.h>
+#include "logger.h"
+#include "worker.h"
 #include <fstream>
 #include <functional>
 #include <sstream>
@@ -197,7 +197,7 @@ void LogOpenCLError(const Worker& worker,
     std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-    worker.logger().LogWorkerEvent(worker, function_signature, Logger::WorkloadEvent::ERROR,
+    worker.logger().LogWorkerEvent(worker, function_signature, Logger::WorkloadEvent::Error,
                                    -1, // Need to expose something like get_current_work_id()
                                    message);
 }
@@ -208,7 +208,7 @@ void LogOpenCLError(const Worker& worker, std::string function_signature, std::s
     std::cerr << function_signature << ": " << error_message << std::endl;
 #endif
 
-    worker.logger().LogWorkerEvent(worker, function_signature, Logger::WorkloadEvent::ERROR, -1, error_message, -1);
+    worker.logger().LogWorkerEvent(worker, function_signature, Logger::WorkloadEvent::Error, -1, error_message, -1);
 }
 
 void LogOpenCLMessage(const Worker& worker, std::string function_signature, std::string message)

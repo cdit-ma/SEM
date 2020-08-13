@@ -2,8 +2,8 @@
 #include "basic.hpp"
 #include <list>
 #include <future>
-#include <core/ports/pubsub/publisherport.hpp>
-#include <core/ports/pubsub/subscriberport.hpp>
+#include "ports/pubsub/publisherport.hpp"
+#include "ports/pubsub/subscriberport.hpp"
 #include "../../core/testfunctions.h"
 
 namespace PubSub{

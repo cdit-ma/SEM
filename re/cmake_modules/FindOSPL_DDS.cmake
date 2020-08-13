@@ -81,7 +81,7 @@ if(NOT OSPL_DDS_ROOT)
 endif()
 
 if(NOT OSPL_DDS_ROOT)
-    message(STATUS "Error: Either OSPL_DDS_ROOT or OSPL_HOME are not set, have you run the OpenSplice configure script?")
+    message(WARNING "Either OSPL_DDS_ROOT or OSPL_HOME are not set, have you run the OpenSplice configure script?")
     return()
 endif()
 

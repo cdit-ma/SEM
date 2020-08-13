@@ -1,7 +1,7 @@
 #ifndef PROTO_TRANSLATOR_H
 #define PROTO_TRANSLATOR_H
 
-#include <core/ports/translator.h>
+#include "ports/translator.h"
 
 // REVIEW (Mitch): This doesn't belong in "middlewares". Move to serialization::proto
 namespace Proto{

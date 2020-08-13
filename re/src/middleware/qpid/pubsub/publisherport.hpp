@@ -1,9 +1,9 @@
 #ifndef QPID_PORT_PUBLISHER_HPP
 #define QPID_PORT_PUBLISHER_HPP
 
-#include <middleware/proto/prototranslator.h>
-#include <core/ports/pubsub/publisherport.hpp>
-#include <middleware/qpid/qpidhelper.h>
+#include "prototranslator.hpp"
+#include "ports/pubsub/publisherport.hpp"
+#include "qpidhelper.h"
 
 #include <mutex>
 #include <iostream>

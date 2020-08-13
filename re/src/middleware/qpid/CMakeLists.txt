@@ -18,3 +18,18 @@ target_sources(${PROJ_NAME} PRIVATE
 )
 target_include_directories(${PROJ_NAME} PUBLIC ${QPID_INCLUDE_DIRS})
 target_link_libraries(${PROJ_NAME} PUBLIC ${QPID_LIBRARIES})
+
+add_library(qpid_ports INTERFACE)
+target_include_directories(qpid_ports INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_sources(qpid_ports
+        INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/pubsub/publisherport.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/pubsub/subscriberport.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/requestreply/requesterport.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/requestreply/replierport.hpp
+        )
+target_link_libraries(qpid_ports
+        INTERFACE
+        qpid_helper
+        prototranslator
+        )

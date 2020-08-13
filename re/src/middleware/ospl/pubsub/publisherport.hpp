@@ -1,8 +1,8 @@
 #ifndef OSPL_PORT_PUBLISHER_HPP
 #define OSPL_PORT_PUBLISHER_HPP
 
-#include <middleware/ospl/helper.hpp>
-#include <core/ports/pubsub/publisherport.hpp>
+#include "helper.hpp"
+#include "ports/pubsub/publisherport.hpp"
 
 
 #include <string>

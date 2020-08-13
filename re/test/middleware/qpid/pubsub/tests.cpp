@@ -7,9 +7,9 @@
 // Include the proto convert functions for the port type
 #include "basic.pb.h"
 
-#include <core/ports/libportexport.h>
-#include <middleware/qpid/pubsub/publisherport.hpp>
-#include <middleware/qpid/pubsub/subscriberport.hpp>
+#include "ports/libportexport.h"
+#include "pubsub/publisherport.hpp"
+#include "pubsub/subscriberport.hpp"
 
 //Include main and env passing magic
 #include "../../../core/test_main.h"

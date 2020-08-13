@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "uniquequeue.hpp"
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 namespace EnvironmentManager{
 
@@ -40,7 +40,7 @@ class Node{
 
         bool HasNodeManagerMaster() const;
 
-        std::string GetMessage() const;
+        std::string GetLogMessage() const;
 
         //Update requirement management
         void SetDirty();

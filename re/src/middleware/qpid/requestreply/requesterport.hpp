@@ -1,9 +1,9 @@
 #ifndef QPID_PORT_REQUESTER_HPP
 #define QPID_PORT_REQUESTER_HPP
 
-#include <core/ports/requestreply/requesterport.hpp>
-#include <middleware/qpid/qpidhelper.h>
-#include <middleware/proto/prototranslator.h>
+#include "ports/requestreply/requesterport.hpp"
+#include "qpidhelper.h"
+#include "prototranslator.hpp"
 
 #include <qpid/messaging/Address.h>
 #include <qpid/messaging/Connection.h>

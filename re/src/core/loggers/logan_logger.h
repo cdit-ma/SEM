@@ -4,8 +4,8 @@
 #include <mutex>
 #include <string>
 
-#include <core/logger.h>
-#include <zmq/protowriter/cachedprotowriter.h>
+#include "logger.h"
+#include "cachedprotowriter.h"
 #include <chrono>
 #include <exception>
 

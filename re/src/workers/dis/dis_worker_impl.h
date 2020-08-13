@@ -14,7 +14,7 @@
 // DIS uses dynamic exception specifications in their headers
 // This macro replaces any instance of throw(<exception_type>) in the wrapped header with throw()
 // Necessary for cxx_std_17 compliance
-#if __cplusplus > 201703L
+#if __cplusplus >= 201703L
 #define throw(...) throw()
 #include <KDIS/Extras/PDU_Factory.h>
 #include <KDIS/Network/Connection.h>

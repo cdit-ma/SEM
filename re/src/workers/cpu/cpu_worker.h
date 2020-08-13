@@ -2,7 +2,7 @@
 #define WORKERS_CPU_CPUWORKER_H
 
 #include <memory>
-#include <core/worker.h>
+#include "worker.h"
 
 class Cpu_Worker_Impl;
 class Cpu_Worker : public Worker{

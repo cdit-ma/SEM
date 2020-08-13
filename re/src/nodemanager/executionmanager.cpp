@@ -1,6 +1,6 @@
 #include "executionmanager.h"
 #include <chrono>
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 #include <iostream>
 
 ExecutionManager::ExecutionManager(
@@ -137,7 +137,7 @@ void ExecutionManager::HandleSlaveStateChange(){
 
     auto configured_count = GetSlaveStateCount(SlaveState::CONFIGURED);
     auto terminated_count = GetSlaveStateCount(SlaveState::TERMINATED);
-    auto error_count = GetSlaveStateCount(SlaveState::ERROR_);
+    auto error_count = GetSlaveStateCount(SlaveState::Error);
     
     if(configured_count == slave_count){
         //All Slaves are configured, so Start
@@ -213,7 +213,7 @@ std::unique_ptr<NodeManager::SlaveStartupReply> ExecutionManager::HandleSlaveSta
                         reply->set_host_name(node.info().name());
                         reply->set_allocated_configuration(new Container(container));
                         //Set the slave state as Registered
-                        SetSlaveState(slave_key, SlaveState::REGISTERED);
+                        SetSlaveState(slave_key, SlaveState::Registered);
                     }
                 }
 
@@ -231,7 +231,7 @@ std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlave
     const auto& slave_key = GetSlaveKey(request.id());
 
     std::lock_guard<std::mutex> slave_lock(slave_state_mutex_);
-    if(GetSlaveState(slave_key) == SlaveState::REGISTERED){
+    if(GetSlaveState(slave_key) == SlaveState::Registered){
         reply = std::unique_ptr<SlaveConfiguredReply>(new SlaveConfiguredReply());
         auto slave_state = SlaveState::CONFIGURED;
         if(request.success()){
@@ -241,7 +241,7 @@ std::unique_ptr<NodeManager::SlaveConfiguredReply> ExecutionManager::HandleSlave
             for(const auto& error_str : request.error_messages()){
                 std::cerr << "* [" << slave_key << "]: " << error_str << std::endl;
             }
-            slave_state = SlaveState::ERROR_;
+            slave_state = SlaveState::Error;
         }
         //Set the slave state as Configured or Error'd
         SetSlaveState(slave_key, slave_state);
@@ -348,7 +348,7 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
         
         std::cout << "* Activating Deployment" << std::endl;
 
-        PushStateChange(ControlMessage::ACTIVATE);
+        PushStateChange(ControlMessage_Type_ACTIVATE);
         
 
         if(terminate_future.valid()){
@@ -366,10 +366,10 @@ void ExecutionManager::ExecutionLoop(int duration_sec, std::future<void> execute
                 }
             }
         }
-        PushStateChange(ControlMessage::PASSIVATE);
+        PushStateChange(ControlMessage_Type_PASSIVATE);
     }
 
-    PushStateChange(ControlMessage::TERMINATE);
+    PushStateChange(ControlMessage_Type_TERMINATE);
 
     std::cout << "--------[Slave De-registration]--------" << std::endl;
     {

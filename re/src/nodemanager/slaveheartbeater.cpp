@@ -1,5 +1,5 @@
 #include "slaveheartbeater.h"
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 
 SlaveHeartbeater::SlaveHeartbeater(zmq::ProtoRequester& requester, const std::string& ip_address, const std::string& container_id):

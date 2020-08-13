@@ -49,5 +49,6 @@ auto LoggingClientDefinition::ToProto() const -> std::unique_ptr<PbType>
     auto out = std::make_unique<PbType>();
     out->set_allocated_core_data(GetCoreData().ToProto().release());
     out->set_mode(ModeToProto(mode_));
+    return out;
 }
 } // namespace re::Representation

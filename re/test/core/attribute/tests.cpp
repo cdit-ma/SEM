@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include <core/attribute.h>
+#include "attribute.h"
 #include <cmath>
 
 TEST(Re_Core_Attribute, Type_Integer){
@@ -65,12 +65,12 @@ TEST(Re_Core_Attribute, Type_Double){
 
     {
         //Test reference-template-setter vs regular-getter and template-getter
-        double value = M_PI;
+        double value = 3.0;
         a.SetValue<double>(value);
         EXPECT_DOUBLE_EQ(a.get_Double(), value);
         EXPECT_DOUBLE_EQ(a.Value<double>(), value);
 
-        a.Value<double>() *= M_PI;
+        a.Value<double>() *= value;
 
         EXPECT_DOUBLE_EQ(a.get_Double(), value * value);
         EXPECT_DOUBLE_EQ(a.Value<double>(), value * value);

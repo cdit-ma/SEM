@@ -36,15 +36,6 @@ if (CMAKE_CUDA_COMPILER)
     add_subdirectory(extern/cuda-api-wrappers)
 endif()
 
-if (BUILD_TEST)
-    set(GOOGLE_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googletest)
-    set(GOOGLE_MOCK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/googlemock)
-
-    # Only add googlemock as googlemock builds googletest.
-    # Adding googletest subdirectory leads to multiple definition error
-    add_subdirectory(${GOOGLE_MOCK_DIR})
-endif (BUILD_TEST)
-
 # Build re_common
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
@@ -60,7 +51,7 @@ if (BUILD_DOCS)
 endif ()
 
 # Build Docker client library
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/DockerClient")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/DockerClient")
 
 if (BUILD_TEST)
     #Build tests

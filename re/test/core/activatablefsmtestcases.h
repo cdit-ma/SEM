@@ -1,4 +1,4 @@
-#include <core/activatable.h>
+#include "activatable.h"
 #include "testfunctions.h"
 //Requires a subclass of ActivatableFSMTester to be defined, and then this header file to be included with TEST_FSM_CLASS defined
 

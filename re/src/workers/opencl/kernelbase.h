@@ -1,7 +1,7 @@
 #ifndef OPENCLKERNELBASE_H
 #define OPENCLKERNELBASE_H
 
-#include "core/worker.h"
+#include "worker.h"
 
 #include <memory>
 

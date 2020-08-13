@@ -10,8 +10,8 @@
 #include <set>
 #include <mutex>
 
-#include <zmq/protoreceiver/protoreceiver.h>
-#include <proto/systemevent/systemevent.pb.h>
+#include "protoreceiver.h"
+#include "systemevent.pb.h"
 
 #include "../../sqlitedatabase.h"
 #include "../../protohandler.h"

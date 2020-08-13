@@ -2,7 +2,7 @@
 #define WORKERS_MEMORY_MEMORYWORKER
 
 #include <memory>
-#include <core/worker.h>
+#include "worker.h"
 
 class Memory_Worker_Impl;
 class Memory_Worker : public Worker{

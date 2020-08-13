@@ -1,7 +1,7 @@
 #include "qpidport.h"
 #include "../environment.h"
 #include "../experiment.h"
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
 
 

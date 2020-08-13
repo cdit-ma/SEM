@@ -5,7 +5,7 @@
 #include <mutex>
 #include <string>
 
-#include <core/logger.h>
+#include "logger.h"
 // REVIEW (Mitch): See refactor strategy detailed in ../logger.h
 namespace Print{
 // REVIEW (Mitch): Move Print::Logger out of Print namespace. This seems like a bad way to name

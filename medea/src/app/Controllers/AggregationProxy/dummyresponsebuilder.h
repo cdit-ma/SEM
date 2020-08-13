@@ -5,7 +5,7 @@
 #ifndef MEDEA_PROJECT_DUMMYRESPONSEBUILDER_H
 #define MEDEA_PROJECT_DUMMYRESPONSEBUILDER_H
 
-#include <proto/aggregationmessage/aggregationmessage.pb.h>
+#include "aggregationmessage.pb.h"
 #include <google/protobuf/util/time_util.h>
 #include <QDateTime>
 

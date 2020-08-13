@@ -9,10 +9,10 @@
 #include "environment.h"
 #include "deploymenthandler.h"
 
-#include <zmq/protoreplier/protoreplier.hpp>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <proto/environmentcontrol/environmentcontrol.pb.h>
-#include <util/execution.hpp>
+#include "protoreplier.hpp"
+#include "controlmessage.pb.h"
+#include "environmentcontrol.pb.h"
+#include "execution.hpp"
 
 class DeploymentRegister{
     public:

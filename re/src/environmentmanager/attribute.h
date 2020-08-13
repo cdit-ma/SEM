@@ -1,7 +1,7 @@
 #ifndef ENVIRONMENT_MANAGER_ATTRIBUTE_H
 #define ENVIRONMENT_MANAGER_ATTRIBUTE_H
 
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 namespace EnvironmentManager{
 class Attribute{

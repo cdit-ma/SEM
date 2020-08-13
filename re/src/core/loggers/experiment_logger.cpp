@@ -1,6 +1,6 @@
 #include "experiment_logger.h"
-#include <proto/modelevent/modelevent.pb.h>
-#include <zmq/protowriter/cachedprotowriter.h>
+#include "modelevent.pb.h"
+#include "cachedprotowriter.h"
 #include <google/protobuf/util/time_util.h>
 
 // REVIEW (Mitch): namespace this and put it somewhere sane
