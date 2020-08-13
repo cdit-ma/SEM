@@ -98,5 +98,3 @@ if(WIN32)
     cpack_add_component (SCRIPTS DISPLAY_NAME "Core: Jenkins Scripts" REQUIRED)
     cpack_add_component (RE_GEN DISPLAY_NAME "Core: re_gen XSL transforms" REQUIRED)
 endif()
-
-message(WARNING ${CPACK_COMPONENTS_ALL})

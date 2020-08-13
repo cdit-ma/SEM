@@ -73,7 +73,7 @@ protected:
 #undef TEST_FSM_CLASS
 
 
-TEST(Re_Port_PubSub_Zmq, Basic_Stable){
+TEST(Re_Port_PubSub_Zmq, DISABLED_Basic_Stable){
     using namespace ::PubSub::Basic::Stable;
 
     //Define the base types

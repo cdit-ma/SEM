@@ -3,11 +3,11 @@ target_compile_features(cpu_worker PRIVATE cxx_std_11)
 set_target_properties(cpu_worker PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # Disable Optimizing
 if (UNIX)
-    SET(NO_OPTIMIZE_FLAG "-O0")
-elseif(MSVC)
-    #SET(NO_OPTIMIZE_FLAG "-Od /wd4996 /wd4244")
+    target_compile_options(cpu_worker PRIVATE "-O0")
+elseif(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    #target_compile_options(cpu_worker PRIVATE "/Od /wd4996 /wd4244")
+    message(WARNING "CPU_WORKER compiled with optimisations. This will change results.")
 endif(UNIX)
-target_compile_options(cpu_worker PRIVATE ${NO_OPTIMIZE_FLAG})
 
 target_sources(cpu_worker PRIVATE
     # Sources
