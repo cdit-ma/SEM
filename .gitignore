@@ -4,6 +4,7 @@
 /bin/
 /cmake-build-*/
 /docs/doxygen/
+/deps/
 
 # IDE config dirs
 /.vscode/

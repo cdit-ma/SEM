@@ -3,6 +3,10 @@
 message(STATUS "Fetching gRPC")
 FetchContent_Declare(
         grpc
+        GIT_REPOSITORY https://github.com/grpc/grpc.git
+        GIT_TAG v1.30.2
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
 )
 set(gRPC_BUILD_TESTS OFF CACHE BOOL "")
 set(gRPC_BUILD_CSHARP_EXT OFF CACHE BOOL "")
@@ -14,13 +18,9 @@ set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "")
 set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "")
 set(ABSL_RUN_TESTS OFF CACHE BOOL "")
 
+FetchContent_GetProperties(grpc)
 if (NOT grpc_POPULATE)
-    FetchContent_Populate(grpc
-            GIT_REPOSITORY https://github.com/grpc/grpc.git
-            GIT_TAG v1.30.2
-            GIT_SHALLOW TRUE
-            GIT_PROGRESS TRUE
-            )
+    FetchContent_Populate(grpc)
     add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR})
     set(Protobuf_IMPORT_DIRS ${grpc_SOURCE_DIR}/third_party/protobuf/src PARENT_SCOPE)
 endif ()
