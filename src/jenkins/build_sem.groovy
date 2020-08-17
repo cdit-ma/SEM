@@ -71,7 +71,9 @@ pipeline{
                                 unstash "source_code"
                                 dir("build"){
                                     deleteDir()
-                                    if(!utils.buildProject("Ninja", "-DBUILD_TEST=ON")){
+                                    def sem_deps_cache_path = "${env.SEM_DEPS_CACHE_DIR}"
+                                    if(!utils.buildProject("Ninja",
+                                            "-DBUILD_TEST=ON -DSEM_DEPS_BASE_DIR=${sem_deps_cache_path}")){
                                         error("CMake failed on Builder Node: ${node_name}")
                                     }
                                 }
