@@ -7,6 +7,8 @@
 #include "EntityItems/nodegraphicsitem.h"
 #include "GraphicsItems/edgeitem.h"
 
+#include "EntityItems/workerinstancegraphicsitem.h"
+
 #include <QGraphicsRectItem>
 #include <QVBoxLayout>
 #include <QDockWidget>
@@ -89,6 +91,8 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
         emit updateLiveStatus(live_mode_);
     }
 
+    QHash<QString, ComponentInstanceGraphicsItem*> comp_inst_items;
+
     for (const auto& node_data : exp_run_data.getNodeData()) {
 
         auto node_item = new NodeGraphicsItem(*node_data);
@@ -98,6 +102,19 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
             for (const auto& port_inst_item : comp_inst_item->getPortInstanceItems()) {
                 const auto& port_id = port_inst_item->getGraphmlID();
                 port_items_.insert(port_id, port_inst_item);
+            }
+            comp_inst_items.insert(comp_inst_item->getGraphmlID(), comp_inst_item);
+        }
+
+        for (const auto& container : node_data->getContainerInstanceData()) {
+            for (const auto& comp_inst : container->getComponentInstanceData()) {
+                for (const auto& work_inst : comp_inst->getWorkerInstanceData()) {
+                    auto comp_inst_item = comp_inst_items.value(comp_inst->getGraphmlID(), nullptr);
+                    if (comp_inst_item) {
+                        auto worker_inst_item = new WorkerInstanceGraphicsItem(*work_inst, comp_inst_item);
+                        addItemToScene(worker_inst_item);
+                    }
+                }
             }
         }
     }

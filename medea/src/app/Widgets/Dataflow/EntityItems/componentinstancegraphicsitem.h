@@ -21,6 +21,8 @@ class ComponentInstanceGraphicsItem : public QGraphicsWidget
 public:
     explicit ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, NodeGraphicsItem* parent = nullptr);
 
+    const QString& getGraphmlID() const;
+
     PortInstanceGraphicsItem* addPortInstanceItem(PortInstanceData& port_data);
     const std::vector<PortInstanceGraphicsItem*>& getPortInstanceItems() const;
 

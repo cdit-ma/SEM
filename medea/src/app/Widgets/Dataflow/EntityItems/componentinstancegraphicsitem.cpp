@@ -31,6 +31,11 @@ ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInst
     constructChildrenItems();
 }
 
+const QString& ComponentInstanceGraphicsItem::getGraphmlID() const
+{
+    return comp_inst_data_.getGraphmlID();
+}
+
 /**
  * @brief ComponentInstanceGraphicsItem::addPortInstanceItem
  * @param port_data
