@@ -2,8 +2,6 @@
 message(STATUS "Fetching gTest")
 
 if (MSVC)
-    unset(CXX_COMPILER_LAUNCHER)
-    unset(C_COMPILER_LAUNCHER)
     unset(CMAKE_CXX_COMPILER_LAUNCHER)
     unset(CMAKE_C_COMPILER_LAUNCHER)
 endif ()
