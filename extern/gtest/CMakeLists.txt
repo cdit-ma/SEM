@@ -1,8 +1,12 @@
 # gtest
 message(STATUS "Fetching gTest")
 
-unset(CMAKE_CXX_COMPILER_LAUNCHER)
-unset(CMAKE_C_COMPILER_LAUNCHER)
+if (MSVC)
+    unset(CXX_COMPILER_LAUNCHER)
+    unset(C_COMPILER_LAUNCHER)
+    unset(CMAKE_CXX_COMPILER_LAUNCHER)
+    unset(CMAKE_C_COMPILER_LAUNCHER)
+endif ()
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "")
