@@ -13,6 +13,12 @@ if (CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_PROGRAM}")
 endif ()
 
+if (MSVC)
+    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+    set(CMAKE_C_COMPILER_LAUNCHER sccache)
+endif (MSVC)
+
+
 # Enforce AT LEAST c++11. This project requires c++17 in most places aside from some dependencies (protobuf).
 # This needs to be done at top level to ensure that protobuf gets built against c++11.
 # Came to light as part of SEM-242, SEM-231
