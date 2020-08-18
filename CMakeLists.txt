@@ -14,6 +14,10 @@ if (CCACHE_PROGRAM)
 endif ()
 
 if (MSVC)
+    string(REGEX REPLACE "/Z[iI7]" ""
+            CMAKE_CXX_FLAGS_RELEASE
+            "${CMAKE_CXX_FLAGS_RELEASE}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Z7")
     set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
     set(CMAKE_C_COMPILER_LAUNCHER sccache)
 endif (MSVC)
