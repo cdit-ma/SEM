@@ -1,6 +1,7 @@
 
 # pqxx
 message(STATUS "Fetching pqxx")
+set(SKIP_BUILD_TEST ON)
 FetchContent_Declare(pqxx
         GIT_REPOSITORY https://github.com/jtv/libpqxx
         GIT_TAG 7.1.2
