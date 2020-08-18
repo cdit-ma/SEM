@@ -16,6 +16,11 @@ endif ()
 if (MSVC)
     set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
     set(CMAKE_C_COMPILER_LAUNCHER sccache)
+    # Remove instances of Zi in MSVC invocation flags to let sccache work
+    string(REGEX REPLACE "/Z[iI7]" ""
+            CMAKE_CXX_FLAGS_RELEASE
+            "${CMAKE_CXX_FLAGS_RELEASE}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Z7")
 endif (MSVC)
 
 
@@ -52,14 +57,6 @@ set(FETCHCONTENT_BASE_DIR ${SEM_DEPS_BASE_DIR}/${CMAKE_BUILD_TYPE} CACHE PATH ""
 
 add_subdirectory(extern)
 
-# Remove instances of Zi in MSVC invocation flags to let sccache work
-# Has to be done after adding external projects as they may override Zi
-if (MSVC)
-    string(REGEX REPLACE "/Z[iI7]" ""
-            CMAKE_CXX_FLAGS_RELEASE
-            "${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Z7")
-endif ()
 
 add_subdirectory(src)
 add_subdirectory(re)

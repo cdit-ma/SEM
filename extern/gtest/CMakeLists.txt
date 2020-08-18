@@ -1,5 +1,9 @@
 # gtest
 message(STATUS "Fetching gTest")
+
+unset(CMAKE_CXX_COMPILER_LAUNCHER)
+unset(CMAKE_C_COMPILER_LAUNCHER)
+
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "")
 FetchContent_Declare(googletest
