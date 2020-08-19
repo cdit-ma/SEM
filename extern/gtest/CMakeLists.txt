@@ -2,7 +2,7 @@
 message(STATUS "Fetching gTest")
 
 # Googletest doesn't work with sccache; they force /Zi
-if (MSVC AND ${CMAKE_CXX_COMPILER_LAUNCHER} STREQUAL sccache)
+if (MSVC AND CMAKE_CXX_COMPILER_LAUNCHER STREQUAL "sccache")
     unset(CMAKE_CXX_COMPILER_LAUNCHER)
     unset(CMAKE_C_COMPILER_LAUNCHER)
 endif ()
