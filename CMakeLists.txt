@@ -55,7 +55,9 @@ option(BUILD_REGEN_TEST "Build regen testing" OFF)
 option(BUILD_MEDEA "Build MEDEA" ON)
 option(NO_SIGAR "Disable Hypiric SIGAR dependency" OFF)
 option(SEM_DEPS_BASE_DIR "")
-set(FETCHCONTENT_BASE_DIR ${SEM_DEPS_BASE_DIR}/${CMAKE_BUILD_TYPE} CACHE PATH "")
+if (SEM_DEPS_BASE_DIR)
+    set(FETCHCONTENT_BASE_DIR ${SEM_DEPS_BASE_DIR}/${CMAKE_BUILD_TYPE} CACHE PATH "")
+endif ()
 
 add_subdirectory(extern)
 
