@@ -40,30 +40,25 @@ const QString& ComponentInstanceGraphicsItem::getGraphmlID() const
  * @brief ComponentInstanceGraphicsItem::addPortInstanceItem
  * @param port_data
  */
-PortInstanceGraphicsItem* ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceData& port_data)
+void ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceData& port_data)
 {
     auto port_inst_item = new PortInstanceGraphicsItem(port_data, this);
     connect(this, &ComponentInstanceGraphicsItem::visibleChanged, port_inst_item, &PortInstanceGraphicsItem::visibleChanged);
     connect(this, &ComponentInstanceGraphicsItem::updateConnectionPos, port_inst_item, &PortInstanceGraphicsItem::updateConnectionPos);
 
-    port_inst_item->setParentItem(this);
     port_inst_items_.push_back(port_inst_item);
     prepareGeometryChange();
 
     auto&& port_kind = port_inst_item->getPortKind();
     if (port_kind == AggServerResponse::Port::Kind::PUBLISHER || port_kind == AggServerResponse::Port::Kind::REQUESTER) {
         auto&& alignment = Qt::AlignRight;
-        port_inst_item->setAlignment(alignment);
-        children_layout_->addItem(port_inst_item, right_port_count_, 1, alignment);
+        children_layout_->addItem(port_inst_item, right_port_count_, 2, alignment);
         right_port_count_++;
     } else {
         auto&& alignment = Qt::AlignLeft;
-        port_inst_item->setAlignment(alignment);
         children_layout_->addItem(port_inst_item, left_port_count_, 0, alignment);
         left_port_count_++;
     }
-
-    return port_inst_item;
 }
 
 /**
@@ -75,6 +70,22 @@ const std::vector<PortInstanceGraphicsItem*>& ComponentInstanceGraphicsItem::get
    return port_inst_items_;
 }
 
+void ComponentInstanceGraphicsItem::addWorkerInstanceItem(WorkerInstanceData& worker_inst_data)
+{
+    auto worker_inst_item = new WorkerInstanceGraphicsItem(worker_inst_data, this);
+    connect(this, &ComponentInstanceGraphicsItem::visibleChanged, worker_inst_item, &WorkerInstanceGraphicsItem::visibleChanged);
+
+    worker_inst_items_.push_back(worker_inst_item);
+    prepareGeometryChange();
+
+    children_layout_->addItem(worker_inst_item, worker_count, 1, Qt::AlignCenter);
+    worker_count++;
+}
+
+const std::vector<WorkerInstanceGraphicsItem*>& ComponentInstanceGraphicsItem::getWorkerInstanceItems() const
+{
+    return worker_inst_items_;
+}
 
 /**
  * @brief ComponentInstanceGraphicsItem::boundingRect
@@ -195,6 +206,12 @@ void ComponentInstanceGraphicsItem::constructChildrenItems()
         }
         addPortInstanceItem(*port_data);
     }
+    for (const auto& worker_inst_data : comp_inst_data_.getWorkerInstanceData()) {
+        if (worker_inst_data == nullptr) {
+            throw std::invalid_argument("ComponentInstanceGraphicsItem::constructChildrenItems - WorkerInstanceData is null.");
+        }
+        addWorkerInstanceItem(*worker_inst_data);
+    }
 }
 
 
@@ -208,6 +225,9 @@ void ComponentInstanceGraphicsItem::toggleExpanded()
 
     for (const auto& port_inst : port_inst_items_) {
         port_inst->setVisible(expanded_);
+    }
+    for (const auto& worker_inst : worker_inst_items_) {
+        worker_inst->setVisible(expanded_);
     }
 
     update();
@@ -306,7 +326,7 @@ void ComponentInstanceGraphicsItem::setupLayout()
     //top_layout_->addItem(toggle_pixmap_item_);
     //top_layout_->setStretchFactor(toggle_pixmap_item_, 0);
 
-    auto spacing = MEDEA::GraphicsLayoutItem::DEFAULT_GRAPHICS_ITEM_HEIGHT * 0.75;
+    auto spacing = MEDEA::GraphicsLayoutItem::DEFAULT_GRAPHICS_ITEM_HEIGHT * 0.5;
     auto margin = spacing / 4;
     children_layout_ = new QGraphicsGridLayout;
     children_layout_->setContentsMargins(margin, margin, margin, margin);

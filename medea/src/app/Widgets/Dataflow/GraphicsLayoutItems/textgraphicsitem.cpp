@@ -66,25 +66,25 @@ QSizeF TextGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF &constraint) 
  */
 QPointF TextGraphicsItem::getAlignedPos() const
 {
-    auto geom = geometry();
-    auto c = geom.center();
-    auto px = geom.left();
-    auto py = geom.top();
+    const auto& geom = geometry();
+    const auto w = boundingRect().width();
+    const auto h = boundingRect().height();
 
+    QPointF aligned_pos(geom.left(), geom.top());
     if (alignment_ & Qt::AlignRight) {
-        px = geom.right() - geom.width();
+        aligned_pos.setX(geom.right() - w);
     }
     if (alignment_ & Qt::AlignBottom) {
-        py = geom.bottom() - geom.height();
+        aligned_pos.setY(geom.bottom() - h);
     }
 
     // NOTE: Qt::AlignCenter = Qt::AlignHCenter | Qt::AlignVCenter
     if (alignment_ & Qt::AlignHCenter) {
-        px = c.x() - boundingRect().width() / 2.0;
+        aligned_pos.setX(geom.center().x() - w / 2.0);
     }
     if (alignment_ & Qt::AlignVCenter) {
-        py = c.y() - boundingRect().height() / 2.0;
+        aligned_pos.setY(geom.center().y() - h / 2.0);
     }
 
-    return {px, py};
+    return aligned_pos;
 }

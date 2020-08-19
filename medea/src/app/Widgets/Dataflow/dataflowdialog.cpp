@@ -105,18 +105,6 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
             }
             comp_inst_items.insert(comp_inst_item->getGraphmlID(), comp_inst_item);
         }
-
-        for (const auto& container : node_data->getContainerInstanceData()) {
-            for (const auto& comp_inst : container->getComponentInstanceData()) {
-                for (const auto& work_inst : comp_inst->getWorkerInstanceData()) {
-                    auto comp_inst_item = comp_inst_items.value(comp_inst->getGraphmlID(), nullptr);
-                    if (comp_inst_item) {
-                        auto worker_inst_item = new WorkerInstanceGraphicsItem(*work_inst, comp_inst_item);
-                        addItemToScene(worker_inst_item);
-                    }
-                }
-            }
-        }
     }
 
     // Construct the edges

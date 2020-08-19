@@ -2,8 +2,8 @@
 // Created by Cathlyn Aston on 17/8/20.
 //
 
-#ifndef SEM_WORKERINSTANCEGRAPHICSITEM_H
-#define SEM_WORKERINSTANCEGRAPHICSITEM_H
+#ifndef WORKERINSTGRAPHICSITEM_H
+#define WORKERINSTGRAPHICSITEM_H
 
 #include "../../Charts//Data//workerinstancedata.h"
 #include "../GraphicsLayoutItems/pixmapgraphicsitem.h"
@@ -21,9 +21,9 @@ class WorkerInstanceGraphicsItem : public QGraphicsWidget
 public:
     WorkerInstanceGraphicsItem(const WorkerInstanceData& worker_data, ComponentInstanceGraphicsItem* parent);
 
-    const QString& getGraphmlID() const;
-    const QString& getName() const;
-    const QString& getType() const;
+    [[nodiscard]] const QString& getGraphmlID() const;
+    [[nodiscard]] const QString& getName() const;
+    [[nodiscard]] const QString& getType() const;
 
 protected:
     QRectF boundingRect() const override;
@@ -49,4 +49,4 @@ private:
     const WorkerInstanceData& worker_inst_data_; // TODO: Ask if this is okay
 };
 
-#endif // SEM_WORKERINSTANCEGRAPHICSITEM_H
+#endif // WORKERINSTGRAPHICSITEM_H

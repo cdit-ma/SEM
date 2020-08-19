@@ -5,6 +5,7 @@
 #include "../GraphicsLayoutItems/pixmapgraphicsitem.h"
 #include "../GraphicsLayoutItems/textgraphicsitem.h"
 #include "portinstancegraphicsitem.h"
+#include "workerinstancegraphicsitem.h"
 
 #include <QGraphicsWidget>
 #include <QGraphicsLinearLayout>
@@ -23,8 +24,11 @@ public:
 
     const QString& getGraphmlID() const;
 
-    PortInstanceGraphicsItem* addPortInstanceItem(PortInstanceData& port_data);
+    void addPortInstanceItem(PortInstanceData& port_data);
     const std::vector<PortInstanceGraphicsItem*>& getPortInstanceItems() const;
+
+    void addWorkerInstanceItem(WorkerInstanceData& worker_inst_data);
+    const std::vector<WorkerInstanceGraphicsItem*>& getWorkerInstanceItems() const;
 
     void moveTo(int x, int y);
 
@@ -62,6 +66,7 @@ private:
 
     int left_port_count_ = 0;
     int right_port_count_ = 0;
+    int worker_count = 0;
 
     QPointF prev_move_origin_;
 
@@ -76,8 +81,9 @@ private:
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
     TextGraphicsItem* label_text_item_ = nullptr;
 
-    std::vector<PortInstanceGraphicsItem*> port_inst_items_;
     const ComponentInstanceData& comp_inst_data_;
+    std::vector<PortInstanceGraphicsItem*> port_inst_items_;
+    std::vector<WorkerInstanceGraphicsItem*> worker_inst_items_;
 };
 
 #endif // COMPINSTGRAPHICSITEM_H
