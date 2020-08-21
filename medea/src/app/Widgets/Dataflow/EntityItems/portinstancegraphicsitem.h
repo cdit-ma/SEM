@@ -10,6 +10,7 @@
 #include <QPen>
 
 class ComponentInstanceGraphicsItem;
+
 class PortInstanceGraphicsItem : public QGraphicsWidget
 {
     Q_OBJECT
@@ -25,10 +26,9 @@ public:
 
     qint64 getPreviousEventTime(qint64 time) const;
     qint64 getNextEventTime(qint64 time) const;
+    void playEvents(qint64 from_time, qint64 to_time);
 
     void setAlignment(Qt::Alignment alignment);
-
-    void playEvents(qint64 from_time, qint64 to_time);
 
 signals:
     void updateConnectionPos();
@@ -41,6 +41,7 @@ private slots:
 protected:
     QRectF boundingRect() const override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
+
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:

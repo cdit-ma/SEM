@@ -72,7 +72,6 @@ void PixmapGraphicsItem::setGeometry(const QRectF &geom)
     if (diff_width > 0) {
         offset_x = diff_width / 2.0;
     }
-
     auto diff_height = geom.height() - boundingRect().height();
     auto offset_y = 0.0;
     if (diff_height > 0) {
