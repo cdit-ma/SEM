@@ -116,7 +116,7 @@ qreal WorkerInstanceGraphicsItem::getWidth() const
  */
 qreal WorkerInstanceGraphicsItem::getHeight() const
 {
-    return main_layout_->minimumHeight();
+    return main_layout_->geometry().height();
 }
 
 /**
