@@ -1,5 +1,5 @@
 #include "componentinstancegraphicsitem.h"
-#include "nodegraphicsitem.h"
+#include "containerinstancegraphicsitem.h"
 #include "../../../theme.h"
 
 #include <QPainter>
@@ -15,7 +15,7 @@ const int top_layout_horizontal_margin = 10;
  * @param comp_inst_data
  * @param parent
  */
-ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, NodeGraphicsItem* parent)
+ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, ContainerInstanceGraphicsItem* parent)
     : QGraphicsWidget(parent),
       comp_inst_data_(comp_inst_data)
 {
@@ -24,11 +24,11 @@ ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInst
     setFlags(flags() | QGraphicsWidget::ItemIsMovable | QGraphicsWidget::ItemIsSelectable);
     setAcceptedMouseButtons(Qt::LeftButton);
 
-    connect(this, &ComponentInstanceGraphicsItem::geometryChanged, this, &ComponentInstanceGraphicsItem::updateConnectionPos);
+    connect(this, &ComponentInstanceGraphicsItem::geometryChanged, [this]{ update(); });
     connect(Theme::theme(), &Theme::theme_Changed, this, &ComponentInstanceGraphicsItem::themeChanged);
-    themeChanged();
 
     constructChildrenItems();
+    themeChanged();
 }
 
 const QString& ComponentInstanceGraphicsItem::getGraphmlID() const
@@ -43,11 +43,9 @@ const QString& ComponentInstanceGraphicsItem::getGraphmlID() const
 void ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceData& port_data)
 {
     auto port_inst_item = new PortInstanceGraphicsItem(port_data, this);
-    connect(this, &ComponentInstanceGraphicsItem::visibleChanged, port_inst_item, &PortInstanceGraphicsItem::visibleChanged);
-    connect(this, &ComponentInstanceGraphicsItem::updateConnectionPos, port_inst_item, &PortInstanceGraphicsItem::updateConnectionPos);
+    connect(this, &ComponentInstanceGraphicsItem::geometryChanged, port_inst_item, &PortInstanceGraphicsItem::updateConnectionPos);
 
     port_inst_items_.push_back(port_inst_item);
-    prepareGeometryChange();
 
     auto&& port_kind = port_inst_item->getPortKind();
     if (port_kind == AggServerResponse::Port::Kind::PUBLISHER || port_kind == AggServerResponse::Port::Kind::REQUESTER) {
@@ -164,7 +162,7 @@ void ComponentInstanceGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* eve
         auto cursor_pos = mapToScene(event->pos());
         auto delta = cursor_pos - prev_move_origin_;
         prev_move_origin_ = cursor_pos;
-        emit attemptMove(this, pos() + delta);
+        emit requestMove(this, pos() + delta);
     }
 }
 
@@ -214,7 +212,6 @@ void ComponentInstanceGraphicsItem::constructChildrenItems()
     }
 }
 
-
 /**
  * @brief ComponentInstanceGraphicsItem::toggleExpanded
  */
@@ -222,7 +219,6 @@ void ComponentInstanceGraphicsItem::toggleExpanded()
 {
     expanded_ = !expanded_;
     prepareGeometryChange();
-
     for (const auto& port_inst : port_inst_items_) {
         port_inst->setVisible(expanded_);
     }
@@ -243,7 +239,6 @@ void ComponentInstanceGraphicsItem::moveTo(int x, int y)
 {
     prepareGeometryChange();
     setPos(x, y);
-    update();
 }
 
 /**
@@ -300,9 +295,9 @@ void ComponentInstanceGraphicsItem::setupLayout()
 {
     QPixmap pix = Theme::theme()->getImage("EntityIcons", "ComponentInstance");
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    label_text_item_ = new TextGraphicsItem(comp_inst_data_.getName() + " [" + comp_inst_data_.getGraphmlID() + "]", this);
-
     icon_pixmap_item_->setParentItem(this);
+
+    label_text_item_ = new TextGraphicsItem(comp_inst_data_.getName() + " [" + comp_inst_data_.getGraphmlID() + "]", this);
     label_text_item_->setParentItem(this);
 
     pix = Theme::theme()->getImage("Icons", "circleInfoDark");

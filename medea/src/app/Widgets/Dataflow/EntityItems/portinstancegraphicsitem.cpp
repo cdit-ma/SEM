@@ -324,7 +324,7 @@ qreal PortInstanceGraphicsItem::getWidth() const
  */
 qreal PortInstanceGraphicsItem::getHeight() const
 {
-    return main_layout_->minimumHeight();
+    return main_layout_->geometry().height();
 }
 
 /**
