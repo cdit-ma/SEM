@@ -195,9 +195,11 @@ void EdgeItem::updateEdgePath()
     QPointF ctrl_p1 = fixed_ctr1 + QPointF(qAbs(y_offset), y_offset);
     QPointF ctrl_p2 = fixed_ctr2 - QPointF(qAbs(y_offset), y_offset);
 
-    auto src_path = getCubicPath(src_point_, fixed_ctr1, ctrl_p1, mid_point);
-    auto dst_path = getCubicPath(dst_point_, fixed_ctr2, ctrl_p2, mid_point);
-    edge_path_ = src_path + dst_path;
+    auto&& src_path = getCubicPath(src_point_, fixed_ctr1, ctrl_p1, mid_point);
+    auto&& dst_path = getCubicPath(dst_point_, fixed_ctr2, ctrl_p2, mid_point);
+
+    edge_path_ = src_path;
+    edge_path_.addPath(dst_path);
 
     prepareGeometryChange();
     update();
@@ -266,8 +268,7 @@ QPainterPath EdgeItem::getCubicPath(QPointF p1, QPointF p2) const
  */
 QPainterPath EdgeItem::getCubicPath(QPointF p1, QPointF ctrl_p1, QPointF ctrl_p2, QPointF p2) const
 {
-    QPainterPath path;
-    path.moveTo(p1);
+    QPainterPath path(p1);
     path.cubicTo(ctrl_p1, ctrl_p2, p2);
     return path;
 }

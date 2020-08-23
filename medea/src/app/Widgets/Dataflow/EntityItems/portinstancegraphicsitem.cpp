@@ -24,29 +24,26 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
 
     // Identify Port kind
     switch (port_data.getKind()) {
-        case AggServerResponse::Port::Kind::PERIODIC: {
+        case AggServerResponse::Port::Kind::PERIODIC:
             icon_path.second = "clockCycle";
             break;
-        }
-        case AggServerResponse::Port::Kind::PUBLISHER: {
+        case AggServerResponse::Port::Kind::PUBLISHER:
             icon_path.second = "arrowRightLong";
             event_src_port_ = true;
+            alignment_ = Qt::AlignRight;
             break;
-        }
-        case AggServerResponse::Port::Kind::SUBSCRIBER: {
+        case AggServerResponse::Port::Kind::SUBSCRIBER:
             icon_path.second = "arrowIntoBox";
             break;
-        }
-        case AggServerResponse::Port::Kind::REQUESTER: {
+        case AggServerResponse::Port::Kind::REQUESTER:
             icon_path.second = "arrowTopRight";
             event_src_port_ = true;
+            alignment_ = Qt::AlignRight;
             break;
-        }
-        case AggServerResponse::Port::Kind::REPLIER: {
+        case AggServerResponse::Port::Kind::REPLIER:
             icon_path.second = "arrowBottomRight";
             event_src_port_ = true;
             break;
-        }
         case AggServerResponse::Port::Kind::NO_KIND:
             throw std::invalid_argument("PortInstanceGraphicsItem::PortInstanceGraphicsItem - Port kind is unknown");
     }
@@ -152,6 +149,7 @@ qint64 PortInstanceGraphicsItem::getNextEventTime(qint64 time) const
 void PortInstanceGraphicsItem::setAlignment(Qt::Alignment alignment)
 {
     alignment_ = alignment;
+    label_text_item_->setTextAlignment(Qt::AlignVCenter | alignment_);
 
     // Remove them from the layout before re-ordering them
     main_layout_->removeItem(icon_pixmap_item_);
@@ -353,7 +351,7 @@ void PortInstanceGraphicsItem::themeChanged()
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
     /*
-    // TODO - Uncomment when we add the Aggregate messgae type
+    // TODO - Uncomment when we add the Aggregate message type
     pixmap = theme->getImage("Icons", "envelopeTwoTone", QSize(), theme->getAltTextColor());
     sub_icon_pixmap_item_->updatePixmap(pixmap);
     sub_label_text_item_->setDefaultTextColor(theme->getTextColor());
