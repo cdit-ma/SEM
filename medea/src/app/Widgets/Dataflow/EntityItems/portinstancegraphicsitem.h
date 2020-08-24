@@ -10,6 +10,7 @@
 #include <QPen>
 
 class ComponentInstanceGraphicsItem;
+
 class PortInstanceGraphicsItem : public QGraphicsWidget
 {
     Q_OBJECT

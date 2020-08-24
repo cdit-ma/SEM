@@ -95,7 +95,7 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
     connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, [this]{ update(); });
 
     auto exp_run_info = "Experiment name:\t" + exp_run_data.experiment_name() +
-                        "\nJob number#:\t" + QString::number(exp_run_data.job_num()) +
+                        /*"\nJob number#:\t" + QString::number(exp_run_data.job_num()) +*/
                         "\nStarted at:\t" + QDateTime::fromMSecsSinceEpoch(exp_start_time).toString(DATE_TIME_FORMAT);
 
     chart = new Chart(exp_run_id, exp_start_time, this);

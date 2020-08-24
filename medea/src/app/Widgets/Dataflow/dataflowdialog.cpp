@@ -7,6 +7,8 @@
 #include "EntityItems/nodegraphicsitem.h"
 #include "GraphicsItems/edgeitem.h"
 
+#include "EntityItems/workerinstancegraphicsitem.h"
+
 #include <QGraphicsRectItem>
 #include <QVBoxLayout>
 #include <QDockWidget>
@@ -89,6 +91,8 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
         emit updateLiveStatus(live_mode_);
     }
 
+    QHash<QString, ComponentInstanceGraphicsItem*> comp_inst_items;
+
     for (const auto& node_data : exp_run_data.getNodeData()) {
 
         auto node_item = new NodeGraphicsItem(*node_data);
@@ -99,6 +103,7 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
                 const auto& port_id = port_inst_item->getGraphmlID();
                 port_items_.insert(port_id, port_inst_item);
             }
+            comp_inst_items.insert(comp_inst_item->getGraphmlID(), comp_inst_item);
         }
     }
 
