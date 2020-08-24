@@ -63,16 +63,6 @@ const std::vector<ContainerInstanceGraphicsItem*>& NodeGraphicsItem::getContaine
 }
 
 /**
- * @brief NodeGraphicsItem::onGeometryChanged
- * This updates the item and sends a signal to update the position of the connections contained/attached to it
- */
-void NodeGraphicsItem::onGeometryChanged()
-{
-    update();
-    //emit updateConnectionPos();
-}
-
-/**
  * @brief NodeGraphicsItem::boundingRect
  * @return
  */

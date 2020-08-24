@@ -21,9 +21,6 @@ public:
     void addContainerInstanceItem(ContainerInstanceData& container_inst_data);
     const std::vector<ContainerInstanceGraphicsItem*>& getContainerInstanceItems() const;
 
-public slots:
-    void onGeometryChanged();
-
 protected:    
     QRectF boundingRect() const override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;

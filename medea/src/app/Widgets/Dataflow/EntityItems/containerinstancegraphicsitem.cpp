@@ -84,6 +84,7 @@ void ContainerInstanceGraphicsItem::moveTo(int x, int y)
 }
 
 /**
+<<<<<<< HEAD
  * @brief ContainerInstanceGraphicsItem::onGeometryChanged
  * This updates the item and sends a signal to update the position of the connections contained/attached to it
  */
@@ -94,6 +95,8 @@ void ContainerInstanceGraphicsItem::onGeometryChanged()
 }
 
 /**
+=======
+>>>>>>> f4b6d38c2fa5c26cd1c6a5a614b082387eed30aa
  * @brief ContainerInstanceGraphicsItem::boundingRect
  * @return
  */
