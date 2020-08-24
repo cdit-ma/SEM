@@ -124,16 +124,17 @@ void SystemEventProtoHandler::ProcessProcessStatus(const SystemEvent::ProcessSta
     const auto& disk_write_kb = database_->quote(p_status.disk_written_kilobytes());
     const auto& disk_total_kb = database_->quote(p_status.disk_total_kilobytes());
 
-    const auto& cpu_time = TimeUtil::ToString(p_status.cpu_time());
-    const auto& state = SystemEvent::ProcessStatus::State_Name(p_status.state());
-    const auto& start_time = database_->quote(TimeUtil::ToString(p_status.start_time()));
+    const auto& cpu_time = database_->quote(TimeUtil::ToString(p_status.cpu_time()));
+    const auto& state = database_->quote(SystemEvent::ProcessStatus::State_Name(p_status.state()));
+    const auto& start_time =TimeUtil::ToString(p_status.start_time());
 
     std::string process_id = "-1";
+    auto&& process_key = GetProcessKey(hostname, p_status.pid(), start_time);
     try {
-        process_id = database_->quote(
-            process_id_cache_.at(GetProcessKey(hostname, p_status.pid(), start_time)));
+        process_id = database_->quote(process_id_cache_.at(process_key));
     } catch(const std::out_of_range& oor_ex) {
-        std::cerr << "Failed to insert ProcessStatus for hostname '" << hostname << "', "
+        std::cerr << "Failed to insert ProcessStatus with key '" << process_key
+                  << "' for hostname '" << hostname << "', "
                   << oor_ex.what() << "\n";
         throw;
     }
@@ -262,5 +263,5 @@ std::string SystemEventProtoHandler::GetProcessKey(const std::string& hostname,
                                                    int pid,
                                                    const std::string& starttime) const
 {
-    return hostname + "/" + database_->quote(pid) + "_" + starttime;
+    return hostname + "/" + std::to_string(pid) + "_" + starttime;
 }

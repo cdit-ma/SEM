@@ -1,10 +1,8 @@
-# Runtime Environment v3.4.2
+# Runtime Environment v3.4.3
 
-## Miscellaneous
-* Bug fixes and prep work for moving to the new SEM monorepo
+## Logging
+* Addressed deficiencies related to per-process logging in Aggregation Server
+  * Per-process information available through prior Logan Server should now be accessible in a similar format
 
-## Workers (3.4.1)
-* Added new CUDA Worker to provide multi-gpu compute capabilities.
-
-## Project structure (3.4.1)
-* Tests are now able to be stored alongside the source code they are releated to
+## Dependency installation
+- Updated CentOS dependency installation script to install from official PostgreSQL repo
