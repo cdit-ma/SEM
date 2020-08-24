@@ -215,6 +215,17 @@
     </xsl:function>
 
     <!--
+        Prints a CMake warning when processed
+        message(WARNING ${message})
+    -->
+    <xsl:function name="cmake:warning">
+        <xsl:param name="message" as="xs:string"/>
+        <xsl:param name="tab" as="xs:integer"/>
+
+        <xsl:value-of select="concat(o:t($tab), 'message', o:wrap_bracket(o:join_list(('WARNING', $message), ' ')), o:nl(1))" />
+    </xsl:function>
+
+    <!--
         Returns out of a CMake function
         return()
     -->

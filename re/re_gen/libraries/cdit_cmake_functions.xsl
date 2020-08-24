@@ -73,7 +73,7 @@
         <xsl:variable name="helper_lib" select="lower-case(concat($package_name, '_helper'))" />
         <xsl:variable name="helper_var" select="cmake:get_middleware_helper_var($middleware)" />
 
-        <xsl:value-of select="cmake:find_library_safe($helper_var, $helper_lib, cmake:get_re_path('lib'))" />
+        <xsl:value-of select="cmake:find_library_safe($helper_var, $helper_lib, cmake:get_re_lib_path(''))" />
     </xsl:function>
 
     <xsl:function name="cmake:find_library_safe">
@@ -84,7 +84,7 @@
         <xsl:value-of select="cmake:if_start(concat('NOT ', $lib_var), 0)" />
         <xsl:value-of select="cmake:find_library($lib_var, $lib_name , $lib_path , 1)" />
         <xsl:value-of select="cmake:if_start(concat('NOT ', $lib_var), 1)" />
-        <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find', $lib_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 2)" />
+        <xsl:value-of select="cmake:warning(o:wrap_dblquote(o:join_list(('Cannot find', $lib_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 2)" />
         <xsl:value-of select="cmake:return(2)" />
         <xsl:value-of select="cmake:if_end('', 1)" />
         <xsl:value-of select="cmake:if_end('', 0)" />
@@ -94,7 +94,7 @@
 
     <xsl:function name="cmake:find_re_core_library">
         <!-- Find re_core -->
-        <xsl:variable name="lib_path" select="cmake:get_re_path('lib')" />
+        <xsl:variable name="lib_path" select="cmake:get_re_lib_path('')" />
 
         <xsl:value-of select="cmake:find_library('RE_CORE_LIBRARIES', 're_core', $lib_path, 0)" />
         <xsl:value-of select="cmake:find_library('RE_SINGLETON_LIBRARIES', 're_core_singletons', $lib_path, 0)" />
@@ -140,6 +140,11 @@
     <xsl:function name="cmake:get_re_path" as="xs:string">
         <xsl:param name="prefix" />
         <xsl:value-of select="o:join_paths((cmake:wrap_variable('RE_PATH'), $prefix))" />
+    </xsl:function>
+
+    <xsl:function name="cmake:get_re_lib_path" as="xs:string">
+        <xsl:param name="prefix" />
+        <xsl:value-of select="o:join_paths((cmake:wrap_variable('RE_LIB_PATH'), $prefix))" />
     </xsl:function>
 
     <xsl:function name="cmake:get_relative_path" as="xs:string">
@@ -329,7 +334,7 @@
 
             <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
             
-            <xsl:value-of select="cmake:find_library($worker_lib_var, $worker_lib_name, cmake:get_re_path('lib'), 0)" />
+            <xsl:value-of select="cmake:find_library($worker_lib_var, $worker_lib_name, cmake:get_re_lib_path(''), 0)" />
             <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable($worker_lib_var), 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
@@ -767,7 +772,8 @@
 
         <xsl:value-of select="cmake:comment('CDIT Runtime Paths', $tab)" />
         <xsl:value-of select="cmake:set_variable_if_not_set('RE_PATH', cmake:get_env_var('RE_PATH'), $tab)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', o:join_paths((cmake:wrap_variable('RE_PATH'), 'cmake_modules')), $tab)" />
+        <xsl:value-of select="cmake:set_variable_if_not_set('RE_LIB_PATH', cmake:get_env_var('RE_LIB_PATH'), $tab)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', cmake:get_env_var('RE_CMAKE_MODULE_PATH'), $tab)" />
     </xsl:function>
 
     <!--
