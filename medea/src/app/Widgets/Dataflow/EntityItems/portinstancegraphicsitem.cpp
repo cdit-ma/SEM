@@ -17,7 +17,6 @@ const int flash_duration_ms = 200;
  */
 PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_data, ComponentInstanceGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      parent_comp_inst_item_(parent),
       port_inst_data_(port_data)
 {
     icon_path.first = "Icons";
@@ -105,13 +104,19 @@ QPointF PortInstanceGraphicsItem::getEdgePoint() const
             return QPoint(0,0);
     }
 
-    // If this item is invisible, use its parent item's scene bouding rect for the edge point
     QRectF scene_rect;
     if (isVisible()) {
         scene_rect = icon_pixmap_item_->sceneBoundingRect();
-    } else if (parent_comp_inst_item_) {
-        // TODO: When we decide to connect ports from different nodes, the parent ComponentInstance item needs to have its own getEdgePoint
-        scene_rect = parent_comp_inst_item_->sceneBoundingRect();
+    } else {
+        // Get the first visible parent item and use its scene bounding rect for the edge point
+        auto parent_item = parentItem();
+        while (parent_item) {
+            if (parent_item->isVisible()) {
+                scene_rect = parent_item->sceneBoundingRect();
+                break;
+            }
+            parent_item = parent_item->parentItem();
+        }
     }
 
     qreal x = scene_rect.right();

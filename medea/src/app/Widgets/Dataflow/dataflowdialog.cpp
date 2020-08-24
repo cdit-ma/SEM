@@ -91,8 +91,6 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
         emit updateLiveStatus(live_mode_);
     }
 
-    QHash<QString, ComponentInstanceGraphicsItem*> comp_inst_items;
-
     for (const auto& node_data : exp_run_data.getNodeData()) {
 
         auto node_item = new NodeGraphicsItem(*node_data);
@@ -105,7 +103,6 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
                     port_items_.insert(port_id, port_inst_item);
                 }
             }
-            comp_inst_items.insert(comp_inst_item->getGraphmlID(), comp_inst_item);
         }
     }
 
@@ -131,7 +128,6 @@ void DataflowDialog::clear()
     view_->setScene(new QGraphicsScene);
 
     port_items_.clear();
-    comp_inst_items_.clear();
 }
 
 /**

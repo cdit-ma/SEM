@@ -34,8 +34,8 @@ ContainerInstanceGraphicsItem::ContainerInstanceGraphicsItem(const ContainerInst
     //  updated by something else, its top layout continues to think that its size is 15x70
     //  So unless the mouse press is within that small rect, the ContainerInstanceGraphicsItem cannot be moved
     //  It's interesting that this doesn't happen to ComponentInstanceGraphicsItems (maybe because they use a layout?)
-    connect(this, &ContainerInstanceGraphicsItem::visibleChanged, [this] { updateGeometry(); });
-    connect(this, &ContainerInstanceGraphicsItem::geometryChanged, [this]{ update(); });
+    connect(this, &ContainerInstanceGraphicsItem::visibleChanged, [this]{ updateGeometry(); });
+    connect(this, &ContainerInstanceGraphicsItem::geometryChanged, [this]{ onGeometryChanged(); });
     connect(Theme::theme(), &Theme::theme_Changed, this, &ContainerInstanceGraphicsItem::themeChanged);
 
     constructChildrenItems();
@@ -60,6 +60,7 @@ void ContainerInstanceGraphicsItem::addComponentInstanceItem(ComponentInstanceDa
     connect(comp_inst_item, &ComponentInstanceGraphicsItem::itemExpanded, this, &ContainerInstanceGraphicsItem::updateGeometry);
     connect(comp_inst_item, &ComponentInstanceGraphicsItem::geometryChanged, this, &ContainerInstanceGraphicsItem::updateGeometry);
     connect(comp_inst_item, &ComponentInstanceGraphicsItem::requestMove, this, &ContainerInstanceGraphicsItem::validateChildMove);
+    connect(this, &ContainerInstanceGraphicsItem::updateConnectionPos, comp_inst_item, &ComponentInstanceGraphicsItem::updateConnectionPos);
 }
 
 /**
@@ -80,6 +81,16 @@ void ContainerInstanceGraphicsItem::moveTo(int x, int y)
 {
     prepareGeometryChange();
     setPos(x, y);
+}
+
+/**
+ * @brief ContainerInstanceGraphicsItem::onGeometryChanged
+ * This updates the item and sends a signal to update the position of the connections contained/attached to it
+ */
+void ContainerInstanceGraphicsItem::onGeometryChanged()
+{
+    update();
+    emit updateConnectionPos();
 }
 
 /**
@@ -387,7 +398,6 @@ void ContainerInstanceGraphicsItem::setupLayout()
     main_layout_->setStretchFactor(top_layout_, 0);
     main_layout_->addStretch();
 
-    prepareGeometryChange();
     setContentsMargins(0, 0, 0, 0);
     setLayout(main_layout_);
 }

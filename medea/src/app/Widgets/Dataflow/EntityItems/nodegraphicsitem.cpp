@@ -50,6 +50,7 @@ void NodeGraphicsItem::addContainerInstanceItem(ContainerInstanceData& container
     connect(container_inst, &ContainerInstanceGraphicsItem::itemExpanded, this, &NodeGraphicsItem::updateGeometry);
     connect(container_inst, &ContainerInstanceGraphicsItem::geometryChanged, this, &NodeGraphicsItem::updateGeometry);
     connect(container_inst, &ContainerInstanceGraphicsItem::requestMove, this, &NodeGraphicsItem::validateChildMove);
+    connect(this, &NodeGraphicsItem::geometryChanged, container_inst, &ContainerInstanceGraphicsItem::updateConnectionPos);
 }
 
 /**
@@ -59,6 +60,16 @@ void NodeGraphicsItem::addContainerInstanceItem(ContainerInstanceData& container
 const std::vector<ContainerInstanceGraphicsItem*>& NodeGraphicsItem::getContainerInstanceItems() const
 {
     return container_inst_items_;
+}
+
+/**
+ * @brief NodeGraphicsItem::onGeometryChanged
+ * This updates the item and sends a signal to update the position of the connections contained/attached to it
+ */
+void NodeGraphicsItem::onGeometryChanged()
+{
+    update();
+    //emit updateConnectionPos();
 }
 
 /**

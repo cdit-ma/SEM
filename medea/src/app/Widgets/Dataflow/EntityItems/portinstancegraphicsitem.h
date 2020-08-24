@@ -78,7 +78,6 @@ private:
     PixmapGraphicsItem* sub_icon_pixmap_item_ = nullptr;
     TextGraphicsItem* sub_label_text_item_ = nullptr;
 
-    ComponentInstanceGraphicsItem* parent_comp_inst_item_ = nullptr;
     const PortInstanceData& port_inst_data_;
 };
 

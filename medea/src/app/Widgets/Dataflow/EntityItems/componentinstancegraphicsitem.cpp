@@ -24,13 +24,17 @@ ComponentInstanceGraphicsItem::ComponentInstanceGraphicsItem(const ComponentInst
     setFlags(flags() | QGraphicsWidget::ItemIsMovable | QGraphicsWidget::ItemIsSelectable);
     setAcceptedMouseButtons(Qt::LeftButton);
 
-    connect(this, &ComponentInstanceGraphicsItem::geometryChanged, [this]{ update(); });
     connect(Theme::theme(), &Theme::theme_Changed, this, &ComponentInstanceGraphicsItem::themeChanged);
+    connect(this, &ComponentInstanceGraphicsItem::geometryChanged, [this]{ onGeometryChanged(); });
 
     constructChildrenItems();
     themeChanged();
 }
 
+/**
+ * @brief ComponentInstanceGraphicsItem::getGraphmlID
+ * @return
+ */
 const QString& ComponentInstanceGraphicsItem::getGraphmlID() const
 {
     return comp_inst_data_.getGraphmlID();
@@ -43,7 +47,7 @@ const QString& ComponentInstanceGraphicsItem::getGraphmlID() const
 void ComponentInstanceGraphicsItem::addPortInstanceItem(PortInstanceData& port_data)
 {
     auto port_inst_item = new PortInstanceGraphicsItem(port_data, this);
-    connect(this, &ComponentInstanceGraphicsItem::geometryChanged, port_inst_item, &PortInstanceGraphicsItem::updateConnectionPos);
+    connect(this, &ComponentInstanceGraphicsItem::updateConnectionPos, port_inst_item, &PortInstanceGraphicsItem::updateConnectionPos);
 
     port_inst_items_.push_back(port_inst_item);
 
@@ -68,21 +72,36 @@ const std::vector<PortInstanceGraphicsItem*>& ComponentInstanceGraphicsItem::get
    return port_inst_items_;
 }
 
+/**
+ * @brief ComponentInstanceGraphicsItem::addWorkerInstanceItem
+ * @param worker_inst_data
+ */
 void ComponentInstanceGraphicsItem::addWorkerInstanceItem(WorkerInstanceData& worker_inst_data)
 {
     auto worker_inst_item = new WorkerInstanceGraphicsItem(worker_inst_data, this);
-    connect(this, &ComponentInstanceGraphicsItem::visibleChanged, worker_inst_item, &WorkerInstanceGraphicsItem::visibleChanged);
-
     worker_inst_items_.push_back(worker_inst_item);
-    prepareGeometryChange();
 
     children_layout_->addItem(worker_inst_item, worker_count, 1, Qt::AlignCenter);
     worker_count++;
 }
 
+/**
+ * @brief ComponentInstanceGraphicsItem::getWorkerInstanceItems
+ * @return
+ */
 const std::vector<WorkerInstanceGraphicsItem*>& ComponentInstanceGraphicsItem::getWorkerInstanceItems() const
 {
     return worker_inst_items_;
+}
+
+/**
+ * @brief ComponentInstanceGraphicsItem::onGeometryChanged
+ * This updates the item and sends a signal to update the position of the connections contained/attached to it
+ */
+void ComponentInstanceGraphicsItem::onGeometryChanged()
+{
+    update();
+    emit updateConnectionPos();
 }
 
 /**
@@ -225,8 +244,6 @@ void ComponentInstanceGraphicsItem::toggleExpanded()
     for (const auto& worker_inst : worker_inst_items_) {
         worker_inst->setVisible(expanded_);
     }
-
-    update();
     emit itemExpanded(expanded_);
 }
 
@@ -337,7 +354,6 @@ void ComponentInstanceGraphicsItem::setupLayout()
     main_layout_->addItem(children_layout_);
     main_layout_->setStretchFactor(children_layout_, 1);
 
-    prepareGeometryChange();
     setContentsMargins(0, 0, 0, 0);
     setLayout(main_layout_);
 }

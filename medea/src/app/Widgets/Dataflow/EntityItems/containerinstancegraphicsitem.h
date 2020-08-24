@@ -31,8 +31,12 @@ public:
     void moveTo(int x, int y);
 
 signals:
+    void updateConnectionPos();
     void itemExpanded(bool expanded);
     void requestMove(ContainerInstanceGraphicsItem* child, QPointF pos);
+
+public slots:
+    void onGeometryChanged();
 
 protected:
     QRectF boundingRect() const override;
