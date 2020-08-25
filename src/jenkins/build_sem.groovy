@@ -102,14 +102,16 @@ pipeline{
                                 // TODO: Change tests to build into libs and run through single "test runner" binary
                                 if(!isUnix()) {
                                     test_dir = "build/bin"
-				}
+                                }
                                 dir(test_dir){
-				    def os_name = utils.getNodeOSName(node_name)
+                                    def os_name = utils.getNodeOSName(node_name)
+                                    
+                                    print("OS Name: ${os_name}")
 
                                     def glob_str = "test_*"
-				    if(os_name == "Windows"){
-			                glob_str = "test_*.exe"
-				    }
+                                    if(os_name == "Windows"){
+                                        glob_str = "test_*.exe"
+                                    }
 						
 
                                     def tests_list = findFiles glob: glob_str
