@@ -44,7 +44,7 @@ pipeline{
                         found_platforms << utils.getNodeOSName(node_name)
                     }
 
-                    def all_platforms_found = EXPECTED_PLATFORMS.intersect(found_platforms) == 3
+                    def all_platforms_found = EXPECTED_PLATFORMS.intersect(found_platforms).size() == EXPECTED_PLATFORMS.size()
                     if(!all_platforms_found){
                         error("Did not find all required platforms! Required platforms: ${EXPECTED_PLATFORMS} Found platforms: ${found_platforms}")
                     }
