@@ -36,16 +36,18 @@ pipeline{
 
     stages{
         stage("Pre-build environment checks"){
-            script{
-                def found_platforms = []
-                for(n in CI_BUILD_NODES){
-                    def node_name = n
-                    found_platforms << utils.getNodeOSName(node_name)
-                }
+            steps{
+                script{
+                    def found_platforms = []
+                    for(n in CI_BUILD_NODES){
+                        def node_name = n
+                        found_platforms << utils.getNodeOSName(node_name)
+                    }
 
-                def all_platforms_found = EXPECTED_PLATFORMS.intersect(found_platforms) == 3
-                if(!all_platforms_found){
-                    error("Did not find all required platforms! Required platforms: ${EXPECTED_PLATFORMS} Found platforms: ${found_platforms}")
+                    def all_platforms_found = EXPECTED_PLATFORMS.intersect(found_platforms) == 3
+                    if(!all_platforms_found){
+                        error("Did not find all required platforms! Required platforms: ${EXPECTED_PLATFORMS} Found platforms: ${found_platforms}")
+                    }
                 }
             }
         }
