@@ -17,6 +17,8 @@ final UPLOAD_PACKAGE = IS_TAG
 
 final CI_BUILD_NODES = nodesByLabel("ci_build_node")
 
+final EXPECTED_PLATFORMS = ["Windows 10", "Linux", "Mac OS X"]
+
 @NonCPS
 def get_test_status(){
     //Thanks to https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
@@ -33,6 +35,20 @@ pipeline{
     agent{node "ci_build_node"}
 
     stages{
+        stage("Pre-build environment checks"){
+            script{
+                def found_platforms = []
+                for(n in CI_BUILD_NODES){
+                    def node_name = n
+                    found_platforms << utils.getNodeOSName(node_name)
+                }
+
+                def all_platforms_found = EXPECTED_PLATFORMS.intersect(found_platforms) == 3
+                if(!all_platforms_found){
+                    error("Did not find all required platforms! Required platforms: ${EXPECTED_PLATFORMS} Found platforms: ${found_platforms}")
+                }
+            }
+        }
         stage("Checkout/Bundle"){
             steps{
                 script{
@@ -102,15 +118,14 @@ pipeline{
                                 // TODO: Change tests to build into libs and run through single "test runner" binary
                                 if(!isUnix()) {
                                     test_dir = "build/bin"
-				}
+                                }
                                 dir(test_dir){
-				    def os_name = utils.getNodeOSName(node_name)
+                                    def os_name = utils.getNodeOSName(node_name)
 
                                     def glob_str = "test_*"
-				    if(os_name == "Windows"){
-			                glob_str = "test_*.exe"
-				    }
-						
+                                    if(os_name == "Windows 10"){
+                                        glob_str = "test_*.exe"
+                                    }
 
                                     def tests_list = findFiles glob: glob_str
 
@@ -203,7 +218,7 @@ pipeline{
                                         return;
                                     }else if(os_name == "Mac OS X"){
                                         globstr = '*.dmg'
-                                    }else if(os_name == "Windows"){
+                                    }else if(os_name == "Windows 10"){
                                         globstr = '*.exe'
                                     }
 
@@ -228,6 +243,6 @@ pipeline{
                     }
                 }
             }
-		}
+        }
     }
 }
