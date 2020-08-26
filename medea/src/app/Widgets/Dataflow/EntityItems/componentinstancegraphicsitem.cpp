@@ -294,7 +294,7 @@ void ComponentInstanceGraphicsItem::setupLayout()
     top_layout_->setStretchFactor(label_text_item_, 1);
 
     auto spacing = MEDEA::GraphicsLayoutItem::DEFAULT_GRAPHICS_ITEM_HEIGHT * 0.5;
-    auto margin = spacing / 4;
+    auto margin = spacing / 3;
     children_layout_ = new QGraphicsGridLayout;
     children_layout_->setContentsMargins(margin, margin, margin, margin);
     children_layout_->setHorizontalSpacing(spacing);

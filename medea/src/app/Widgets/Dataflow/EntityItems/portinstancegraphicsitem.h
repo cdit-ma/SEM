@@ -73,10 +73,10 @@ private:
     QGraphicsLinearLayout* sub_info_layout_ = nullptr;
 
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
-    TextGraphicsItem* label_text_item_ = nullptr;
+    PixmapGraphicsItem* metadata_pixmap_item_ = nullptr;
 
-    PixmapGraphicsItem* sub_icon_pixmap_item_ = nullptr;
-    TextGraphicsItem* sub_label_text_item_ = nullptr;
+    TextGraphicsItem* label_text_item_ = nullptr;
+    TextGraphicsItem* metadata_text_item_ = nullptr;
 
     const PortInstanceData& port_inst_data_;
 };
