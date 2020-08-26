@@ -27,18 +27,16 @@ ContainerInstanceGraphicsItem::ContainerInstanceGraphicsItem(const ContainerInst
       container_inst_data_(container_inst_data)
 {
     setupLayout();
-    setFlags(flags() | QGraphicsWidget::ItemIsMovable | QGraphicsWidget::ItemIsSelectable);
+    constructChildrenItems();
+
+    setFlags(flags() | QGraphicsWidget::ItemIsMovable);
     setAcceptedMouseButtons(Qt::LeftButton);
 
-    // NOTE: If visibleChanged doesn't update the geometry, unless the ContainerInstanceGraphicsItem's geometry is
-    //  updated by something else, its top layout continues to think that its size is 15x70
-    //  So unless the mouse press is within that small rect, the ContainerInstanceGraphicsItem cannot be moved
-    //  It's interesting that this doesn't happen to ComponentInstanceGraphicsItems (maybe because they use a layout?)
-    connect(this, &ContainerInstanceGraphicsItem::visibleChanged, [this]{ updateGeometry(); });
-    connect(this, &ContainerInstanceGraphicsItem::geometryChanged, [this]{ onGeometryChanged(); });
-    connect(Theme::theme(), &Theme::theme_Changed, this, &ContainerInstanceGraphicsItem::themeChanged);
+    // This additional signal is needed for the ContainerInstance because it is explicitly show/hidden, and unlike
+    // the ComponentInstance, it's not managed by a layout and hence its geometry is not updated automatically
+    connect(this, &ContainerInstanceGraphicsItem::visibleChanged, this, &ContainerInstanceGraphicsItem::updateGeometry);
 
-    constructChildrenItems();
+    connect(Theme::theme(), &Theme::theme_Changed, this, &ContainerInstanceGraphicsItem::themeChanged);
     themeChanged();
 }
 
@@ -50,14 +48,10 @@ void ContainerInstanceGraphicsItem::addComponentInstanceItem(ComponentInstanceDa
 {
     // Get the initial position before constructing the child graphics item
     auto child_pos = getNextChildPos();
-
     auto comp_inst_item = new ComponentInstanceGraphicsItem(comp_inst_data, this);
     comp_inst_item->setPos(child_pos.x(), child_pos.y());
     comp_inst_items_.push_back(comp_inst_item);
 
-    // NOTE: Not sure why the itemExpanded signal is necessary when we're already catching the geometryChanged signal
-    //  If we don't add it, there are some rendering artifacts that happen when a ComponentInstance is contracted
-    connect(comp_inst_item, &ComponentInstanceGraphicsItem::itemExpanded, this, &ContainerInstanceGraphicsItem::updateGeometry);
     connect(comp_inst_item, &ComponentInstanceGraphicsItem::geometryChanged, this, &ContainerInstanceGraphicsItem::updateGeometry);
     connect(comp_inst_item, &ComponentInstanceGraphicsItem::requestMove, this, &ContainerInstanceGraphicsItem::validateChildMove);
     connect(this, &ContainerInstanceGraphicsItem::updateConnectionPos, comp_inst_item, &ComponentInstanceGraphicsItem::updateConnectionPos);
@@ -73,30 +67,6 @@ const std::vector<ComponentInstanceGraphicsItem*>& ContainerInstanceGraphicsItem
 }
 
 /**
- * @brief ContainerInstanceGraphicsItem::moveTo
- * @param x
- * @param y
- */
-void ContainerInstanceGraphicsItem::moveTo(int x, int y)
-{
-    prepareGeometryChange();
-    setPos(x, y);
-}
-
-/**
-<<<<<<< HEAD
- * @brief ContainerInstanceGraphicsItem::onGeometryChanged
- * This updates the item and sends a signal to update the position of the connections contained/attached to it
- */
-void ContainerInstanceGraphicsItem::onGeometryChanged()
-{
-    update();
-    emit updateConnectionPos();
-}
-
-/**
-=======
->>>>>>> f4b6d38c2fa5c26cd1c6a5a614b082387eed30aa
  * @brief ContainerInstanceGraphicsItem::boundingRect
  * @return
  */
@@ -120,7 +90,7 @@ QSizeF ContainerInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF&
         case Qt::PreferredSize:
             return boundingRect().size();
         case Qt::MaximumSize:
-            return {100000, 10000};
+            return {100000, 100000};
         default:
             break;
     }
@@ -133,16 +103,8 @@ QSizeF ContainerInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF&
  */
 void ContainerInstanceGraphicsItem::setGeometry(const QRectF& rect)
 {
-    prepareGeometryChange();
-
-    auto&& bounding_size = boundingRect().size();
-    setMinimumSize(bounding_size);
-    setMaximumSize(bounding_size);
-    setPreferredSize(bounding_size);
-
     // Force this item's geometry to have the same size as the bounding rect
-    auto adjusted_rect = rect;
-    adjusted_rect.setSize(bounding_size);
+    QRectF adjusted_rect(rect.topLeft(), boundingRect().size());
     QGraphicsWidget::setGeometry(adjusted_rect);
 }
 
@@ -239,11 +201,11 @@ void ContainerInstanceGraphicsItem::constructChildrenItems()
 void ContainerInstanceGraphicsItem::toggleExpanded()
 {
     expanded_ = !expanded_;
-    prepareGeometryChange();
     for (const auto& comp_inst : comp_inst_items_) {
         comp_inst->setVisible(expanded_);
     }
-    emit itemExpanded(expanded_);
+    updateGeometry();
+    emit updateConnectionPos();
 }
 
 /**
@@ -257,8 +219,8 @@ void ContainerInstanceGraphicsItem::validateChildMove(ComponentInstanceGraphicsI
         return;
     }
 
-    auto&& min_x = getOriginChildPos().x();
-    auto&& min_y = getOriginChildPos().y();
+    const auto min_x = getOriginChildPos().x();
+    const auto min_y = getOriginChildPos().y();
     auto x = pos.x();
     auto y = pos.y();
 
@@ -270,8 +232,8 @@ void ContainerInstanceGraphicsItem::validateChildMove(ComponentInstanceGraphicsI
         y = min_y;
     }
 
-    prepareGeometryChange();
-    child->moveTo(x, y);
+    child->setPos(x, y);
+    emit updateConnectionPos();
 }
 
 /**

@@ -286,9 +286,9 @@ QSizeF PortInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& cons
     switch (which) {
     case Qt::MinimumSize:
     case Qt::PreferredSize:
-        return main_layout_->minimumSize();
+        return boundingRect().size();
     case Qt::MaximumSize:
-        return QSizeF(10000, 10000);
+        return main_layout_->geometry().size();
     default:
         break;
     }

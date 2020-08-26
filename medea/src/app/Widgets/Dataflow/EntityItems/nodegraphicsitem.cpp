@@ -21,13 +21,12 @@ NodeGraphicsItem::NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* par
       node_data_(node_data)
 {
     setupLayout();
-    setFlags(flags() | QGraphicsWidget::ItemIsMovable | QGraphicsWidget::ItemIsSelectable);
+    constructChildrenItems();
+
+    setFlags(flags() | QGraphicsWidget::ItemIsMovable);
     setAcceptedMouseButtons(Qt::LeftButton);
 
-    connect(this, &NodeGraphicsItem::geometryChanged, [this]{ update(); });
     connect(Theme::theme(), &Theme::theme_Changed, this, &NodeGraphicsItem::themeChanged);
-
-    constructChildrenItems();
     themeChanged();
 }
 
@@ -40,17 +39,13 @@ void NodeGraphicsItem::addContainerInstanceItem(ContainerInstanceData& container
 {
     // Get the initial position before constructing the child graphics item
     auto child_pos = getNextChildPos();
-
     auto container_inst = new ContainerInstanceGraphicsItem(container_inst_data, this);
     container_inst->setPos(child_pos.x(), child_pos.y());
     container_inst_items_.push_back(container_inst);
 
-    // NOTE: Not sure why the itemExpanded signal is necessary when we're already catching the geometryChanged signal
-    //  If we don't add it, there are some rendering artifacts that happen when a ContainerInstance is contracted
-    connect(container_inst, &ContainerInstanceGraphicsItem::itemExpanded, this, &NodeGraphicsItem::updateGeometry);
     connect(container_inst, &ContainerInstanceGraphicsItem::geometryChanged, this, &NodeGraphicsItem::updateGeometry);
     connect(container_inst, &ContainerInstanceGraphicsItem::requestMove, this, &NodeGraphicsItem::validateChildMove);
-    connect(this, &NodeGraphicsItem::geometryChanged, container_inst, &ContainerInstanceGraphicsItem::updateConnectionPos);
+    connect(this, &NodeGraphicsItem::updateConnectionPos, container_inst, &ContainerInstanceGraphicsItem::updateConnectionPos);
 }
 
 /**
@@ -86,7 +81,7 @@ QSizeF NodeGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& constraint) 
         case Qt::PreferredSize:
             return boundingRect().size();
         case Qt::MaximumSize:
-            return {100000, 10000};
+            return {100000, 100000};
         default:
             break;
     }
@@ -99,16 +94,8 @@ QSizeF NodeGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& constraint) 
  */
 void NodeGraphicsItem::setGeometry(const QRectF& rect)
 {
-    prepareGeometryChange();
-
-    auto&& bounding_size = boundingRect().size();
-    setMinimumSize(bounding_size);
-    setMaximumSize(bounding_size);
-    setPreferredSize(bounding_size);
-
     // Force this item's geometry to have the same size as the bounding rect
-    auto adjusted_rect = rect;
-    adjusted_rect.setSize(bounding_size);
+    QRectF adjusted_rect(rect.topLeft(), boundingRect().size());
     QGraphicsWidget::setGeometry(adjusted_rect);
 }
 
@@ -156,6 +143,7 @@ void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         auto delta = cursor_pos - prev_move_origin_;
         prev_move_origin_ = cursor_pos;
         moveBy(delta.x(), delta.y());
+        emit updateConnectionPos();
     }
 }
 
@@ -177,7 +165,6 @@ void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void NodeGraphicsItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
     if (icon_pixmap_item_->geometry().contains(event->pos())) {
-        // TODO: Re-enable when the updateEdgePos has been refactored to use the node graphics item's pos() for any edges attached to it, when it is contracted
         toggleExpanded();
     }
     QGraphicsWidget::mouseDoubleClickEvent(event);
@@ -221,8 +208,8 @@ void NodeGraphicsItem::validateChildMove(ContainerInstanceGraphicsItem* child, Q
         y = min_y;
     }
 
-    prepareGeometryChange();
-    child->moveTo(x, y);
+    child->setPos(x, y);
+    emit updateConnectionPos();
 }
 
 /**
@@ -231,10 +218,11 @@ void NodeGraphicsItem::validateChildMove(ContainerInstanceGraphicsItem* child, Q
 void NodeGraphicsItem::toggleExpanded()
 {
     expanded_ = !expanded_;
-    prepareGeometryChange();
     for (const auto& container_inst : container_inst_items_) {
         container_inst->setVisible(expanded_);
     }
+    updateGeometry();
+    emit updateConnectionPos();
 }
 
 /**
@@ -305,11 +293,11 @@ QPointF NodeGraphicsItem::getOriginChildPos() const
  */
 QPointF NodeGraphicsItem::getNextChildPos() const
 {
-    const int containers_count = container_inst_items_.size();
+    const int container_count = container_inst_items_.size();
     auto children_origin = getTopRect().bottomLeft();
     auto stack_padding = getTopRect().height() / 2.0;
 
-    QPointF offset(stack_padding * containers_count, stack_padding * containers_count);
+    QPointF offset(stack_padding * container_count, stack_padding * container_count);
     children_origin += offset + QPointF(padding, padding);
     return children_origin;
 }
@@ -359,7 +347,6 @@ void NodeGraphicsItem::setupLayout()
     main_layout_->setStretchFactor(top_layout_, 0);
     main_layout_->addStretch();
 
-    prepareGeometryChange();
     setContentsMargins(0, 0, 0, 0);
     setLayout(main_layout_);
 }

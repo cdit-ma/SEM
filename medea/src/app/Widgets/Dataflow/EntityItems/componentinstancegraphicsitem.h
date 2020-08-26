@@ -30,15 +30,9 @@ public:
     void addWorkerInstanceItem(WorkerInstanceData& worker_inst_data);
     const std::vector<WorkerInstanceGraphicsItem*>& getWorkerInstanceItems() const;
 
-    void moveTo(int x, int y);
-
 signals:
     void updateConnectionPos();
-    void itemExpanded(bool expanded);
     void requestMove(ComponentInstanceGraphicsItem* child, QPointF pos);
-
-public slots:
-    void onGeometryChanged();
 
 protected:    
     QRectF boundingRect() const override;
@@ -77,7 +71,6 @@ private:
     QGraphicsLinearLayout* top_layout_ = nullptr;
     QGraphicsGridLayout* children_layout_ = nullptr;
 
-    PixmapGraphicsItem* toggle_pixmap_item_ = nullptr;
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
     TextGraphicsItem* label_text_item_ = nullptr;
 

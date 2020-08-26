@@ -28,20 +28,14 @@ public:
     void addComponentInstanceItem(ComponentInstanceData& comp_inst_data);
     const std::vector<ComponentInstanceGraphicsItem*>& getComponentInstanceItems() const;
 
-    void moveTo(int x, int y);
-
 signals:
     void updateConnectionPos();
-    void itemExpanded(bool expanded);
     void requestMove(ContainerInstanceGraphicsItem* child, QPointF pos);
-
-public slots:
-    void onGeometryChanged();
 
 protected:
     QRectF boundingRect() const override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
-    void setGeometry(const QRectF& rect) override;
+    void setGeometry(const QRectF &rect) override;
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -53,7 +47,6 @@ protected:
 private:
     void constructChildrenItems();
     void toggleExpanded();
-
     void validateChildMove(ComponentInstanceGraphicsItem* child, const QPointF& pos);
 
     qreal getWidth() const;

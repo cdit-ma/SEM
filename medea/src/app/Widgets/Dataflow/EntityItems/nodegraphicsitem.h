@@ -21,10 +21,13 @@ public:
     void addContainerInstanceItem(ContainerInstanceData& container_inst_data);
     const std::vector<ContainerInstanceGraphicsItem*>& getContainerInstanceItems() const;
 
+signals:
+    void updateConnectionPos();
+
 protected:    
     QRectF boundingRect() const override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
-    void setGeometry(const QRectF& rect) override;
+    void setGeometry(const QRectF &rect) override;
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -32,11 +35,10 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-    
+
 private:
     void constructChildrenItems();
     void toggleExpanded();
-
     void validateChildMove(ContainerInstanceGraphicsItem* child, QPointF pos);
 
     qreal getWidth() const;
