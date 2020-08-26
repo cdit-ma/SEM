@@ -354,7 +354,7 @@ void PortInstanceGraphicsItem::themeChanged()
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
-    pixmap = Theme::theme()->getImage("Icons", "envelopeTwoTone");
+    pixmap = theme->getImage("Icons", "envelopeTwoTone", QSize(), theme->getAltTextColor());
     metadata_pixmap_item_->updatePixmap(pixmap);
     metadata_text_item_->setDefaultTextColor(theme->getTextColor());
 }
@@ -413,7 +413,6 @@ void PortInstanceGraphicsItem::setupLayout()
         main_layout_->addItem(icon_pixmap_item_);
     }
 
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     setContentsMargins(0, 0, 0, 0);
     setLayout(main_layout_);
 }
