@@ -371,12 +371,10 @@ void PortInstanceGraphicsItem::setupLayout()
     QPixmap pix = Theme::theme()->getImage(icon_path.first, icon_path.second);
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
     icon_pixmap_item_->setPixmapPadding(pixmap_padding);
-    icon_pixmap_item_->setParentItem(this);
     icon_pixmap_item_->setSquareSize(icon_size);
     icon_pixmap_item_->setMaximumHeight(icon_pixmap_item_->minimumHeight());
 
     label_text_item_ = new TextGraphicsItem(getPortName(), this);
-    label_text_item_->setParentItem(this);
     label_text_item_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     label_text_item_->setTextAlignment(Qt::AlignVCenter | alignment_);
 
@@ -415,12 +413,10 @@ void PortInstanceGraphicsItem::setupSubInfoLayout()
 
     QPixmap pix = Theme::theme()->getImage("Icons", "envelopeTwoTone");
     sub_icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    sub_icon_pixmap_item_->setParentItem(this);
     sub_icon_pixmap_item_->setSquareSize(sub_size);
 
     sub_label_text_item_ = new TextGraphicsItem("Message", this);
     sub_label_text_item_->setFont(QFont("Verdana", 8));
-    sub_label_text_item_->setParentItem(this);
     sub_label_text_item_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);

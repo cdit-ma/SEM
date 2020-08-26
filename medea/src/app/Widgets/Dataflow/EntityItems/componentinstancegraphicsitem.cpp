@@ -282,10 +282,7 @@ void ComponentInstanceGraphicsItem::setupLayout()
 {
     QPixmap pix = Theme::theme()->getImage("EntityIcons", "ComponentInstance");
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    icon_pixmap_item_->setParentItem(this);
-
     label_text_item_ = new TextGraphicsItem(comp_inst_data_.getName() + " [" + comp_inst_data_.getGraphmlID() + "]", this);
-    label_text_item_->setParentItem(this);
 
     top_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
     top_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);

@@ -319,12 +319,12 @@ QPointF ContainerInstanceGraphicsItem::getOriginChildPos() const
 void ContainerInstanceGraphicsItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-
     auto icon_name = container_inst_data_.getType() == AggServerResponse::Container::ContainerType::GENERIC ? "servers" : "docker";
     auto pixmap = theme->getImage("Icons", icon_name);
 
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
+    metadata_text_item_->setDefaultTextColor(theme->getTextColor());
 
     top_color_ = theme->getActiveWidgetBorderColor();
     body_color_ = theme->getAltBackgroundColor().darker(115);
@@ -336,15 +336,27 @@ void ContainerInstanceGraphicsItem::themeChanged()
  */
 void ContainerInstanceGraphicsItem::setupLayout()
 {
-    auto icon_name = container_inst_data_.getType() == AggServerResponse::Container::ContainerType::GENERIC ? "servers" : "docker";
-    auto pix = Theme::theme()->getImage("Icons", icon_name);
+    QString docker_type = "Generic OS Process";
+    QString icon_name = "servers";
+    if (container_inst_data_.getType() == AggServerResponse::Container::ContainerType::DOCKER) {
+        docker_type = "Docker Process";
+        icon_name = "docker";
+    }
 
+    auto pix = Theme::theme()->getImage("Icons", icon_name);
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
     icon_pixmap_item_->setPixmapPadding(pixmap_padding);
-    icon_pixmap_item_->setParentItem(this);
 
     label_text_item_ = new TextGraphicsItem(container_inst_data_.getName(), this);
-    label_text_item_->setParentItem(this);
+    metadata_text_item_ = new TextGraphicsItem(docker_type, this);
+    metadata_text_item_->setFont(QFont("Verdana", 8));
+
+    text_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
+    text_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    text_layout_->setSpacing(0);
+    text_layout_->setContentsMargins(0, 0, 0, 0);
+    text_layout_->addItem(label_text_item_);
+    text_layout_->addItem(metadata_text_item_);
 
     top_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
     top_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -352,8 +364,9 @@ void ContainerInstanceGraphicsItem::setupLayout()
     top_layout_->setContentsMargins(top_layout_horizontal_margin, 0, top_layout_horizontal_margin, 0);
     top_layout_->addItem(icon_pixmap_item_);
     top_layout_->setStretchFactor(icon_pixmap_item_, 0);
-    top_layout_->addItem(label_text_item_);
-    top_layout_->setStretchFactor(label_text_item_, 1);
+    top_layout_->addItem(text_layout_);
+    top_layout_->setStretchFactor(text_layout_, 1);
+    top_layout_->setAlignment(text_layout_, Qt::AlignCenter);
 
     main_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
     main_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
