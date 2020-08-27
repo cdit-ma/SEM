@@ -118,13 +118,6 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 
     painter->setPen(QPen(top_color_, pen_width));
     painter->drawRoundedRect(rect, 2, 2);
-
-    /*
-    painter->setPen(QPen(Qt::red, 3));
-    painter->drawRect(metadata_pixmap_item_->geometry());
-    painter->setPen(QPen(Qt::green, 3));
-    painter->drawRect(metadata_text_item_->geometry());
-    */
 }
 
 /**

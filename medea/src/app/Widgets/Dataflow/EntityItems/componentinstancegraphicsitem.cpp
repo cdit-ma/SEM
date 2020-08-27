@@ -320,9 +320,9 @@ void ComponentInstanceGraphicsItem::setupLayout()
     top_layout_->setContentsMargins(top_layout_horizontal_margin, 0, top_layout_horizontal_margin, 0);
     top_layout_->addItem(icon_pixmap_item_);
     top_layout_->setStretchFactor(icon_pixmap_item_, 0);
-    top_layout_->addItem(text_layout_);
-    top_layout_->setStretchFactor(text_layout_, 1);
-    top_layout_->setAlignment(text_layout_, Qt::AlignCenter);
+    top_layout_->addItem(info_layout_);
+    top_layout_->setStretchFactor(info_layout_, 1);
+    top_layout_->setAlignment(info_layout_, Qt::AlignCenter);
 
     top_layout_->addItem(info_layout_);
     top_layout_->setStretchFactor(info_layout_, 1);

@@ -354,7 +354,7 @@ void PortInstanceGraphicsItem::themeChanged()
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
-    pixmap = theme->getImage("Icons", "envelopeTwoTone", QSize(), theme->getAltTextColor());
+    pixmap = Theme::theme()->getImage("Icons", "envelopeTwoTone");
     metadata_pixmap_item_->updatePixmap(pixmap);
     metadata_text_item_->setDefaultTextColor(theme->getTextColor());
 }
