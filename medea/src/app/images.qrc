@@ -204,6 +204,7 @@
         <file alias="clockUp">Resources/Icons/clockUp.png</file>
         <file alias="cloud">Resources/Icons/cloud.png</file>
         <file alias="cloudCircle">Resources/Icons/cloudCircle.png</file>
+        <file alias="code">Resources/Icons/code.png</file>
         <file alias="compass">Resources/Icons/compass.png</file>
         <file alias="connect">Resources/Icons/connect.png</file>
         <file alias="connectFork">Resources/Icons/connectFork.png</file>

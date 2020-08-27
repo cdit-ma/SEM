@@ -70,9 +70,15 @@ private:
     QGraphicsLinearLayout* main_layout_ = nullptr;
     QGraphicsLinearLayout* top_layout_ = nullptr;
     QGraphicsGridLayout* children_layout_ = nullptr;
+    QGraphicsLinearLayout* text_layout_ = nullptr;
+    QGraphicsLinearLayout* info_layout_ = nullptr;
+    QGraphicsLinearLayout* sub_info_layout_ = nullptr;
 
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
+    PixmapGraphicsItem* metadata_pixmap_item_ = nullptr;
+
     TextGraphicsItem* label_text_item_ = nullptr;
+    TextGraphicsItem* metadata_text_item_ = nullptr;
 
     const ComponentInstanceData& comp_inst_data_;
     std::vector<PortInstanceGraphicsItem*> port_inst_items_;

@@ -265,10 +265,10 @@ qreal ComponentInstanceGraphicsItem::getHeight() const
 void ComponentInstanceGraphicsItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-
     auto pixmap = theme->getImage("EntityIcons", "ComponentInstance");
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
+    metadata_text_item_->setDefaultTextColor(theme->getTextColor());
 
     top_color_ = theme->getActiveWidgetBorderColor();
     body_color_ = theme->getAltBackgroundColor();
@@ -282,7 +282,48 @@ void ComponentInstanceGraphicsItem::setupLayout()
 {
     QPixmap pix = Theme::theme()->getImage("EntityIcons", "ComponentInstance");
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
+
     label_text_item_ = new TextGraphicsItem(comp_inst_data_.getName() + " [" + comp_inst_data_.getGraphmlID() + "]", this);
+    label_text_item_->setTextAlignment(Qt::AlignBottom);
+
+    metadata_text_item_ = new TextGraphicsItem(comp_inst_data_.getType(), this);
+    metadata_text_item_->setFont(QFont("Verdana", 8));
+    metadata_text_item_->setTextAlignment(Qt::AlignTop);
+
+    int sub_size = icon_size / 2.5;
+    pix = Theme::theme()->getImage("Icons", "dropPin");
+    metadata_pixmap_item_ = new PixmapGraphicsItem(pix, this);
+    metadata_pixmap_item_->setSquareSize(sub_size);
+    metadata_pixmap_item_->setMaximumHeight(metadata_text_item_->effectiveSizeHint(Qt::PreferredSize).height());
+
+    sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
+    sub_info_layout_->setSpacing(0);
+    sub_info_layout_->setContentsMargins(0, 0, 0, 0);
+    sub_info_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    sub_info_layout_->addItem(metadata_pixmap_item_);
+    sub_info_layout_->setAlignment(metadata_pixmap_item_, Qt::AlignHCenter | Qt::AlignTop);
+    sub_info_layout_->setStretchFactor(metadata_pixmap_item_, 0);
+    sub_info_layout_->addItem(metadata_text_item_);
+    sub_info_layout_->setAlignment(metadata_text_item_, Qt::AlignLeft);
+    sub_info_layout_->setStretchFactor(metadata_text_item_, 1);
+
+    info_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
+    info_layout_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    info_layout_->setSpacing(0);
+    info_layout_->setContentsMargins(0, 0, 0, 0);
+    info_layout_->addItem(label_text_item_);
+    info_layout_->addItem(sub_info_layout_);
+
+    metadata_text_item_ = new TextGraphicsItem(comp_inst_data_.getType(), this);
+    metadata_text_item_->setFont(QFont("Verdana", 8));
+    metadata_text_item_->setTextAlignment(Qt::AlignTop);
+
+    text_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
+    text_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    text_layout_->setSpacing(0);
+    text_layout_->setContentsMargins(0, 0, 0, 0);
+    text_layout_->addItem(label_text_item_);
+    text_layout_->addItem(metadata_text_item_);
 
     top_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
     top_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -290,8 +331,9 @@ void ComponentInstanceGraphicsItem::setupLayout()
     top_layout_->setContentsMargins(top_layout_horizontal_margin, 0, top_layout_horizontal_margin, 0);
     top_layout_->addItem(icon_pixmap_item_);
     top_layout_->setStretchFactor(icon_pixmap_item_, 0);
-    top_layout_->addItem(label_text_item_);
-    top_layout_->setStretchFactor(label_text_item_, 1);
+    top_layout_->addItem(text_layout_);
+    top_layout_->setStretchFactor(text_layout_, 1);
+    top_layout_->setAlignment(text_layout_, Qt::AlignCenter);
 
     auto spacing = MEDEA::GraphicsLayoutItem::DEFAULT_GRAPHICS_ITEM_HEIGHT * 0.5;
     auto margin = spacing / 3;
