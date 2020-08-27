@@ -50,7 +50,6 @@ private:
 
     void themeChanged();
     void setupLayout();
-    void setupSubInfoLayout();
 
     bool event_src_port_ = false;
     Qt::Alignment alignment_ = Qt::AlignLeft;

@@ -355,7 +355,7 @@ void PortInstanceGraphicsItem::themeChanged()
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
-    pixmap = theme->getImage("Icons", "envelopeTwoTone", QSize(), theme->getAltTextColor());
+    pixmap = Theme::theme()->getImage("Icons", "envelopeTwoTone");
     metadata_pixmap_item_->updatePixmap(pixmap);
     metadata_text_item_->setDefaultTextColor(theme->getTextColor());
 }
@@ -365,11 +365,10 @@ void PortInstanceGraphicsItem::themeChanged()
  */
 void PortInstanceGraphicsItem::setupLayout()
 {
-    QPixmap pix = Theme::theme()->getImage(icon_path.first, icon_path.second);
-    icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
+    icon_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
+    icon_pixmap_item_->setPixmapSquareSize(icon_size);
     icon_pixmap_item_->setPixmapPadding(pixmap_padding);
-    icon_pixmap_item_->setSquareSize(icon_size);
-    icon_pixmap_item_->setMaximumHeight(icon_pixmap_item_->minimumHeight());
+    icon_pixmap_item_->setMaximumSize(icon_size, icon_size);
 
     label_text_item_ = new TextGraphicsItem(getPortName(), this);
     label_text_item_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
@@ -380,9 +379,8 @@ void PortInstanceGraphicsItem::setupLayout()
     metadata_text_item_->setTextAlignment(Qt::AlignTop);
 
     int sub_size = icon_size / 2.5;
-    pix = Theme::theme()->getImage("Icons", "envelopeTwoTone");
-    metadata_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    metadata_pixmap_item_->setSquareSize(sub_size);
+    metadata_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
+    metadata_pixmap_item_->setPixmapSquareSize(sub_size);
     metadata_pixmap_item_->setMaximumHeight(metadata_text_item_->effectiveSizeHint(Qt::PreferredSize).height());
 
     sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);

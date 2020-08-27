@@ -117,13 +117,6 @@ void NodeGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* 
 
     painter->setPen(QPen(top_color_, pen_width));
     painter->drawRoundedRect(rect, 2, 2);
-
-    /*
-    painter->setPen(QPen(Qt::red, 3));
-    painter->drawRect(metadata_pixmap_item_->geometry());
-    painter->setPen(QPen(Qt::green, 3));
-    painter->drawRect(metadata_text_item_->geometry());
-    */
 }
 
 /**
@@ -315,18 +308,16 @@ QPointF NodeGraphicsItem::getNextChildPos() const
 void NodeGraphicsItem::themeChanged()
 {
     Theme* theme = Theme::theme();
+    top_color_ = theme->getActiveWidgetBorderColor();
+    body_color_ = theme->getDisabledBackgroundColor();
 
     auto pixmap = theme->getImage("EntityIcons", "HardwareNode");
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
-    pixmap = theme->getImage("Icons", "dropPin", QSize(), theme->getAltTextColor());
+    pixmap = Theme::theme()->getImage("Icons", "dropPin");
     metadata_pixmap_item_->updatePixmap(pixmap);
     metadata_text_item_->setDefaultTextColor(theme->getTextColor());
-
-    top_color_ = theme->getActiveWidgetBorderColor();
-    body_color_ = theme->getDisabledBackgroundColor();
-    update();
 }
 
 /**
@@ -334,8 +325,7 @@ void NodeGraphicsItem::themeChanged()
  */
 void NodeGraphicsItem::setupLayout()
 {    
-    QPixmap pix = Theme::theme()->getImage("EntityIcons", "HardwareNode");
-    icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
+    icon_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
     icon_pixmap_item_->setPixmapPadding(padding);
 
     label_text_item_ = new TextGraphicsItem(node_data_.getHostname(), this);
@@ -346,9 +336,8 @@ void NodeGraphicsItem::setupLayout()
     metadata_text_item_->setTextAlignment(Qt::AlignTop);
 
     int sub_size = icon_size / 2.5;
-    pix = Theme::theme()->getImage("Icons", "dropPin");
-    metadata_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    metadata_pixmap_item_->setSquareSize(sub_size);
+    metadata_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
+    metadata_pixmap_item_->setPixmapSquareSize(sub_size);
     metadata_pixmap_item_->setMaximumHeight(metadata_text_item_->effectiveSizeHint(Qt::PreferredSize).height());
 
     sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);

@@ -124,14 +124,17 @@ qreal WorkerInstanceGraphicsItem::getHeight() const
 void WorkerInstanceGraphicsItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-    label_text_item_->setDefaultTextColor(theme->getTextColor());
-
-    auto pixmap = theme->getImage("Icons", "spanner", QSize(), theme->getTextColor());
-    icon_pixmap_item_->updatePixmap(pixmap);
-
     highlight_color_ = theme->getHighlightColor();
     default_color_ = theme->getAltBackgroundColor();
     active_color_ = default_color_;
+
+    auto pixmap = theme->getImage("Icons", "spanner");
+    icon_pixmap_item_->updatePixmap(pixmap);
+    label_text_item_->setDefaultTextColor(theme->getTextColor());
+
+    pixmap = Theme::theme()->getImage("Icons", "code");
+    metadata_pixmap_item_->updatePixmap(pixmap);
+    metadata_text_item_->setDefaultTextColor(theme->getTextColor());
 }
 
 /**
@@ -139,42 +142,49 @@ void WorkerInstanceGraphicsItem::themeChanged()
  */
 void WorkerInstanceGraphicsItem::setupLayout()
 {
-    QPixmap pix = Theme::theme()->getImage("Icons", "spanner");
-    icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
+    icon_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
+    icon_pixmap_item_->setPixmapSquareSize(icon_size);
     icon_pixmap_item_->setPixmapPadding(pixmap_padding);
-    icon_pixmap_item_->setParentItem(this);
-    icon_pixmap_item_->setSquareSize(icon_size);
-    icon_pixmap_item_->setMaximumHeight(icon_pixmap_item_->minimumHeight());
+    icon_pixmap_item_->setMaximumSize(icon_size, icon_size);
 
     label_text_item_ = new TextGraphicsItem(getName(), this);
-    label_text_item_->setParentItem(this);
     label_text_item_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-    label_text_item_->setTextAlignment(Qt::AlignCenter);
+    label_text_item_->setTextAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 
-    /*
-    //sub_label_text_item_ = new TextGraphicsItem(getType(), this);
-    sub_label_text_item_ = new TextGraphicsItem("WorkerName", this);
-    sub_label_text_item_->setParentItem(this);
-    sub_label_text_item_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-    sub_label_text_item_->setTextAlignment(Qt::AlignTop | Qt::AlignLeft);
-    sub_label_text_item_->setFont(QFont("Verdana", 8));
+    metadata_text_item_ = new TextGraphicsItem("WorkerDefinitionName", this);
+    metadata_text_item_->setFont(QFont("Verdana", 8));
+    metadata_text_item_->setTextAlignment(Qt::AlignTop);
 
-    auto sub_layout = new QGraphicsLinearLayout(Qt::Vertical);
-    sub_layout->setSpacing(0);
-    sub_layout->setContentsMargins(0, 0, 10, 0);
-    sub_layout->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-    sub_layout->addItem(label_text_item_);
-    sub_layout->addItem(sub_label_text_item_);
-    */
+    int sub_size = icon_size / 2.5;
+    metadata_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
+    metadata_pixmap_item_->setPixmapSquareSize(sub_size);
+    metadata_pixmap_item_->setMaximumHeight(metadata_text_item_->effectiveSizeHint(Qt::PreferredSize).height());
+
+    sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
+    sub_info_layout_->setSpacing(2);
+    sub_info_layout_->setContentsMargins(2, 0, 0, 0);
+    sub_info_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    sub_info_layout_->addItem(metadata_pixmap_item_);
+    sub_info_layout_->setAlignment(metadata_pixmap_item_, Qt::AlignHCenter | Qt::AlignTop);
+    sub_info_layout_->setStretchFactor(metadata_pixmap_item_, 0);
+    sub_info_layout_->addItem(metadata_text_item_);
+    sub_info_layout_->setAlignment(metadata_text_item_, Qt::AlignLeft);
+    sub_info_layout_->setStretchFactor(metadata_text_item_, 1);
+
+    info_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
+    info_layout_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    info_layout_->setSpacing(0);
+    info_layout_->setContentsMargins(0, 0, 0, 0);
+    info_layout_->addItem(label_text_item_);
+    info_layout_->addItem(sub_info_layout_);
 
     main_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
     main_layout_->setSpacing(3);
     main_layout_->setContentsMargins(0, 0, 10, 0);
     main_layout_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     main_layout_->addItem(icon_pixmap_item_);
-    main_layout_->addItem(label_text_item_);
+    main_layout_->addItem(info_layout_);
 
-    prepareGeometryChange();
     setContentsMargins(0, 0, 0, 0);
     setLayout(main_layout_);
 }
