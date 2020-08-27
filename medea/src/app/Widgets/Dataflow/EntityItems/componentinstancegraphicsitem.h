@@ -70,6 +70,7 @@ private:
     QGraphicsLinearLayout* main_layout_ = nullptr;
     QGraphicsLinearLayout* top_layout_ = nullptr;
     QGraphicsGridLayout* children_layout_ = nullptr;
+    QGraphicsLinearLayout* text_layout_ = nullptr;
     QGraphicsLinearLayout* info_layout_ = nullptr;
     QGraphicsLinearLayout* sub_info_layout_ = nullptr;
 
