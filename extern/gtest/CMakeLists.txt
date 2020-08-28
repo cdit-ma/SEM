@@ -17,5 +17,5 @@ FetchContent_Declare(googletest
 FetchContent_GetProperties(googletest)
 if (NOT googletest_POPULATE)
     FetchContent_Populate(googletest)
-    add_subdirectory(${googletest_SOURCE_DIR}/googlemock ${googletest_BINARY_DIR})
+    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 endif ()
