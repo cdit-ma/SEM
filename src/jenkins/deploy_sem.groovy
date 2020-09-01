@@ -9,30 +9,34 @@ def utils = new jenkins.Utils(this)
 final sem_deploy_nodes = nodesByLabel("sem_deploy_node")
 
 pipeline{
-    agent{node "sem_deploy_node"}
-
+    agent{node "master"}
+    parameters{
+        // TODO: Change this to pull from repo once we're open source. Take version tag as param
+        file(name: 'sem_source_archive', description: 'The archive to deploy (tar.gz). Should be obtained from the SEM releases page found at https://github.com/cdit-ma/SEM/releases.')
+    }
     stages{
+        stage("Checkout/Bundle"){
+            steps{
+                script{
+                    final sem_source_archive = "sem_source_archive.tar.gz"
+
+                    dir("${env.BUILD_ID}"){
+                        touch(".dummy")
+                        unstashParam 'sem_source_archive' "${env.BUILD_ID}/${sem_source_archive}"
+                        if(utils.runScript("tar -xf ${sem_source_archive}") != 0){
+                            error("Cannot extract archive")
+                        }
+                        stash name: "sem_source", includes: "**/SEM-*/**"
+                    }
+                }
+            }
+        }
         stage("Pre-deploy environment checks"){
             steps{
                 script{
                 }
             }
         }
-        stage("Checkout/Bundle"){
-            steps{
-                script{
-                    deleteDir()
-                    checkout scm
-                    stash includes: "**", name: "source_code"
-
-                    //Read the VERSION.MD
-                    if(fileExists("VERSION.md")){
-                        RELEASE_DESCRIPTION = readFile("VERSION.md")
-                    }
-                }
-            }
-        }
-
         stage("Compilation"){
             steps{
                 script{
@@ -43,15 +47,18 @@ pipeline{
                             node(node_name){
 
                                 // TODO: Change into sem install location
-                                unstash "source_code"
-                                dir("build"){
+                                dir("${HOME}/sem"){
                                     deleteDir()
-                                    def generate_args = "-DBUILD_MEDEA=OFF"
-                                    if(env.SEM_DEPS_CACHE_DIR){
-                                        generate_args = generate_args + " -DSEM_DEPS_BASE_DIR=${env.SEM_DEPS_CACHE_DIR}"
-                                    }
-                                    if(!utils.buildProject("Ninja", generate_args)){
-                                        error("CMake failed on Builder Node: ${node_name}")
+                                    unstash "sem_source"
+                                    dir("build"){
+                                        deleteDir()
+                                        def generate_args = "-DBUILD_MEDEA=OFF"
+                                        if(env.SEM_DEPS_CACHE_DIR){
+                                            generate_args = generate_args + " -DSEM_DEPS_BASE_DIR=${env.SEM_DEPS_CACHE_DIR}"
+                                        }
+                                        if(!utils.buildProject("Ninja", generate_args)){
+                                            error("CMake failed on Builder Node: ${node_name}")
+                                        }
                                     }
                                 }
                             }
