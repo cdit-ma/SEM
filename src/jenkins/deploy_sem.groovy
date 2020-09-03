@@ -7,6 +7,8 @@ import hudson.tasks.test.AbstractTestResultAction
 def utils = new jenkins.Utils(this)
 
 final sem_deploy_nodes = nodesByLabel("sem_deploy_node")
+final ubuntu_nodes = nodesByLabel("ubuntu18").intersect(sem_deploy_nodes)
+final centos_nodes = nodesByLabel("centos7").intersect(sem_deploy_nodes)
 
 pipeline{
     agent{node "master"}
@@ -26,7 +28,12 @@ pipeline{
                         if(utils.runScript("tar -xf ${sem_source_archive}") != 0){
                             error("Cannot extract archive")
                         }
+                        // Stash everything in the top level directory found in the tar.
+                        //  This takes the form SEM-BRANCH_OR_TAG_NAME, eg.
+                        //  SEM-master, SEM-v4.0.0 or SEM-develop
                         stash name: "sem_source", includes: "**/SEM-*/**"
+                        stash name: "centos_pre_check", includes: "**/SEM-*/re/scripts/centos_7/install_deps.sh"
+                        stash name: "ubuntu_pre_check", includes: "**/SEM-*/re/scripts/ubuntu_18.04/install_deps.sh"
                     }
                 }
             }
@@ -34,6 +41,30 @@ pipeline{
         stage("Pre-deploy environment checks"){
             steps{
                 script{
+                    def pre_build_checks = [:]
+                    for(n in centos_nodes){
+                        def node_name = n
+                        pre_build_checks[node_name] = {
+                            node(node_name){
+                                dir("${HOME}"){
+                                    unstash "centos_pre_check"
+                                    utils.runScript("./install_deps.sh")
+                                }
+                            }
+                        }
+                    }
+                    for(n in ubuntu_nodes){
+                        def node_name = n
+                        pre_build_checks[node_name] = {
+                            node(node_name){
+                                dir("${HOME}"){
+                                    unstash "ubuntu_pre_check"
+                                    utils.runScript("./install_deps.sh")
+                                }
+                            }
+                        }
+                    }
+                    parallel(pre_build_checks)
                 }
             }
         }
