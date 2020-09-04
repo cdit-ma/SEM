@@ -309,6 +309,7 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem* item, bool select
     if (item) {
         auto entity_item = getEntityItem(item->getID());
         if (entity_item) {
+            qDebug() << "set " << item->getData("label").toString() << " selected to " << selected;
             entity_item->setSelected(selected);
             emit itemSelectionChanged(item, selected);
         }
@@ -339,6 +340,7 @@ void NodeView::selectAll()
     QList<ViewItem*> items_to_select;
 
     if (gui_item) {
+        qDebug() << "FIRST selection: " << gui_item;
         if (getSelectionHandler().getSelectionCount() == 1 && gui_item->isNodeItem()) {
             auto nodeItem = qobject_cast<NodeItem*>(gui_item);
             for (auto child : nodeItem->getChildNodes()) {
@@ -635,6 +637,7 @@ void NodeView::selectItemIDs(const QList<int>& ids)
  */
 void NodeView::item_Selected(ViewItem* item, bool append)
 {
+    qDebug() << "- item_Selected   append: " << append;
     getSelectionHandler().toggleItemsSelection(item, append);
 }
 
@@ -644,6 +647,7 @@ void NodeView::item_Selected(ViewItem* item, bool append)
  */
 void NodeView::item_ActiveSelected(ViewItem* item)
 {
+    qDebug() << "- item_ActiveSelected";
     getSelectionHandler().setActiveSelectedItem(item);
 }
 
@@ -2176,7 +2180,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         selectItemsInRubberband();
     }
 
-    // Reset mouse event related vairables
+    // Reset mouse event related variables
     pan_distance_ = 0;
     emit mouseReleased();
 

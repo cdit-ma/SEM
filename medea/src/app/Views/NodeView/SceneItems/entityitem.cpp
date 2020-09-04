@@ -371,19 +371,27 @@ qreal EntityItem::getDefaultZValue() const
 
 void EntityItem::handleSelection(bool append)
 {
+    qDebug() << "---------------- handleSelection ----------------";
+    qDebug() << "entity: " << getData("label").toString();
     bool setActive = false;
-    if(isSelected() && !append){
+    if (isSelected() && !append) {
         setActive = true;
     }
 
-    if(setActive){
-        //If it isnt actively selected, we shouldn't unselect
-        if(!isActiveSelected()){
+    qDebug() << "append: " << append;
+
+    if (setActive) {
+        // If it isnt actively selected, we shouldn't unselect
+        if (!isActiveSelected()) {
+            qDebug() << "request to be ACTIVELY selected";
             emit req_activeSelected(getViewItem());
         }
-    }else{
+    } else {
+        qDebug() << "request to be SELECTED";
         emit req_selected(getViewItem(), append);
     }
+
+    qDebug() << "------------------------------------------------";
 }
 
 void EntityItem::removeData(const QString& keyName)
