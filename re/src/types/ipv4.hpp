@@ -8,8 +8,6 @@ namespace re::types {
 
 class Ipv4 {
 public:
-    /// Construct Ipv4 addr from a string.
-    /// Expected format 123.123.123.123 or as a regex (^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$)
     [[deprecated("Use Ipv4 constructor instead.")]] [[nodiscard]] static auto
     from_string(const std::string& addr_string) -> Ipv4
     {
@@ -25,7 +23,6 @@ public:
     [[deprecated("Use Ipv4 constructor instead.")]] [[nodiscard]] constexpr static auto
     from_array(const std::array<uint8_t, 4>& array) -> Ipv4
     {
-        // This constructor enforces its own invariants!
         return Ipv4(array);
     }
 
@@ -44,19 +41,31 @@ public:
                            + std::to_string(addr_[2]) + '.' + std::to_string(addr_[3])};
     }
 
-    /// Copy/move constructor
-    constexpr Ipv4(const Ipv4&) = default;
-    constexpr Ipv4(Ipv4&&) = default;
+
     constexpr Ipv4(const uint8_t a, const uint8_t b, const uint8_t c, const uint8_t d) :
         addr_{a, b, c, d}
     {
     }
+
     constexpr explicit Ipv4(const std::array<uint8_t, 4>& array) :
         Ipv4(array[0], array[1], array[2], array[3])
     {
     }
 
-    explicit Ipv4(const std::string& addr_string)
+    /// Construct Ipv4 addr from a string.
+    /// Expected format 123.123.123.123 or as a regex (^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$)
+    explicit Ipv4(const std::string& addr_string) : addr_{parse_string_to_octets(addr_string)} {}
+
+    /// Copy/move constructor
+    constexpr Ipv4(const Ipv4&) = default;
+    constexpr Ipv4(Ipv4&&) = default;
+
+    /// Copy/move assignment operator
+    [[nodiscard]] constexpr auto operator=(const Ipv4&) -> Ipv4& = default;
+    [[nodiscard]] constexpr auto operator=(Ipv4&&) -> Ipv4& = default;
+
+private:
+    static auto parse_string_to_octets(const std::string& addr_string) -> std::array<uint8_t, 4>
     {
         // Break out early if we're too long to avoid pathological regex matching.
         if(addr_string.length() > 15) {
@@ -76,14 +85,8 @@ public:
         // Magic "+ 1" to skip the first match which is always the full match (i.e. the full ip
         //  addr)
         std::transform(matches.begin() + 1, matches.end(), octets.begin(), parse_octet_from_string);
-        addr_ = octets;
+        return octets;
     }
-
-    /// Copy/move assignment operator
-    [[nodiscard]] constexpr auto operator=(const Ipv4&) -> Ipv4& = default;
-    [[nodiscard]] constexpr auto operator=(Ipv4&&) -> Ipv4& = default;
-
-private:
     static auto parse_octet_from_string(const std::string& in) -> uint8_t
     {
         auto number = std::stoi(in);
@@ -93,7 +96,7 @@ private:
         return static_cast<uint8_t>(number);
     }
 
-    std::array<uint8_t, 4> addr_{};
+    std::array<uint8_t, 4> addr_;
 };
 
 inline auto operator<<(std::ostream& out, const Ipv4& addr) -> std::ostream&
