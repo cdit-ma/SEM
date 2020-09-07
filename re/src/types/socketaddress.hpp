@@ -2,6 +2,7 @@
 #define CPP_UTIL_SOCKET_ADDR_HPP
 
 #include "ipv4.hpp"
+#include <ostream>
 
 namespace re::types {
 

@@ -2,6 +2,7 @@
 #define CPP_UTIL_IPV4_HPP
 #include <array>
 #include <string>
+#include <ostream>
 
 namespace re::types {
 
