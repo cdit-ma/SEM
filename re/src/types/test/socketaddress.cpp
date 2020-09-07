@@ -26,9 +26,6 @@ TEST(re_types_socketaddress, from_string)
     auto addr = SocketAddress("192.168.1.99:12345");
     ASSERT_EQ(addr.to_string(), "192.168.1.99:12345");
 
-    // Static cast to void to dodge [[nodiscard]] warnings....
-    // Seems terrible, couldn't find warning number in any documentation, couldn't use pragma
-    // warning disable.
     EXPECT_THROW(SocketAddress("192.168.111.230:invalid_port_number_string"),
                  std::invalid_argument);
     EXPECT_THROW(SocketAddress("192.168.111.230:"),

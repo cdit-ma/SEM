@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "ipv4.hpp"
+#include "gtest/gtest.h"
 
 namespace re::types::test {
 
@@ -26,20 +26,17 @@ TEST(re_types_ipv4, from_string)
     auto short_test = Ipv4("1.1.1.1");
     ASSERT_EQ(short_test, Ipv4(1, 1, 1, 1));
 
-    // Static cast to void to dodge [[nodiscard]] warnings.
-    // Should fix this in the future by using a warning disable pragma.
-    EXPECT_THROW(static_cast<void>(Ipv4("invalid_ipv4str")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("192.168.111.230.123")),
-                 std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("300.168.111.230")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("200.168.111")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("192.168.111.2a1")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("   192.16.11.2")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("192..168.1")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("....")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4(".168.111.230")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("aaa.aaa.aaa.aaa")), std::invalid_argument);
-    EXPECT_THROW(static_cast<void>(Ipv4("1 2.168.1 1.230")), std::invalid_argument);
+    EXPECT_THROW(Ipv4("invalid_ipv4str"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("192.168.111.230.123"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("300.168.111.230"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("200.168.111"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("192.168.111.2a1"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("   192.16.11.2"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("192..168.1"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("...."), std::invalid_argument);
+    EXPECT_THROW(Ipv4(".168.111.230"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("aaa.aaa.aaa.aaa"), std::invalid_argument);
+    EXPECT_THROW(Ipv4("1 2.168.1 1.230"), std::invalid_argument);
 }
 
 TEST(re_types_ipv4, ip_constants)
