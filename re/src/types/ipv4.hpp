@@ -61,8 +61,8 @@ public:
     constexpr Ipv4(Ipv4&&) = default;
 
     /// Copy/move assignment operator
-    [[nodiscard]] constexpr auto operator=(const Ipv4&) -> Ipv4& = default;
-    [[nodiscard]] constexpr auto operator=(Ipv4&&) -> Ipv4& = default;
+    constexpr auto operator=(const Ipv4&) -> Ipv4& = default;
+    constexpr auto operator=(Ipv4&&) -> Ipv4& = default;
 
 private:
     std::array<uint8_t, 4> addr_;

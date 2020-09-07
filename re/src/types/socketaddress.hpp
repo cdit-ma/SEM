@@ -49,6 +49,14 @@ public:
     {
     }
 
+    /// Copy/move constructor
+    constexpr SocketAddress(const SocketAddress&) = default;
+    constexpr SocketAddress(SocketAddress&&) = default;
+
+    /// Copy/move assignment operator
+    constexpr auto operator=(const SocketAddress&) -> SocketAddress& = default;
+    constexpr auto operator=(SocketAddress&&) -> SocketAddress& = default;
+
 private:
     static auto parse_socket_address(const std::string& addr_string) -> std::pair<Ipv4, uint16_t>;
     // TODO: Implement ipv6 support
