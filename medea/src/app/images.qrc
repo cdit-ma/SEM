@@ -233,6 +233,7 @@
         <file alias="dropPin">Resources/Icons/dropPin.png</file>
         <file alias="ear">Resources/Icons/ear.png</file>
         <file alias="envelopeTwoTone">Resources/Icons/envelopeTwoTone.png</file>
+        <file alias="ethernet">Resources/Icons/ethernet.png</file>
         <file alias="exclamation">Resources/Icons/exclamation.png</file>
         <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>
         <file alias="eye">Resources/Icons/eye.png</file>

@@ -315,7 +315,7 @@ void NodeGraphicsItem::themeChanged()
     icon_pixmap_item_->updatePixmap(pixmap);
     label_text_item_->setDefaultTextColor(theme->getTextColor());
 
-    pixmap = Theme::theme()->getImage("Icons", "dropPin");
+    pixmap = Theme::theme()->getImage("Icons", "ethernet");
     metadata_pixmap_item_->updatePixmap(pixmap);
     metadata_text_item_->setDefaultTextColor(theme->getTextColor());
 }
