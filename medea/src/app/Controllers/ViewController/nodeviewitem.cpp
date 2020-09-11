@@ -166,6 +166,17 @@ QSet<EdgeViewItem *> NodeViewItem::getEdges(EDGE_KIND edge_kind) const
     }
 }
 
+QSet<NodeViewItem*> NodeViewItem::getChildrenNodeViewItems() const
+{
+    QSet<NodeViewItem*> children_nodes;
+    for (auto child : getDirectChildren()) {
+        if (child != nullptr && child->isNode()) {
+            children_nodes.insert(qobject_cast<NodeViewItem*>(child));
+        }
+    }
+    return children_nodes;
+}
+
 bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {
     bool is_ancestor = false;

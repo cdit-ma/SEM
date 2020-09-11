@@ -31,6 +31,8 @@ public:
 
     QSet<EdgeViewItem*> getEdges() const;
     QSet<EdgeViewItem*> getEdges(EDGE_KIND edgeKind) const;
+
+    QSet<NodeViewItem*> getChildrenNodeViewItems() const;
     
     bool isAncestorOf(NodeViewItem* item);
 

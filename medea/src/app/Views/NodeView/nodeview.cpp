@@ -309,7 +309,6 @@ void NodeView::selectionHandler_ItemSelectionChanged(ViewItem* item, bool select
     if (item) {
         auto entity_item = getEntityItem(item->getID());
         if (entity_item) {
-            qDebug() << "set " << item->getData("label").toString() << " selected to " << selected;
             entity_item->setSelected(selected);
             emit itemSelectionChanged(item, selected);
         }
@@ -336,24 +335,36 @@ void NodeView::selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool 
  */
 void NodeView::selectAll()
 {
-    EntityItem* gui_item = getEntityItem(getSelectionHandler().getFirstSelectedItem());
-    QList<ViewItem*> items_to_select;
+    // This is triggered by the OS select all key sequence (CTRL+A)
+    // NOTE: This slot is triggered by the edit_selectAll action's triggered signal
+    //  edit_selectAll has a QKeySequence::SelectAll shortcut attached to it which is connected
+    //  to the selectAll signal from the SelectionController that's connected to this NodeView
+    auto items_to_select = getTopLevelViewItems();
+    if (!items_to_select.isEmpty()) {
+        getSelectionHandler().toggleItemsSelection(items_to_select, false);
+    }
+}
 
-    if (gui_item) {
-        qDebug() << "FIRST selection: " << gui_item;
-        if (getSelectionHandler().getSelectionCount() == 1 && gui_item->isNodeItem()) {
-            auto nodeItem = qobject_cast<NodeItem*>(gui_item);
-            for (auto child : nodeItem->getChildNodes()) {
-                items_to_select.append(child->getViewItem());
-            }
+/**
+ * @brief NodeView::selectAllChildren
+ */
+void NodeView::selectAllChildren()
+{
+    // This is triggered by the key sequence (CTRL+Alt+A)
+    // Deselect the current selection and select all their direct children instead
+    QSet<NodeViewItem*> items_to_select;
+
+    const auto& current_selection = getSelectionHandler().getSelection();
+    for (auto item : current_selection) {
+        if (item != nullptr && item->isNode()) {
+            auto node_view_item = qobject_cast<NodeViewItem*>(item);
+            items_to_select.unite(node_view_item->getChildrenNodeViewItems());
         }
-    } else {
-        // Get all top level children
-        items_to_select = getTopLevelViewItems();
     }
 
     if (!items_to_select.isEmpty()) {
-        getSelectionHandler().toggleItemsSelection(items_to_select, false);
+        auto&& to_select_list = QList<ViewItem*>(items_to_select.begin(), items_to_select.end());
+        getSelectionHandler().toggleItemsSelection(to_select_list, false);
     }
 }
 
@@ -637,7 +648,6 @@ void NodeView::selectItemIDs(const QList<int>& ids)
  */
 void NodeView::item_Selected(ViewItem* item, bool append)
 {
-    qDebug() << "- item_Selected   append: " << append;
     getSelectionHandler().toggleItemsSelection(item, append);
 }
 
@@ -647,7 +657,6 @@ void NodeView::item_Selected(ViewItem* item, bool append)
  */
 void NodeView::item_ActiveSelected(ViewItem* item)
 {
-    qDebug() << "- item_ActiveSelected";
     getSelectionHandler().setActiveSelectedItem(item);
 }
 
@@ -1997,6 +2006,12 @@ void NodeView::keyReleaseEvent(QKeyEvent* event)
                 if (item->isNodeItem()) {
                     shiftOrderInParent(qobject_cast<NodeItem*>(item), event->key());
                 }
+            }
+            break;
+        }
+        case Qt::Key_A: {
+            if (event->modifiers().testFlag(Qt::ControlModifier)) {
+                selectAllChildren();
             }
             break;
         }

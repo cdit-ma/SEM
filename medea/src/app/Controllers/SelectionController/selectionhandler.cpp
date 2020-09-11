@@ -1,5 +1,5 @@
 #include "selectionhandler.h"
-#include <QDebug>
+
 int SelectionHandler::_SelectionHandlerID  = 0;
 
 SelectionHandler::SelectionHandler()
@@ -26,7 +26,7 @@ void SelectionHandler::toggleItemsSelection(const QList<ViewItem*>& items, bool 
 {
     int changes = 0;
     if (!append) {
-        //Deselect for non-append
+        // Deselect previous selection first if we're not appending to the current list of selection
         changes += _clearSelection();
     }
     for (ViewItem* item : items) {
@@ -118,48 +118,35 @@ void SelectionHandler::_selectionChanged(int changes)
 
 int SelectionHandler::_clearSelection()
 {
-    qDebug() << "--- _clearSelection";
-    qDebug() << "--- active selection:";
-    for (ViewItem* item : currentSelection) {
-        qDebug() << "--- item: " << item->getData("label").toString();
-    }
-    qDebug() << "---";
     int itemsChanged = 0;
-    for (ViewItem* item : currentSelection) {
-        qDebug() << "--- item: " << item->getData("label").toString();
+    auto current_selection = currentSelection;
+    for (ViewItem* item : current_selection) {
         itemsChanged += _toggleItemsSelection(item);
-        qDebug();
     }
-    qDebug() << "--- end CLEAR";
     return itemsChanged;
 }
 
 int SelectionHandler::_toggleItemsSelection(ViewItem *item, bool deletingItem)
 {
-    qDebug() << "------ _toggleItemSelection";
     int changeCount = 0;
     bool inSelection = currentSelection.contains(item);
-    qDebug() << "------ inSelection: " << inSelection;
-    
-    if(deletingItem){
-        if(!inSelection){
-            //We don't need to unselect item.
+
+    if (deletingItem) {
+        if (!inSelection) {
+            // We don't need to unselect item.
             return changeCount;
         }
     }
     changeCount += _setItemSelected(item, !inSelection);
 
-    if(changeCount > 0 && !deletingItem){
+    if (changeCount > 0 && !deletingItem) {
         emit itemSelectionChanged(item, !inSelection);
     }
-    qDebug() << "------ end TOGGLE";
     return changeCount;
 }
 
 int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
 {
-    qDebug() << "--------- _setItemSelected: " << item->getData("label").toString() << " - " << selected;
-
     int changeCount = 0;
     if(selected){
         //Register the selection handler
@@ -177,18 +164,14 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
             //Unregister the selection handler
             item->unregisterObject(this);
         }
-
         //If there is no items left, there is no active item
         if(currentSelection.isEmpty()){
-            qDebug() << "----------- No more selection";
             newActiveSelectedItem = nullptr;
         }else{
             if(currentActiveSelectedItem == item || newActiveSelectedItem == item){
-                qDebug() << "----------- New active selected item";
                 newActiveSelectedItem = currentSelection.first();
             }
         }
     }
-    qDebug() << "--------- end SET";
     return changeCount;
 }

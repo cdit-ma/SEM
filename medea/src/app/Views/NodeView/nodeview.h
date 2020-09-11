@@ -56,6 +56,7 @@ signals:
 
 public slots:
     void selectAll();
+    void selectAllChildren();
     void clearSelection();
 
     void minimap_Pan(QPointF delta);
