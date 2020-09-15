@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <stdio.h>
+#include <cstdio>
 #include "sqlite3.h"
 
 #define SQL_BATCH_SIZE 1000
