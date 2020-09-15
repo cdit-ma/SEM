@@ -33,14 +33,12 @@ target_sources(${PROJ_NAME} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/table.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tableinsert.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.c
 
         # Headers
         ${CMAKE_CURRENT_SOURCE_DIR}/protohandler.h
         ${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.h
         ${CMAKE_CURRENT_SOURCE_DIR}/table.h
         ${CMAKE_CURRENT_SOURCE_DIR}/tableinsert.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.h
     )
 
 # Include source dirs s.t. sql headers are available when we build tests
@@ -51,5 +49,6 @@ if(UNIX)
 endif()
 target_link_libraries(${PROJ_NAME} PUBLIC zmq_protoreceiver)
 target_link_libraries(${PROJ_NAME} PUBLIC re_common_proto_control)
+target_link_libraries(${PROJ_NAME} PUBLIC sqlite3)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/managedserver")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/standaloneserver")
