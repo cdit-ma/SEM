@@ -11,7 +11,6 @@ target_sources(utility_worker PRIVATE
     # Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker_impl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/exprtk.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/exprtkwrapper.cpp
     # Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker.h
@@ -23,4 +22,5 @@ target_link_libraries(utility_worker
         PRIVATE
         re_core
         re_loggers
+        exprtk
         )
