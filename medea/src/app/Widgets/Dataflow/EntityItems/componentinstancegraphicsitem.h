@@ -1,5 +1,5 @@
-#ifndef COMPINSTGRAPHICSITEM_H
-#define COMPINSTGRAPHICSITEM_H
+#ifndef COMPONENTINSTGRAPHICSITEM_H
+#define COMPONENTINSTGRAPHICSITEM_H
 
 #include "../../Charts/Data/componentinstancedata.h"
 #include "../GraphicsLayoutItems/pixmapgraphicsitem.h"
@@ -13,14 +13,14 @@
 
 #include <vector>
 
-class NodeGraphicsItem;
+class ContainerInstanceGraphicsItem;
 
 class ComponentInstanceGraphicsItem : public QGraphicsWidget
 {    
     Q_OBJECT
 
 public:
-    explicit ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, NodeGraphicsItem* parent = nullptr);
+    explicit ComponentInstanceGraphicsItem(const ComponentInstanceData& comp_inst_data, ContainerInstanceGraphicsItem* parent = nullptr);
 
     const QString& getGraphmlID() const;
 
@@ -30,14 +30,9 @@ public:
     void addWorkerInstanceItem(WorkerInstanceData& worker_inst_data);
     const std::vector<WorkerInstanceGraphicsItem*>& getWorkerInstanceItems() const;
 
-    void moveTo(int x, int y);
-
 signals:
     void updateConnectionPos();
-    void itemExpanded(bool expanded);
-    // REVIEW (Jackson): A little more documentation for this interface could be useful
-    //  Side note: personal preference on my part would be to call it requestMove(...)
-    void attemptMove(ComponentInstanceGraphicsItem* child, QPointF pos);
+    void requestMove(ComponentInstanceGraphicsItem* child, QPointF pos);
 
 protected:    
     QRectF boundingRect() const override;
@@ -52,7 +47,6 @@ protected:
 
 private:
     void constructChildrenItems();
-
     void toggleExpanded();
 
     qreal getWidth() const;
@@ -77,7 +71,6 @@ private:
     QGraphicsLinearLayout* top_layout_ = nullptr;
     QGraphicsGridLayout* children_layout_ = nullptr;
 
-    PixmapGraphicsItem* toggle_pixmap_item_ = nullptr;
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
     TextGraphicsItem* label_text_item_ = nullptr;
 
@@ -86,4 +79,4 @@ private:
     std::vector<WorkerInstanceGraphicsItem*> worker_inst_items_;
 };
 
-#endif // COMPINSTGRAPHICSITEM_H
+#endif // COMPONENTINSTGRAPHICSITEM_H

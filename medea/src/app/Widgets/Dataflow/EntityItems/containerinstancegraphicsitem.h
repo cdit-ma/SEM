@@ -1,30 +1,38 @@
-#ifndef NODEGRAPHICSITEM_H
-#define NODEGRAPHICSITEM_H
+//
+// Created by Cathlyn Aston on 20/8/20.
+//
 
-#include "../../Charts/Data/nodedata.h"
+#ifndef CONTAINERINSTGRAPHICSITEM_H
+#define CONTAINERINSTGRAPHICSITEM_H
+
+#include "../../Charts/Data/containerinstancedata.h"
 #include "../GraphicsLayoutItems/pixmapgraphicsitem.h"
 #include "../GraphicsLayoutItems/textgraphicsitem.h"
-#include "containerinstancegraphicsitem.h"
+#include "componentinstancegraphicsitem.h"
 
 #include <QGraphicsWidget>
 #include <QGraphicsLinearLayout>
+#include <QGraphicsGridLayout>
 
 #include <vector>
 
-class NodeGraphicsItem : public QGraphicsWidget
-{    
+class NodeGraphicsItem;
+
+class ContainerInstanceGraphicsItem : public QGraphicsWidget
+{
     Q_OBJECT
 
 public:
-    explicit NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* parent = nullptr);
+    explicit ContainerInstanceGraphicsItem(const ContainerInstanceData& container_inst_data, NodeGraphicsItem* parent = nullptr);
 
-    void addContainerInstanceItem(ContainerInstanceData& container_inst_data);
-    const std::vector<ContainerInstanceGraphicsItem*>& getContainerInstanceItems() const;
+    void addComponentInstanceItem(ComponentInstanceData& comp_inst_data);
+    const std::vector<ComponentInstanceGraphicsItem*>& getComponentInstanceItems() const;
 
 signals:
     void updateConnectionPos();
+    void requestMove(ContainerInstanceGraphicsItem* child, QPointF pos);
 
-protected:    
+protected:
     QRectF boundingRect() const override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
     void setGeometry(const QRectF &rect) override;
@@ -39,7 +47,7 @@ protected:
 private:
     void constructChildrenItems();
     void toggleExpanded();
-    void validateChildMove(ContainerInstanceGraphicsItem* child, QPointF pos);
+    void validateChildMove(ComponentInstanceGraphicsItem* child, const QPointF& pos);
 
     qreal getWidth() const;
     qreal getHeight() const;
@@ -47,7 +55,6 @@ private:
     QRectF getTopRect() const;
     QRectF getVisibleChildrenRect() const;
 
-    // This returns the next available pos vertically where a child can be placed without being put on top of another
     QPointF getNextChildPos() const;
     QPointF getOriginChildPos() const;
 
@@ -64,12 +71,17 @@ private:
 
     QGraphicsLinearLayout* main_layout_ = nullptr;
     QGraphicsLinearLayout* top_layout_ = nullptr;
+    QGraphicsLinearLayout* info_layout_ = nullptr;
+    QGraphicsLinearLayout* sub_info_layout_ = nullptr;
 
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
-    TextGraphicsItem* label_text_item_ = nullptr;
+    PixmapGraphicsItem* metadata_pixmap_item_ = nullptr;
 
-    std::vector<ContainerInstanceGraphicsItem*> container_inst_items_;
-    const NodeData& node_data_;
+    TextGraphicsItem* label_text_item_ = nullptr;
+    TextGraphicsItem* metadata_text_item_ = nullptr;
+
+    std::vector<ComponentInstanceGraphicsItem*> comp_inst_items_;
+    const ContainerInstanceData& container_inst_data_;
 };
 
-#endif // NODEGRAPHICSITEM_H
+#endif // CONTAINERINSTGRAPHICSITEM_H

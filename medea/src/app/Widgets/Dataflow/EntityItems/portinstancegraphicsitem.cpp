@@ -17,7 +17,6 @@ const int flash_duration_ms = 200;
  */
 PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_data, ComponentInstanceGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      parent_comp_inst_item_(parent),
       port_inst_data_(port_data)
 {
     icon_path.first = "Icons";
@@ -105,13 +104,19 @@ QPointF PortInstanceGraphicsItem::getEdgePoint() const
             return QPoint(0,0);
     }
 
-    // If this item is invisible, use its parent item's scene bouding rect for the edge point
     QRectF scene_rect;
     if (isVisible()) {
         scene_rect = icon_pixmap_item_->sceneBoundingRect();
-    } else if (parent_comp_inst_item_) {
-        // TODO: When we decide to connect ports from different nodes, the parent ComponentInstance item needs to have its own getEdgePoint
-        scene_rect = parent_comp_inst_item_->sceneBoundingRect();
+    } else {
+        // Get the first visible parent item and use its scene bounding rect for the edge point
+        auto parent_item = parentItem();
+        while (parent_item) {
+            if (parent_item->isVisible()) {
+                scene_rect = parent_item->sceneBoundingRect();
+                break;
+            }
+            parent_item = parent_item->parentItem();
+        }
     }
 
     qreal x = scene_rect.right();
@@ -281,9 +286,9 @@ QSizeF PortInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& cons
     switch (which) {
     case Qt::MinimumSize:
     case Qt::PreferredSize:
-        return main_layout_->minimumSize();
+        return boundingRect().size();
     case Qt::MaximumSize:
-        return QSizeF(10000, 10000);
+        return main_layout_->geometry().size();
     default:
         break;
     }
@@ -324,7 +329,7 @@ qreal PortInstanceGraphicsItem::getWidth() const
  */
 qreal PortInstanceGraphicsItem::getHeight() const
 {
-    return main_layout_->minimumHeight();
+    return main_layout_->geometry().height();
 }
 
 /**
@@ -366,12 +371,10 @@ void PortInstanceGraphicsItem::setupLayout()
     QPixmap pix = Theme::theme()->getImage(icon_path.first, icon_path.second);
     icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
     icon_pixmap_item_->setPixmapPadding(pixmap_padding);
-    icon_pixmap_item_->setParentItem(this);
     icon_pixmap_item_->setSquareSize(icon_size);
     icon_pixmap_item_->setMaximumHeight(icon_pixmap_item_->minimumHeight());
 
     label_text_item_ = new TextGraphicsItem(getPortName(), this);
-    label_text_item_->setParentItem(this);
     label_text_item_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     label_text_item_->setTextAlignment(Qt::AlignVCenter | alignment_);
 
@@ -410,12 +413,10 @@ void PortInstanceGraphicsItem::setupSubInfoLayout()
 
     QPixmap pix = Theme::theme()->getImage("Icons", "envelopeTwoTone");
     sub_icon_pixmap_item_ = new PixmapGraphicsItem(pix, this);
-    sub_icon_pixmap_item_->setParentItem(this);
     sub_icon_pixmap_item_->setSquareSize(sub_size);
 
     sub_label_text_item_ = new TextGraphicsItem("Message", this);
     sub_label_text_item_->setFont(QFont("Verdana", 8));
-    sub_label_text_item_->setParentItem(this);
     sub_label_text_item_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);

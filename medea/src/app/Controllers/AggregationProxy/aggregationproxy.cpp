@@ -619,6 +619,7 @@ AggServerResponse::WorkerInstance AggregationProxy::ConvertWorkerInstance(const 
     AggServerResponse::WorkerInstance worker_instance;
     worker_instance.name = ConstructQString(proto_worker_instance.name());
     worker_instance.path = ConstructQString(proto_worker_instance.path());
+    worker_instance.type = ConstructQString(proto_worker_instance.type());
     worker_instance.graphml_id = ConstructQString(proto_worker_instance.graphml_id());
     return worker_instance;
 }
