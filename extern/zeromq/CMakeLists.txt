@@ -23,7 +23,6 @@ FetchContent_Declare(cppzmq
         GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
         # TODO: Point at a release tag, this is currently pointing at master as of 2020-08-28
         GIT_TAG 89f4d1b187390aeaecc7c0ce0665350dca259753
-        GIT_SHALLOW TRUE
         )
 if (NOT cppzmq_POPULATE)
     FetchContent_Populate(cppzmq)
