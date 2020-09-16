@@ -8,6 +8,7 @@ const qreal pen_width = 2.0;
 const int icon_size = 50;
 
 const int padding = 15;
+const int pixmap_padding = 10;
 const int top_layout_spacing = 5;
 const int top_layout_horizontal_margin = 5;
 
@@ -326,7 +327,7 @@ void NodeGraphicsItem::themeChanged()
 void NodeGraphicsItem::setupLayout()
 {    
     icon_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
-    icon_pixmap_item_->setPixmapPadding(padding);
+    icon_pixmap_item_->setPixmapPadding(pixmap_padding);
 
     label_text_item_ = new TextGraphicsItem(node_data_.getHostname(), this);
     label_text_item_->setTextAlignment(Qt::AlignBottom);
@@ -340,9 +341,10 @@ void NodeGraphicsItem::setupLayout()
     metadata_pixmap_item_->setPixmapSquareSize(sub_size);
     metadata_pixmap_item_->setMaximumHeight(metadata_text_item_->effectiveSizeHint(Qt::PreferredSize).height());
 
+    int info_spacing = 2;
     sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
-    sub_info_layout_->setSpacing(0);
-    sub_info_layout_->setContentsMargins(0, 0, 0, 0);
+    sub_info_layout_->setSpacing(info_spacing);
+    sub_info_layout_->setContentsMargins(info_spacing, 0, 0, 0);
     sub_info_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     sub_info_layout_->addItem(metadata_pixmap_item_);
     sub_info_layout_->setAlignment(metadata_pixmap_item_, Qt::AlignHCenter | Qt::AlignTop);
@@ -353,8 +355,8 @@ void NodeGraphicsItem::setupLayout()
 
     info_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
     info_layout_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-    info_layout_->setSpacing(0);
-    info_layout_->setContentsMargins(0, 0, 0, 0);
+    info_layout_->setSpacing(info_spacing);
+    info_layout_->setContentsMargins(0, 0, 0, info_spacing);
     info_layout_->addItem(label_text_item_);
     info_layout_->addItem(sub_info_layout_);
 

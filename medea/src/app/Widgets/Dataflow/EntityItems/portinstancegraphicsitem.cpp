@@ -48,7 +48,6 @@ PortInstanceGraphicsItem::PortInstanceGraphicsItem(const PortInstanceData& port_
     }
 
     setupLayout();
-    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     setFlags(flags() | QGraphicsWidget::ItemIsSelectable | QGraphicsWidget::ItemSendsGeometryChanges);
 
     connect(this, &PortInstanceGraphicsItem::geometryChanged, this, &PortInstanceGraphicsItem::updateConnectionPos);
@@ -288,7 +287,7 @@ QSizeF PortInstanceGraphicsItem::sizeHint(Qt::SizeHint which, const QSizeF& cons
     case Qt::PreferredSize:
         return boundingRect().size();
     case Qt::MaximumSize:
-        return main_layout_->geometry().size();
+        return {10000, 10000};
     default:
         break;
     }
@@ -386,7 +385,7 @@ void PortInstanceGraphicsItem::setupLayout()
     sub_info_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
     sub_info_layout_->setSpacing(2);
     sub_info_layout_->setContentsMargins(2, 0, 0, 0);
-    sub_info_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    sub_info_layout_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     sub_info_layout_->addItem(metadata_pixmap_item_);
     sub_info_layout_->setAlignment(metadata_pixmap_item_, Qt::AlignHCenter | Qt::AlignTop);
     sub_info_layout_->setStretchFactor(metadata_pixmap_item_, 0);
@@ -414,6 +413,7 @@ void PortInstanceGraphicsItem::setupLayout()
         main_layout_->addItem(icon_pixmap_item_);
     }
 
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     setContentsMargins(0, 0, 0, 0);
     setLayout(main_layout_);
 }

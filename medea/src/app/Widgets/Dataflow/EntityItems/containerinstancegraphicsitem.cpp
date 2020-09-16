@@ -352,9 +352,9 @@ void ContainerInstanceGraphicsItem::setupLayout()
     metadata_text_item_->setFont(QFont("Verdana", 8));
     metadata_text_item_->setTextAlignment(Qt::AlignTop);
 
-    int sub_size = icon_size / 2.5;
+    int sub_size = icon_size / 2.75;
     metadata_pixmap_item_ = new PixmapGraphicsItem(QPixmap(), this);
-    metadata_pixmap_item_->setSquareSize(sub_size);
+    metadata_pixmap_item_->setPixmapSquareSize(sub_size);
     metadata_pixmap_item_->setMaximumHeight(metadata_text_item_->effectiveSizeHint(Qt::PreferredSize).height());
 
     int info_spacing = 2;
@@ -384,10 +384,9 @@ void ContainerInstanceGraphicsItem::setupLayout()
     top_layout_->setStretchFactor(icon_pixmap_item_, 0);
     top_layout_->addItem(info_layout_);
     top_layout_->setStretchFactor(info_layout_, 1);
-    top_layout_->setAlignment(info_layout_, Qt::AlignHCenter | Qt::AlignTop);
+    top_layout_->setAlignment(info_layout_, Qt::AlignCenter);
 
     main_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
-    main_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     main_layout_->setContentsMargins(0, 0, 0, 0);
     main_layout_->setSpacing(0);
     main_layout_->addItem(top_layout_);

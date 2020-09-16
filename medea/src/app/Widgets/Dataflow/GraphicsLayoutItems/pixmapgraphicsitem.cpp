@@ -76,19 +76,21 @@ void PixmapGraphicsItem::setPixmapSquareSize(int size)
  * It updates the pixmap offset to keep it centralised within this item's geometry
  * @param geom
  */
-void PixmapGraphicsItem::setGeometry(const QRectF &geom)
+void PixmapGraphicsItem::setGeometry(const QRectF& geom)
 {
     QGraphicsLayoutItem::setGeometry(geom);
     setPos(geom.topLeft());
 
+    const auto& min_size = pixmap().isNull() ? minimumSize() : pixmap().size();
+
     // Work out the offset needed to center the pixmap
-    auto diff_width = geom.width() - minimumWidth();
+    auto diff_width = geom.width() - min_size.width();
     auto offset_x = 0.0;
     if (diff_width > 0) {
         offset_x = diff_width / 2.0;
     }
 
-    auto diff_height = geom.height() - minimumHeight();
+    auto diff_height = geom.height() - min_size.height();
     auto offset_y = 0.0;
     if (diff_height > 0) {
         offset_y = diff_height / 2.0;
