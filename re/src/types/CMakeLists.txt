@@ -13,6 +13,8 @@ target_sources(re_types
         ${CMAKE_CURRENT_SOURCE_DIR}/uuid.h
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/uuid.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ipv4.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/socketaddress.cpp
         )
 
 

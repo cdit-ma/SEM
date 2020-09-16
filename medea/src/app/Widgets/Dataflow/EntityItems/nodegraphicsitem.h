@@ -4,7 +4,7 @@
 #include "../../Charts/Data/nodedata.h"
 #include "../GraphicsLayoutItems/pixmapgraphicsitem.h"
 #include "../GraphicsLayoutItems/textgraphicsitem.h"
-#include "componentinstancegraphicsitem.h"
+#include "containerinstancegraphicsitem.h"
 
 #include <QGraphicsWidget>
 #include <QGraphicsLinearLayout>
@@ -18,8 +18,8 @@ class NodeGraphicsItem : public QGraphicsWidget
 public:
     explicit NodeGraphicsItem(const NodeData& node_data, QGraphicsItem* parent = nullptr);
 
-    ComponentInstanceGraphicsItem* addComponentInstanceItem(ComponentInstanceData& comp_inst_data);
-    const std::vector<ComponentInstanceGraphicsItem*>& getComponentInstanceItems() const;
+    void addContainerInstanceItem(ContainerInstanceData& container_inst_data);
+    const std::vector<ContainerInstanceGraphicsItem*>& getContainerInstanceItems() const;
 
 signals:
     void updateConnectionPos();
@@ -27,21 +27,19 @@ signals:
 protected:    
     QRectF boundingRect() const override;
     QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
+    void setGeometry(const QRectF &rect) override;
 
-    void setGeometry(const QRectF& rect) override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-    
+
 private:
     void constructChildrenItems();
-
-    void validateChildMove(ComponentInstanceGraphicsItem* child, QPointF pos);
     void toggleExpanded();
-    void updateOnGeometryChange();
+    void validateChildMove(ContainerInstanceGraphicsItem* child, QPointF pos);
 
     qreal getWidth() const;
     qreal getHeight() const;
@@ -50,8 +48,8 @@ private:
     QRectF getVisibleChildrenRect() const;
 
     // This returns the next available pos vertically where a child can be placed without being put on top of another
-    QPointF getAvailableChildPos() const;
-    QPointF getTopLeftChildPos() const;
+    QPointF getNextChildPos() const;
+    QPointF getOriginChildPos() const;
 
     void themeChanged();
     void setupLayout();
@@ -70,7 +68,7 @@ private:
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
     TextGraphicsItem* label_text_item_ = nullptr;
 
-    std::vector<ComponentInstanceGraphicsItem*> comp_inst_items_;
+    std::vector<ContainerInstanceGraphicsItem*> container_inst_items_;
     const NodeData& node_data_;
 };
 

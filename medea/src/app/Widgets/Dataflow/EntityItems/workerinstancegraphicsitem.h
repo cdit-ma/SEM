@@ -45,7 +45,6 @@ private:
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
     TextGraphicsItem* label_text_item_ = nullptr;
 
-    ComponentInstanceGraphicsItem* parent_comp_inst_item_ = nullptr;
     const WorkerInstanceData& worker_inst_data_; // TODO: Ask if this is okay
 };
 

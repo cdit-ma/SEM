@@ -18,7 +18,6 @@ const int pixmap_padding = 15;
  */
 WorkerInstanceGraphicsItem::WorkerInstanceGraphicsItem(const WorkerInstanceData& worker_data, ComponentInstanceGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      parent_comp_inst_item_(parent),
       worker_inst_data_(worker_data)
 {
     setupLayout();

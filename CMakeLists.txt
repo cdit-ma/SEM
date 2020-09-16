@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.11...3.17)
 project(SEM
         VERSION 4.0.0
         DESCRIPTION "The System Execution Modelling project maintained by the Centre for Distributed and Intelligent Technologies"
-        LANGUAGES CXX)
+        LANGUAGES CXX C
+        )
 
 set(HOMEPAGE_URL "https://github.com/cdit-ma/SEM")
 

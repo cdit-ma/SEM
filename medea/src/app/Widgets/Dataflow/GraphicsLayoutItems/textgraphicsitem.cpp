@@ -10,7 +10,7 @@ TextGraphicsItem::TextGraphicsItem(const QString& text, QGraphicsItem* parent)
     : QGraphicsTextItem(text, parent),
       MEDEA::GraphicsLayoutItem()
 {
-    setFont(QFont("Verdana", 12));
+    setFont(QFont("Verdana", 14));
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }
 

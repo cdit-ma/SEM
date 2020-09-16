@@ -174,6 +174,7 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/nodegraphicsitem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/containerinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/componentinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.cpp
@@ -337,6 +338,7 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/pixmapgraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsLayoutItems/textgraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/nodegraphicsitem.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/containerinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/componentinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.h

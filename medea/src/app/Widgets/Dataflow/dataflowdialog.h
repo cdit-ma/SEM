@@ -60,7 +60,6 @@ private:
     QGraphicsView* view_ = nullptr;
     PlaybackControlsWidget playback_controls_;
 
-    QHash<QString, ComponentInstanceGraphicsItem*> comp_inst_items_;
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
 
     qint64 exp_run_start_time_ = 0;
