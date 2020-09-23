@@ -362,7 +362,7 @@ if (APPLE)
     set(MACOSX_BUNDLE_BUNDLE_NAME ${PROJ_NAME})
     set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${VERSION})
     set(MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION})
-    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2016. All Rights Reserved.")
+    set(MACOSX_BUNDLE_COPYRIGHT "Copyright 2020. All Rights Reserved.")
 
     # Bundle the MEDEA icon (icns) for mac
     set(MAC_ICON ${CMAKE_CURRENT_SOURCE_DIR}/Resources/medea.icns)
