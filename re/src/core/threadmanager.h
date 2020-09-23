@@ -9,13 +9,11 @@
 
 // REVIEW (Mitch): From what I can tell, this class is used as a synchronised state-machine
 
-// REVIEW (Mitch): This is abused (especially) in the case of periodic port + subscriber port
-
 // REVIEW (Mitch): This class makes thread based code in PeriodicPort and
-//  SubscriberPort borderline impossible to reason about. The function started asynchronously is
+//  SubscriberPort difficult to reason about. The function started asynchronously is
 //  given a handle to thread manager, which manages the thread that function is running on. This
-//  gives the thread control over itself? While also introducing a state machine into the mix with a
-//  scattering of mutexes.
+//  gives the thread control over itself? While also introducing a state machine into the mix with
+//  a, difficult to comprehend, number of mutexes.
 
 // REVIEW (Jackson): Resolution, remove this class. Move current functionality to usage sites
 //  (should be able to use a condition variable to mimic this class).

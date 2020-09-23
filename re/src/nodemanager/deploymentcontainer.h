@@ -40,7 +40,7 @@ class DeploymentContainer : public Activatable{
                         const std::string& library_path,
                         const NodeManager::Container& container);
     DeploymentContainer(const std::string& experiment_name, const std::string& host_name,  const std::string& library_path);
-    // REVIEW (Mitch): Virtual destructors are many??
+    // REVIEW (Mitch): Review use of virtual destructors
     ~DeploymentContainer();
     void Configure(const NodeManager::Container& container);
 
@@ -71,7 +71,7 @@ class DeploymentContainer : public Activatable{
         //  GetNamespaceString
         std::string GetNamespaceString(const NodeManager::Info& port);
 
-        // REVIEW (Mitch): Get/Constructors???
+        // REVIEW (Mitch): Get/Constructors
         //  Elaboration, why do these functions configure, register and return a configured x?
         //  Upon review of call sites, these functions are regularly called without capturing a
         //  return value. Rework and annotate as [[nodiscard]] if non-void return type.
@@ -121,7 +121,7 @@ class DeploymentContainer : public Activatable{
         std::unique_ptr<Logan::Logger> logan_logger_;
 
         // REVIEW (Mitch): std::filesystem path
-        // REVIEW (Mitch): const data members are bad
+        // REVIEW (Mitch): Review use of const data members
         const std::string library_path_;
         const std::string experiment_name_;
         const std::string host_name_;

@@ -15,7 +15,8 @@ namespace Logan{
 // REVIEW (Mitch): Clarify that this logger implementation logs model events to Logan.
 class Logger : public ::Logger {
 public:
-    // REVIEW (Mitch): Major code smell, only used as throw type from logger construction.
+    // REVIEW (Mitch): Code smell, only used as throw type from logger construction.
+    //  Shouldn't be using exceptions for control flow.
     //  Logan::Logger throws NotNeededException when mode passed to constructor is OFF
     //  This check should be done at call site.
     class NotNeededException : public std::runtime_error {

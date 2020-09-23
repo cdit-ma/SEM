@@ -10,7 +10,7 @@
 // REVIEW (Mitch): The following Fill* functions should be namespaced
 // REVIEW (Mitch): These functions are trivially unit testable
 // REVIEW (Mitch): Should these functions be changed to return a protobuf message of their
-// respective type?
+//  respective type?
 //  [[nodiscard]], rvo and protobuf message construction api should all be considered.
 void FillInfoPB(ModelEvent::Info& info, Logan::Logger& logger){
     info.set_experiment_name(logger.GetExperimentName());
@@ -61,7 +61,6 @@ Logan::Logger::Logger(const std::string& experiment_name, const std::string& hos
             writer_ = std::unique_ptr<zmq::ProtoWriter>(new zmq::CachedProtoWriter());
             break;
         }
-        // REVIEW (Mitch):
         case Mode::OFF:{
             throw NotNeededException("Offline Logging");
         }
@@ -114,7 +113,7 @@ void Logan::Logger::LogMessage(const Activatable& entity, bool is_exception, con
 
 void Logan::Logger::LogMessage(const Activatable& entity, const std::string& message){
     // REVIEW (Mitch): Recursive call? No, name ambiguity resolved through argument count. Code
-    // smell
+    //  smell
     LogMessage(entity, false, message);
 }
 
@@ -125,7 +124,7 @@ void Logan::Logger::LogException(const Activatable& entity, const std::string& m
 void Logan::Logger::LogWorkerEvent(const Worker& worker, const std::string& function_name, const ::Logger::WorkloadEvent& event, int work_id, std::string args, int message_log_level){
     auto event_pb = std::unique_ptr<ModelEvent::WorkloadEvent>(new ModelEvent::WorkloadEvent());
 
-    // REVIEW (Mitch): This is terrible. Matching enums by index
+    // REVIEW (Mitch):  Matching enums by index is bad practice
     event_pb->set_event_type((ModelEvent::WorkloadEvent::Type)(int)event);
 
     FillInfoPB(*(event_pb->mutable_info()), *this);

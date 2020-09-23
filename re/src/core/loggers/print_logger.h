@@ -8,7 +8,7 @@
 #include "logger.h"
 // REVIEW (Mitch): See refactor strategy detailed in ../logger.h
 namespace Print{
-// REVIEW (Mitch): Move Print::Logger out of Print namespace. This seems like a bad way to name
+// REVIEW (Mitch): Move Print::Logger out of Print namespace.
 // inherited
 //  classes
 
