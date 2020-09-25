@@ -2,11 +2,11 @@ ARG base_image=cdit-ma/full_deps
 FROM $base_image
 
 #Set up code and env vars
-COPY . /re/
-COPY docker/re_full/configure.sh configure.sh
+COPY . /SEM/
+COPY re/docker/re_full/configure.sh configure.sh
 RUN chmod +x configure.sh
-ENV CMAKE_MODULE_PATH /re/cmake_modules/
-ENV RE_PATH /re
+ENV CMAKE_MODULE_PATH /SEM/re/cmake_modules/
+ENV RE_PATH /SEM/re
 
 #Change to using bash while we run our configure scripts and build.
 RUN ln -sf /bin/bash /bin/sh
@@ -17,12 +17,12 @@ RUN     cd re && \
         rm -rf build && \
         mkdir -p build && \
         cd build && \
-        cmake -G Ninja .. && \
+        cmake -G Ninja .. -DBUILD_MEDEA=OFF&& \
         cmake --build .
 #Change back to using dash
 RUN ln -sf /bin/dash /bin/sh
 
-ENV PATH="/re/lib:${PATH}"
+ENV PATH="/SEM/build/lib:${PATH}"
 
-ENV LD_LIBRARY_PATH /re/lib
+ENV LD_LIBRARY_PATH /SEM/build/lib
 RUN ldconfig

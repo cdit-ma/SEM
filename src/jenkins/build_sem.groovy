@@ -90,6 +90,7 @@ pipeline{
                                 dir("build"){
                                     deleteDir()
                                     def generate_args = "-DBUILD_TEST=ON"
+                                    def os_name = utils.getNodeOSName(node_name)
                                     if(env.SEM_DEPS_CACHE_DIR){
                                         generate_args = generate_args + " -DSEM_DEPS_BASE_DIR=${env.SEM_DEPS_CACHE_DIR}"
                                     }

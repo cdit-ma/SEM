@@ -8,7 +8,7 @@
 
 #include <devicelist.cuh>
 
-#include <core/logger.h>
+#include "logger.h"
 
 #include <cuda_runtime.h>
 
@@ -30,7 +30,7 @@ std::vector<float> CUDAWorker::FFT(const std::vector<float>& in_data, bool& succ
 
     // Make sure we have an FFT handle to actually perform the computation
     if(cufft_handle == nullptr) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id,
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, work_id,
             "CUFFT was not initialised - was the CUDAWorker successfully configured?");
         success_flag = false;
         return std::vector<float>();
@@ -42,7 +42,7 @@ std::vector<float> CUDAWorker::FFT(const std::vector<float>& in_data, bool& succ
         success_flag = true;
         return out_data;
     } catch(const std::exception& e) {
-        Log(GET_FUNC, Logger::WorkloadEvent::ERROR, work_id,
+        Log(GET_FUNC, Logger::WorkloadEvent::Error, work_id,
             "An exception was thrown while exectuing FFT:\n"+std::string(e.what()));
         success_flag = false;
         return std::vector<float>();
