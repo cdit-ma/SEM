@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
-#include <core/component.h>
-#include <core/loggers/print_logger.h>
+#include "component.h"
+#include "loggers/print_logger.h"
 #include <cudaworker.h>
 #include <devicelist.cuh>
 

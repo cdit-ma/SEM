@@ -29,13 +29,6 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4267")
 endif ()
 
-# Build CUDA cpp wrapper library
-include(CheckLanguage)
-check_language(CUDA)
-if (CMAKE_CUDA_COMPILER)
-    add_subdirectory(extern/cuda-api-wrappers)
-endif()
-
 # Build re_common
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 

@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include <core/worker.h>
+#include "worker.h"
 
 namespace cditma {
 
