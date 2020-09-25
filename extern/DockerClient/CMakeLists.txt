@@ -5,7 +5,7 @@ set(SKIP_BUILD_TEST ON)
 FetchContent_Declare(dockerclient
         GIT_REPOSITORY https://github.com/cdit-ma/DockerClient
         # TODO: Point at release tag, this is currently pointing at master as of 2020-08-28
-        GIT_TAG 568b4cf385410800441731288b4e51cfe9e557af
+        GIT_TAG c956874ca5100ab01f21c2b7dfe336d378c0b213
         GIT_SHALLOW TRUE
         )
 if (NOT dockerclient_POPULATE)
