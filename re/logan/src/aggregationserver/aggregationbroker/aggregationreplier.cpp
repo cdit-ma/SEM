@@ -182,7 +182,7 @@ AggregationReplier::ProcessExperimentRunRequest(const ExperimentRunRequest& mess
             run->set_experiment_run_id(row.at("ExperimentRunID").as<int>());
             run->set_job_num(row.at("JobNum").as<int>());
             auto&& start_time_str = row.at("StartTime").as<std::string>();
-            // REVIEW(Mitch): Wrap this function in something that uses sane error reporting
+            // REVIEW(Mitch): Wrap this function in something that uses result based error reporting?
             // mechanisms.
             bool success = TimeUtil::FromString(start_time_str, run->mutable_start_time());
             if(!success) {

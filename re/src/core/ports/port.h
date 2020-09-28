@@ -63,7 +63,7 @@ class Port : public Activatable
         void ProcessGeneralException(const std::string& error_str);
 
         // REVIEW (Mitch): This is only ever called in PeriodicPort's constructor.
-        //  Periodic port continues to be a special snowflake, consider rework.
+        //  Another Periodic port specialisation, consider rework.
         void SetKind(const Port::Kind& port_kind);
     private:
         // REVIEW (Mitch): Replace component ref with parent component ID.

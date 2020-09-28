@@ -50,11 +50,11 @@ public:
         std::string get_type() const;
 
         // REVIEW (Mitch): This function is a check while it reads like an action, potential rename
-        // to "can_process_event"
+        //  to "can_process_event"
         bool process_event();
 
         // REVIEW (Mitch): This should be moved to a pure abstract function once this class is
-        // changed to being an interface
+        //  changed to being an interface
         LoggerProxy& logger() const;
 
         StateMachine::State get_state();

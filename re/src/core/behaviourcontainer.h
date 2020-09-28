@@ -8,7 +8,7 @@
 class Worker;
 
 // REVIEW (Mitch): Currently Components and Workers inherit from BehaviourContainer.
-//  This seems terrible as workers can have workers...
+//  This seems bad as workers can have workers.
 class BehaviourContainer : public Activatable{
     public:
         BehaviourContainer(Class c, const std::string& inst_name = "");

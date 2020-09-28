@@ -187,8 +187,7 @@ std::shared_ptr<Component> DeploymentContainer::GetConfiguredComponent(const Nod
             auto port = GetConfiguredPort(component, port_pb);
             try{
                 if(port->get_state() != StateMachine::State::NOT_CONFIGURED){
-                    // REVIEW (Mitch): UHHHHHHHH WHAT??
-                    //  Why do we do a full tour of our state machine?
+                    // REVIEW (Mitch): Why do we do a full tour of our state machine?
                     //Terminate and reactivate?
                     std::cerr << "* Reconfiguring Port: " << port->get_name() << std::endl;
                     port->Terminate();

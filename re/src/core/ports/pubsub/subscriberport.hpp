@@ -117,7 +117,7 @@ template <class BaseType>
 void SubscriberPort<BaseType>::HandleTerminate(){
     InterruptLoop();
     std::lock_guard<std::mutex> lock(thread_manager_mutex_);
-    // REVIEW (Mitch): Half baked defensive programming, what do we do if we don't have a
+    // REVIEW (Mitch): Flawed defensive programming, what do we do if we don't have a
     //  ThreadManager
     if(thread_manager_){
         thread_manager_->Terminate();

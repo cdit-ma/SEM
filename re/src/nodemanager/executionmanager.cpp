@@ -141,7 +141,7 @@ void ExecutionManager::HandleSlaveStateChange(){
     
     if(configured_count == slave_count){
         //All Slaves are configured, so Start
-        // REVIEW (Mitch): This future/promise pair is getting used as a semaphore, this is a bad D:
+        // REVIEW (Mitch): This future/promise pair is getting used as a semaphore
         execute_promise_.set_value();
     }
     else if((configured_count + error_count) == slave_count){
