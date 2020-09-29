@@ -13,8 +13,7 @@ message(STATUS "Fetching cuda-api-wrappers")
 set(SKIP_BUILD_TEST ON)
 FetchContent_Declare(cuda-api-wrappers
         GIT_REPOSITORY https://github.com/eyalroz/cuda-api-wrappers.git
-        # TODO: Point at release tag, this is currently pointing at an arbitrary commit as of 2020-08-28
-        GIT_TAG "b33726d4cd72760fbd9d06c370e5fd5ee59c7d31"
+        GIT_TAG b33726d4cd72760fbd9d06c370e5fd5ee59c7d31
         )
 if (NOT cuda-api-wrappers_POPULATE)
     FetchContent_Populate(cuda-api-wrappers)
