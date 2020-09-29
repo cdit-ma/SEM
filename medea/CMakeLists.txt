@@ -8,6 +8,16 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 
+set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
+if (NOT CMAKE_MODULE_PATH)
+    set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re/cmake_modules")
+endif()
+
+find_package(Qt5 COMPONENTS Widgets)
+if (NOT Qt5_FOUND)
+    message(SEND_ERROR "Could not find Qt, can not build MEDEA")
+endif ()
+
 #Boost 1.70 requires BUILD_SHARED_LIBS to be set to on (required for MSVC 2019)
 if(MSVC)
     set(BUILD_SHARED_LIBS ON)
@@ -38,10 +48,6 @@ endif(BUILD_CLI)
 if(BUILD_APP)
     message(STATUS "Building MEDEA App")
 
-    set(CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
-    if (NOT CMAKE_MODULE_PATH)
-        set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re/cmake_modules")
-    endif()
 
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/app")
 endif(BUILD_APP)
