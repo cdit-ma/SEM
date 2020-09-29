@@ -8,9 +8,9 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 
-find_package(QtCore 5.14)
-if (NOT QtCore_FOUND)
-    message(SEND_ERROR "Could not find Qt 5.14, can not build MEDEA")
+find_package(Qt5)
+if (NOT Qt5_FOUND)
+    message(SEND_ERROR "Could not find Qt, can not build MEDEA")
 endif ()
 
 #Boost 1.70 requires BUILD_SHARED_LIBS to be set to on (required for MSVC 2019)
