@@ -13,7 +13,7 @@ if (NOT CMAKE_MODULE_PATH)
     set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/re/cmake_modules")
 endif()
 
-find_package(Qt5)
+find_package(Qt5 COMPONENTS Widgets)
 if (NOT Qt5_FOUND)
     message(SEND_ERROR "Could not find Qt, can not build MEDEA")
 endif ()
