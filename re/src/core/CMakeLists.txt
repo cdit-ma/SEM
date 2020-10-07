@@ -77,15 +77,3 @@ if(UNIX)
 endif(UNIX)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/loggers")
-
-export(TARGETS
-        zmq_protowriter
-        re_common_proto_modelevent
-        re_common_proto_control
-        re_core
-        re_core_singletons
-        libprotobuf
-        cppzmq
-        NAMESPACE sem::
-        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
-        )

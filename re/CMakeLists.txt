@@ -51,3 +51,26 @@ if (BUILD_TEST)
     message(STATUS "Building re tests")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif (BUILD_TEST)
+
+
+export(TARGETS
+        zmq_protowriter
+        re_common_proto_modelevent
+        re_common_proto_control
+        re_core
+        re_core_singletons
+        NAMESPACE sem::
+        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
+        )
+export(TARGETS
+        cppzmq
+        libzmq
+        APPEND
+        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
+        )
+export(TARGETS
+        libprotobuf
+        NAMESPACE protobuf::
+        APPEND
+        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
+        )
