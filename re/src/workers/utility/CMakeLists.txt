@@ -28,6 +28,7 @@ target_link_libraries(utility_worker
 export(TARGETS
         utility_worker
         NAMESPACE sem::
+        APPEND
         FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
         EXPORT_LINK_INTERFACE_LIBRARIES
         )

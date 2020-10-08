@@ -33,6 +33,7 @@ target_link_libraries(tcp_worker
 export(TARGETS
         tcp_worker
         NAMESPACE sem::
+        APPEND
         FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
         EXPORT_LINK_INTERFACE_LIBRARIES
         )

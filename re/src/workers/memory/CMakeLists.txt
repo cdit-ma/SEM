@@ -14,6 +14,7 @@ target_include_directories(memory_worker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 export(TARGETS
         memory_worker
         NAMESPACE sem::
+        APPEND
         FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
         EXPORT_LINK_INTERFACE_LIBRARIES
         )

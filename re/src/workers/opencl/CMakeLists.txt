@@ -132,6 +132,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/precompiler")
 export(TARGETS
         opencl_worker
         NAMESPACE sem::
+        APPEND
         FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
         EXPORT_LINK_INTERFACE_LIBRARIES
         )

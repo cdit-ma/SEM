@@ -59,6 +59,7 @@ target_include_directories(${CUDA_WORKER_LIB}
 export(TARGETS
         cudaworker
         NAMESPACE sem::
+        APPEND
         FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
         EXPORT_LINK_INTERFACE_LIBRARIES
         )
