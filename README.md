@@ -43,7 +43,7 @@ which can be found in the [re/scripts](re/scripts) folder.
 
 Dependencies to be installed manually:
 * Qt 5.14 (Optional, required for building the GUI)
-* Middlewares
+* Optional Middlewares
   * RTI DDS Connext 5.3.0
   * OpenSplice DDS 6.4.14
   * Apache Qpid Proton 0.24.0
@@ -64,7 +64,7 @@ brew install openjdk
 Other dependencies to be installed:
 * Qt 5.14 (Optional, required for building the GUI)
 
-* Middlewares
+* Optional Middlewares
   * RTI DDS Connext 5.3.0
   * OpenSplice DDS 6.4.14
   * ACE TAO 6.5.0
@@ -82,7 +82,7 @@ The following dependencies should be installed:
 * Ninja (Optional)
 * Doxygen (Optional)
 
-* Middlewares
+* Optional Middlewares
   * RTI DDS Connext 5.3.0
   * OpenSplice DDS 6.4.14
   * Apache Qpid Proton 0.24.0
