@@ -797,8 +797,9 @@
         <xsl:value-of select="cmake:print_regen_version('datatype_functions.xsl', 'cdit:get_aggregate_base_cmake', 0)" />
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
-        <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_re_core_library()" />
+        <!-- Find boost -->
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system filesystem REQUIRED', 0)" />
+        <xsl:value-of select="o:nl(1)" />
 
         <!-- Set Source files -->
         <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
@@ -812,6 +813,13 @@
         <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
         <xsl:value-of select="o:nl(1)" />
 
+        <!-- Include export files -->
+        <xsl:value-of select="cmake:include_zmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_cppzmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_protobuf_exports(0)"/>
+        <xsl:value-of select="cmake:include_sem_exports(0)"/>
+
+        <!--  Create library -->
         <xsl:variable name="args" select="o:join_list((cmake:wrap_variable('SOURCE'), cmake:wrap_variable('HEADERS')), ' ')" />
         <xsl:value-of select="cmake:add_library('PROJ_NAME', 'STATIC', $args)" />
         <xsl:value-of select="o:nl(1)" />
@@ -820,12 +828,11 @@
         <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SOURCE_DIR'), 0)" />
-        <xsl:value-of select="o:nl(1)" />
 
         <!-- Link Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core_singletons', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include the required aggregate files -->
