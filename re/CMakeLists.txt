@@ -54,23 +54,17 @@ endif (BUILD_TEST)
 
 
 export(TARGETS
+        zmq_utils
+        zmq_helper
+        prototranslator
         zmq_protowriter
         re_common_proto_modelevent
         re_common_proto_control
         re_core
+        re_loggers
         re_core_singletons
+        zmq_ports
         NAMESPACE sem::
         FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
-        )
-export(TARGETS
-        cppzmq
-        libzmq
-        APPEND
-        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
-        )
-export(TARGETS
-        libprotobuf
-        NAMESPACE protobuf::
-        APPEND
-        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
+        EXPORT_LINK_INTERFACE_LIBRARIES
         )

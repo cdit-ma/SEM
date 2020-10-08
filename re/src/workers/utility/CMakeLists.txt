@@ -24,3 +24,10 @@ target_link_libraries(utility_worker
         re_loggers
         exprtk
         )
+
+export(TARGETS
+        utility_worker
+        NAMESPACE sem::
+        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
+        EXPORT_LINK_INTERFACE_LIBRARIES
+        )

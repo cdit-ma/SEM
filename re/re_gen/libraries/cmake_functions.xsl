@@ -120,6 +120,56 @@
 
         <xsl:value-of select="concat(o:t($tab), 'set(', $variable, ' ', o:wrap_dblquote($value), ')', o:nl(1))" />
     </xsl:function>
+    
+    <!--
+       Includes a .cmake file 
+    -->
+    <xsl:function name="cmake:include" as="xs:string">
+        <xsl:param name="value" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:value-of select="concat(o:t($tab), 'include(', $value, ')', o:nl(1))"/>
+    </xsl:function>
+
+    <!--
+        Includes sem_exports.cmake
+    -->
+    <xsl:function name="cmake:include_sem_exports" as="xs:string">
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:value-of select="concat(o:t($tab), cmake:include('${SEM_LIB_DIR}/sem_exports.cmake', $tab))"/>
+    </xsl:function>
+
+
+    <!--
+        Includes zmq exports
+    -->
+    <xsl:function name="cmake:include_zmq_exports" as="xs:string">
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:value-of select="concat(o:t($tab), cmake:include('${SEM_DIR}/build/_deps/zeromq-build/ZeroMQTargets.cmake', $tab))"/>
+    </xsl:function>
+
+    <!--
+        Includes proto generate function
+    -->
+    <xsl:function name="cmake:include_proto_generate" as="xs:string">
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:value-of select="concat(o:t($tab), cmake:include('${SEM_DIR}/extern/grpc/generate_protobuf.cmake', $tab))"/>
+    </xsl:function>
+    <!--
+        Includes cppzmq exports
+    -->
+    <xsl:function name="cmake:include_cppzmq_exports" as="xs:string">
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:value-of select="concat(o:t($tab), cmake:include('${SEM_DIR}/build/_deps/cppzmq-build/cppzmqTargets.cmake', $tab))"/>
+    </xsl:function>
+
+    <!--
+        Includes protobuf exports
+    -->
+    <xsl:function name="cmake:include_protobuf_exports" as="xs:string">
+        <xsl:param name="tab" as="xs:integer"/>
+        <xsl:value-of select="concat(o:t($tab), cmake:include('${SEM_DIR}/build/_deps/grpc-build/third_party/protobuf/lib/cmake/protobuf/protobuf-targets.cmake', $tab))"/>
+    </xsl:function>
 
     <!--
         Sets a variable

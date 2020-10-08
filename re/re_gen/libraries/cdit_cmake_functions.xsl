@@ -41,18 +41,30 @@
 
     <xsl:function name="cmake:find_middleware_package">
         <xsl:param name="middleware" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'proto'">
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'zmq'">
+                <xsl:value-of select="o:nl(1)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="package_name" select="cmake:get_middleware_package($middleware)" />
+
+                <xsl:value-of select="o:nl(1)" />
+                <xsl:value-of select="cmake:if_start(concat('NOT ', upper-case($package_name), '_FOUND'), 0)" />
+                <xsl:value-of select="cmake:find_package($package_name, '', 1)" />
+                <xsl:value-of select="cmake:if_start(concat('NOT ', upper-case($package_name), '_FOUND'), 1)" />
+                <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find', $package_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 2)" />
+                <xsl:value-of select="cmake:return(2)" />
+                <xsl:value-of select="cmake:if_end('', 1)" />
+                <xsl:value-of select="cmake:if_end('', 0)" />
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:otherwise>
+        </xsl:choose>
         
-        <xsl:variable name="package_name" select="cmake:get_middleware_package($middleware)" />
-        
-        <xsl:value-of select="o:nl(1)" />
-        <xsl:value-of select="cmake:if_start(concat('NOT ', upper-case($package_name), '_FOUND'), 0)" />
-        <xsl:value-of select="cmake:find_package($package_name, '', 1)" />
-        <xsl:value-of select="cmake:if_start(concat('NOT ', upper-case($package_name), '_FOUND'), 1)" />
-        <xsl:value-of select="cmake:message(o:wrap_dblquote(o:join_list(('Cannot find', $package_name, 'cannot build', cmake:wrap_variable('PROJ_NAME')), ' ')), 2)" />
-        <xsl:value-of select="cmake:return(2)" />
-        <xsl:value-of select="cmake:if_end('', 1)" />
-        <xsl:value-of select="cmake:if_end('', 0)" />
-        <xsl:value-of select="o:nl(1)" />
+
     </xsl:function>
 
     <xsl:function name="cmake:get_middleware_helper_var">
@@ -68,12 +80,20 @@
 
     <xsl:function name="cmake:find_middleware_helper">
         <xsl:param name="middleware" />
-        
-        <xsl:variable name="package_name" select="cmake:get_middleware_package($middleware)" />
-        <xsl:variable name="helper_lib" select="lower-case(concat($package_name, '_helper'))" />
-        <xsl:variable name="helper_var" select="cmake:get_middleware_helper_var($middleware)" />
 
-        <xsl:value-of select="cmake:find_library_safe($helper_var, $helper_lib, cmake:get_re_lib_path(''))" />
+        <xsl:choose>
+            <xsl:when test="$middleware = 'zmq'">
+                <xsl:value-of select="o:nl(1)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="package_name" select="cmake:get_middleware_package($middleware)" />
+                <xsl:variable name="helper_lib" select="lower-case(concat($package_name, '_helper'))" />
+                <xsl:variable name="helper_var" select="cmake:get_middleware_helper_var($middleware)" />
+
+                <xsl:value-of select="cmake:find_library_safe($helper_var, $helper_lib, cmake:get_re_lib_path(''))" />
+            </xsl:otherwise>
+        </xsl:choose>
+
     </xsl:function>
 
     <xsl:function name="cmake:find_library_safe">
@@ -161,11 +181,6 @@
         <xsl:value-of select="o:join_paths($directory_spaces)" />
     </xsl:function>
 
-    
-
-
-
-    
 
     <xsl:function name="cmake:get_middleware_generated_header_var" as="xs:string">
         <xsl:param name="middleware" as="xs:string" />
@@ -182,12 +197,22 @@
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
-        <xsl:variable name="include_directory" select="concat($middleware_package, '_INCLUDE_DIRS')" />
+        <xsl:choose>
+            <xsl:when test="$middleware = 'proto'">
+                <xsl:value-of select="o:nl(1)"/>
+            </xsl:when>
+            <xsl:when test="$middleware = 'zmq'">
+                <xsl:value-of select="o:nl(1)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
+                <xsl:variable name="include_directory" select="concat($middleware_package, '_INCLUDE_DIRS')" />
 
-        <xsl:if test="$middleware_package != ''">
-            <xsl:value-of select="cmake:target_include_directories($target, 'PUBLIC', cmake:wrap_variable($include_directory), $tab)" />
-        </xsl:if>
+                <xsl:if test="$middleware_package != ''">
+                    <xsl:value-of select="cmake:target_include_directories($target, 'PUBLIC', cmake:wrap_variable($include_directory), $tab)" />
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="cmake:target_link_middleware_libraries">
@@ -195,12 +220,24 @@
         <xsl:param name="middleware" as="xs:string" />
         <xsl:param name="tab" as="xs:integer" />
 
-        <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
-        <xsl:variable name="include_directory" select="concat($middleware_package, '_LIBRARIES')" />
+        <xsl:choose>
+            <xsl:when test="$middleware = 'proto'">
+                <xsl:value-of select="cmake:target_link_libraries($target, 'PUBLIC', 'protobuf::libprotobuf', $tab)"/>
+            </xsl:when>
+            <xsl:when test="$middleware = 'zmq'">
+                <xsl:value-of select="cmake:target_link_libraries($target, 'PUBLIC', 'libzmq', $tab)"/>
+                <xsl:value-of select="cmake:target_link_libraries($target, 'PUBLIC', 'cppzmq', $tab)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="middleware_package" select="cmake:get_middleware_package($middleware)" />
+                <xsl:variable name="include_directory" select="concat($middleware_package, '_LIBRARIES')" />
 
-        <xsl:if test="$middleware_package != ''">
-            <xsl:value-of select="cmake:target_link_libraries($target, 'PUBLIC', cmake:wrap_variable($include_directory), $tab)" />
-        </xsl:if>
+                <xsl:if test="$middleware_package != ''">
+                    <xsl:value-of select="cmake:target_link_libraries($target, 'PUBLIC', cmake:wrap_variable($include_directory), $tab)" />
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
+
     </xsl:function>
 
     <xsl:function name="cmake:generate_middleware_compiler">
@@ -246,8 +283,15 @@
             <xsl:sequence select="$middleware_file" />
         </xsl:variable>
         <xsl:variable name="compiler_arg" select="o:join_list($compiler_args, ' ')" />
-        
-        <xsl:value-of select="concat($middleware_compiler, o:wrap_bracket($compiler_arg), o:nl(1))" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'proto'">
+                <xsl:value-of select="concat('CDIT_MA_GENERATE_PROTOBUF_CPP', o:wrap_bracket($compiler_arg), o:nl(1))" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="concat($middleware_compiler, o:wrap_bracket($compiler_arg), o:nl(1))" />
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
 
@@ -332,10 +376,7 @@
 
             <xsl:variable name="worker_lib_name" select="graphml:get_data_value($worker_def, 'file')" />
 
-            <xsl:variable name="worker_lib_var" select="upper-case(concat($worker_lib_name, '_LIBRARIES'))" />
-            
-            <xsl:value-of select="cmake:find_library($worker_lib_var, $worker_lib_name, cmake:get_re_lib_path(''), 0)" />
-            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable($worker_lib_var), 0)" />
+            <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', concat('sem::', $worker_lib_name), 0)" />
             <xsl:if test="position() = last()">
                 <xsl:value-of select="o:nl(1)" />
             </xsl:if>
@@ -474,23 +515,39 @@
         <!-- Version Number -->
         <xsl:value-of select="cmake:print_regen_version('cdit_cmake_functions.xsl', 'cdit:get_datatype_cmake', 0)" />
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
-        
-        <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_re_core_library()" />
+
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system filesystem REQUIRED', 0)" />
 
         <!-- Find the Middleware specific package -->
         <xsl:value-of select="cmake:find_middleware_package($middleware)" />
 
+        <!-- Include export files -->
+        <xsl:value-of select="cmake:include_zmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_cppzmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_protobuf_exports(0)"/>
+        <xsl:value-of select="cmake:include_sem_exports(0)"/>
+
         <!-- Run the Generator -->
-        <xsl:value-of select="cmake:generate_middleware_compiler($aggregate, $include_datatypes, $middleware)" />
-        <xsl:value-of select="o:nl(1)" />
+        <xsl:choose>
+            <xsl:when test="$middleware = 'proto'">
+                <xsl:value-of select="cmake:include_proto_generate(0)"/>
+                <xsl:value-of select="cmake:generate_middleware_compiler($aggregate, $include_datatypes, $middleware)" />
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cmake:generate_middleware_compiler($aggregate, $include_datatypes, $middleware)" />
+                <xsl:value-of select="o:nl(1)" />
+            </xsl:otherwise>
+        </xsl:choose>
 
         <!-- Set Source files -->
         <xsl:value-of select="concat('set(SOURCE', o:nl(1))" />
         <xsl:value-of select="concat(o:t(1), $source_dir_var, '/translator.cpp', o:nl(1))" />
         <xsl:value-of select="concat(o:t(0), ')', o:nl(1))" />
         <xsl:value-of select="o:nl(1)" />
-        
+
+
+        <!-- Create library -->
         <xsl:variable name="args" select="o:join_list((cmake:wrap_variable('SOURCE'), cmake:wrap_variable('HEADERS'), cmake:wrap_variable($middleware_sources), cmake:wrap_variable($middleware_headers)), ' ')" />
         <xsl:value-of select="cmake:add_library('PROJ_NAME', 'STATIC', $args)" />
         <xsl:value-of select="o:nl(1)" />
@@ -506,8 +563,8 @@
 
         <!-- Include Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core_singletons', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
 
@@ -541,11 +598,6 @@
 
             <xsl:value-of select="cmake:target_compile_definitions('PROJ_NAME', 'PUBLIC', $rti_definitions, 0)" />
         </xsl:if>
-
-        <!-- Link Runtime Environment -->
-        <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PUBLIC', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="o:nl(1)" />
 
         <!-- Target Link Libraries -->
         <xsl:value-of select="cmake:comment('Link against the middleware libraries', 0)" />
@@ -586,11 +638,8 @@
         <xsl:value-of select="cmake:print_regen_version('cdit_cmake_functions.xsl', 'cdit:get_pubsub_cmake', 0)" />
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
-        <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_re_core_library()" />
-
         <!-- Find boost -->
-        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system REQUIRED', 0)" />
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system filesystem REQUIRED', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Find the Middleware specific package -->
@@ -598,6 +647,12 @@
 
         <!-- Find the middleware helper -->
         <xsl:value-of select="cmake:find_middleware_helper($middleware)" />
+
+        <!-- Include export files -->
+        <xsl:value-of select="cmake:include_zmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_cppzmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_protobuf_exports(0)"/>
+        <xsl:value-of select="cmake:include_sem_exports(0)"/>
 
         <!-- Add the Library -->
         <xsl:value-of select="cmake:add_library('PROJ_NAME', 'MODULE', o:join_paths((cmake:current_source_dir_var(), 'libportexport.cpp')))" />
@@ -612,8 +667,6 @@
         <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_BINARY_DIR'), 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SOURCE_DIR'), 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_COMMON_SOURCE_DIR'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Middleware Directories -->
@@ -623,8 +676,11 @@
 
         <!-- Link Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core_singletons', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::prototranslator', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::zmq_helper', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::zmq_utils', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Target Link Libraries -->
@@ -635,8 +691,8 @@
 
         <!-- Link against Boost -->
         <xsl:value-of select="cmake:comment('Link against Boost', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_THREAD_LIBRARY'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::system', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::thread', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <xsl:value-of select="cmake:comment('Link against the base aggregate', 0)" />
@@ -771,9 +827,9 @@
         <xsl:param name="tab" as="xs:integer" />
 
         <xsl:value-of select="cmake:comment('CDIT Runtime Paths', $tab)" />
-        <xsl:value-of select="cmake:set_variable_if_not_set('RE_PATH', cmake:get_env_var('RE_PATH'), $tab)" />
-        <xsl:value-of select="cmake:set_variable_if_not_set('RE_LIB_PATH', cmake:get_env_var('RE_LIB_PATH'), $tab)" />
-        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', cmake:get_env_var('RE_CMAKE_MODULE_PATH'), $tab)" />
+        <xsl:value-of select="cmake:set_variable_if_not_set('SEM_DIR', cmake:get_env_var('SEM_DIR'), $tab)" />
+        <xsl:value-of select="cmake:set_variable_if_not_set('SEM_LIB_DIR', cmake:get_env_var('SEM_LIB_DIR'), $tab)" />
+        <xsl:value-of select="cmake:set_variable('CMAKE_MODULE_PATH', cmake:get_env_var('SEM_CMAKE_MODULE_PATH'), $tab)" />
     </xsl:function>
 
     <!--
@@ -782,6 +838,7 @@
     <xsl:function name="cmake:get_top_cmakelists">
         <xsl:value-of select="cmake:print_regen_version('cdit_cmake_functions.xsl', 'cdit:get_top_cmakelists', 0)" />
         <xsl:value-of select="cmake:cmake_minimum_required('3.1')" />
+        <xsl:value-of select="cmake:set_project_name('generated_model')" />
         <xsl:value-of select="cmake:set_cpp17()" />
         
         <!-- Don't set if we have valid values already, If we aren't the top level, don't redefine -->
@@ -805,8 +862,9 @@
 
         <!-- Add Top Level Paths -->
         <xsl:value-of select="cmake:comment('Set top level vars', 0)" />
-        <xsl:value-of select="cmake:set_variable('RE_SOURCE_DIR', o:join_paths((cmake:wrap_variable('RE_PATH'), 'src')), 0)" />
-        <xsl:value-of select="cmake:set_variable('RE_COMMON_SOURCE_DIR', o:join_paths((cmake:wrap_variable('RE_PATH'), 're_common')), 0)" />
+        <xsl:value-of select="cmake:set_variable('RE_DIR', o:join_paths((cmake:wrap_variable('SEM_DIR'), 're')), 0)" />
+        <xsl:value-of select="cmake:set_variable('RE_SOURCE_DIR', o:join_paths((cmake:wrap_variable('RE_DIR'), 'src')), 0)" />
+        <xsl:value-of select="cmake:set_variable('RE_COMMON_SOURCE_DIR', o:join_paths((cmake:wrap_variable('RE_DIR'), 're_common')), 0)" />
         <xsl:value-of select="cmake:set_variable('MODEL_SOURCE_DIR', cmake:current_source_dir_var(), 0)" />
         <xsl:value-of select="cmake:set_variable('MODEL_BINARY_DIR', cmake:current_binary_dir_var(), 0)" />
         <xsl:value-of select="o:nl(1)" />
