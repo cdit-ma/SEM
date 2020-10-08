@@ -719,11 +719,8 @@
         <xsl:value-of select="cmake:print_regen_version('cdit_cmake_functions.xsl', 'cdit:get_requestreply_cmake', 0)" />
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
-        <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_re_core_library()" />
-
         <!-- Find boost -->
-        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system REQUIRED', 0)" />
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system filesystem REQUIRED', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Find the Middleware specific package -->
@@ -731,6 +728,11 @@
 
         <!-- Find the middleware helper -->
         <xsl:value-of select="cmake:find_middleware_helper($middleware)" />
+        <!-- Include export files -->
+        <xsl:value-of select="cmake:include_zmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_cppzmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_protobuf_exports(0)"/>
+        <xsl:value-of select="cmake:include_sem_exports(0)"/>
 
         <xsl:if test="$middleware = 'tao'">
             <xsl:variable name="required_enums" select="cdit:get_required_enums($server_interface)" />
@@ -762,8 +764,6 @@
         <xsl:value-of select="cmake:comment('Include Top Level Dirs', 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_SOURCE_DIR'), 0)" />
         <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('MODEL_BINARY_DIR'), 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SOURCE_DIR'), 0)" />
-        <xsl:value-of select="cmake:target_include_directories('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_COMMON_SOURCE_DIR'), 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Middleware Directories -->
@@ -777,8 +777,11 @@
 
         <!-- Link Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core_singletons', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::prototranslator', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::zmq_helper', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::zmq_utils', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Target Link Libraries -->
@@ -789,8 +792,8 @@
 
         <!-- Link against Boost -->
         <xsl:value-of select="cmake:comment('Link against Boost', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_THREAD_LIBRARY'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::system', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::thread', 0)" />
         <xsl:value-of select="o:nl(1)" />
         
         <!-- Include required binary directories -->
