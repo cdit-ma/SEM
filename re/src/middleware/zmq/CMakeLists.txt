@@ -10,6 +10,7 @@ target_sources(${PROJ_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.h
 )
 target_link_libraries(${PROJ_NAME} PUBLIC cppzmq)
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(zmq_ports INTERFACE)
 target_sources(zmq_ports

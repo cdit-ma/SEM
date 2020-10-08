@@ -2223,11 +2223,8 @@
         <!-- Set the project name -->
         <xsl:value-of select="cmake:set_project_name($proj_name)" />
 
-        <!-- Find re_core -->
-        <xsl:value-of select="cmake:find_re_core_library()" />
-
         <!-- Find boost -->
-        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system REQUIRED', 0)" />
+        <xsl:value-of select="cmake:find_package('Boost', 'COMPONENTS thread system filesystem REQUIRED', 0)" />
         <xsl:value-of select="o:nl(1)" />
         
         <!-- Get the source files -->
@@ -2283,6 +2280,13 @@
             </xsl:choose>
         </xsl:variable>
 
+        <!-- Include export files -->
+        <xsl:value-of select="cmake:include_zmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_cppzmq_exports(0)"/>
+        <xsl:value-of select="cmake:include_protobuf_exports(0)"/>
+        <xsl:value-of select="cmake:include_sem_exports(0)"/>
+
+        <!-- Create a library -->
         <xsl:value-of select="o:nl(1)" />
         <xsl:variable name="args" select="o:join_list((cmake:wrap_variable('SOURCE'), cmake:wrap_variable('HEADERS')), ' ')" />
         <xsl:value-of select="cmake:add_library('PROJ_NAME', $library_type, $args)" />
@@ -2301,14 +2305,16 @@
 
         <!-- Include Runtime Environment -->
         <xsl:value-of select="cmake:comment('Link against re_core', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_CORE_LIBRARIES'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('RE_SINGLETON_LIBRARIES'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'sem::re_core_singletons', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Link against Boost -->
         <xsl:value-of select="cmake:comment('Link against Boost', 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_SYSTEM_LIBRARY'), 0)" />
-        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', cmake:wrap_variable('Boost_THREAD_LIBRARY'), 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::boost', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::thread', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::system', 0)" />
+        <xsl:value-of select="cmake:target_link_libraries('PROJ_NAME', 'PRIVATE', 'Boost::filesystem', 0)" />
         <xsl:value-of select="o:nl(1)" />
 
         <!-- Include Required Aggregates -->
