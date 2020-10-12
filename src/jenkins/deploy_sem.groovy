@@ -50,8 +50,8 @@ pipeline{
                         pre_build_checks[node_name] = {
                             node(node_name){
                                 dir("${HOME}"){
-                                //sh "cd ${HOME}"
-                                println "$PWD"
+                                    //sh "cd ${HOME}"
+                                    sh "pwd"
                                     unstash "centos_pre_check"
                                     utils.runScript("./install_deps.sh")
                                 }
