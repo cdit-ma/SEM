@@ -51,6 +51,7 @@ pipeline{
                             node(node_name){
                                 //dir("${HOME}"){
                                 sh "cd ${HOME}"
+                                println "$PWD"
                                     unstash "centos_pre_check"
                                     utils.runScript("./install_deps.sh")
                                 //}
