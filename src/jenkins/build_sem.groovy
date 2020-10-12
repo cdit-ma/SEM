@@ -60,6 +60,8 @@ pipeline{
 
                     def rollout_file = "sem-${GIT_ID}-rollout.tar.gz"
 
+                    println rollout_file
+
                     if(utils.runScript('git archive -o ${rollout_file} HEAD') != 0){
                         error("Cannot create git archive")
                     }
