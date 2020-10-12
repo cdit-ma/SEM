@@ -1,6 +1,5 @@
-#!groovy
-@Library('cditma-utils') _
-def utils = new cditma.Utils(this);
+@Library('jenkins') _
+def utils = new jenkins.Utils(this);
 
 def builder_map = [:]
 def unstash_map = [:]
@@ -17,7 +16,7 @@ def cleanupExperiment(Boolean remove_experiment){
     if(remove_experiment){
         node('re') {
             script{
-                def utils = new cditma.Utils(this);
+                def utils = new jenkins.Utils(this);
                 def args = "-s "
                 args += "-n \"${params.experiment_name}\" "
                 args += "-e ${params.environment_manager_address} "
@@ -32,7 +31,7 @@ def cleanupExperiment(Boolean remove_experiment){
         dir("${env.BUILD_ID}/validation"){
             unstash 'model'
             script{
-                def utils = new cditma.Utils(this);
+                def utils = new jenkins.Utils(this);
                 if(utils.runRegenXSL('generate_validation.xsl', 'model.graphml', 'write_file=true')){
                     archiveArtifacts artifacts: '*.xml'
                 }else{
@@ -118,7 +117,7 @@ pipeline{
                         unstash json_file
                         script{
                             def builder_nodes = [:]
-                            
+
                             //Construct a map of os_version - > node_names
                             for(def node_name in nodesByLabel("builder")){
                                 def os_version = utils.getNodeOSVersion(node_name)
@@ -129,7 +128,7 @@ pipeline{
 
                             //Parse the json file
                             def parsed_json = readJSON file: json_file
-                            
+
                             //Construct a list of required OS's to compile
                             //Need to check if each container in node is deployed to docker or native
                             //If node only has containers deployed to docker nodes, no need to build for native
@@ -260,10 +259,10 @@ pipeline{
                                                 args += "-e ${params.environment_manager_address} "
                                                 args += "-a ${IP_ADDRESS}"
 
-                                                if(utils.runScript("${RE_PATH}/bin/logan_managedserver ${args}") != 0){
+                                                if(utils.runScript("${SEM_PATH}/build/bin/logan_managedserver ${args}") != 0){
                                                     error("logan_managedserver failed on Node: ${node_name}")
                                                 }
-                                                
+
                                                 //Archive any sql databases produced
                                                 if(findFiles(glob: '**/*.sql').size() > 0){
                                                     archiveArtifacts artifacts: '**/*.sql'
@@ -313,7 +312,7 @@ pipeline{
                                                 args += "-a ${IP_ADDRESS} "
                                                 args += "-l . "
                                                 args += "-c ${container_id} "
-                                                
+
                                                 if(is_master){
                                                     args += "-t ${params.execution_time} "
                                                 }
@@ -334,7 +333,7 @@ pipeline{
                                                     }
                                                 } else {
                                                     //Run re_node_manager
-                                                    if(utils.runScript("${RE_PATH}/bin/re_node_manager ${args}") != 0){
+                                                    if(utils.runScript("${SEM_DIR}/build/bin/re_node_manager ${args}") != 0){
                                                         error("re_node_manager failed on Node: ${node_name}")
                                                     }
                                                 }
