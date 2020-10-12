@@ -24,7 +24,7 @@ pipeline{
 
                     dir("${env.BUILD_ID}"){
                         touch(".dummy")
-                        unstashParam 'sem_source_archive' "${env.BUILD_ID}/${sem_source_archive}"
+                        unstashParam 'sem_source_archive', "${env.BUILD_ID}/${sem_source_archive}"
                         if(utils.runScript("tar -xf ${sem_source_archive}") != 0){
                             error("Cannot extract archive")
                         }
