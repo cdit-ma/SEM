@@ -31,9 +31,12 @@ pipeline{
                         // Stash everything in the top level directory found in the tar.
                         //  This takes the form SEM-BRANCH_OR_TAG_NAME, eg.
                         //  SEM-master, SEM-v4.0.0 or SEM-develop
-                        stash name: "sem_source", includes: "**/SEM-*/**"
-                        stash name: "centos_pre_check", includes: "**/SEM-*/re/scripts/centos_7/install_deps.sh"
-                        stash name: "ubuntu_pre_check", includes: "**/SEM-*/re/scripts/ubuntu_18.04/install_deps.sh"
+//                         stash name: "sem_source", includes: "**/SEM-*/**"
+//                         stash name: "centos_pre_check", includes: "**/SEM-*/re/scripts/centos_7/install_deps.sh"
+//                         stash name: "ubuntu_pre_check", includes: "**/SEM-*/re/scripts/ubuntu_18.04/install_deps.sh"
+                        stash name: "sem_source", includes: "**"
+                        stash name: "centos_pre_check", includes: "**/re/scripts/centos_7/install_deps.sh"
+                        stash name: "ubuntu_pre_check", includes: "**/re/scripts/ubuntu_18.04/install_deps.sh"
                     }
                 }
             }
