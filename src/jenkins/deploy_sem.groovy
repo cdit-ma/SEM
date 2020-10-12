@@ -25,7 +25,7 @@ pipeline{
                     dir("${env.BUILD_ID}"){
                         touch(".dummy")
                         unstashParam 'sem_source_archive', "${env.BUILD_ID}/${sem_source_archive}"
-                        if(utils.runScript("tar -xfz ${sem_source_archive}") != 0){
+                        if(utils.runScript("tar -xzf ${sem_source_archive}") != 0){
                             error("Cannot extract archive")
                         }
                         // Stash everything in the top level directory found in the tar.
