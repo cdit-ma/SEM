@@ -12,7 +12,7 @@ final centos_nodes = nodesByLabel("centos7").intersect(sem_deploy_nodes)
 
 pipeline{
     agent{node "master"}
-    parameters{ [
+    parameters{
         // TODO: Change this to pull from repo once we're open source. Take version tag as param
         file(name: 'sem_source_archive', description: 'The archive to deploy (tar.gz). Should be obtained from the SEM releases page found at https://github.com/cdit-ma/SEM/releases.')
         boolean(name: 'run_pre_deploy_environment_checks', description: 'Whether or not the install_deps script should be run on the node being deployed to.')
