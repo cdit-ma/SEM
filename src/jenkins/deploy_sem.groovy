@@ -81,7 +81,7 @@ pipeline{
                     def deploy_map = [:]
                     for(n in sem_deploy_nodes){
                         def node_name = n
-                        builder_map[node_name] = {
+                        deploy_map[node_name] = {
                             node(node_name){
 
                                 // TODO: Change into sem install location
