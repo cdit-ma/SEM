@@ -84,11 +84,11 @@ class Utils implements Serializable {
     }
 
     def runRegenXSL(String transform, String file_path, String args=""){
-        return runScript("java -jar ${context.env.RE_PATH}/re_gen/saxon.jar -xsl:${context.env.RE_PATH}/re_gen/${transform} -s:${file_path} ${args}") == 0
+        return runScript("java -jar ${context.env.SEM_DIR}/re/re_gen/saxon.jar -xsl:${context.env.SEM_DIR}/re/re_gen/${transform} -s:${file_path} ${args}") == 0
     }
 
     def runReEnvironmentController(String args="", String post_args=""){
-        return runScript("${context.env.RE_PATH}/bin/re_environment_controller ${args} ${post_args}") == 0
+        return runScript("${context.env.SEM_DIR}/build/bin/re_environment_controller ${args} ${post_args}") == 0
     }
 
     //Runs a cmake command using the specified generator and options

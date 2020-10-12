@@ -168,7 +168,7 @@
     -->
     <xsl:function name="cmake:include_protobuf_exports" as="xs:string">
         <xsl:param name="tab" as="xs:integer"/>
-        <xsl:value-of select="concat(o:t($tab), cmake:include('${SEM_DIR}/build/_deps/grpc-build/third_party/protobuf/lib/cmake/protobuf/protobuf-targets.cmake', $tab))"/>
+        <xsl:value-of select="concat(o:t($tab), cmake:include('${SEM_DIR}/build/_deps/grpc-build/third_party/protobuf/lib64/cmake/protobuf/protobuf-targets.cmake', $tab))"/>
     </xsl:function>
 
     <!--

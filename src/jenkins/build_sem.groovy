@@ -58,22 +58,24 @@ pipeline{
                     checkout scm
                     stash includes: "**", name: "source_code"
 
-//                         if(utils.runScript('git-archive-all sem.tar.gz') != 0){
-//                             error("Cannot create git archive")
-//                         }
+                    def rollout_file = "sem-${GIT_ID}-rollout.tar.gz"
+
+                    println rollout_file
+
+                    if(utils.runScript("git archive -o ${rollout_file} HEAD") != 0){
+                        error("Cannot create git archive")
+                    }
 
                     //Read the VERSION.MD
                     if(fileExists("VERSION.md")){
                         RELEASE_DESCRIPTION = readFile("VERSION.md")
                     }
 
-//                         def rollout_file = "sem-${GIT_ID}-rollout.tar.gz"
-//
-//                         //Create rollout archive
-//                         if(utils.runScript("tar -czf ${rollout_file} sem.bundle sem.tar.gz") != 0){
-//                             error("Cannot tar git archives")
-//                         }
-//                         archiveArtifacts(rollout_file)
+//                     //Create rollout archive
+//                     if(utils.runScript("tar -czf ${rollout_file} sem.bundle sem.tar.gz") != 0){
+//                         error("Cannot tar git archives")
+//                     }
+                    archiveArtifacts(rollout_file)
                 }
             }
         }

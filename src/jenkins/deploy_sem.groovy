@@ -15,6 +15,7 @@ pipeline{
     parameters{
         // TODO: Change this to pull from repo once we're open source. Take version tag as param
         file(name: 'sem_source_archive', description: 'The archive to deploy (tar.gz). Should be obtained from the SEM releases page found at https://github.com/cdit-ma/SEM/releases.')
+        booleanParam(name: 'run_pre_deploy_environment_checks', description: 'Whether or not the install_deps script should be run on the node being deployed to.')
     }
     stages{
         stage("Checkout/Bundle"){
@@ -24,21 +25,25 @@ pipeline{
 
                     dir("${env.BUILD_ID}"){
                         touch(".dummy")
-                        unstashParam 'sem_source_archive' "${env.BUILD_ID}/${sem_source_archive}"
-                        if(utils.runScript("tar -xf ${sem_source_archive}") != 0){
+                        unstashParam 'sem_source_archive', "${env.BUILD_ID}/${sem_source_archive}"
+                        if(utils.runScript("tar -xzf ${sem_source_archive}") != 0){
                             error("Cannot extract archive")
                         }
                         // Stash everything in the top level directory found in the tar.
                         //  This takes the form SEM-BRANCH_OR_TAG_NAME, eg.
                         //  SEM-master, SEM-v4.0.0 or SEM-develop
-                        stash name: "sem_source", includes: "**/SEM-*/**"
-                        stash name: "centos_pre_check", includes: "**/SEM-*/re/scripts/centos_7/install_deps.sh"
-                        stash name: "ubuntu_pre_check", includes: "**/SEM-*/re/scripts/ubuntu_18.04/install_deps.sh"
+//                         stash name: "sem_source", includes: "**/SEM-*/**"
+//                         stash name: "centos_pre_check", includes: "**/SEM-*/re/scripts/centos_7/install_deps.sh"
+//                         stash name: "ubuntu_pre_check", includes: "**/SEM-*/re/scripts/ubuntu_18.04/install_deps.sh"
+                        stash name: "sem_source", includes: "**"
+                        stash name: "centos_pre_check", includes: "**/re/scripts/centos_7/install_deps.sh"
+                        stash name: "ubuntu_pre_check", includes: "**/re/scripts/ubuntu_18.04/install_deps.sh"
                     }
                 }
             }
         }
         stage("Pre-deploy environment checks"){
+            when { expression {return params.run_pre_deploy_environment_checks}}
             steps{
                 script{
                     def pre_build_checks = [:]
@@ -47,6 +52,8 @@ pipeline{
                         pre_build_checks[node_name] = {
                             node(node_name){
                                 dir("${HOME}"){
+                                    //sh "cd ${HOME}"
+                                    sh "pwd"
                                     unstash "centos_pre_check"
                                     utils.runScript("./install_deps.sh")
                                 }
@@ -74,7 +81,7 @@ pipeline{
                     def deploy_map = [:]
                     for(n in sem_deploy_nodes){
                         def node_name = n
-                        builder_map[node_name] = {
+                        deploy_map[node_name] = {
                             node(node_name){
 
                                 // TODO: Change into sem install location
