@@ -58,7 +58,7 @@ pipeline{
                     checkout scm
                     stash includes: "**", name: "source_code"
 
-                    if(utils.runScript('git archive --output=sem.tar.gz') != 0){
+                    if(utils.runScript('git archive -o sem.tar.gz HEAD') != 0){
                         error("Cannot create git archive")
                     }
 
