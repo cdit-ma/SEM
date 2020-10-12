@@ -43,7 +43,7 @@ pipeline{
             }
         }
         stage("Pre-deploy environment checks"){
-            when { expression {return run_pre_deploy_environment_checks}}
+            when { expression {return params.run_pre_deploy_environment_checks}}
             steps{
                 script{
                     def pre_build_checks = [:]
