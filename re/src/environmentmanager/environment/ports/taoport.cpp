@@ -32,7 +32,7 @@ tao::Port::Port(Component& parent, const NodeManager::Port& port) :
 tao::Port::Port(Experiment& parent, const NodeManager::ExternalPort& port) :
     EnvironmentManager::Port(parent, port),
     // XXX: Horrible hacky fix
-    unqualified_orb_endpoint_{types::SocketAddress::from_string("0.0.0.0:0000")}
+    unqualified_orb_endpoint_{types::SocketAddress("0.0.0.0:0000")}
 {
     naming_service_endpoint_ =
         NodeManager::GetAttribute(port.attributes(), "naming_server_endpoint").s(0);

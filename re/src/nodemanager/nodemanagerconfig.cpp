@@ -58,8 +58,8 @@ auto re::NodeManager::NodeConfig::FromIstream(std::basic_istream<char>& file_con
             hostname = hostname_string;
         }
 
-        return {{types::Ipv4::from_string(ip_address_str),
-                 types::SocketAddress::from_string(qpid_broker_endpoint_string), library_root_str,
+        return {{types::Ipv4(ip_address_str),
+                 types::SocketAddress(qpid_broker_endpoint_string), library_root_str,
                  uuid, hostname, re_bin_path}};
     } catch(const std::exception& ex) {
         std::cout << config_file_options << std::endl;

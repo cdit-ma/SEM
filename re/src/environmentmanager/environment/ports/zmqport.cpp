@@ -30,10 +30,10 @@ auto EnvironmentManager::zmq::Port::FillEndpointSubscriber(const NodeManager::Ex
     -> std::optional<types::SocketAddress>
 {
     if(GetBlackboxType() == BlackboxType::PubSub) {
-        return types::SocketAddress::from_string(
+        return types::SocketAddress(
             NodeManager::GetAttribute(port.attributes(), "publisher_address").s(0));
     } else if(GetBlackboxType() == BlackboxType::ReqRep) {
-        return types::SocketAddress::from_string(
+        return types::SocketAddress(
             NodeManager::GetAttribute(port.attributes(), "server_address").s(0));
     }
     return std::nullopt;
