@@ -2,7 +2,7 @@
 #define RE_ATTRIBUTEDEFINITION_H
 
 #include "modelentity.h"
-#include <graphmlparser/graphmlparser.h>
+#include "graphmlparser.h"
 #include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
 #include "uuid.h"
 namespace re::Representation {

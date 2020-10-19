@@ -1,8 +1,8 @@
 #include "taoport.h"
-#include "component.h"
-#include "container.h"
-#include "environment.h"
-#include "node.h"
+#include "../component.h"
+#include "../container.h"
+#include "../environment.h"
+#include "../node.h"
 #include "helper.h"
 
 namespace re::EnvironmentManager {

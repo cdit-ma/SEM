@@ -9,9 +9,11 @@
 #include <condition_variable>
 #include <future>
 
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <types/socketaddress.hpp>
-#include <types/uuid.h>
+#include "controlmessage.pb.h"
+#include "socketaddress.hpp"
+#include "systeminfobroker.h"
+#include "uuid.h"
+
 namespace re::NodeManager {
 class Trigger {
 public:
@@ -35,6 +37,9 @@ private:
     std::string name_;
 
     Strategy strategy_;
+
+    SystemInfoBroker system_;
+    const int listener_id_;
 
     Metric metric_;
     Comparator comparator_;

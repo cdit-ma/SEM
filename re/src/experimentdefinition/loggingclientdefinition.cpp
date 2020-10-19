@@ -1,5 +1,5 @@
 #include "loggingclientdefinition.h"
-#include <graphmlparser/graphmlparser.h>
+#include "graphmlparser.h"
 
 namespace re::Representation {
 auto ModeFromProto(const LoggingClientDefinition::LoggingModePbType& logging_mode)

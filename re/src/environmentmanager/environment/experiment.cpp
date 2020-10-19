@@ -4,12 +4,12 @@
 #include "node.h"
 #include "ports/port.h"
 #include <algorithm>
-#include <environmentmanager/experimentmanager.h>
+#include "../experimentmanager.h"
 #include <google/protobuf/util/time_util.h>
 #include <memory>
-#include <network/protocols/epmstdout/epmstdout.pb.h>
-#include <network/publisher.hpp>
-#include <proto/controlmessage/helper.h>
+#include "epmstdout.pb.h"
+#include "publisher.hpp"
+#include "helper.h"
 #include <utility>
 
 namespace re::EnvironmentManager {

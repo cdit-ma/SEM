@@ -5,9 +5,9 @@
 #include <utility>
 
 #include <fstream>
-#include <network/protocols/epmstdout/epmstdout.pb.h>
-#include <network/publisher.hpp>
-#include <network/requester.hpp>
+#include "epmstdout.pb.h"
+#include "publisher.hpp"
+#include "requester.hpp"
 
 namespace re::NodeManager {
 

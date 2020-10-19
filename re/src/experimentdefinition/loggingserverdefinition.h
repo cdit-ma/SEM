@@ -2,7 +2,7 @@
 #define RE_LOGGINGSERVERDEFINITION_H
 
 #include "modelentity.h"
-#include <graphmlparser/graphmlparser.h>
+#include "graphmlparser.h"
 namespace re::Representation {
 
 class LoggingClientDefinition;

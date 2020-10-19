@@ -5,11 +5,11 @@
 #include <boost/process/io.hpp>
 #include <boost/process/search_path.hpp>
 #include <boost/program_options.hpp>
-#include <comms/environmentrequester/environmentrequester.h>
+#include "environmentrequester.h"
 #include <fstream>
 #include <iostream>
-#include <network/protocols/nodemanagerregistration/nodemanagerregistration.pb.h>
-#include <network/requester.hpp>
+#include "nodemanagerregistration.pb.h"
+#include "requester.hpp"
 #include <optional>
 #include <utility>
 auto re::NodeManager::NodeConfig::FromIstream(std::basic_istream<char>& file_contents)

@@ -1,8 +1,8 @@
 #ifndef RE_MIDDLEWAREPORTDEFINITION_H
 #define RE_MIDDLEWAREPORTDEFINITION_H
 #include "modelentity.h"
-#include <graphmlparser/graphmlparser.h>
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "graphmlparser.h"
+#include "experimentdefinition.pb.h"
 #include <string>
 #include "uuid.h"
 #include <vector>

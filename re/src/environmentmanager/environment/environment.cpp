@@ -1,11 +1,11 @@
 #include "environment.h"
 #include "node.h"
 #include <cassert>
-#include <experimentdefinition/experimentdefinition.h>
+#include "experimentdefinition.h"
 #include <google/protobuf/util/time_util.h>
 #include <iostream>
 #include <memory>
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 #include <regex>
 #include <utility>
 #include <vector>
@@ -297,7 +297,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node)
     const auto& node_name = node.info().name();
     try {
         const auto& ip_str = node.ip_address();
-        auto ip = types::Ipv4::from_string(ip_str);
+        auto ip = types::Ipv4(ip_str);
         std::lock_guard<std::mutex> lock(node_mutex_);
         if(!node_available_endpoint_map_.count(ip)) {
             auto port_tracker = std::make_unique<EnvironmentManager::EndpointTracker>(

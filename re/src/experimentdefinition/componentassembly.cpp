@@ -49,10 +49,10 @@ ComponentAssembly::ComponentAssembly(GraphmlParser& parser, const std::string& m
     // Note the difference between replication count and replication value.
     auto replication_value = parser.GetDataValue(medea_id, "replicate_value");
     if(replication_value.empty()) {
-        replication_ = std::stoi(parser.GetDataValue(medea_id, "replicate_count"));
+        replication_ = (uint64_t)std::stoi(parser.GetDataValue(medea_id, "replicate_count"));
     } else {
         try {
-            replication_ = std::stoi(replication_value);
+            replication_ = (uint64_t)std::stoi(replication_value);
         } catch(const std::invalid_argument& ex) {
             // TODO: Handle replication value being non-integer. This is the case where replication
             //  count is driven by a deployment attribute

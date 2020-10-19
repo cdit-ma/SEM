@@ -1,7 +1,7 @@
 #include "deploymentregister.h"
-#include "environmentmanager/environment/container.h"
-#include "environmentmanager/environment/logger.h"
-#include "environmentmanager/environment/node.h"
+#include "environment/container.h"
+#include "environment/logger.h"
+#include "environment/node.h"
 #include "experimentmanager.h"
 #include <chrono>
 #include <exception>

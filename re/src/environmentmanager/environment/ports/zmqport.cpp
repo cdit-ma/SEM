@@ -1,8 +1,8 @@
 #include "zmqport.h"
-#include "environmentmanager/environment/component.h"
-#include "environmentmanager/environment/environment.h"
-#include "environmentmanager/environment/node.h"
-#include <proto/controlmessage/helper.h>
+#include "../component.h"
+#include "../environment.h"
+#include "../node.h"
+#include "helper.h"
 
 namespace re::EnvironmentManager {
 
