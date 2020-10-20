@@ -180,7 +180,6 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/entityinfodisplay.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/textitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/pixmapitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/nameplate.cpp
