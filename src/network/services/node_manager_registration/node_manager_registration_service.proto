@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package sem.network.services.node_manager_registration;
+
+service NodeManagerRegistrar {
+    rpc RegisterNodeManager (RegistrationRequest) returns (RegistrationReply);
+    rpc DeregisterNodeManager (DeregistrationRequest) returns (DeregistrationReply);
+}
+
+message RegistrationRequest {
+    string uuid = 1;
+
+    // sem::types::Ipv4
+    string node_ip_address = 2;
+    string hostname = 3;
+    string library_path = 4;
+
+    // sem::types::SocketAddress
+    string node_manager_control_endpoint = 5;
+}
+
+message RegistrationReply {
+    bool success = 1;
+    string message = 2;
+}
+
+message DeregistrationRequest {
+    string uuid = 1;
+}
+
+message DeregistrationReply {
+    bool success = 1;
+    string message = 2;
+}
