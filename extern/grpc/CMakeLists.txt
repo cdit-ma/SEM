@@ -121,12 +121,17 @@ function(CDIT_MA_GENERATE_GRPC_CPP SRCS HDRS)
 
         list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.grpc.pb.cc")
         list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.grpc.pb.h")
+        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc")
+        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h")
 
         add_custom_command(
                 OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.grpc.pb.cc"
                 "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.grpc.pb.h"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
                 COMMAND $<TARGET_FILE:protoc>
                 ARGS --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
+                --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
                 --plugin=protoc-gen-grpc=$<TARGET_FILE:grpc_cpp_plugin>
                 ${_protobuf_include_path} ${ABS_FIL}
                 DEPENDS ${ABS_FIL} $<TARGET_FILE:protoc>
