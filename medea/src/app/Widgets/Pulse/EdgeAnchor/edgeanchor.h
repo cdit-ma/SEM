@@ -11,7 +11,7 @@ class EdgeAnchor {
 public:
     virtual ~EdgeAnchor() = 0;
 
-    // TODO
+    // TODO - This is work for a different ticket (SEM-978 and follow up work)
 };
 
 } // end Pulse::View namespace
