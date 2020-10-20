@@ -1,7 +1,7 @@
 #ifndef RE_TRIGGER_PROTOTYPE_HPP
 #define RE_TRIGGER_PROTOTYPE_HPP
 
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 namespace re::EnvironmentManager {
 class Environment;

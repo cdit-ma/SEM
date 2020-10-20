@@ -5,9 +5,9 @@
 #include "ports/port.h"
 #include "triggerprototype.h"
 #include "worker.h"
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
-#include <environmentmanager/environment/ports/periodicport.h>
+#include "ports/periodicport.h"
 #include <memory>
 
 namespace re::EnvironmentManager {

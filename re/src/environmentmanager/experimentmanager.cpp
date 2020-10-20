@@ -2,7 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
 namespace re::EnvironmentManager {
 ExperimentManager::ExperimentManager(Experiment& experiment, const types::Timeout& duration) :

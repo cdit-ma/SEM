@@ -19,7 +19,7 @@ target_link_libraries(logan_client_lib
         re_common_proto_systemevent
         re_common_proto_control
         zmq_protowriter
-        system_info_handler
+        system_info_broker
         re_common_proto_systemevent
         protobuf::libprotobuf
         )

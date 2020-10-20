@@ -1,5 +1,5 @@
 #include "trigger.h"
-#include <client/sigarsysteminfo.h>
+#include "systeminfo.h"
 #include <future>
 #include <utility>
 namespace re::NodeManager {
@@ -34,6 +34,7 @@ auto MetricInternalToProto(Trigger::Metric metric) -> ::NodeManager::TriggerProt
         case Trigger::Metric::MemUtil:
             return ::NodeManager::TriggerPrototype_Metric_MEM_UTIL;
     }
+    throw std::invalid_argument("Invalid metric found in trigger MetricInternalToProto");
 }
 
 auto ComparatorInternalToProto(Trigger::Comparator comparator)
@@ -53,6 +54,7 @@ auto ComparatorInternalToProto(Trigger::Comparator comparator)
         case Trigger::Comparator::NotEqual:
             return ::NodeManager::TriggerPrototype_Comparator_NOT_EQUAL;
     }
+    throw std::invalid_argument("Invalid comparator found in trigger ComparatorInternalToProto");
 }
 
 auto MetricProtoToInternal(::NodeManager::TriggerPrototype_Metric metric) -> Trigger::Metric
@@ -114,12 +116,11 @@ auto Trigger::Check() -> void
 
 double Trigger::GetCurrentMetricValue()
 {
-    SystemInfo& system_info = SigarSystemInfo::GetSystemInfo();
-    system_info.Update();
+    system_.Update();
     if(metric_ == Metric::CpuUtil) {
-        return system_info.get_cpu_overall_utilization();
+        return system_.GetOverallCpuUtilization(listener_id_);
     } else if(metric_ == Metric::MemUtil) {
-        return system_info.get_phys_mem_utilization();
+        return system_.GetOverallMemUtilization(listener_id_);
     } else {
         throw std::invalid_argument("Unhandled metric type in GetCurrentMetricValue");
     }
@@ -136,7 +137,8 @@ Trigger::Trigger(std::string name,
     metric_{metric},
     comparator_{comparator},
     threshold_value_{threshold_value},
-    strategy_{std::move(strategy)}
+    strategy_{std::move(strategy)},
+    listener_id_{system_.RegisterListener()}
 {
 }
 

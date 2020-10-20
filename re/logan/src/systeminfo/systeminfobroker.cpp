@@ -2,26 +2,28 @@
 // Created by mitchell on 25/6/20.
 //
 
-#include "systeminfohandler.h"
+#include "systeminfobroker.h"
 
 #include "systemevent.pb.h"
 #include "systeminfo.h"
 #include <google/protobuf/util/time_util.h>
 
+#include <memory>
+
 std::unique_ptr<google::protobuf::Timestamp>
 convert_timestamp(const std::chrono::milliseconds& timestamp)
 {
     using namespace google::protobuf;
-    return std::unique_ptr<Timestamp>(
-        new Timestamp(util::TimeUtil::MillisecondsToTimestamp(timestamp.count())));
+    return std::make_unique<Timestamp>(
+        util::TimeUtil::MillisecondsToTimestamp(timestamp.count()));
 }
 
 std::unique_ptr<google::protobuf::Duration>
 convert_duration(const std::chrono::milliseconds& duration)
 {
     using namespace google::protobuf;
-    return std::unique_ptr<Duration>(
-        new Duration(util::TimeUtil::MillisecondsToDuration(duration.count())));
+    return std::make_unique<Duration>(
+        util::TimeUtil::MillisecondsToDuration(duration.count()));
 }
 
 // Refresh
@@ -41,7 +43,7 @@ std::unique_ptr<SystemEvent::StatusEvent> SystemInfoBroker::GetSystemStatus(cons
         return nullptr;
     }
 
-    auto system_status = std::unique_ptr<SystemEvent::StatusEvent>(new SystemEvent::StatusEvent);
+    auto system_status = std::make_unique<SystemEvent::StatusEvent>();
 
     system_status->set_hostname(system_info_.get_hostname());
     system_status->set_allocated_timestamp(convert_timestamp(current_data_time).release());
@@ -133,7 +135,7 @@ std::unique_ptr<SystemEvent::InfoEvent> SystemInfoBroker::GetSystemInfo(const in
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    auto system_info = std::unique_ptr<SystemEvent::InfoEvent>(new SystemEvent::InfoEvent);
+    auto system_info = std::make_unique<SystemEvent::InfoEvent>();
 
     system_info->set_hostname(system_info_.get_hostname());
     system_info->set_allocated_timestamp(convert_timestamp(system_info_.get_update_timestamp()).release());
@@ -199,4 +201,13 @@ void SystemInfoBroker::ClearMonitoredProcesses() {
 void SystemInfoBroker::MonitorProcess(const std::string& process) {
     system_info_.monitor_processes(process);
 }
-
+double SystemInfoBroker::GetOverallCpuUtilization(int listener_id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return system_info_.get_cpu_overall_utilization();
+}
+double SystemInfoBroker::GetOverallMemUtilization(int listener_id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return system_info_.get_phys_mem_utilization();
+}

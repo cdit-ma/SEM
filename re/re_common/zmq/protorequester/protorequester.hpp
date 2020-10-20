@@ -28,7 +28,7 @@ namespace zmq{
         private:
             struct RequestStruct;
         public:
-            ProtoRequester(const std::string& address);
+            ProtoRequester(std::string  address);
             ~ProtoRequester();
 
             template<class RequestType, class ReplyType>

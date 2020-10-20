@@ -8,10 +8,8 @@
 #include <chrono>
 #include <iostream>
 
-#include "systemevent.pb.h"
 #include "cachedprotowriter.h"
 #include "monitor.h"
-#include "systeminfohandler.h"
 #include <google/protobuf/util/json_util.h>
 
 //Constructor used for print only call

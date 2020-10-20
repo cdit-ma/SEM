@@ -3,21 +3,21 @@
 
 #include "ports/port.h"
 #include "triggerprototype.h"
-#include "types/uniquequeue.hpp"
+#include "uniquequeue.hpp"
 #include <chrono>
 #include <mutex>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <types/socketaddress.hpp>
-#include <types/uuid.h>
+#include "controlmessage.pb.h"
+#include "socketaddress.hpp"
+#include "uuid.h"
 #include <unordered_map>
 
-#include <DockerClient/docker.h>
-#include <environmentmanager/nodemanagerregistry.h>
-#include <experimentdefinition/experimentdefinition.h>
-#include <network/protocols/epmregistration/epmregistration.pb.h>
-#include <network/protocols/triggerevent/triggerevent.pb.h>
-#include <network/subscriber.hpp>
-#include <types/timeout.h>
+#include "docker.h"
+#include "../nodemanagerregistry.h"
+#include "experimentdefinition.h"
+#include "epmregistration.pb.h"
+#include "triggerevent.pb.h"
+#include "subscriber.hpp"
+#include "timeout.hpp"
 namespace re::EnvironmentManager {
 class Environment;
 class Node;

@@ -8,7 +8,6 @@
 #ifdef _WIN32
 #pragma warning(pop)
 #endif
-#include "protobufmodelparser.h"
 #include "experimentdefinition.h"
 #include <fstream>
 #include "modelparser.h"
