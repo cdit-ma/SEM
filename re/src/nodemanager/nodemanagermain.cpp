@@ -9,12 +9,13 @@ auto main(int argc, char** argv) -> int
 {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
+    using namespace re::NodeManager;
     try {
         // Parse our command line args, these are consumed at this point.
-        auto config = re::NodeManager::NodeConfig::HandleArguments(argc, argv);
+        auto config = NodeConfig::HandleArguments(argc, argv);
         if(config.has_value()) {
             // Save our config file immediately in case we had to generate a uuid
-            re::NodeManager::NodeConfig::SaveConfigFile(config.value());
+            NodeConfig::SaveConfigFile(config.value());
             re::NodeManager::NodeManager node_manager{config.value()};
             node_manager.Run();
             // TODO: This does not stop running if we lose connection to the env manager...
