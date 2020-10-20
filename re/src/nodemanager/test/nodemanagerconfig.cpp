@@ -18,14 +18,14 @@ TEST(re_nodemanager_config, test_parse)
 {
     std::istringstream input{R"--(ip_address=192.168.111.230
 uuid=47503448-982e-4244-8e9a-8f7054e1ef66
-qpid_broker_endpoint=192.168.111.230:5672
+environment_manager_registration_endpoint=192.168.111.230:5672
 re_bin_path=/home/cdit-ma/re/bin
 library_root=/home/cdit-ma/re)--"};
     std::istream input_stream{input.rdbuf()};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().qpid_broker_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
     ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
@@ -37,7 +37,7 @@ TEST(re_nodemanager_config, valid_optional_hostname)
 {
     std::istringstream input{R"--(ip_address=192.168.111.230
 uuid=47503448-982e-4244-8e9a-8f7054e1ef66
-qpid_broker_endpoint=192.168.111.230:5672
+environment_manager_registration_endpoint=192.168.111.230:5672
 library_root=/home/cdit-ma/re
 re_bin_path=/home/cdit-ma/re/bin
 host_name=test_hostname)--"};
@@ -45,7 +45,7 @@ host_name=test_hostname)--"};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().qpid_broker_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
     ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
@@ -58,14 +58,14 @@ TEST(re_nodemanager_config, optional_hostname)
 {
     std::istringstream input{R"--(ip_address=192.168.111.230
 uuid=47503448-982e-4244-8e9a-8f7054e1ef66
-qpid_broker_endpoint=192.168.111.230:5672
+environment_manager_registration_endpoint=192.168.111.230:5672
 re_bin_path=/home/cdit-ma/re/bin
 library_root=/home/cdit-ma/re)--"};
     std::istream input_stream{input.rdbuf()};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().qpid_broker_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
     ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
@@ -77,14 +77,14 @@ library_root=/home/cdit-ma/re)--"};
 TEST(re_nodemanager_config, unset_uuid)
 {
     std::istringstream input{R"--(ip_address=192.168.111.230
-qpid_broker_endpoint=192.168.111.230:5672
+environment_manager_registration_endpoint=192.168.111.230:5672
 re_bin_path=/home/cdit-ma/re/bin
 library_root=/home/cdit-ma/re)--"};
     std::istream input_stream{input.rdbuf()};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().qpid_broker_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
     ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
@@ -100,7 +100,7 @@ library_root=/home/cdit-ma/re)--"};
 TEST(re_nodemanager_config, ostream_test)
 {
     std::istringstream input{R"--(ip_address=192.168.111.230
-qpid_broker_endpoint=192.168.111.230:5672
+environment_manager_registration_endpoint=192.168.111.230:5672
 uuid=47503448-982e-4244-8e9a-8f7054e1ef66
 re_bin_path=/home/cdit-ma/re/bin
 library_root=/home/cdit-ma/re)--"};
@@ -119,8 +119,8 @@ library_root=/home/cdit-ma/re)--"};
         if(line.find("ip_address") != std::string::npos) {
             ASSERT_EQ(line, "ip_address=192.168.111.230");
             continue;
-        } else if(line.find("qpid_broker_endpoint") != std::string::npos) {
-            ASSERT_EQ(line, "qpid_broker_endpoint=192.168.111.230:5672");
+        } else if(line.find("environment_manager_registration_endpoint") != std::string::npos) {
+            ASSERT_EQ(line, "environment_manager_registration_endpoint=192.168.111.230:5672");
             continue;
         } else if(line.find("library_root") != std::string::npos) {
             ASSERT_EQ(line, "library_root=/home/cdit-ma/re");

@@ -1,10 +1,6 @@
 #include "nodemanager.h"
 #include "nodemanagerconfig.h"
-#include <boost/asio/io_service.hpp>
-#include <boost/process/async_pipe.hpp>
-#include <boost/process/io.hpp>
 #include <boost/process/search_path.hpp>
-#include <boost/program_options.hpp>
 #include "environmentrequester.h"
 #include <fstream>
 #include "nodemanagerregistration.pb.h"
@@ -16,9 +12,9 @@ namespace re::NodeManager {
 
 NodeManager::NodeManager(NodeConfig config) :
     node_config_{std::move(config)},
-    environment_manager_replier_{config.qpid_broker_endpoint,
+    environment_manager_replier_{config.environment_manager_registration_endpoint,
                                  BuildControlTopicName(node_config_.uuid), ""},
-    epm_registration_replier_{config.qpid_broker_endpoint,
+    epm_registration_replier_{config.environment_manager_registration_endpoint,
                               BuildEpmRegistrationTopicName(node_config_.uuid), ""}
 {
     // Test that we can find the EPM executable before doing anything else.
@@ -38,7 +34,7 @@ NodeManager::NodeManager(NodeConfig config) :
     // Register with environment manager. Throws on failure.
     RegisterNodeManager(node_config_);
     std::cout << "[NodeManager] - Registered with environment manager on broker at:\n    ("
-              << node_config_.qpid_broker_endpoint.to_string() << ")" << std::endl;
+              << node_config_.environment_manager_registration_endpoint.to_string() << ")" << std::endl;
 }
 
 /// Callback function to handle any EpmManagementRequests made on topic
@@ -151,12 +147,12 @@ auto NodeManager::RegisterNodeManager(const NodeConfig& config) -> void
         //  disabled following the instructions found here:
         //  https://qpid.apache.org/releases/qpid-cpp-1.39.0/messaging-api/book/ch01s15.html
         throw std::runtime_error("Failed to connect to environment manager using broker address: ("
-                                 + config.qpid_broker_endpoint.to_string()
+                                 + config.environment_manager_registration_endpoint.to_string()
                                  + "). Check that there is an environment manager connected to "
                                    "this broker.");
     }
     throw std::runtime_error("Could not connect to environment manager on broker address: "
-                             + config.qpid_broker_endpoint.to_string());
+                             + config.environment_manager_registration_endpoint.to_string());
 }
 
 auto NodeManager::BuildControlTopicName(const types::Uuid& uuid) -> std::string
@@ -174,24 +170,16 @@ auto NodeManager::NewEpm(const types::Uuid& experiment_uuid, const std::string& 
               << experiment_uuid << ")" << std::endl;
 
     namespace bp = boost::process;
-    auto request_uuid = types::Uuid{};
-    auto epm_start_command = BuildEpmStartCommand(node_config_, experiment_uuid, request_uuid);
+    auto&& request_uuid = types::Uuid{};
+    auto&& epm_start_command = BuildEpmStartCommand(node_config_, experiment_uuid, request_uuid);
 
-    auto epm_process = std::make_unique<bp::child>(epm_start_command);
-
-    try {
-        // Wait for our epm to send its registration message back to the node manager. Return its
-        // uuid s.t. the environment manager knows where to find it.
-        auto epm_uuid = WaitForEpmRegistrationMessage(request_uuid);
-        epm_process_handles_.insert({epm_uuid, std::move(epm_process)});
-        std::cout << "[NodeManager] - Successfully STARTED epm:\n    (" << epm_uuid << ")"
-                  << std::endl;
-        return epm_uuid;
-    } catch(const std::exception& ex) {
-        // If starting the EPM failed in any way, kill it to tidy up and re throw
-        epm_process->terminate();
-        throw;
-    }
+    // Wait for our epm to send its registration message back to the node manager. Return its
+    // uuid s.t. the environment manager knows where to find it.
+    auto epm_uuid = WaitForEpmRegistrationMessage(request_uuid);
+    epm_process_handles_.emplace(epm_uuid, std::make_unique<bp::child>(epm_start_command));
+    std::cout << "[NodeManager] - Successfully STARTED epm:\n    (" << epm_uuid << ")"
+              << std::endl;
+    return epm_uuid;
 }
 
 /// Waits on a semaphore that is notified in the epm registration replier thread that runs:
@@ -249,7 +237,7 @@ auto NodeManager::BuildEpmStartCommand(const NodeConfig& node_config,
     auto epm_exe_path = FindEpmExecutable(node_config.re_bin_path);
     return epm_exe_path + " --experiment_uuid=" + experiment_uuid.to_string()
            + " --creation_request_uuid=" + creation_request_id.to_string()
-           + " --qpid_broker_endpoint=" + node_config.qpid_broker_endpoint.to_string()
+           + " --environment_manager_registration_endpoint=" + node_config.environment_manager_registration_endpoint.to_string()
            + " --ip_address=" + node_config.ip_address.to_string() + " --lib_root_dir="
            + node_config.lib_root_dir + " --re_bin_dir=" + node_config.re_bin_path
            + " --registration_entity_uuid=" + node_config.uuid.to_string();
@@ -303,7 +291,7 @@ auto NodeManager::HeartbeatLoop() -> void
                 Heartbeat();
             } catch(const std::exception& ex) {
                 std::cerr << "[NodeManager] - Lost connection to environment manager on:\n    ("
-                          << node_config_.qpid_broker_endpoint << ")" << std::endl;
+                          << node_config_.environment_manager_registration_endpoint << ")" << std::endl;
                 break;
             }
         }
@@ -331,6 +319,6 @@ auto NodeManager::GetRegistrationRequester(const NodeConfig& config)
     -> network::Requester<NodeManagerRegistration, NodeManagerRegistrationReply>
 {
     return network::Requester<NodeManagerRegistration, NodeManagerRegistrationReply>{
-        config.qpid_broker_endpoint, node_manager_registration_topic_, ""};
+        config.environment_manager_registration_endpoint, node_manager_registration_topic_, ""};
 }
 } // namespace re::NodeManager
