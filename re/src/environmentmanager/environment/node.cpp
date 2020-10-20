@@ -12,7 +12,7 @@
 namespace re::EnvironmentManager {
 
 Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node& node) :
-    environment_(environment), experiment_(parent), ip_{types::Ipv4::from_string(node.ip_address())}
+    environment_(environment), experiment_(parent), ip_{types::Ipv4(node.ip_address())}
 {
     name_ = node.info().name();
     id_ = node.info().id();

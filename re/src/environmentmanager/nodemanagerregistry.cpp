@@ -1,6 +1,6 @@
 #include "nodemanagerregistry.h"
-#include <network/requester.hpp>
-#include <types/socketaddress.hpp>
+#include "requester.hpp"
+#include "socketaddress.hpp"
 namespace re::EnvironmentManager {
 NodeManagerRegistry::NodeManagerRegistry(types::SocketAddress broker_address) :
     broker_address_{broker_address}, replier_{broker_address_, nodemanager_registration_topic_, ""}

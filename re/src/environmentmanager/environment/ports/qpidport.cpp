@@ -1,7 +1,7 @@
 #include "qpidport.h"
-#include "environmentmanager/environment/environment.h"
-#include "environmentmanager/environment/experiment.h"
-#include <proto/controlmessage/helper.h>
+#include "../environment.h"
+#include "../experiment.h"
+#include "helper.h"
 
 namespace re::EnvironmentManager::qpid {
 
@@ -18,7 +18,7 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
 
 Port::Port(Experiment& parent, const NodeManager::ExternalPort& port) :
     EnvironmentManager::Port(parent, port),
-    broker_address_(types::SocketAddress::from_string(
+    broker_address_(types::SocketAddress(
         NodeManager::GetAttribute(port.attributes(), "broker_address").s(0)))
 {
     if(topic_name_.empty()) {

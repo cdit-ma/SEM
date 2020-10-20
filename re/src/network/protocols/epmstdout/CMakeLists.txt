@@ -20,7 +20,11 @@ target_sources(${PROJECT_NAME} PRIVATE
         ${PROTO_HDRS}
         )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}
+        PUBLIC
+        ${PROTOBUF_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_BINARY_DIR}
+        )
 
 if (MSVC)
     #Windows requires protobuf in DLLs

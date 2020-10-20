@@ -3,8 +3,8 @@
 
 #include <memory>
 #include <mutex>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <types/socketaddress.hpp>
+#include "controlmessage.pb.h"
+#include "socketaddress.hpp"
 
 #include "port.h"
 

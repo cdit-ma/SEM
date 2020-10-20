@@ -1,11 +1,11 @@
 #ifndef ENVIRONMENT_MANAGER_COMPONENT_H
 #define ENVIRONMENT_MANAGER_COMPONENT_H
 
-#include "types/uniquequeue.hpp"
-#include <experimentdefinition/experimentdefinition.h>
+#include "uniquequeue.hpp"
+#include "experimentdefinition.h"
 #include <memory>
 #include <mutex>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 #include <unordered_map>
 
 namespace re::EnvironmentManager {

@@ -17,7 +17,7 @@ types::SocketAddress EndpointTracker::GetEndpoint()
     auto port = available_ports_.front();
     available_ports_.pop();
 
-    return types::SocketAddress::from_ipv4(ip_, port);
+    return types::SocketAddress(ip_, port);
 }
 
 auto EndpointTracker::FreeEndpoint(types::SocketAddress endpoint) -> void

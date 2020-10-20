@@ -4,7 +4,7 @@
 #include <google/protobuf/util/json_util.h>
 #include <iostream>
 #include <memory>
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 #include <sstream>
 #include <string>
 #include "helper.h"

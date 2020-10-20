@@ -2,7 +2,7 @@
 #define ENVIRONMENT_MANAGER_DEPLOYMENT_REGISTER
 
 #include "deploymenthandler.h"
-#include "environmentmanager/environment/environment.h"
+#include "environment/environment.h"
 #include "experimentmanager.h"
 #include "nodemanagerregistry.h"
 #include <future>

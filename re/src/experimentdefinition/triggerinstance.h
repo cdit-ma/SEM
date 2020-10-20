@@ -2,7 +2,7 @@
 #define RE_TRIGGERINSTANCE_H
 
 #include "modelentity.h"
-#include <graphmlparser/graphmlparser.h>
+#include "graphmlparser.h"
 #include <string>
 #include "uuid.h"
 namespace re::Representation {

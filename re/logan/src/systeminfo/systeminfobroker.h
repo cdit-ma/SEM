@@ -2,8 +2,8 @@
 // Created by mitchell on 25/6/20.
 //
 
-#ifndef SEM_SYSTEMINFOHANDLER_H
-#define SEM_SYSTEMINFOHANDLER_H
+#ifndef SEM_SYSTEMINFOBROKER_H
+#define SEM_SYSTEMINFOBROKER_H
 
 #include "systemevent.pb.h"
 class SystemInfo;
@@ -11,8 +11,12 @@ extern SystemInfo& GetSystemInfo();
 class SystemInfoBroker {
 public:
     SystemInfoBroker();
-    std::unique_ptr<SystemEvent::StatusEvent> GetSystemStatus(const int listener_id);
-    std::unique_ptr<SystemEvent::InfoEvent> GetSystemInfo(const int listener_id);
+    std::unique_ptr<SystemEvent::StatusEvent> GetSystemStatus(int listener_id);
+    std::unique_ptr<SystemEvent::InfoEvent> GetSystemInfo(int listener_id);
+    double GetOverallCpuUtilization(int listener_id);
+    double GetOverallMemUtilization(int listener_id);
+
+
     void Update();
     int RegisterListener();
 
@@ -37,4 +41,4 @@ private:
     std::unordered_map<int, std::chrono::milliseconds> listener_updated_times_;
 };
 
-#endif // SEM_SYSTEMINFOHANDLER_H
+#endif // SEM_SYSTEMINFOBROKER_H

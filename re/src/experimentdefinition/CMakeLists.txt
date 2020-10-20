@@ -1,13 +1,14 @@
-project(experiment_definition VERSION ${PROJECT_VERSION})
+add_library(experiment_definition STATIC)
+target_compile_features(experiment_definition PRIVATE cxx_std_17)
+target_include_directories(experiment_definition
+        PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/..
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        )
 
-
-add_library(${PROJECT_NAME} STATIC "")
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-target_sources(${PROJECT_NAME} PRIVATE
+target_sources(experiment_definition
+        PRIVATE
         experimentdefinition.h
         attributedefinition.h
         attributeinstance.h
@@ -58,9 +59,12 @@ target_sources(${PROJECT_NAME} PRIVATE
         loggingserverdefinition.cpp
         )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC experiment_definition_protocol)
-target_link_libraries(${PROJECT_NAME} PUBLIC re_types)
-target_link_libraries(${PROJECT_NAME} PUBLIC re_graphml_parser_lib)
+target_link_libraries(experiment_definition
+        PUBLIC
+        experiment_definition_protocol
+        re_types
+        re_graphml_parser_lib
+        )
 
 if (BUILD_TEST)
     add_subdirectory(test)

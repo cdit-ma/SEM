@@ -6,13 +6,13 @@
 #include <boost/process/child.hpp>
 #include <future>
 #include <memory>
-#include <network/protocols/epmregistration/epmregistration.pb.h>
-#include <network/protocols/nodemanagercontrol/nodemanagercontrol.pb.h>
-#include <network/protocols/nodemanagerregistration/nodemanagerregistration.pb.h>
-#include <network/replier.hpp>
-#include <network/requester.hpp>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <util/execution.hpp>
+#include "epmregistration.pb.h"
+#include "nodemanagercontrol.pb.h"
+#include "nodemanagerregistration.pb.h"
+#include "replier.hpp"
+#include "requester.hpp"
+#include "controlmessage.pb.h"
+#include "execution.hpp"
 namespace re::NodeManager {
 
 class NodeManager {

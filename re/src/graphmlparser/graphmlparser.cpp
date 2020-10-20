@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-GraphmlParser::GraphmlParser(std::istream& model_stream) : GraphmlParserInt(model_stream)
+GraphmlParser::GraphmlParser(std::istream& model_stream)
 {
     auto result = doc.load(model_stream);
     legal_parse = result.status == pugi::status_ok;

@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 #include "google/protobuf/util/message_differencer.h"
-#include "protobufmodelparser.h"
+#include "modelparser.h"
 #include <google/protobuf/util/json_util.h>
 #include <fstream>
 #include <cmrc/cmrc.hpp>

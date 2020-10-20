@@ -1,21 +1,21 @@
 #ifndef ENVIRONMENT_MANAGER_ENVIRONMENT
 #define ENVIRONMENT_MANAGER_ENVIRONMENT
 
-#include "environmentmanager/endpointtracker.h"
+#include "../endpointtracker.h"
+#include "controlmessage.pb.h"
 #include "experiment.h"
-#include "types/uniquequeue.hpp"
-#include <experimentdefinition/experimentdefinition.h>
+#include "experimentdefinition.h"
+#include "ipv4.hpp"
+#include "protowriter.h"
+#include "socketaddress.hpp"
+#include "uniquequeue.hpp"
+#include "uuid.h"
 #include <iostream>
 #include <mutex>
-#include <proto/controlmessage/controlmessage.pb.h>
 #include <string>
-#include <types/ipv4.hpp>
-#include <types/socketaddress.hpp>
-#include <types/uuid.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <zmq/protowriter/protowriter.h>
 
 namespace re::EnvironmentManager {
 
