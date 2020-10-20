@@ -12,6 +12,7 @@ namespace Pulse::View {
 class EntityInfoDisplay {
 public:
     virtual ~EntityInfoDisplay() = 0;
+
     virtual void changeIcon(const QString& icon_path) = 0;
     virtual void changeLabel(const QString& label) = 0;
 };

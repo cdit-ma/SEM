@@ -15,7 +15,7 @@ public:
 
     // TODO: Create an interface for Pulse::Model that sends signals when the model has changed
     //  Then use that here instead of a QObject
-    virtual void connectModelData(QObject* model_data) = 0;
+    virtual void connectModelData(QPointer<QObject> model_data) = 0;
     virtual void onModelDeleted() = 0;
 };
 
