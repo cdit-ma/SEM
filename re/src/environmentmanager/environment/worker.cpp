@@ -20,7 +20,7 @@ Worker::Worker(Component& parent, const NodeManager::Worker& worker) : parent_(p
         attributes_.emplace(id, std::move(attr));
     }
 }
-Worker::Worker(const types::Uuid& event_uuid,
+Worker::Worker(const sem::types::Uuid& event_uuid,
                Component& component,
                const Representation::ExperimentDefinition& definition,
                const Representation::WorkerInstance& instance) :

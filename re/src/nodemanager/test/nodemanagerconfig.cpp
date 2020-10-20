@@ -25,11 +25,11 @@ library_root=/home/cdit-ma/re)--"};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, sem::types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
-    ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
-    ASSERT_EQ(config.value().uuid, types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
+    ASSERT_EQ(config.value().ip_address, sem::types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().uuid, sem::types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
 }
 
 /// Test that we can parse a hostname
@@ -45,11 +45,11 @@ host_name=test_hostname)--"};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, sem::types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
-    ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
-    ASSERT_EQ(config.value().uuid, types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
+    ASSERT_EQ(config.value().ip_address, sem::types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().uuid, sem::types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
     ASSERT_EQ(config.value().hostname.value(), std::string("test_hostname"));
 }
 
@@ -65,11 +65,11 @@ library_root=/home/cdit-ma/re)--"};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, sem::types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
-    ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
-    ASSERT_EQ(config.value().uuid, types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
+    ASSERT_EQ(config.value().ip_address, sem::types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().uuid, sem::types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
     ASSERT_FALSE(config.value().hostname.has_value());
 }
 
@@ -84,14 +84,14 @@ library_root=/home/cdit-ma/re)--"};
     // Have to specify global namespaced NodeManager
     auto config = NodeManager::NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
-    ASSERT_EQ(config.value().environment_manager_registration_endpoint, types::SocketAddress("192.168."
+    ASSERT_EQ(config.value().environment_manager_registration_endpoint, sem::types::SocketAddress("192.168."
                                                                         "111.230:"
                                                                         "5672"));
-    ASSERT_EQ(config.value().ip_address, types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().ip_address, sem::types::Ipv4("192.168.111.230"));
 
     // re::uuid and nodemanager::nodeconfig class invariants enforce that it's a valid uuid and
     // config, check that there's something in our to_string to placate paranoia
-    types::Uuid uuid = config.value().uuid;
+    sem::types::Uuid uuid = config.value().uuid;
     ASSERT_NE(uuid.to_string().size(), 0);
 }
 

@@ -8,7 +8,7 @@ auto EndpointTracker::empty() const -> bool
     return available_ports_.empty();
 }
 
-types::SocketAddress EndpointTracker::GetEndpoint()
+sem::types::SocketAddress EndpointTracker::GetEndpoint()
 {
     std::unique_lock<std::mutex> lock(port_mutex_);
     if(available_ports_.empty()) {
@@ -17,10 +17,10 @@ types::SocketAddress EndpointTracker::GetEndpoint()
     auto port = available_ports_.front();
     available_ports_.pop();
 
-    return types::SocketAddress(ip_, port);
+    return sem::types::SocketAddress(ip_, port);
 }
 
-auto EndpointTracker::FreeEndpoint(types::SocketAddress endpoint) -> void
+auto EndpointTracker::FreeEndpoint(sem::types::SocketAddress endpoint) -> void
 {
     std::unique_lock<std::mutex> lock(port_mutex_);
     available_ports_.push(endpoint.port());
@@ -36,14 +36,14 @@ void EndpointTracker::SetName(const std::string& name)
     name_ = name;
 }
 
-auto EndpointTracker::GetIp() -> types::Ipv4
+auto EndpointTracker::GetIp() -> sem::types::Ipv4
 {
     return ip_;
 }
 
 EndpointTracker::EndpointTracker(std::string  name,
-                                 types::Ipv4 ip_address,
-                                 types::unique_queue<uint16_t> port_set) :
+                                 sem::types::Ipv4 ip_address,
+                                 sem::types::unique_queue<uint16_t> port_set) :
     ip_{ip_address}, available_ports_{std::move(port_set)}, name_{std::move(name)}
 {
 }

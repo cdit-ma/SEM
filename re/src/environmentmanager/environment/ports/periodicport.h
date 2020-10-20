@@ -16,7 +16,7 @@ class Attribute;
 class PeriodicPort : public EnvironmentManager::Port{
     public:
         PeriodicPort(Component& parent, const NodeManager::Port& port);
-        PeriodicPort(const types::Uuid event_uuid,
+        PeriodicPort(const sem::types::Uuid event_uuid,
                      Component& parent,
                      const Representation::ExperimentDefinition& experiment_definition,
                      const Representation::PeriodicPortInstance& periodic_port_instance);

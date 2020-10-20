@@ -24,11 +24,11 @@ private:
 
     // If our replication count is set locally, use integer representation.
     // Elsewise, store the uuid of the DeplymentAttribute that is linked to our replication.
-    std::variant<uint64_t, types::Uuid> replication_;
+    std::variant<uint64_t, sem::types::Uuid> replication_;
 
-    std::vector<types::Uuid> component_assembly_uuids_;
-    std::vector<types::Uuid> component_instance_uuids_;
-    std::vector<types::Uuid> port_delegate_uuids_;
+    std::vector<sem::types::Uuid> component_assembly_uuids_;
+    std::vector<sem::types::Uuid> component_instance_uuids_;
+    std::vector<sem::types::Uuid> port_delegate_uuids_;
 };
 } // namespace re::Representation
 

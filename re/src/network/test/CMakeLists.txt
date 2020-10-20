@@ -14,7 +14,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 target_include_directories(${PROJECT_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE re_types)
+target_link_libraries(${PROJECT_NAME} PRIVATE sem_types)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest)
 target_link_libraries(${PROJECT_NAME} PRIVATE gtest_main)
 target_link_libraries(${PROJECT_NAME} PRIVATE re_network)

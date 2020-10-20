@@ -14,11 +14,11 @@ public:
     explicit Strategy(const PbType& pb);
     Strategy(GraphmlParser& parser, const std::string& medea_id, const Container& container);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
-    [[nodiscard]] auto GetContainerUuid() const -> types::Uuid;
+    [[nodiscard]] auto GetContainerUuid() const -> sem::types::Uuid;
 
 private:
     // Container to start on strategy execution.
-    types::Uuid container_uuid_;
+    sem::types::Uuid container_uuid_;
     std::string container_medea_id_;
     std::string container_medea_name_;
 };

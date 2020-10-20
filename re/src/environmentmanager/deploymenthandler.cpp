@@ -4,11 +4,11 @@
 
 namespace re::EnvironmentManager {
 DeploymentHandler::DeploymentHandler(EnvironmentManager::Environment& env,
-                                     const types::Ipv4& environment_manager_ip_address,
+                                     const sem::types::Ipv4& environment_manager_ip_address,
                                      EnvironmentManager::Environment::DeploymentType deployment_type,
-                                     const types::Ipv4& deployment_ip_address,
+                                     const sem::types::Ipv4& deployment_ip_address,
                                      std::promise<uint16_t> port_promise,
-                                     types::Uuid experiment_uuid) :
+                                     sem::types::Uuid experiment_uuid) :
     environment_(env),
     environment_manager_ip_address_(environment_manager_ip_address),
     deployment_type_(deployment_type),

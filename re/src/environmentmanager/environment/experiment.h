@@ -46,7 +46,7 @@ public:
     enum class ExperimentState { REGISTERED, CONFIGURED, ACTIVE, FINISHED };
     Experiment(Environment& environment,
                NodeManagerRegistry& node_manager_registry,
-               types::Uuid uuid,
+               sem::types::Uuid uuid,
                std::string name,
                re::Representation::ExperimentDefinition experiment_definition);
     ~Experiment();
@@ -57,7 +57,7 @@ public:
     void SetActive();
     void SetFinished();
 
-    void SetDuration(const types::Timeout& duration);
+    void SetDuration(const sem::types::Timeout& duration);
 
     bool IsRegistered() const;
     bool IsConfigured() const;
@@ -67,7 +67,7 @@ public:
     void CheckValidity() const;
 
     const std::string& GetName() const;
-    auto GetUuid() const -> types::Uuid { return experiment_uuid_; };
+    auto GetUuid() const -> sem::types::Uuid { return experiment_uuid_; };
 
     std::string GetMessage() const;
 
@@ -88,9 +88,9 @@ public:
     GetAllocatedLoganServers(const std::string& ip_address);
     std::unique_ptr<NodeManager::EnvironmentMessage> GetProto(bool full_update);
 
-    types::SocketAddress GetExperimentManagerPublisherEndpoint();
-    types::SocketAddress GetExperimentManagerRegistrationEndpoint();
-    types::SocketAddress GetExperimentLoggerEndpoint();
+    sem::types::SocketAddress GetExperimentManagerPublisherEndpoint();
+    sem::types::SocketAddress GetExperimentManagerRegistrationEndpoint();
+    sem::types::SocketAddress GetExperimentLoggerEndpoint();
 
     Node& GetLeastDeployedToNode(bool non_empty = false);
     Port& GetPort(const std::string& id);
@@ -138,15 +138,15 @@ private:
 
     std::unique_ptr<ExperimentManager> experiment_manager_;
 
-    types::Uuid experiment_uuid_;
-    types::Timeout duration_;
+    sem::types::Uuid experiment_uuid_;
+    sem::types::Timeout duration_;
     NodeManager::ControlMessage deployment_message_;
     std::string experiment_name_;
     std::string library_path_;
 
-    types::SocketAddress experiment_manager_publisher_endpoint_;
-    types::SocketAddress experiment_manager_registration_endpoint_;
-    types::SocketAddress experiment_logger_endpoint_;
+    sem::types::SocketAddress experiment_manager_publisher_endpoint_;
+    sem::types::SocketAddress experiment_manager_registration_endpoint_;
+    sem::types::SocketAddress experiment_logger_endpoint_;
 
     bool shutdown_ = false;
 
@@ -162,8 +162,8 @@ private:
     // external port unique label -> internal port id
     std::unordered_map<std::string, std::string> external_id_to_internal_id_map_;
 
-    std::vector<types::Uuid> epm_list_;
-    // Docker doesn't use nice types::Uuid compliant ids for their containers :(
+    std::vector<sem::types::Uuid> epm_list_;
+    // Docker doesn't use nice sem::types::Uuid compliant ids for their containers :(
     std::vector<std::string> docker_container_id_list_;
 
     ExperimentState state_ = ExperimentState::REGISTERED;
@@ -172,11 +172,11 @@ private:
     // about. On next heartbeat we should send a control message with the endpoint of the public
     // port that we want to subscribe or publish to
     bool dirty_ = false;
-    auto StartDockerProcess(types::Ipv4 node_ip) -> std::pair<types::Uuid, std::string>;
+    auto StartDockerProcess(sem::types::Ipv4 node_ip) -> std::pair<sem::types::Uuid, std::string>;
 
     struct EpmRegistration {
-        types::Uuid request_uuid;
-        types::Uuid epm_uuid;
+        sem::types::Uuid request_uuid;
+        sem::types::Uuid epm_uuid;
     };
 
     EpmRegistrationReply HandleDockerEpmRegistration(const EpmRegistrationRequest& request);
@@ -185,20 +185,20 @@ private:
     std::mutex epm_registration_mutex_;
     std::queue<EpmRegistration> epm_registrations_;
     std::condition_variable epm_registration_semaphore_;
-    static std::string BuildEpmRegistrationTopic(types::Uuid experiment_uuid);
+    static std::string BuildEpmRegistrationTopic(sem::types::Uuid experiment_uuid);
     re::network::Replier<EpmRegistrationRequest, EpmRegistrationReply> epm_registration_replier_;
     re::network::Subscriber<TriggerEvent> trigger_handler_;
-    types::Uuid WaitForEpmRegistrationMessage(const types::Uuid& request_uuid);
+    sem::types::Uuid WaitForEpmRegistrationMessage(const sem::types::Uuid& request_uuid);
 
     std::vector<std::string>
-    CreateDockerCommandString(types::Ipv4 node_ip, types::Uuid creation_request_uuid);
+    CreateDockerCommandString(sem::types::Ipv4 node_ip, sem::types::Uuid creation_request_uuid);
 
     JSON_DOCUMENT
-    GetDockerJsonRequest(const types::Ipv4& node_ip, const types::Uuid& request_uuid);
-    void KillDockerEpm(types::Uuid epm_uuid);
+    GetDockerJsonRequest(const sem::types::Ipv4& node_ip, const sem::types::Uuid& request_uuid);
+    void KillDockerEpm(sem::types::Uuid epm_uuid);
     re::EnvironmentManager::TriggerPrototype& GetTrigger(const std::string& basicString);
 
-    types::Uuid StartEpmForContainer(Node& node, Container& container);
+    sem::types::Uuid StartEpmForContainer(Node& node, Container& container);
 
     auto Log(const std::vector<std::string>& messages) const -> void;
     auto LogError(const std::vector<std::string>& messages) const -> void;
@@ -206,7 +206,7 @@ private:
     bool TriggerShouldFire(const std::string& trigger_id);
 
     // trigger_instance uuid -> last time the trigger fired.
-    std::unordered_map<types::Uuid, std::chrono::system_clock::time_point> trigger_fire_times_;
+    std::unordered_map<sem::types::Uuid, std::chrono::system_clock::time_point> trigger_fire_times_;
 };
 }; // namespace re::EnvironmentManager
 

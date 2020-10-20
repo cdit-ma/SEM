@@ -21,7 +21,7 @@ public:
     Kind GetKind() { return kind_; }
 
 private:
-    std::vector<re::types::Uuid> attribute_definition_uuids_;
+    std::vector<sem::types::Uuid> attribute_definition_uuids_;
 
     // String name of the aggregate we're sending along this port.
     std::string medea_aggregate_type_;

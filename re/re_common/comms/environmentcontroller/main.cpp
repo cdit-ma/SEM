@@ -104,7 +104,7 @@ int main(int argc, char** argv)
         }
 
         else if(vm.count("start-experiment") && !experiment_uuid.empty()) {
-            auto uuid = re::types::Uuid{experiment_uuid};
+            auto uuid = sem::types::Uuid{experiment_uuid};
             auto success = controller.StartExperiment(uuid);
             if(success) {
                 std::cout << "Started experiment: " << uuid << std::endl;

@@ -163,88 +163,88 @@ auto ExperimentDefinition::ToProto() const -> std::unique_ptr<PbType>
 ExperimentDefinition::ExperimentDefinition(const ExperimentDefinition::PbType& definition_pb)
 {
     experiment_name_ = definition_pb.experiment_name();
-    uuid_ = types::Uuid{definition_pb.uuid()};
+    uuid_ = sem::types::Uuid{definition_pb.uuid()};
 
     for(const auto& [uuid, attribute_definition] : definition_pb.attribute_definitions()) {
         attribute_definitions_.insert(
-            {types::Uuid(uuid), AttributeDefinition{attribute_definition}});
+            {sem::types::Uuid(uuid), AttributeDefinition{attribute_definition}});
     }
 
     for(const auto& [uuid, attribute_instance] : definition_pb.attribute_instances()) {
         attribute_instances_.insert(
-            {types::Uuid{uuid}, ConstructAttributeInstance(attribute_instance)});
+            {sem::types::Uuid{uuid}, ConstructAttributeInstance(attribute_instance)});
     }
 
     for(const auto& [uuid, component_definition] : definition_pb.component_definitions()) {
         component_definitions_.insert(
-            {types::Uuid{uuid}, ComponentDefinition{component_definition}});
+            {sem::types::Uuid{uuid}, ComponentDefinition{component_definition}});
     }
 
     for(const auto& [uuid, component_instance] : definition_pb.component_instances()) {
-        component_instances_.insert({types::Uuid{uuid}, ComponentInstance{component_instance}});
+        component_instances_.insert({sem::types::Uuid{uuid}, ComponentInstance{component_instance}});
     }
 
     for(const auto& [uuid, component_assembly] : definition_pb.component_assemblies()) {
-        component_assemblies_.insert({types::Uuid{uuid}, ComponentAssembly{component_assembly}});
+        component_assemblies_.insert({sem::types::Uuid{uuid}, ComponentAssembly{component_assembly}});
     }
 
     for(const auto& [uuid, container] : definition_pb.containers()) {
-        container_definitions_.insert({types::Uuid{uuid}, Container{container}});
+        container_definitions_.insert({sem::types::Uuid{uuid}, Container{container}});
     }
 
     for(const auto& [uuid, middleware_port_definition] :
         definition_pb.middleware_port_definitions()) {
         middleware_port_definitions_.insert(
-            {types::Uuid{uuid}, MiddlewarePortDefinition{middleware_port_definition}});
+            {sem::types::Uuid{uuid}, MiddlewarePortDefinition{middleware_port_definition}});
     }
 
     for(const auto& [uuid, middleware_port_instance] : definition_pb.middleware_port_instances()) {
         middleware_port_instances_.insert(
-            {types::Uuid{uuid}, MiddlewarePortInstance{middleware_port_instance}});
+            {sem::types::Uuid{uuid}, MiddlewarePortInstance{middleware_port_instance}});
     }
 
     for(const auto& [uuid, periodic_port_definition] : definition_pb.periodic_port_definitions()) {
         periodic_port_definitions_.insert(
-            {types::Uuid{uuid}, PeriodicPortDefinition{periodic_port_definition}});
+            {sem::types::Uuid{uuid}, PeriodicPortDefinition{periodic_port_definition}});
     }
 
     for(const auto& [uuid, periodic_port_instance] : definition_pb.periodic_port_instances()) {
         periodic_port_instances_.insert(
-            {types::Uuid{uuid}, PeriodicPortInstance{periodic_port_instance}});
+            {sem::types::Uuid{uuid}, PeriodicPortInstance{periodic_port_instance}});
     }
 
     for(const auto& [uuid, port_delegate] : definition_pb.port_delegates()) {
-        port_delegates_.insert({types::Uuid{uuid}, PortDelegateInstance{port_delegate}});
+        port_delegates_.insert({sem::types::Uuid{uuid}, PortDelegateInstance{port_delegate}});
     }
 
     for(const auto& [uuid, node] : definition_pb.nodes()) {
-        node_definitions_.insert({types::Uuid{uuid}, Node{node}});
+        node_definitions_.insert({sem::types::Uuid{uuid}, Node{node}});
     }
 
     for(const auto& [uuid, cluster] : definition_pb.clusters()) {
-        cluster_definitions_.insert({types::Uuid{uuid}, Cluster{cluster}});
+        cluster_definitions_.insert({sem::types::Uuid{uuid}, Cluster{cluster}});
     }
 
     for(const auto& [uuid, trigger_definition] : definition_pb.trigger_definitions()) {
-        trigger_definitions_.insert({types::Uuid{uuid}, TriggerDefinition{trigger_definition}});
+        trigger_definitions_.insert({sem::types::Uuid{uuid}, TriggerDefinition{trigger_definition}});
     }
 
     for(const auto& [uuid, trigger_instance] : definition_pb.trigger_instances()) {
-        trigger_instances_.insert({types::Uuid{uuid}, TriggerInstance{trigger_instance}});
+        trigger_instances_.insert({sem::types::Uuid{uuid}, TriggerInstance{trigger_instance}});
     }
 
     for(const auto& [uuid, strategy] : definition_pb.strategies()) {
-        strategies_.insert({types::Uuid{uuid}, Strategy{strategy}});
+        strategies_.insert({sem::types::Uuid{uuid}, Strategy{strategy}});
     }
 
     for(const auto& [uuid, logging_server] : definition_pb.logging_server_definitions()) {
         logging_server_definitions_.insert(
-            {types::Uuid{uuid}, LoggingServerDefinition{logging_server}});
+            {sem::types::Uuid{uuid}, LoggingServerDefinition{logging_server}});
     }
 
     for(const auto& [uuid, logging_client] : definition_pb.logging_client_definitions()) {
         logging_client_definitions_.insert(
-            {types::Uuid{uuid}, LoggingClientDefinition{logging_client}});
+            {sem::types::Uuid{uuid}, LoggingClientDefinition{logging_client}});
     }
 }
 
@@ -429,8 +429,8 @@ void ExperimentDefinition::ConnectLoggingClientsToServers(GraphmlParser& parser)
         auto target_id = parser.GetAttribute(edge_id, "target");
         auto source_id = parser.GetAttribute(edge_id, "source");
 
-        types::Uuid client_uuid;
-        types::Uuid server_uuid;
+        sem::types::Uuid client_uuid;
+        sem::types::Uuid server_uuid;
         try {
             client_uuid = GetUuidFromMedeaId(source_id);
             server_uuid = GetUuidFromMedeaId(target_id);
@@ -451,7 +451,7 @@ void ExperimentDefinition::ConnectLoggingClientsToServers(GraphmlParser& parser)
 }
 
 // Throws
-void ExperimentDefinition::RegisterMedeaId(const types::Uuid& uuid, const std::string& medea_id)
+void ExperimentDefinition::RegisterMedeaId(const sem::types::Uuid& uuid, const std::string& medea_id)
 {
     if(uuid_to_medea_id_map_.count(uuid)) {
         throw std::invalid_argument("UUID collision when registering medea id: " + medea_id);
@@ -459,7 +459,7 @@ void ExperimentDefinition::RegisterMedeaId(const types::Uuid& uuid, const std::s
     uuid_to_medea_id_map_[uuid] = medea_id;
 }
 
-auto ExperimentDefinition::GetUuidFromMedeaId(const std::string& medea_id) -> types::Uuid
+auto ExperimentDefinition::GetUuidFromMedeaId(const std::string& medea_id) -> sem::types::Uuid
 {
     auto iter = std::find_if(uuid_to_medea_id_map_.begin(), uuid_to_medea_id_map_.end(),
                              [medea_id](auto pair) { return pair.second == medea_id; });
@@ -471,12 +471,12 @@ auto ExperimentDefinition::GetUuidFromMedeaId(const std::string& medea_id) -> ty
 
 auto ExperimentDefinition::GetDeploymentLocations(GraphmlParser& parser,
                                                   const std::string& deployed_entity_medea_id)
-    -> std::vector<types::Uuid>
+    -> std::vector<sem::types::Uuid>
 {
     auto deployment_map = detail::GetDeploymentMap(parser);
 
     auto deployment_locations_medea = deployment_map.at(deployed_entity_medea_id);
-    std::vector<types::Uuid> out{};
+    std::vector<sem::types::Uuid> out{};
     for(const auto& medea_id : deployment_locations_medea) {
         out.emplace_back(GetUuidFromMedeaId(medea_id));
     }
@@ -573,7 +573,7 @@ void ExperimentDefinition::PopulateAttributes(GraphmlParser& parser)
             if(parser.GetDataValue(grandparent_id, "kind") == "ComponentInstance") {
                 // TODO: populate this attribute instance with the correct definition uuid
                 auto attribute_instance = ConstructAttributeInstance(parser, attribute_instance_id,
-                                                                     types::Uuid{});
+                                                                     sem::types::Uuid{});
                 RegisterMedeaId(attribute_instance->GetCoreData().GetUuid(),
                                 attribute_instance->GetCoreData().GetMedeaId());
                 attribute_instances_.emplace(attribute_instance->GetCoreData().GetUuid(),
@@ -839,7 +839,7 @@ auto ExperimentDefinition::SetName(const std::string& experiment_name) -> void
 {
     experiment_name_ = experiment_name;
 }
-auto ExperimentDefinition::GetUuid() -> types::Uuid
+auto ExperimentDefinition::GetUuid() -> sem::types::Uuid
 {
     return uuid_;
 }

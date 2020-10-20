@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package re.types.proto.test;
+package sem.types.proto.test;
 
 message Message {
     string string = 1;

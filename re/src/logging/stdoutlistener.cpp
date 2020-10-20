@@ -1,8 +1,8 @@
 #include <boost/program_options.hpp>
 #include <network/protocols/epmstdout/epmstdout.pb.h>
 #include <network/subscriber.hpp>
-#include <types/socketaddress.hpp>
-#include <types/uuid.h>
+#include "socketaddress.hpp"
+#include "uuid.h"
 
 bool running_ = true;
 
@@ -40,8 +40,8 @@ auto main(int argc, char** argv) -> int
     po::notify(parsed_options);
 
 
-    auto uuid = re::types::Uuid{experiment_uuid_string};
-    auto qpid_broker_endpoint = re::types::SocketAddress(qpid_broker_endpoint_string);
+    auto uuid = sem::types::Uuid{experiment_uuid_string};
+    auto qpid_broker_endpoint = sem::types::SocketAddress(qpid_broker_endpoint_string);
 
     auto listen_topic = uuid.to_string() + "_epm_std_out";
 

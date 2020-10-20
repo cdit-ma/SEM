@@ -38,10 +38,10 @@ auto re::NodeManager::NodeConfig::FromIstream(std::basic_istream<char>& file_con
         po::notify(parsed_options);
 
         // If we don't have a uuid, a random one is initialised
-        types::Uuid uuid{};
+        sem::types::Uuid uuid{};
         if(parsed_options.count("uuid")) {
             // Read our uuid from our config file
-            uuid = types::Uuid{node_uuid_str};
+            uuid = sem::types::Uuid{node_uuid_str};
         }
 
         std::optional<std::string> hostname;
@@ -51,8 +51,8 @@ auto re::NodeManager::NodeConfig::FromIstream(std::basic_istream<char>& file_con
             hostname = hostname_string;
         }
 
-        return {{types::Ipv4(ip_address_str),
-                 types::SocketAddress(env_manager_registration_endpoint_string), library_root_str,
+        return {{sem::types::Ipv4(ip_address_str),
+                 sem::types::SocketAddress(env_manager_registration_endpoint_string), library_root_str,
                  uuid, hostname, re_bin_path}};
     } catch(const std::exception& ex) {
         std::cout << config_file_options << std::endl;

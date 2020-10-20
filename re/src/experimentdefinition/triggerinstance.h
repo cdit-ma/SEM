@@ -17,14 +17,14 @@ public:
                     const std::string& medea_id,
                     const TriggerDefinition& definition);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
-    auto GetStrategyUuid() const -> types::Uuid;
+    auto GetStrategyUuid() const -> sem::types::Uuid;
     auto AddStrategy(const Strategy& strategy) -> void;
-    auto GetDefinitionUuid() const -> types::Uuid { return definition_uuid_; }
+    auto GetDefinitionUuid() const -> sem::types::Uuid { return definition_uuid_; }
 
 private:
-    types::Uuid definition_uuid_;
+    sem::types::Uuid definition_uuid_;
 
-    types::Uuid strategy_uuid_;
+    sem::types::Uuid strategy_uuid_;
 };
 } // namespace re::Representation
 

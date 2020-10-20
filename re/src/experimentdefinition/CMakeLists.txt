@@ -62,7 +62,7 @@ target_sources(experiment_definition
 target_link_libraries(experiment_definition
         PUBLIC
         experiment_definition_protocol
-        re_types
+        sem_types
         re_graphml_parser_lib
         )
 

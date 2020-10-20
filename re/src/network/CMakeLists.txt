@@ -27,6 +27,6 @@ target_include_directories(re_network
 target_link_libraries(re_network
         INTERFACE
         ${QPID_LIBRARIES}
-        re_types_proto
-        re_types
+        sem_types_proto
+        sem_types
         )

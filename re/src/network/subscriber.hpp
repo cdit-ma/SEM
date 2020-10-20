@@ -19,7 +19,7 @@ namespace re::network {
 template<typename SubscribeType> class Subscriber {
     std::string topic_;
     std::string subject_;
-    types::SocketAddress broker_address_;
+    sem::types::SocketAddress broker_address_;
 
     qpid::messaging::Connection connection_;
     qpid::messaging::Session session_ = nullptr;
@@ -27,7 +27,7 @@ template<typename SubscribeType> class Subscriber {
     std::future<void> run_handle_;
 
 public:
-    Subscriber(types::SocketAddress broker_address,
+    Subscriber(sem::types::SocketAddress broker_address,
                std::string_view topic,
                std::string_view subject) :
         broker_address_{broker_address},
@@ -68,7 +68,7 @@ private:
             while(receiver.fetch(message)) {
                 try {
                     handler(
-                        re::types::Serializable<SubscribeType>::deserialize(message.getContent()));
+                        sem::types::Serializable<SubscribeType>::deserialize(message.getContent()));
                 } catch(const qpid::messaging::ResolutionError& ex) {
                     try {
                         session_.reject(message);

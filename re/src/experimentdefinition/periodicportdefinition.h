@@ -21,7 +21,7 @@ public:
                            const AttributeDefinition& period_attribute);
 
 private:
-    types::Uuid frequency_attribute_definition_uuid_;
+    sem::types::Uuid frequency_attribute_definition_uuid_;
 };
 
 } // namespace re::Representation

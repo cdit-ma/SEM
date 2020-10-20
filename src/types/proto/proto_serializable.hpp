@@ -1,12 +1,12 @@
 #ifndef RE_SERIALIZABLE_PROTO_HPP
 #define RE_SERIALIZABLE_PROTO_HPP
 
+#include "serializable.hpp"
 #include <google/protobuf/message.h>
 #include <type_traits>
-#include "serializable.hpp"
 #include <utility>
 
-namespace re::types {
+namespace sem::types {
 /// Template specialisation of Serializable
 ///  See src/types/serializable.hpp
 template<typename T>
@@ -36,6 +36,6 @@ public:
         return message;
     }
 };
-} // namespace re::types
+} // namespace sem::types
 
 #endif // RE_SERIALIZABLE_PROTO_HPP

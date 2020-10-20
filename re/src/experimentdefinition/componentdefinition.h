@@ -21,11 +21,11 @@ public:
 private:
     std::vector<std::string> medea_namespaces_;
 
-    std::vector<types::Uuid> middleware_port_definition_uuids_;
-    std::vector<types::Uuid> periodic_port_definition_uuids_;
-    std::vector<types::Uuid> worker_definition_uuids_;
-    std::vector<types::Uuid> attribute_definition_uuids_;
-    std::vector<types::Uuid> trigger_definition_uuids_;
+    std::vector<sem::types::Uuid> middleware_port_definition_uuids_;
+    std::vector<sem::types::Uuid> periodic_port_definition_uuids_;
+    std::vector<sem::types::Uuid> worker_definition_uuids_;
+    std::vector<sem::types::Uuid> attribute_definition_uuids_;
+    std::vector<sem::types::Uuid> trigger_definition_uuids_;
 };
 
 } // namespace re::Representation

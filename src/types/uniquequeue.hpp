@@ -9,7 +9,7 @@
 // REVIEW (Mitch): Add tests.
 // REVIEW (Mitch): Take second hit at this class
 //  Perfect forwarding should be considered
-namespace re::types {
+namespace sem::types {
 template<typename T> class unique_queue {
 private:
     std::queue<T> m_queue;
@@ -43,5 +43,5 @@ public:
     [[nodiscard]] bool empty() const { return m_queue.empty(); }
 };
 
-} // namespace re::types
+} // namespace sem::types
 #endif // UNIQUE_QUEUE_H

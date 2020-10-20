@@ -19,7 +19,7 @@ namespace re::network {
 template<typename RequestType, typename ReplyType> class Requester {
     std::string topic_;
     std::string subject_;
-    types::SocketAddress broker_address_;
+    sem::types::SocketAddress broker_address_;
 
     qpid::messaging::Connection connection_;
     qpid::messaging::Session session_ = nullptr;
@@ -29,7 +29,7 @@ public:
     public:
         explicit exception(const std::string& what_arg) : std::runtime_error(what_arg){};
     };
-    Requester(const types::SocketAddress& broker_address,
+    Requester(const sem::types::SocketAddress& broker_address,
               std::string_view topic,
               std::string_view subject) :
         broker_address_{broker_address},
@@ -41,7 +41,7 @@ public:
         session_ = connection_.createSession();
     }
 
-    auto request(RequestType message, const types::Timeout& timeout) -> ReplyType
+    auto request(RequestType message, const sem::types::Timeout& timeout) -> ReplyType
     {
         try {
             qpid::messaging::Sender sender = session_.createSender(
@@ -51,17 +51,17 @@ public:
 
             qpid::messaging::Message request;
             request.setReplyTo(response_queue);
-            request.setContent(types::Serializable<RequestType>::serialize(message));
+            request.setContent(sem::types::Serializable<RequestType>::serialize(message));
             sender.send(request);
             qpid::messaging::Message response;
-            if(std::holds_alternative<types::NeverTimeout>(timeout)) {
+            if(std::holds_alternative<sem::types::NeverTimeout>(timeout)) {
                 response = receiver.fetch();
             } else if(std::holds_alternative<std::chrono::milliseconds>(timeout)) {
                 response = receiver.fetch(qpid::messaging::Duration{
                     static_cast<uint64_t>(std::get<std::chrono::milliseconds>(timeout).count())});
             }
             session_.acknowledge(true);
-            return types::Serializable<ReplyType>::deserialize(response.getContent());
+            return sem::types::Serializable<ReplyType>::deserialize(response.getContent());
         } catch(const qpid::messaging::ResolutionError& ex) {
             throw exception("Could not connect to receiver on topic: " + topic_);
         }
