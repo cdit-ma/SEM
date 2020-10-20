@@ -18,24 +18,24 @@ namespace re::EnvironmentManager {
 class EndpointTracker {
 public:
     EndpointTracker(std::string name,
-                    types::Ipv4 ip_address,
-                    types::unique_queue<uint16_t> port_set);
+                    sem::types::Ipv4 ip_address,
+                    sem::types::unique_queue<uint16_t> port_set);
 
     [[nodiscard]] auto empty() const -> bool;
 
-    auto GetEndpoint() -> types::SocketAddress;
+    auto GetEndpoint() -> sem::types::SocketAddress;
 
-    auto FreeEndpoint(types::SocketAddress endpoint) -> void;
+    auto FreeEndpoint(sem::types::SocketAddress endpoint) -> void;
     auto GetName() -> std::string;
     auto SetName(const std::string& name) -> void;
 
-    auto GetIp() -> types::Ipv4;
+    auto GetIp() -> sem::types::Ipv4;
 
 private:
     std::string name_;
-    types::Ipv4 ip_;
+    sem::types::Ipv4 ip_;
     std::mutex port_mutex_;
-    types::unique_queue<uint16_t> available_ports_;
+    sem::types::unique_queue<uint16_t> available_ports_;
 };
 }; // namespace re::EnvironmentManager
 

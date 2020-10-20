@@ -33,7 +33,7 @@ auto PortDelegateInstance::ToProto() const -> std::unique_ptr<PortDelegateInstan
     return out;
 }
 PortDelegateInstance::PortDelegateInstance(GraphmlParser& parser, const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
     medea_aggregate_type_{parser.GetDataValue(medea_id, "type")}
 {
 }

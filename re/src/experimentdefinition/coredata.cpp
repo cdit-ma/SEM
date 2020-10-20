@@ -13,11 +13,11 @@ auto CoreData::ToProto() const -> std::unique_ptr<PbType>
 }
 CoreData::CoreData(const CoreData::PbType& pb)
 {
-    uuid_ = types::Uuid{pb.uuid()};
+    uuid_ = sem::types::Uuid{pb.uuid()};
     medea_name_ = pb.medea_name();
     medea_id_ = pb.medea_id();
 }
-CoreData::CoreData(types::Uuid uuid, const std::string& medea_id, const std::string& medea_name) :
+CoreData::CoreData(sem::types::Uuid uuid, const std::string& medea_id, const std::string& medea_name) :
     uuid_{uuid}, medea_id_{medea_id}, medea_name_{medea_name}
 {
 }

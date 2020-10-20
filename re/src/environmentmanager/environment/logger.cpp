@@ -141,7 +141,7 @@ bool Logger::IsDirty()
     return dirty_;
 }
 
-auto Logger::GetPublisherEndpoint() const -> types::SocketAddress
+auto Logger::GetPublisherEndpoint() const -> sem::types::SocketAddress
 {
     return publisher_endpoint_;
 }

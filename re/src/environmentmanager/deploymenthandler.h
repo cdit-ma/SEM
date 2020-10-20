@@ -24,11 +24,11 @@ namespace re::EnvironmentManager {
 class DeploymentHandler {
 public:
     DeploymentHandler(EnvironmentManager::Environment& env,
-                      const types::Ipv4& environment_manager_ip_address,
+                      const sem::types::Ipv4& environment_manager_ip_address,
                       EnvironmentManager::Environment::DeploymentType deployment_type,
-                      const types::Ipv4& deployment_ip_address,
+                      const sem::types::Ipv4& deployment_ip_address,
                       std::promise<uint16_t> port_promise,
-                      types::Uuid experiment_uuid);
+                      sem::types::Uuid experiment_uuid);
 
     bool IsRemovable() const;
     ~DeploymentHandler();
@@ -49,10 +49,10 @@ private:
 
     std::future<void> heartbeat_future_;
     EnvironmentManager::Environment& environment_;
-    const types::Ipv4 environment_manager_ip_address_;
+    const sem::types::Ipv4 environment_manager_ip_address_;
     const EnvironmentManager::Environment::DeploymentType deployment_type_;
-    const types::Ipv4 deployment_ip_address_;
-    const types::Uuid experiment_uuid_;
+    const sem::types::Ipv4 deployment_ip_address_;
+    const sem::types::Uuid experiment_uuid_;
 
     std::mutex replier_mutex_;
     std::unique_ptr<zmq::ProtoReplier> replier_;

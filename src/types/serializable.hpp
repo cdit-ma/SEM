@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace re::types {
+namespace sem::types {
 
 /// This is a template interface showing the methods any template specialization should implement.
 /// This template interface should be implemented for any class that needs to be
@@ -19,6 +19,6 @@ public:
     static auto deserialize(const std::string&) -> T = delete;
     auto deserialize() -> T = delete;
 };
-} // namespace re::types
+} // namespace sem::types
 
 #endif // RE_SERIALIZABLE_HPP

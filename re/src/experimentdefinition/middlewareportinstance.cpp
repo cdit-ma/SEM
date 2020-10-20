@@ -92,8 +92,8 @@ auto MiddlewarePortInstance::ToProto() const -> std::unique_ptr<PbType>
 }
 MiddlewarePortInstance::MiddlewarePortInstance(GraphmlParser& parser,
                                                const std::string& medea_id,
-                                               const types::Uuid& definition_uuid) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+                                               const sem::types::Uuid& definition_uuid) :
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
     definition_uuid_{definition_uuid}
 {
     auto middleware_str = parser.GetDataValue(medea_id, "middleware");

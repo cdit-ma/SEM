@@ -56,7 +56,7 @@ Container::Container(EnvironmentManager::Environment& environment,
     }
 }
 
-Container::Container(const types::Uuid& event_uuid,
+Container::Container(const sem::types::Uuid& event_uuid,
                      Environment& environment,
                      Node& parent,
                      const re::Representation::ExperimentDefinition& experiment_definition,
@@ -204,7 +204,7 @@ void Container::AddComponent(const NodeManager::Component& component_pb)
     components_.emplace(id, std::move(component));
 }
 
-void Container::AddComponent(const types::Uuid& event_uuid,
+void Container::AddComponent(const sem::types::Uuid& event_uuid,
                              const re::Representation::ExperimentDefinition& experiment_definition,
                              const re::Representation::ComponentInstance& component)
 {
@@ -256,7 +256,7 @@ int Container::GetLoganServerCount() const
     return temp;
 }
 
-auto Container::GetUnqualifiedOrbEndpoint() const -> types::SocketAddress
+auto Container::GetUnqualifiedOrbEndpoint() const -> sem::types::SocketAddress
 {
     return unqualified_orb_endpoint_;
 }

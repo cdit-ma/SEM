@@ -49,7 +49,7 @@ std::unique_ptr<Port> Port::ConstructPort(Component& parent, const NodeManager::
 }
 
 std::unique_ptr<Port>
-Port::ConstructPort(const types::Uuid& event_uuid,
+Port::ConstructPort(const sem::types::Uuid& event_uuid,
                     Component& parent,
                     const re::Representation::ExperimentDefinition& experiment_definition,
                     const re::Representation::MiddlewarePortInstance& middleware_port_instance)
@@ -153,7 +153,7 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
         AddInternalConnectedPortId(connected_id);
     }
 }
-Port::Port(const types::Uuid& event_uuid,
+Port::Port(const sem::types::Uuid& event_uuid,
            Component& parent,
            const Representation::ExperimentDefinition& experiment_definition,
            const Representation::MiddlewarePortInstance& port_instance) :
@@ -169,7 +169,7 @@ Port::Port(const types::Uuid& event_uuid,
     SetType(port_definition.GetMedeaAggregateType());
 }
 
-Port::Port(const types::Uuid& event_uuid,
+Port::Port(const sem::types::Uuid& event_uuid,
            Component& parent,
            const Representation::ExperimentDefinition& experiment_definition,
            const Representation::PeriodicPortInstance& port_instance) :

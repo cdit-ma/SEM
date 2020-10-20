@@ -2,7 +2,7 @@
 #include "requester.hpp"
 #include "socketaddress.hpp"
 namespace re::EnvironmentManager {
-NodeManagerRegistry::NodeManagerRegistry(types::SocketAddress broker_address) :
+NodeManagerRegistry::NodeManagerRegistry(sem::types::SocketAddress broker_address) :
     broker_address_{broker_address}, replier_{broker_address_, nodemanager_registration_topic_, ""}
 {
     replier_.run([this](const NodeManagerRegistrationRequestType& request) {
@@ -17,7 +17,7 @@ auto NodeManagerRegistry::HeartbeatLoop() -> void
 {
     auto heartbeat_period = std::chrono::seconds(3);
     while(true) {
-        std::vector<types::Uuid> to_remove{};
+        std::vector<sem::types::Uuid> to_remove{};
         std::unique_lock lock{heartbeat_mutex_};
         if(heartbeat_cv_.wait_for(lock, heartbeat_period,
                                   [this] { return end_heartbeat_.load(); })) {
@@ -50,7 +50,7 @@ auto NodeManagerRegistry::HandleRequest(const NodeManagerRegistrationRequestType
     if(request.has_registration()) {
         const auto& sub_message = request.registration();
         assert(!sub_message.uuid().empty());
-        auto uuid = types::Uuid{sub_message.uuid()};
+        auto uuid = sem::types::Uuid{sub_message.uuid()};
         NodeManagerRegistrationReplyType reply;
         std::lock_guard lock{node_managers_lock_};
         if(!node_managers_.count(uuid)) {
@@ -75,7 +75,7 @@ auto NodeManagerRegistry::HandleRequest(const NodeManagerRegistrationRequestType
     } else if(request.has_heartbeat()) {
         const auto& sub_message = request.heartbeat();
         assert(!sub_message.uuid().empty());
-        auto uuid = types::Uuid{sub_message.uuid()};
+        auto uuid = sem::types::Uuid{sub_message.uuid()};
         UpdateLastHeartbeatTime(uuid);
         NodeManagerRegistrationReplyType reply;
         return reply;
@@ -97,7 +97,7 @@ NodeManagerRegistry::~NodeManagerRegistry()
     stop();
 }
 
-auto NodeManagerRegistry::GetNodeManagerUuid(const std::string& hostname) -> types::Uuid
+auto NodeManagerRegistry::GetNodeManagerUuid(const std::string& hostname) -> sem::types::Uuid
 {
     std::lock_guard lock{node_managers_lock_};
     auto it = std::find_if(std::begin(node_managers_), std::end(node_managers_),
@@ -108,9 +108,9 @@ auto NodeManagerRegistry::GetNodeManagerUuid(const std::string& hostname) -> typ
     return it->first;
 }
 
-auto NodeManagerRegistry::NewEpm(types::Uuid node_uuid,
-                                 types::Uuid experiment_uuid,
-                                 const std::string& experiment_name) -> types::Uuid
+auto NodeManagerRegistry::NewEpm(sem::types::Uuid node_uuid,
+                                 sem::types::Uuid experiment_uuid,
+                                 const std::string& experiment_name) -> sem::types::Uuid
 {
     {
         std::lock_guard lock{node_managers_lock_};
@@ -128,14 +128,14 @@ auto NodeManagerRegistry::NewEpm(types::Uuid node_uuid,
 
     // TODO: Set realistic timeout.
     try {
-        auto reply = requester.request(request, types::NeverTimeout());
+        auto reply = requester.request(request, sem::types::NeverTimeout());
         if(reply.success()) {
-            auto new_epm_uuid = types::Uuid(reply.epm_uuid());
+            auto new_epm_uuid = sem::types::Uuid(reply.epm_uuid());
             std::cout << "[NodeManagerRegistry] - Launched EPM: (" << new_epm_uuid << ")\n"
                       << "    For experiment: " << experiment_name << " (" << experiment_uuid << ")"
                       << std::endl;
             epm_location_map_.insert({new_epm_uuid, node_uuid});
-            return types::Uuid{reply.epm_uuid()};
+            return sem::types::Uuid{reply.epm_uuid()};
         } else {
             throw std::runtime_error("Failed to register new epm: " + reply.failure_message());
         }
@@ -147,10 +147,10 @@ auto NodeManagerRegistry::NewEpm(types::Uuid node_uuid,
     }
 }
 
-auto NodeManagerRegistry::StartExperimentProcess(types::Uuid epm_uuid,
+auto NodeManagerRegistry::StartExperimentProcess(sem::types::Uuid epm_uuid,
                                                  const std::string& container_id,
-                                                 types::SocketAddress manager_publisher_endpoint,
-                                                 types::SocketAddress manager_registration_endpoint,
+                                                 sem::types::SocketAddress manager_publisher_endpoint,
+                                                 sem::types::SocketAddress manager_registration_endpoint,
                                                  const std::string& library_path) -> void
 {
     network::Requester<EpmControl, EpmControlReply> requester{broker_address_,
@@ -166,7 +166,7 @@ auto NodeManagerRegistry::StartExperimentProcess(types::Uuid epm_uuid,
 
     try {
         // TODO: Set realistic timeout.
-        auto reply = requester.request(request, types::NeverTimeout());
+        auto reply = requester.request(request, sem::types::NeverTimeout());
 
         if(reply.success()) {
             std::cout << "[NodeManagerRegistry] - Launched experiment process for container: \""
@@ -181,12 +181,12 @@ auto NodeManagerRegistry::StartExperimentProcess(types::Uuid epm_uuid,
     }
 }
 
-auto NodeManagerRegistry::BuildNodeManagerControlTopicName(types::Uuid node_uuid) -> std::string
+auto NodeManagerRegistry::BuildNodeManagerControlTopicName(sem::types::Uuid node_uuid) -> std::string
 {
     return node_uuid.to_string() + "_control_topic";
 }
 
-auto NodeManagerRegistry::BuildEpmControlTopicName(types::Uuid epm_uuid) -> std::string
+auto NodeManagerRegistry::BuildEpmControlTopicName(sem::types::Uuid epm_uuid) -> std::string
 {
     return epm_uuid.to_string() + "_epm_control";
 }
@@ -195,20 +195,20 @@ auto NodeManagerRegistry::BuildEpmControlTopicName(types::Uuid epm_uuid) -> std:
  * Send kill messages to all epms started for given epm uuid.
  * @param experiment_uuid
  */
-auto NodeManagerRegistry::StopEpm(types::Uuid epm_uuid) -> void
+auto NodeManagerRegistry::StopEpm(sem::types::Uuid epm_uuid) -> void
 {
     network::Requester<EpmControl, EpmControlReply> epm_requester{
         broker_address_, BuildEpmControlTopicName(epm_uuid), ""};
     EpmControl stop_request;
     stop_request.mutable_stop();
-    auto epm_reply = epm_requester.request(stop_request, types::NeverTimeout());
+    auto epm_reply = epm_requester.request(stop_request, sem::types::NeverTimeout());
     if(!epm_reply.success()) {
         std::cerr << "[NodeManagerRegistry] - Failed to stop EPM:\n    (" << epm_uuid << ")"
                   << std::endl;
     }
 }
 
-auto NodeManagerRegistry::KillBareMetalEpm(types::Uuid epm_uuid) -> void
+auto NodeManagerRegistry::KillBareMetalEpm(sem::types::Uuid epm_uuid) -> void
 {
     if(epm_location_map_.count(epm_uuid) == 0) {
         throw std::runtime_error("No epm of uuid: " + epm_uuid.to_string());
@@ -229,7 +229,7 @@ auto NodeManagerRegistry::KillBareMetalEpm(types::Uuid epm_uuid) -> void
     }
 }
 
-void NodeManagerRegistry::UpdateLastHeartbeatTime(types::Uuid uuid)
+void NodeManagerRegistry::UpdateLastHeartbeatTime(sem::types::Uuid uuid)
 {
     std::lock_guard lock{node_managers_lock_};
     node_managers_.at(uuid).last_heartbeat = std::chrono::steady_clock::now();

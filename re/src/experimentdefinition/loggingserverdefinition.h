@@ -16,7 +16,7 @@ public:
 
 private:
     std::string db_file_name_;
-    std::vector<types::Uuid> logging_client_definition_uuids_;
+    std::vector<sem::types::Uuid> logging_client_definition_uuids_;
 };
 } // namespace re::Representation
 

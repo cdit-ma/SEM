@@ -17,12 +17,12 @@ public:
                    const WorkerDefinition& definition);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
     void AddAttributeInstance(const AttributeInstanceInterface& attribute_instance);
-    [[nodiscard]] auto GetDefinitionUuid() const -> types::Uuid { return definition_uuid_; }
+    [[nodiscard]] auto GetDefinitionUuid() const -> sem::types::Uuid { return definition_uuid_; }
 
 private:
-    types::Uuid definition_uuid_;
+    sem::types::Uuid definition_uuid_;
 
-    std::vector<types::Uuid> attribute_instance_uuids_;
+    std::vector<sem::types::Uuid> attribute_instance_uuids_;
 };
 } // namespace re::Representation
 

@@ -7,18 +7,18 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_$<CONFIG> ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/t
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/test/gtest)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_$<CONFIG> ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/test/gtest)
 
-add_executable(test_re_types_proto)
-target_compile_features(test_re_types_proto PRIVATE cxx_std_17)
+add_executable(test_sem_types_proto)
+target_compile_features(test_sem_types_proto PRIVATE cxx_std_17)
 
-target_sources(test_re_types_proto PRIVATE
+target_sources(test_sem_types_proto PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/test_proto_serializable.cpp
         )
 
-target_link_libraries(test_re_types_proto
+target_link_libraries(test_sem_types_proto
         PRIVATE
-        re_types
-        re_types_proto
+        sem_types
+        sem_types_proto
         gtest
         gtest_main
-        re_types_proto_testmessage
+        sem_types_proto_testmessage
         )

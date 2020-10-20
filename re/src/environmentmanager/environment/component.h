@@ -20,7 +20,7 @@ class TriggerPrototype;
 class Component {
 public:
     Component(Environment& environment, Container& parent, const NodeManager::Component& component);
-    Component(const types::Uuid& event_uuid,
+    Component(const sem::types::Uuid& event_uuid,
               Environment& environment,
               Container& parent,
               const re::Representation::ExperimentDefinition& experiment_definition,

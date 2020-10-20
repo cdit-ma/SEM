@@ -7,7 +7,7 @@ namespace re::Representation {
 PeriodicPortDefinition::PeriodicPortDefinition(const PeriodicPortDefinition::PbType& pb) :
     DefaultModelEntity{pb.core_data()}
 {
-    frequency_attribute_definition_uuid_ = types::Uuid{pb.frequency_attribute_definition_uuid()};
+    frequency_attribute_definition_uuid_ = sem::types::Uuid{pb.frequency_attribute_definition_uuid()};
 }
 auto PeriodicPortDefinition::ToProto() const -> std::unique_ptr<PbType>
 {
@@ -21,7 +21,7 @@ auto PeriodicPortDefinition::ToProto() const -> std::unique_ptr<PbType>
 PeriodicPortDefinition::PeriodicPortDefinition(GraphmlParser& parser,
                                                const std::string& medea_id,
                                                const AttributeDefinition& period_attribute) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
     frequency_attribute_definition_uuid_{period_attribute.GetCoreData().GetUuid()}
 {
 }

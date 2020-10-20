@@ -1,10 +1,10 @@
 #ifndef CPP_UTIL_IPV4_HPP
 #define CPP_UTIL_IPV4_HPP
 #include <array>
-#include <string>
 #include <ostream>
+#include <string>
 
-namespace re::types {
+namespace sem::types {
 
 class Ipv4 {
 public:
@@ -90,12 +90,12 @@ inline auto operator==(const Ipv4& a, const Ipv4& b)
     return a.octets() == b.octets();
 }
 
-} // namespace re::types
+} // namespace sem::types
 
 /// Supply std namespaced hash function object s.t. we can use re::uuid as std::unordered map key.
 namespace std {
-template<> struct hash<re::types::Ipv4> {
-    auto operator()(const re::types::Ipv4& ip) const -> size_t { return ip.hash(); }
+template<> struct hash<sem::types::Ipv4> {
+    auto operator()(const sem::types::Ipv4& ip) const -> size_t { return ip.hash(); }
 };
 } // namespace std
 #endif // CPP_UTIL_IPV4_HPP

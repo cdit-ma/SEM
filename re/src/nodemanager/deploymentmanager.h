@@ -30,13 +30,13 @@ public:
     // REVIEW (Mitch): Config struct, use endpoint class to be defined in util library, use
     //  std::filesystem path
     // REVIEW(Jackson): Can't actually use std::filesystem at this point in time
-    DeploymentManager(re::types::Uuid experiment_uuid,
-                      re::types::SocketAddress broker_address,
+    DeploymentManager(sem::types::Uuid experiment_uuid,
+                      sem::types::SocketAddress broker_address,
                       std::string experiment_name,
-                      const re::types::Ipv4& ip_address,
+                      const sem::types::Ipv4& ip_address,
                       std::string container_id,
-                      const re::types::SocketAddress& master_publisher_endpoint,
-                      const re::types::SocketAddress& master_registration_endpoint,
+                      const sem::types::SocketAddress& master_publisher_endpoint,
+                      const sem::types::SocketAddress& master_registration_endpoint,
                       std::string library_path);
     ~DeploymentManager();
 
@@ -50,16 +50,16 @@ public:
     void RequestDeployment();
 
 private:
-    re::types::Uuid experiment_uuid_;
-    re::types::SocketAddress broker_address_;
+    sem::types::Uuid experiment_uuid_;
+    sem::types::SocketAddress broker_address_;
     std::unique_ptr<NodeManager::SlaveId> GetSlaveID() const;
     void ProcessControlQueue();
     void InteruptControlQueue(); // REVIEW (Mitch): Typo in Interrupt
 
     const std::string library_path_;
-    const re::types::Ipv4 ip_address_;
+    const sem::types::Ipv4 ip_address_;
     // REVIEW (Mitch): "Container" is misleading. See earlier review comment.
-    //  Will eventually rename to experiment_process_uuid and use re::types::Uuid type
+    //  Will eventually rename to experiment_process_uuid and use sem::types::Uuid type
     const std::string container_id_;
     const std::string experiment_name_;
 

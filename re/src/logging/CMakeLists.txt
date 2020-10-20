@@ -10,7 +10,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC re_types)
+target_link_libraries(${PROJECT_NAME} PUBLIC sem_types)
 target_link_libraries(${PROJECT_NAME} PUBLIC re_network)
 target_link_libraries(${PROJECT_NAME} PUBLIC epm_stdout_protocol)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${Boost_PROGRAM_OPTIONS_LIBRARY})

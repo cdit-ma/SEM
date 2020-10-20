@@ -37,7 +37,7 @@ target_link_libraries(re_node_manager_lib
         re_loggers
         re_network
         re_core
-        re_types
+        sem_types
         node_manager_registration_protocol
         node_manager_control_protocol
         epm_registration_protocol

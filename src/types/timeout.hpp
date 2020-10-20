@@ -4,12 +4,12 @@
 #include <chrono>
 #include <variant>
 
-namespace re::types {
+namespace sem::types {
 
 class NeverTimeout {
 };
 
 using Timeout = std::variant<NeverTimeout, std::chrono::milliseconds>;
-} // namespace re::types
+} // namespace sem::types
 
 #endif // RE_TIMEOUT_H

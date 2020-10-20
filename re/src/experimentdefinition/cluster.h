@@ -28,13 +28,13 @@ public:
 
 private:
     std::string jenkins_url_;
-    std::vector<types::Uuid> node_uuids_;
+    std::vector<sem::types::Uuid> node_uuids_;
 
-    std::vector<types::Uuid> deployed_container_uuids_;
-    std::vector<types::Uuid> deployed_component_instance_uuids_;
-    std::vector<types::Uuid> deployed_component_assembly_uuids_;
-    std::vector<types::Uuid> deployed_logging_client_uuids_;
-    std::vector<types::Uuid> deployed_logging_server_uuids_;
+    std::vector<sem::types::Uuid> deployed_container_uuids_;
+    std::vector<sem::types::Uuid> deployed_component_instance_uuids_;
+    std::vector<sem::types::Uuid> deployed_component_assembly_uuids_;
+    std::vector<sem::types::Uuid> deployed_logging_client_uuids_;
+    std::vector<sem::types::Uuid> deployed_logging_server_uuids_;
 };
 
 } // namespace re::Representation

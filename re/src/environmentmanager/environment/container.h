@@ -20,7 +20,7 @@ class Container {
 public:
     enum class Type { Docker, Generic };
     Container(Environment& environment, Node& parent, const NodeManager::Container& container);
-    Container(const types::Uuid& event_uuid,
+    Container(const sem::types::Uuid& event_uuid,
               Environment& environment,
               Node& parent,
               const re::Representation::ExperimentDefinition& experiment_definition,
@@ -43,7 +43,7 @@ public:
     Port& GetPort(const std::string& port_id);
 
     void AddComponent(const NodeManager::Component& component_pb);
-    void AddComponent(const types::Uuid& event_uuid,
+    void AddComponent(const sem::types::Uuid& event_uuid,
                       const re::Representation::ExperimentDefinition& experiment_definition,
                       const re::Representation::ComponentInstance& component);
     void AddLogger(const NodeManager::Logger& logger_pb);
@@ -53,7 +53,7 @@ public:
     int GetLoganServerCount() const;
     std::vector<std::string> GetLoganServerIds() const;
 
-    auto GetUnqualifiedOrbEndpoint() const -> types::SocketAddress;
+    auto GetUnqualifiedOrbEndpoint() const -> sem::types::SocketAddress;
 
     bool IsDocker() const;
 
@@ -76,8 +76,8 @@ private:
     std::string type_;
     Type container_type_;
 
-    types::SocketAddress management_endpoint_;
-    types::SocketAddress unqualified_orb_endpoint_;
+    sem::types::SocketAddress management_endpoint_;
+    sem::types::SocketAddress unqualified_orb_endpoint_;
 
     bool dirty_;
 

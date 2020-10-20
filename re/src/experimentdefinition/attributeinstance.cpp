@@ -5,7 +5,7 @@ namespace re::Representation {
 auto ConstructAttributeInstance(const AttributeInstancePb& attr_pb)
     -> std::unique_ptr<AttributeInstanceInterface>
 {
-    types::Uuid definition_uuid{attr_pb.definition_uuid()};
+    sem::types::Uuid definition_uuid{attr_pb.definition_uuid()};
     switch(attr_pb.type()) {
         case AttributeTypePb::String: {
             return std::make_unique<AttributeInstance<std::string>>(attr_pb.core_data(),
@@ -52,10 +52,10 @@ auto ConstructAttributeInstance(const AttributeInstancePb& attr_pb)
 
 auto ConstructAttributeInstance(GraphmlParser& parser,
                                 const std::string& medea_id,
-                                const types::Uuid& definition_uuid)
+                                const sem::types::Uuid& definition_uuid)
     -> std::unique_ptr<AttributeInstanceInterface>
 {
-    CoreData core_data{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")};
+    CoreData core_data{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")};
 
     auto type_str = parser.GetDataValue(medea_id, "type");
     auto value_str = parser.GetDataValue(medea_id, "value");

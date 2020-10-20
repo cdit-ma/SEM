@@ -28,7 +28,7 @@ class ExperimentManager {
 public:
     // REVIEW (Mitch): Use endpoint class
     ExperimentManager(Experiment& experiment,
-                     const types::Timeout& duration);
+                     const sem::types::Timeout& duration);
     ~ExperimentManager();
     void UpdateExperiment();
 
@@ -66,7 +66,7 @@ private:
     void HandleExperimentUpdate(const NodeManager::EnvironmentMessage& environment_update);
 
     // REVIEW (Mitch): Passing futures feels like a code smell.
-    void ExecutionLoop(const types::Timeout& duration,
+    void ExecutionLoop(const sem::types::Timeout& duration,
                        std::future<void> execute_future,
                        std::future<void> terminate_future);
 
@@ -92,10 +92,10 @@ private:
     void HandleSlaveStateChange();
 
     Experiment& experiment_;
-    const types::Uuid experiment_manager_uuid_;
-    const types::SocketAddress master_publisher_endpoint_;
-    const types::SocketAddress master_registration_endpoint_;
-    const types::SocketAddress experiment_logger_endpoint_;
+    const sem::types::Uuid experiment_manager_uuid_;
+    const sem::types::SocketAddress master_publisher_endpoint_;
+    const sem::types::SocketAddress master_registration_endpoint_;
+    const sem::types::SocketAddress experiment_logger_endpoint_;
 
 
     std::mutex execution_mutex_;

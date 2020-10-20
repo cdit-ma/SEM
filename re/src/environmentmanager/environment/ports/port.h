@@ -16,11 +16,11 @@ class Component;
 class Attribute;
 class Port{
     public:
-    Port(const types::Uuid& event_uuid,
+    Port(const sem::types::Uuid& event_uuid,
          Component& parent,
          const Representation::ExperimentDefinition& experiment_definition,
          const Representation::MiddlewarePortInstance& port_instance);
-    Port(const types::Uuid& event_uuid,
+    Port(const sem::types::Uuid& event_uuid,
          Component& parent,
          const Representation::ExperimentDefinition& experiment_definition,
          const Representation::PeriodicPortInstance& port_instance);
@@ -49,7 +49,7 @@ class Port{
         virtual ~Port();
 
         static std::unique_ptr<Port> ConstructPort(Component& parent, const NodeManager::Port& port);
-        static std::unique_ptr<Port> ConstructPort(const re::types::Uuid& event_uuid,
+        static std::unique_ptr<Port> ConstructPort(const sem::types::Uuid& event_uuid,
                   Component& parent,
                   const re::Representation::ExperimentDefinition& experiment_definition,
                   const re::Representation::MiddlewarePortInstance& middleware_port_instance);

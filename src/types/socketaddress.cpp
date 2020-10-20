@@ -4,7 +4,7 @@
 #include "socketaddress.hpp"
 #include <regex>
 #include <variant>
-namespace re::types {
+namespace sem::types {
 
 namespace detail {
 auto parse_port_from_string(const std::string& port) -> uint16_t
@@ -37,4 +37,4 @@ auto SocketAddress::parse_socket_address(const std::string& addr_string)
                                     + ex.what());
     }
 }
-} // namespace re::types
+} // namespace sem::types

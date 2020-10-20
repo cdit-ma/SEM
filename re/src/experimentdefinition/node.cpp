@@ -32,7 +32,7 @@ auto Node::ToProto() const -> std::unique_ptr<PbType>
     return out;
 }
 Node::Node(const PbType& pb) :
-    DefaultModelEntity{pb.core_data()}, ip_address_{types::Ipv4(pb.ip_address())}
+    DefaultModelEntity{pb.core_data()}, ip_address_{sem::types::Ipv4(pb.ip_address())}
 {
     for(const auto& deployed_container_uuid : pb.deployed_container_uuids()) {
         deployed_container_uuids_.emplace_back(deployed_container_uuid);
@@ -51,9 +51,9 @@ Node::Node(const PbType& pb) :
     }
 }
 Node::Node(GraphmlParser& parser, const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{parser.GetDataValue(medea_id, "uuid")}, medea_id,
+    DefaultModelEntity{{sem::types::Uuid{parser.GetDataValue(medea_id, "uuid")}, medea_id,
                         parser.GetDataValue(medea_id, "label")}},
-    ip_address_(types::Ipv4(parser.GetDataValue(medea_id, "ip_address")))
+    ip_address_(sem::types::Ipv4(parser.GetDataValue(medea_id, "ip_address")))
 {
 }
 auto Node::AddDeployedContainer(const Container& container) -> void
@@ -84,7 +84,7 @@ auto Node::HasDeployedContainer(const Container& container) const -> bool
                      container.GetCoreData().GetUuid())
            != deployed_container_uuids_.end();
 }
-auto Node::GetIpAddress() const -> types::Ipv4
+auto Node::GetIpAddress() const -> sem::types::Ipv4
 {
     return ip_address_;
 }

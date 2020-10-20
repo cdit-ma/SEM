@@ -115,7 +115,7 @@ auto TriggerDefinition::ToProto() const -> std::unique_ptr<PbType>
 }
 
 TriggerDefinition::TriggerDefinition(GraphmlParser& parser, const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
 {
     value_ = std::stod(parser.GetDataValue(medea_id, "value"));
 

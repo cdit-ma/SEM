@@ -11,7 +11,7 @@ EnvironmentManager::zmq::Port::Port(Component& parent, const NodeManager::Port& 
 {
 }
 
-auto EnvironmentManager::zmq::Port::FillEndpointPublisher() -> std::optional<types::SocketAddress>
+auto EnvironmentManager::zmq::Port::FillEndpointPublisher() -> std::optional<sem::types::SocketAddress>
 {
     if(kind_ == EnvironmentManager::Port::Kind::Publisher
        || kind_ == EnvironmentManager::Port::Kind::Replier) {
@@ -27,13 +27,13 @@ EnvironmentManager::zmq::Port::Port(Experiment& parent, const NodeManager::Exter
 }
 
 auto EnvironmentManager::zmq::Port::FillEndpointSubscriber(const NodeManager::ExternalPort& port)
-    -> std::optional<types::SocketAddress>
+    -> std::optional<sem::types::SocketAddress>
 {
     if(GetBlackboxType() == BlackboxType::PubSub) {
-        return types::SocketAddress(
+        return sem::types::SocketAddress(
             NodeManager::GetAttribute(port.attributes(), "publisher_address").s(0));
     } else if(GetBlackboxType() == BlackboxType::ReqRep) {
-        return types::SocketAddress(
+        return sem::types::SocketAddress(
             NodeManager::GetAttribute(port.attributes(), "server_address").s(0));
     }
     return std::nullopt;
@@ -48,7 +48,7 @@ EnvironmentManager::zmq::Port::~Port()
     }
 }
 
-auto EnvironmentManager::zmq::Port::GetProducerEndpoint() const -> types::SocketAddress
+auto EnvironmentManager::zmq::Port::GetProducerEndpoint() const -> sem::types::SocketAddress
 {
     return producer_endpoint_.value();
 }

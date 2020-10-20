@@ -22,12 +22,12 @@ namespace re::NodeManager {
 class ExperimentProcessManager {
 public:
     struct ExperimentProcessManagerConfig {
-        types::Uuid epm_uuid;
-        types::Uuid experiment_uuid;
-        types::Uuid creation_request_uuid;
-        types::Uuid registration_entity_uuid;
-        types::Ipv4 ip_address;
-        types::SocketAddress qpid_broker_endpoint;
+        sem::types::Uuid epm_uuid;
+        sem::types::Uuid experiment_uuid;
+        sem::types::Uuid creation_request_uuid;
+        sem::types::Uuid registration_entity_uuid;
+        sem::types::Ipv4 ip_address;
+        sem::types::SocketAddress qpid_broker_endpoint;
         std::string lib_root_dir{};
         std::string re_bin_path{};
     };
@@ -53,7 +53,7 @@ private:
 
     auto BuildEpmControlTopic() -> std::string;
     auto BuildEpmRegistrationTopic() -> std::string;
-    auto RegisterWithNodeManager(const types::Uuid& request_id) -> void;
+    auto RegisterWithNodeManager(const sem::types::Uuid& request_id) -> void;
     auto HandleEpmControl(const ControlRequest& request) -> ControlReply;
 
     /// Stdout capture tools

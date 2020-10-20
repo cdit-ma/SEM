@@ -25,7 +25,7 @@ auto LoggingServerDefinition::ToProto() const -> std::unique_ptr<PbType>
 }
 LoggingServerDefinition::LoggingServerDefinition(GraphmlParser& graphml_parser,
                                                  const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, graphml_parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, graphml_parser.GetDataValue(medea_id, "label")}}
 {
     db_file_name_ = graphml_parser.GetDataValue(medea_id, "database");
 }

@@ -42,7 +42,7 @@ EnvironmentManager::EnvironmentController::AddExperiment(const std::string& expe
     using Reply = re::network::protocol::experimentdefinition::RegistrationReply;
 
     Request request;
-    request.set_request_uuid(re::types::Uuid{}.to_string());
+    request.set_request_uuid(sem::types::Uuid{}.to_string());
 
     try {
         std::ifstream model_stream(graphml_path);
@@ -128,7 +128,7 @@ EnvironmentManager::EnvironmentController::InspectExperiment(const std::string& 
         throw std::runtime_error(ex.what());
     }
 }
-auto EnvironmentManager::EnvironmentController::StartExperiment(re::types::Uuid experiment_uuid)
+auto EnvironmentManager::EnvironmentController::StartExperiment(sem::types::Uuid experiment_uuid)
     -> bool
 {
     using namespace EnvironmentControl;

@@ -22,8 +22,8 @@ public:
 
 private:
     std::string medea_aggregate_type_;
-    std::vector<types::Uuid> connected_port_delegate_uuids_;
-    std::vector<types::Uuid> connected_port_instance_uuids_;
+    std::vector<sem::types::Uuid> connected_port_delegate_uuids_;
+    std::vector<sem::types::Uuid> connected_port_instance_uuids_;
 };
 } // namespace re::Representation
 

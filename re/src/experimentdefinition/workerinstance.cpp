@@ -7,7 +7,7 @@ namespace re::Representation {
 WorkerInstance::WorkerInstance(const WorkerInstance::PbType& pb) :
     DefaultModelEntity{pb.core_data()}
 {
-    definition_uuid_ = types::Uuid{pb.definition_uuid()};
+    definition_uuid_ = sem::types::Uuid{pb.definition_uuid()};
 
     for(const auto& attribute_instance_uuid : pb.attribute_instance_uuids()) {
         attribute_instance_uuids_.emplace_back(attribute_instance_uuid);
@@ -26,7 +26,7 @@ auto WorkerInstance::ToProto() const -> std::unique_ptr<PbType>
 WorkerInstance::WorkerInstance(GraphmlParser& parser,
                                const std::string& medea_id,
                                const WorkerDefinition& definition) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
     definition_uuid_{definition.GetCoreData().GetUuid()}
 {
 }

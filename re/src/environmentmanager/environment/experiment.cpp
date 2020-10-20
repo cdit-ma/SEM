@@ -16,7 +16,7 @@ namespace re::EnvironmentManager {
 
 Experiment::Experiment(Environment& environment,
                        NodeManagerRegistry& node_manager_registry,
-                       types::Uuid uuid,
+                       sem::types::Uuid uuid,
                        std::string name,
                        re::Representation::ExperimentDefinition experiment_definition) :
     environment_(environment),
@@ -266,12 +266,12 @@ std::unique_ptr<NodeManager::RegisterExperimentReply> Experiment::GetDeploymentI
     return reply;
 }
 
-auto Experiment::GetExperimentManagerPublisherEndpoint() -> types::SocketAddress
+auto Experiment::GetExperimentManagerPublisherEndpoint() -> sem::types::SocketAddress
 {
     return experiment_manager_publisher_endpoint_;
 }
 
-auto Experiment::GetExperimentManagerRegistrationEndpoint() -> types::SocketAddress
+auto Experiment::GetExperimentManagerRegistrationEndpoint() -> sem::types::SocketAddress
 {
     return experiment_manager_registration_endpoint_;
 }
@@ -536,7 +536,7 @@ std::string Experiment::GetMessage() const
     return message_stream.str();
 }
 
-types::SocketAddress Experiment::GetExperimentLoggerEndpoint()
+sem::types::SocketAddress Experiment::GetExperimentLoggerEndpoint()
 {
     return experiment_logger_endpoint_;
 }
@@ -547,14 +547,14 @@ auto Experiment::StartExperimentManager() -> void
     experiment_manager_ = std::make_unique<ExperimentManager>(*this, duration_);
 }
 
-void Experiment::SetDuration(const types::Timeout& duration)
+void Experiment::SetDuration(const sem::types::Timeout& duration)
 {
     duration_ = duration;
 }
 
-auto Experiment::StartDockerProcess(types::Ipv4 node_ip) -> std::pair<types::Uuid, std::string>
+auto Experiment::StartDockerProcess(sem::types::Ipv4 node_ip) -> std::pair<sem::types::Uuid, std::string>
 {
-    auto request_uuid = types::Uuid{};
+    auto request_uuid = sem::types::Uuid{};
     // TODO: Fix this hard code.
     Docker client{"http://" + node_ip.to_string() + ":4000"};
     JSON_DOCUMENT param = GetDockerJsonRequest(node_ip, request_uuid);
@@ -576,7 +576,7 @@ auto Experiment::StartDockerProcess(types::Ipv4 node_ip) -> std::pair<types::Uui
 }
 
 JSON_DOCUMENT
-Experiment::GetDockerJsonRequest(const types::Ipv4& node_ip, const types::Uuid& request_uuid)
+Experiment::GetDockerJsonRequest(const sem::types::Ipv4& node_ip, const sem::types::Uuid& request_uuid)
 {
     JSON_DOCUMENT param(rapidjson::kObjectType);
 
@@ -617,8 +617,8 @@ auto Experiment::HandleDockerEpmRegistration(const EpmRegistrationRequest& reque
     -> EpmRegistrationReply
 {
     // TODO: Build list of pending registration uuids. Check against that before we notify.
-    auto request_uuid = types::Uuid{request.request_uuid()};
-    auto epm_uuid = types::Uuid{request.epm_uuid()};
+    auto request_uuid = sem::types::Uuid{request.request_uuid()};
+    auto epm_uuid = sem::types::Uuid{request.epm_uuid()};
     {
         std::lock_guard lock{epm_registration_mutex_};
         epm_registrations_.push({request_uuid, epm_uuid});
@@ -629,7 +629,7 @@ auto Experiment::HandleDockerEpmRegistration(const EpmRegistrationRequest& reque
     return reply;
 }
 
-auto Experiment::WaitForEpmRegistrationMessage(const types::Uuid& request_uuid) -> types::Uuid
+auto Experiment::WaitForEpmRegistrationMessage(const sem::types::Uuid& request_uuid) -> sem::types::Uuid
 {
     // How long we should wait for the EPM to start
     // TODO: Tune this number?
@@ -654,7 +654,7 @@ auto Experiment::WaitForEpmRegistrationMessage(const types::Uuid& request_uuid) 
 
 auto Experiment::StartExperimentProcesses() -> void
 {
-    std::vector<types::Uuid> epm_list;
+    std::vector<sem::types::Uuid> epm_list;
     try {
         for(const auto& [id, node] : node_map_) {
             for(const auto& [id, container] : node->GetContainers()) {
@@ -682,7 +682,7 @@ auto Experiment::StartExperimentProcesses() -> void
         throw;
     }
 }
-types::Uuid Experiment::StartEpmForContainer(EnvironmentManager::Node& node,
+sem::types::Uuid Experiment::StartEpmForContainer(EnvironmentManager::Node& node,
                                              EnvironmentManager::Container& container)
 {
     if(container.IsDocker()) {
@@ -714,7 +714,7 @@ types::Uuid Experiment::StartEpmForContainer(EnvironmentManager::Node& node,
 }
 
 std::vector<std::string>
-Experiment::CreateDockerCommandString(types::Ipv4 node_ip, types::Uuid creation_request_uuid)
+Experiment::CreateDockerCommandString(sem::types::Ipv4 node_ip, sem::types::Uuid creation_request_uuid)
 {
     std::vector<std::string> out;
     out.push_back("--experiment_uuid=" + experiment_uuid_.to_string());
@@ -727,12 +727,12 @@ Experiment::CreateDockerCommandString(types::Ipv4 node_ip, types::Uuid creation_
     return out;
 }
 
-std::string Experiment::BuildEpmRegistrationTopic(types::Uuid experiment_uuid)
+std::string Experiment::BuildEpmRegistrationTopic(sem::types::Uuid experiment_uuid)
 {
     return experiment_uuid.to_string() + "_epm_registration";
 }
 
-auto Experiment::KillDockerEpm(types::Uuid epm_uuid) -> void
+auto Experiment::KillDockerEpm(sem::types::Uuid epm_uuid) -> void
 {
     // TODO: Implement. At the moment, we're leaking docker containers.
 }
@@ -749,8 +749,8 @@ void Experiment::HandleTriggerEvent(const TriggerEvent& event)
     auto container = experiment_definition_.GetContainerToStartOnTriggerEvent(trigger_id);
     auto deployment_location = experiment_definition_.GetDeploymentLocation(container);
 
-    types::Uuid epm_uuid;
-    types::Uuid event_uuid{};
+    sem::types::Uuid epm_uuid;
+    sem::types::Uuid event_uuid{};
     try {
         if(std::holds_alternative<re::Representation::Node>(deployment_location)) {
             auto& node_to_deploy_to = GetNode(
