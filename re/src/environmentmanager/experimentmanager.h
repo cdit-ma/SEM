@@ -6,16 +6,16 @@
 #include <string>
 #include <unordered_map>
 
-#include <comms/environmentrequester/environmentrequester.h>
-#include <core/loggers/experiment_logger.h>
-#include <environmentmanager/environment/environment.h>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <types/socketaddress.hpp>
-#include <types/timeout.h>
-#include <types/uuid.h>
-#include <util/execution.hpp>
-#include <zmq/protoreplier/protoreplier.hpp>
-#include <zmq/protowriter/protowriter.h>
+#include "environmentrequester.h"
+#include "experiment_logger.h"
+#include "environment/environment.h"
+#include "controlmessage.pb.h"
+#include "socketaddress.hpp"
+#include "timeout.hpp"
+#include "uuid.h"
+#include "execution.hpp"
+#include "protoreplier.hpp"
+#include "protowriter.h"
 
 // REVIEW (Mitch): Remove forward decl
 namespace zmq {

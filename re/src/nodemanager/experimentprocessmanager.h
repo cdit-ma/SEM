@@ -8,15 +8,15 @@
 
 #include "deploymentmanager.h"
 #include "nodemanagerconfig.h"
-#include <network/protocols/epmcontrol/epmcontrol.pb.h>
-#include <network/protocols/epmregistration/epmregistration.pb.h>
-#include <network/protocols/epmstdout/epmstdout.pb.h>
+#include "epmcontrol.pb.h"
+#include "epmregistration.pb.h"
+#include "epmstdout.pb.h"
 
-#include <network/publisher.hpp>
-#include <network/replier.hpp>
-#include <types/ipv4.hpp>
-#include <types/socketaddress.hpp>
-#include <types/uuid.h>
+#include "publisher.hpp"
+#include "replier.hpp"
+#include "ipv4.hpp"
+#include "socketaddress.hpp"
+#include "uuid.h"
 
 namespace re::NodeManager {
 class ExperimentProcessManager {

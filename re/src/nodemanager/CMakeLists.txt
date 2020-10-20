@@ -44,6 +44,7 @@ target_link_libraries(re_node_manager_lib
         epm_control_protocol
         epm_stdout_protocol
         trigger_event_protocol
+        system_info_broker
         zmq_protoreceiver
         zmq_protoreplier
         zmq_protowriter
@@ -75,7 +76,7 @@ target_link_libraries(re_node_manager
 
 # Experiment manager executable
 add_executable(experiment_process_manager)
-target_compile_features(node_manager PRIVATE cxx_std_17)
+target_compile_features(experiment_process_manager PRIVATE cxx_std_17)
 
 target_sources(experiment_process_manager PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagermain.cpp

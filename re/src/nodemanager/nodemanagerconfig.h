@@ -2,18 +2,11 @@
 #define RE_NODEMANAGERCONFIG_H
 
 #include "experimentprocessmanager.h"
-#include <boost/process/child.hpp>
 #include <future>
 #include <memory>
-#include <network/protocols/epmregistration/epmregistration.pb.h>
-#include <network/protocols/nodemanagercontrol/nodemanagercontrol.pb.h>
-#include <network/protocols/nodemanagerregistration/nodemanagerregistration.pb.h>
-#include <network/replier.hpp>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <types/ipv4.hpp>
-#include <types/socketaddress.hpp>
-#include <types/uuid.h>
-#include <util/execution.hpp>
+#include "ipv4.hpp"
+#include "socketaddress.hpp"
+#include "uuid.h"
 
 namespace re::NodeManager {
 

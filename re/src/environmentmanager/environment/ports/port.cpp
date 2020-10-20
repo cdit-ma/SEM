@@ -1,10 +1,9 @@
 #include "port.h"
 
-#include "environmentmanager/environment/attribute.h"
-#include "environmentmanager/environment/component.h"
-#include "environmentmanager/environment/environment.h"
-#include "environmentmanager/environment/experiment.h"
-#include "environmentmanager/environment/node.h"
+#include "../attribute.h"
+#include "../component.h"
+#include "../environment.h"
+#include "../node.h"
 #include <memory>
 
 #include "ddsport.h"

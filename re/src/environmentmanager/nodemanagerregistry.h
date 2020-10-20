@@ -1,11 +1,11 @@
 #ifndef RE_NODEMANAGERREGISTRY_H
 #define RE_NODEMANAGERREGISTRY_H
 
-#include <network/protocols/epmcontrol/epmcontrol.pb.h>
-#include <network/protocols/nodemanagercontrol/nodemanagercontrol.pb.h>
-#include <network/protocols/nodemanagerregistration/nodemanagerregistration.pb.h>
-#include <network/replier.hpp>
-#include <types/uuid.h>
+#include "epmcontrol.pb.h"
+#include "nodemanagercontrol.pb.h"
+#include "nodemanagerregistration.pb.h"
+#include "replier.hpp"
+#include "uuid.h"
 
 namespace re::EnvironmentManager {
 

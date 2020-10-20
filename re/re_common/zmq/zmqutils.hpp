@@ -21,7 +21,7 @@ namespace zmq{
     };
 
     inline zmq::message_t Proto2Zmq(const google::protobuf::MessageLite &ml){
-        const auto& size = ml.ByteSize();
+        const auto& size = ml.ByteSizeLong();
         zmq::message_t message(size);
         ml.SerializeToArray(message.data(), size);
         return message;

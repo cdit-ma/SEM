@@ -41,7 +41,7 @@ auto main(int argc, char** argv) -> int
 
 
     auto uuid = re::types::Uuid{experiment_uuid_string};
-    auto qpid_broker_endpoint = re::types::SocketAddress::from_string(qpid_broker_endpoint_string);
+    auto qpid_broker_endpoint = re::types::SocketAddress(qpid_broker_endpoint_string);
 
     auto listen_topic = uuid.to_string() + "_epm_std_out";
 

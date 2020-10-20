@@ -2,10 +2,10 @@
 #define RE_DEFINITION_COMPONENTASSEMBLY_H
 
 #include "modelentity.h"
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "experimentdefinition.pb.h"
 #include "uuid.h"
 #include <vector>
-#include <graphmlparser/graphmlparser.h>
+#include "graphmlparser.h"
 namespace re::Representation {
 
 class ComponentInstance;

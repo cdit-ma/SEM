@@ -9,9 +9,9 @@
 #include <qpid/messaging/Sender.h>
 #include <qpid/messaging/Session.h>
 #include <string>
-#include <types/serializable.hpp>
-#include <types/proto/serializable.hpp>
-#include <types/socketaddress.hpp>
+#include "serializable.hpp"
+#include "proto_serializable.hpp"
+#include "socketaddress.hpp"
 #include <utility>
 
 namespace re::network {

@@ -6,7 +6,7 @@
 #include <tuple>
 #include <zmq.hpp>
 
-#include "environment.h"
+#include "environment/environment.h"
 #include "protoreplier.hpp"
 #include "controlmessage.pb.h"
 

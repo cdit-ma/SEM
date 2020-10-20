@@ -1,7 +1,7 @@
 #include "network/replier.hpp"
 #include "network/requester.hpp"
 #include "gtest/gtest.h"
-#include <proto/modelevent/modelevent.pb.h>
+#include "modelevent.pb.h"
 
 namespace re::network::test {
 

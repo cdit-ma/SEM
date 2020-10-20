@@ -78,8 +78,8 @@ int main(int argc, char** argv)
     }
 
     re::EnvironmentManager::DeploymentRegister dep_reg{
-        re::types::Ipv4::from_string(ip_address), registration_port,
-        re::types::SocketAddress::from_string(qpid_address), tao_naming_service_address};
+        re::types::Ipv4(ip_address), registration_port,
+        re::types::SocketAddress(qpid_address), tao_naming_service_address};
 
     while(envmanager_signal_status == 0) {
         std::this_thread::sleep_for(std::chrono::seconds(1));

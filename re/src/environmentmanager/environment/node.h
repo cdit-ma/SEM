@@ -5,9 +5,9 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <experimentdefinition/experimentdefinition.h>
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <types/ipv4.hpp>
+#include "experimentdefinition.h"
+#include "controlmessage.pb.h"
+#include "ipv4.hpp"
 
 namespace re::EnvironmentManager {
 

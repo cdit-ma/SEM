@@ -2,8 +2,8 @@
 #define RE_LOGGINGCLIENTDEFINITION_H
 
 #include "modelentity.h"
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
-#include <graphmlparser/graphmlparser.h>
+#include "experimentdefinition.pb.h"
+#include "graphmlparser.h"
 
 namespace re::Representation {
 

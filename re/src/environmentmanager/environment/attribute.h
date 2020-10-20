@@ -1,8 +1,8 @@
 #ifndef ENVIRONMENT_MANAGER_ATTRIBUTE_H
 #define ENVIRONMENT_MANAGER_ATTRIBUTE_H
 
-#include <experimentdefinition/attributeinstance.h>
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "attributeinstance.h"
+#include "controlmessage.pb.h"
 
 namespace re::EnvironmentManager {
 class Attribute {
@@ -17,13 +17,13 @@ public:
         Stringlist = 6,
     };
 
-    Attribute(const NodeManager::Attribute& attribute);
+    explicit Attribute(const NodeManager::Attribute& attribute);
     Attribute(const types::Uuid& event_uuid,
               const re::Representation::AttributeInstancePb& attribute_instance_interface);
-    std::string GetName() const;
-    std::string GetId() const { return id_; }
+    [[nodiscard]] std::string GetName() const;
+    [[nodiscard]] std::string GetId() const { return id_; }
 
-    std::unique_ptr<NodeManager::Attribute> GetProto(const bool full_update);
+    std::unique_ptr<NodeManager::Attribute> GetProto(bool full_update);
 
 private:
     std::string name_;

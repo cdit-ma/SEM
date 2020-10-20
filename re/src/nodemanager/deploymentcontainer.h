@@ -9,7 +9,6 @@
 #include "ports/libportexport.h"
 #include "libcomponentexport.h"
 
-#include "sigarsysteminfo.h"
 #include "loggers/logan_logger.h"
 #include "loggers/print_logger.h"
 
