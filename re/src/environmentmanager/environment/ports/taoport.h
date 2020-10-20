@@ -2,8 +2,8 @@
 #define ENVIRONMENT_MANAGER_TAO_PORT_H
 
 #include "port.h"
-#include <proto/controlmessage/controlmessage.pb.h>
-#include <types/socketaddress.hpp>
+#include "controlmessage.pb.h"
+#include "socketaddress.hpp"
 
 namespace re::EnvironmentManager {
 namespace tao {

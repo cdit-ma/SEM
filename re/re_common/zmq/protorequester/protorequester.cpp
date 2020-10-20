@@ -1,9 +1,11 @@
 #include "protorequester.hpp"
 #include <iostream>
+#include <memory>
+#include <utility>
 #include "../zmqutils.hpp"
 
-zmq::ProtoRequester::ProtoRequester(const std::string& connect_address):
-    connect_address_(connect_address),
+zmq::ProtoRequester::ProtoRequester(std::string  connect_address):
+    connect_address_(std::move(connect_address)),
     context_{new zmq::context_t(1)}
 {
     assert(context_);
@@ -57,7 +59,7 @@ std::unique_ptr<zmq::socket_t> zmq::ProtoRequester::GetRequestSocket(){
     {
         std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
         if(context_){
-            socket = std::unique_ptr<zmq::socket_t>(new zmq::socket_t(*context_, ZMQ_REQ));
+            socket = std::make_unique<zmq::socket_t>(*context_, ZMQ_REQ);
         }
     }
     
@@ -86,7 +88,7 @@ void zmq::ProtoRequester::ProcessRequests(){
             request_cv_.wait(lock, [this]{
                 //Wake up if the context_ has been unset or we have request to process
                 std::lock_guard<std::mutex> zmq_lock(zmq_mutex_);
-                return !context_ || request_queue_.size();
+                return !context_ || !request_queue_.empty();
             });
             
             if(!context_){

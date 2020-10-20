@@ -40,7 +40,7 @@ public:
 
     const T& front() const { return m_queue.front(); }
 
-    bool empty() const { return m_queue.empty(); }
+    [[nodiscard]] bool empty() const { return m_queue.empty(); }
 };
 
 } // namespace re::types

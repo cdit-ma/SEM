@@ -1,6 +1,6 @@
 #include "strategy.h"
 #include "container.h"
-#include <graphmlparser/graphmlparser.h>
+#include "graphmlparser.h"
 namespace re::Representation {
 
 Strategy::Strategy(const PbType& pb) :

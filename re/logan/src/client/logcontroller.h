@@ -1,12 +1,12 @@
 #ifndef LOGCONTROLLER_H
 #define LOGCONTROLLER_H
 
-#include <mutex>
+#include "systeminfobroker.h"
+#include <atomic>
 #include <condition_variable>
 #include <future>
+#include <mutex>
 #include <vector>
-#include <atomic>
-#include "systeminfohandler.h"
 
 namespace re_common{
     class SystemInfo;

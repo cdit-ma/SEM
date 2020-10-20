@@ -2,8 +2,8 @@
 #define RE_NODE_H
 
 #include "modelentity.h"
-#include <graphmlparser/graphmlparser.h>
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "graphmlparser.h"
+#include "experimentdefinition.pb.h"
 #include "ipv4.hpp"
 namespace re::Representation {
 

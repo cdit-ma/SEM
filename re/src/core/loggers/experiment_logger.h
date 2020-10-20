@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 
-#include "logger.h"
+#include "../logger.h"
 #include "protowriter.h"
 #include <chrono>
 #include <exception>

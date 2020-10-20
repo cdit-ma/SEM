@@ -1,9 +1,9 @@
 #ifndef ENVIRONMENTMANAGER_CONTAINER_H
 #define ENVIRONMENTMANAGER_CONTAINER_H
 
-#include "types/uniquequeue.hpp"
-#include <experimentdefinition/container.h>
-#include <experimentdefinition/experimentdefinition.h>
+#include "uniquequeue.hpp"
+#include "container.h"
+#include "experimentdefinition.h"
 #include <memory>
 #include "socketaddress.hpp"
 #include <unordered_map>

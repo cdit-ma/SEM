@@ -1,7 +1,7 @@
 #include "periodicport.h"
-#include "environmentmanager/environment/environment.h"
-#include "environmentmanager/environment/experiment.h"
-#include <proto/controlmessage/helper.h>
+#include "../environment.h"
+#include "../experiment.h"
+#include "helper.h"
 
 namespace re::EnvironmentManager {
 

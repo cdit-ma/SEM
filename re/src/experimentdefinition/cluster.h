@@ -5,7 +5,7 @@
 #include "loggingclientdefinition.h"
 #include "modelentity.h"
 #include "node.h"
-#include <graphmlparser/graphmlparser.h>
+#include "graphmlparser.h"
 #include "ipv4.hpp"
 namespace re::Representation {
 
