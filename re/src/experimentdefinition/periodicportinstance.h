@@ -22,14 +22,14 @@ public:
                          const PeriodicPortDefinition& definition,
                          const AttributeInstanceInterface& frequency_attribute);
 
-    [[nodiscard]] auto GetFrequencyAttributeUuid() const -> types::Uuid
+    [[nodiscard]] auto GetFrequencyAttributeUuid() const -> sem::types::Uuid
     {
         return frequency_attribute_uuid_;
     }
 
 private:
-    types::Uuid definition_uuid_;
-    types::Uuid frequency_attribute_uuid_;
+    sem::types::Uuid definition_uuid_;
+    sem::types::Uuid frequency_attribute_uuid_;
 };
 } // namespace re::Representation
 

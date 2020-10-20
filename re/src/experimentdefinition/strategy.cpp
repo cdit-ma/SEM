@@ -20,12 +20,12 @@ auto Strategy::ToProto() const -> std::unique_ptr<PbType>
     out->set_container_uuid(container_uuid_.to_string());
     return out;
 }
-auto Strategy::GetContainerUuid() const -> types::Uuid
+auto Strategy::GetContainerUuid() const -> sem::types::Uuid
 {
     return container_uuid_;
 }
 Strategy::Strategy(GraphmlParser& parser, const std::string& medea_id, const Container& container) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
     container_uuid_{container.GetCoreData().GetUuid()},
     container_medea_id_{container.GetCoreData().GetMedeaId()},
     container_medea_name_{container.GetCoreData().GetMedeaName()}

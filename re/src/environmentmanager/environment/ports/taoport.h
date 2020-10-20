@@ -26,7 +26,7 @@ private:
 
     // This is an unqualified representation of a tao endpoint. If ever converted to a string,
     //  always prepend with "iiop://"
-    types::SocketAddress unqualified_orb_endpoint_;
+    sem::types::SocketAddress unqualified_orb_endpoint_;
     std::string server_kind_;
 };
 }; // namespace tao

@@ -44,7 +44,7 @@ ComponentAssembly::ComponentAssembly(const ComponentAssembly::PbType& pb) :
 }
 
 ComponentAssembly::ComponentAssembly(GraphmlParser& parser, const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
 {
     // Note the difference between replication count and replication value.
     auto replication_value = parser.GetDataValue(medea_id, "replicate_value");

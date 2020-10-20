@@ -7,7 +7,7 @@ namespace re::network::test {
 
 constexpr int default_broker_port{5672};
 
-constexpr auto broker_address = types::SocketAddress::from_ipv4(types::Ipv4::localhost(),
+constexpr auto broker_address = sem::types::SocketAddress(sem::types::Ipv4::localhost(),
                                                                 default_broker_port);
 // TODO: Add more tests that cover more than simple case.
 // TODO: Fix tests to work on more than one machine.
@@ -22,10 +22,10 @@ TEST(re_network_req_rep, simple_test)
 //    replier.run([](ModelEvent::Component message) { return message; });
 //    ModelEvent::Component comp;
 //    comp.set_type("asdf");
-//    auto reply = requester.request(comp, re::types::NeverTimeout());
+//    auto reply = requester.request(comp, sem::types::NeverTimeout());
 //
 //    // Add second request to make sure we don't repeat the mistakes of our past
-//    auto reply2 = requester.request(comp, re::types::NeverTimeout());
+//    auto reply2 = requester.request(comp, sem::types::NeverTimeout());
 //
 //    replier.stop();
 //

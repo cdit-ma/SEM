@@ -15,7 +15,7 @@ public:
     using MiddlewarePbType = re::network::protocol::experimentdefinition::PortMiddleware;
     MiddlewarePortInstance(GraphmlParser& parser,
                            const std::string& medea_id,
-                           const types::Uuid& definition_uuid);
+                           const sem::types::Uuid& definition_uuid);
     enum class Middleware { Tao, Zmq, OsplDds, RtiDds, Qpid };
     explicit MiddlewarePortInstance(const PbType& pb);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
@@ -24,17 +24,17 @@ public:
     auto AddConnectedPortDelegate(const PortDelegateInstance& delegate) -> void;
     [[nodiscard]] auto GetMiddleware() const -> Middleware { return middleware_; }
     [[nodiscard]] auto GetTopicName() const -> std::optional<std::string> { return topic_; }
-    [[nodiscard]] auto GetDefinitionUuid() const -> types::Uuid { return definition_uuid_; }
+    [[nodiscard]] auto GetDefinitionUuid() const -> sem::types::Uuid { return definition_uuid_; }
 
 private:
-    re::types::Uuid definition_uuid_;
+    sem::types::Uuid definition_uuid_;
     Middleware middleware_;
 
     std::optional<std::string> topic_;
 
-    std::vector<re::types::Uuid> internal_connected_port_uuids_;
-    std::vector<re::types::Uuid> external_connected_port_uuids_;
-    std::vector<re::types::Uuid> connected_port_delegate_uuids_;
+    std::vector<sem::types::Uuid> internal_connected_port_uuids_;
+    std::vector<sem::types::Uuid> external_connected_port_uuids_;
+    std::vector<sem::types::Uuid> connected_port_delegate_uuids_;
 };
 } // namespace re::Representation
 

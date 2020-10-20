@@ -14,10 +14,10 @@ namespace re::NodeManager {
 /// Should be read from node manager configuration file.
 struct NodeConfig {
     // Upon adding fields, ensure << operator is updated along with arg parsing.
-    types::Ipv4 ip_address;
-    types::SocketAddress environment_manager_registration_endpoint;
+    sem::types::Ipv4 ip_address;
+    sem::types::SocketAddress environment_manager_registration_endpoint;
     std::string lib_root_dir{};
-    types::Uuid uuid;
+    sem::types::Uuid uuid;
     std::optional<std::string> hostname;
     std::string re_bin_path{};
 

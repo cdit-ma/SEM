@@ -18,7 +18,7 @@ public:
     };
 
     explicit Attribute(const NodeManager::Attribute& attribute);
-    Attribute(const types::Uuid& event_uuid,
+    Attribute(const sem::types::Uuid& event_uuid,
               const re::Representation::AttributeInstancePb& attribute_instance_interface);
     [[nodiscard]] std::string GetName() const;
     [[nodiscard]] std::string GetId() const { return id_; }

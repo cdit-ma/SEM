@@ -12,7 +12,7 @@
 namespace re::EnvironmentManager {
 
 Node::Node(Environment& environment, Experiment& parent, const NodeManager::Node& node) :
-    environment_(environment), experiment_(parent), ip_{types::Ipv4(node.ip_address())}
+    environment_(environment), experiment_(parent), ip_{sem::types::Ipv4(node.ip_address())}
 {
     name_ = node.info().name();
     id_ = node.info().id();
@@ -38,7 +38,7 @@ std::string Node::GetName() const
     return name_;
 }
 
-auto Node::GetIp() const -> types::Ipv4
+auto Node::GetIp() const -> sem::types::Ipv4
 {
     return ip_;
 }
@@ -59,7 +59,7 @@ void Node::AddContainer(const NodeManager::Container& container_pb)
     containers_.emplace(id, std::move(container));
 }
 
-Container& Node::AddContainer(const types::Uuid& event_uuid,
+Container& Node::AddContainer(const sem::types::Uuid& event_uuid,
                               const re::Representation::ExperimentDefinition& experiment_definition,
                               const re::Representation::Container& container)
 {

@@ -12,7 +12,7 @@ PeriodicPort::PeriodicPort(Component& parent, const NodeManager::Port& port) :
     frequency_ = attribute.d();
 }
 
-PeriodicPort::PeriodicPort(const types::Uuid event_uuid,
+PeriodicPort::PeriodicPort(const sem::types::Uuid event_uuid,
                            Component& parent,
                            const Representation::ExperimentDefinition& experiment_definition,
                            const Representation::PeriodicPortInstance& periodic_port_instance) :

@@ -9,15 +9,15 @@ class CoreData {
 public:
     using PbType = re::network::protocol::experimentdefinition::CoreData;
     explicit CoreData(const PbType& pb);
-    CoreData(types::Uuid uuid, const std::string& medea_id, const std::string& medea_name);
+    CoreData(sem::types::Uuid uuid, const std::string& medea_id, const std::string& medea_name);
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
 
-    [[nodiscard]] auto GetUuid() const -> types::Uuid { return uuid_; }
+    [[nodiscard]] auto GetUuid() const -> sem::types::Uuid { return uuid_; }
     [[nodiscard]] auto GetMedeaId() const -> std::string { return medea_id_; }
     [[nodiscard]] auto GetMedeaName() const -> std::string { return medea_name_; }
 
 private:
-    types::Uuid uuid_;
+    sem::types::Uuid uuid_;
     std::string medea_id_;
     std::string medea_name_;
 };

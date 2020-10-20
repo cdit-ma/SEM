@@ -62,7 +62,7 @@ auto AttributeDefinition::ToProto() const -> std::unique_ptr<PbType>
     return out;
 }
 AttributeDefinition::AttributeDefinition(GraphmlParser& parser, const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
 {
     auto type_str = parser.GetDataValue(medea_id, "type");
     if(type_str == "Integer") {

@@ -63,7 +63,7 @@ Cluster::Cluster(const Cluster::PbType& pb) :
 }
 
 Cluster::Cluster(GraphmlParser& graphml_parser, std::string medea_id) :
-    DefaultModelEntity{{types::Uuid{graphml_parser.GetDataValue(medea_id, "uuid")}, medea_id,
+    DefaultModelEntity{{sem::types::Uuid{graphml_parser.GetDataValue(medea_id, "uuid")}, medea_id,
                         graphml_parser.GetDataValue(medea_id, "label")}},
     jenkins_url_{graphml_parser.GetDataValue(medea_id, "url")}
 {

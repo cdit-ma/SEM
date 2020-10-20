@@ -60,7 +60,7 @@ Component::Component(Environment& environment,
     }
 }
 
-Component::Component(const types::Uuid& event_uuid,
+Component::Component(const sem::types::Uuid& event_uuid,
                      Environment& environment,
                      Container& parent,
                      const Representation::ExperimentDefinition& experiment_definition,

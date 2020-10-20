@@ -18,13 +18,13 @@ namespace re::network {
 template<typename PublishType> class Publisher {
     std::string topic_;
     std::string subject_;
-    types::SocketAddress broker_address_;
+    sem::types::SocketAddress broker_address_;
 
     qpid::messaging::Connection connection_;
     qpid::messaging::Session session_ = nullptr;
 
 public:
-    Publisher(const types::SocketAddress& broker_address,
+    Publisher(const sem::types::SocketAddress& broker_address,
               std::string_view topic,
               std::string_view subject) :
         broker_address_{broker_address},
@@ -48,7 +48,7 @@ public:
             qpid::messaging::Sender sender = session_.createSender(
                 build_address_string(topic_, subject_));
             qpid::messaging::Message request;
-            request.setContent(types::Serializable<PublishType>::serialize(message));
+            request.setContent(sem::types::Serializable<PublishType>::serialize(message));
             sender.send(request);
 
             session_.acknowledge(true);

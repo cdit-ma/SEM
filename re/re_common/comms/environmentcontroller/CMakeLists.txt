@@ -15,7 +15,7 @@ target_link_libraries(re_environment_controller_lib
         re_common_proto_environmentcontrol
         zmq_protorequester
         re_graphml_parser_lib
-        re_types
+        sem_types
         re_common_proto_control
         experiment_definition_protocol
         experiment_definition

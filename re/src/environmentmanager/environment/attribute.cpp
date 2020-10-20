@@ -151,7 +151,7 @@ NodeManager::Attribute::Kind Attribute::InternalAttributeKindToProto(Attribute::
         }
     }
 }
-Attribute::Attribute(const types::Uuid& event_uuid,
+Attribute::Attribute(const sem::types::Uuid& event_uuid,
                      const Representation::AttributeInstancePb& pb)
 {
     id_ = pb.core_data().medea_id() + "_" + event_uuid.to_string();

@@ -69,7 +69,7 @@ Container::Container(const PbType& pb) : DefaultModelEntity{pb.core_data()}
 }
 
 Container::Container(GraphmlParser& parser, const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
 {
     auto container_is_docker = (parser.GetDataValue(medea_id, "is_docker") == "true");
 
@@ -97,7 +97,7 @@ auto Container::AddDeployedComponentInstance(const ComponentInstance& component_
 auto Container::Duplicate() -> Container
 {
     // Our duplicate should be same in every way except for its uuid
-    CoreData new_core_data{types::Uuid{}, GetCoreData().GetMedeaId(), GetCoreData().GetMedeaId()};
+    CoreData new_core_data{sem::types::Uuid{}, GetCoreData().GetMedeaId(), GetCoreData().GetMedeaId()};
     auto out = Container(*this);
     out.SetCoreData(new_core_data);
     return out;
@@ -106,7 +106,7 @@ auto Container::GetType() const -> Container::Type
 {
     return container_type_;
 }
-auto Container::GetDeployedComponents() const -> std::vector<types::Uuid>
+auto Container::GetDeployedComponents() const -> std::vector<sem::types::Uuid>
 {
     return component_instance_uuids_;
 }

@@ -39,7 +39,7 @@ class Logger{
         [[nodiscard]] Container& GetContainer() const;
         [[nodiscard]] Node& GetNode() const;
 
-        [[nodiscard]] auto GetPublisherEndpoint() const -> types::SocketAddress;
+        [[nodiscard]] auto GetPublisherEndpoint() const -> sem::types::SocketAddress;
 
         void SetFrequency(double frequency);
         [[nodiscard]] double GetFrequency() const;
@@ -72,7 +72,7 @@ class Logger{
 
         double frequency_;
         Mode mode_;
-        types::SocketAddress publisher_endpoint_;
+        sem::types::SocketAddress publisher_endpoint_;
         std::set<std::string> processes_;
 
         std::set<std::string> connected_client_ids_;

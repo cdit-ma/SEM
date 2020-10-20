@@ -1,15 +1,15 @@
 #include "ipv4.hpp"
 #include "gtest/gtest.h"
 
-namespace re::types::test {
+namespace sem::types::test {
 
-TEST(re_types_ipv4, initialisation_test)
+TEST(sem_types_ipv4, initialisation_test)
 {
     constexpr auto test = Ipv4(0, 0, 0, 0);
     ASSERT_EQ(test, Ipv4::unspecified());
 }
 
-TEST(re_types_ipv4, equality_operator)
+TEST(sem_types_ipv4, equality_operator)
 {
     constexpr auto a = Ipv4(123, 123, 123, 123);
     constexpr auto b = Ipv4(123, 123, 123, 123);
@@ -18,7 +18,7 @@ TEST(re_types_ipv4, equality_operator)
     ASSERT_FALSE(a == c);
 }
 
-TEST(re_types_ipv4, from_string)
+TEST(sem_types_ipv4, from_string)
 {
     auto test = Ipv4("192.168.111.230");
     ASSERT_EQ(test, Ipv4(192, 168, 111, 230));
@@ -39,7 +39,7 @@ TEST(re_types_ipv4, from_string)
     EXPECT_THROW(Ipv4("1 2.168.1 1.230"), std::invalid_argument);
 }
 
-TEST(re_types_ipv4, ip_constants)
+TEST(sem_types_ipv4, ip_constants)
 {
     constexpr auto localhost = Ipv4::localhost();
     ASSERT_EQ(localhost, Ipv4(127, 0, 0, 1));
@@ -51,7 +51,7 @@ TEST(re_types_ipv4, ip_constants)
     ASSERT_EQ(unspecified, Ipv4(0, 0, 0, 0));
 }
 
-TEST(re_types_ipv4, ostream)
+TEST(sem_types_ipv4, ostream)
 {
     constexpr auto unspecified = Ipv4::unspecified();
     std::ostringstream stream;
@@ -59,7 +59,7 @@ TEST(re_types_ipv4, ostream)
     ASSERT_EQ(stream.str(), "0.0.0.0");
 }
 
-TEST(re_types_ipv4, to_string)
+TEST(sem_types_ipv4, to_string)
 {
     constexpr auto unspecified = Ipv4::unspecified();
     ASSERT_EQ(unspecified.to_string(), "0.0.0.0");
@@ -68,7 +68,7 @@ TEST(re_types_ipv4, to_string)
     ASSERT_EQ(Ipv4(test_string).to_string(), test_string);
 }
 
-TEST(re_types_ipv4, copy_constructor)
+TEST(sem_types_ipv4, copy_constructor)
 {
     auto unspecified = Ipv4::unspecified();
     auto copy_assign = unspecified;
@@ -77,4 +77,4 @@ TEST(re_types_ipv4, copy_constructor)
     auto copy_construct{unspecified};
     ASSERT_EQ(unspecified, copy_construct);
 }
-} // namespace re::types::test
+} // namespace sem::types::test

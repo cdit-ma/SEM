@@ -3,7 +3,7 @@
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-namespace re::types {
+namespace sem::types {
 
 Uuid::Uuid(boost::uuids::uuid b_uuid) : internal_id_(b_uuid) {}
 
@@ -28,4 +28,4 @@ auto Uuid::hash() const -> std::size_t
 {
     return boost::hash<boost::uuids::uuid>()(internal_id_);
 }
-} // namespace re::types
+} // namespace sem::types

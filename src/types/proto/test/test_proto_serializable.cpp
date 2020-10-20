@@ -4,9 +4,9 @@
 
 #include "gtest/gtest.h"
 
-namespace re::types::proto::test {
+namespace sem::types::proto::test {
 
-TEST(re_types_serializable, protobuf_test)
+TEST(sem_types_serializable, protobuf_test)
 {
     Message test_message;
     test_message.set_string("string");
@@ -25,4 +25,4 @@ TEST(re_types_serializable, protobuf_test)
     EXPECT_EQ(out.signed_number(), -10);
 }
 
-} // namespace re::types::proto::test
+} // namespace sem::types::proto::test

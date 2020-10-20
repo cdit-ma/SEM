@@ -26,7 +26,7 @@ public:
     std::unique_ptr<re::network::protocol::experimentdefinition::RegistrationReply>
     AddExperiment(const std::string& experiment_name, const std::string& graphml_path, int duration);
 
-    auto StartExperiment(re::types::Uuid experiment_uuid) -> bool;
+    auto StartExperiment(sem::types::Uuid experiment_uuid) -> bool;
 
     std::vector<std::string> ListExperiments();
 

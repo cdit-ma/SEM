@@ -20,7 +20,7 @@ public:
 
 private:
     std::string cpp_class_name_;
-    std::vector<types::Uuid> attribute_definition_uuids_;
+    std::vector<sem::types::Uuid> attribute_definition_uuids_;
 };
 } // namespace re::Representation
 #endif // RE_DEFINITION_WORKER_H

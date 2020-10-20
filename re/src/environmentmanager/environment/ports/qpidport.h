@@ -20,19 +20,19 @@ class Port : public EnvironmentManager::Port{
     public:
         Port(Component& parent, const NodeManager::Port& port);
         Port(Experiment& parent, const NodeManager::ExternalPort& port);
-        Port(const types::Uuid& event_uuid,
+        Port(const sem::types::Uuid& event_uuid,
              Component& parent,
              const Representation::ExperimentDefinition& experiment_definition,
              const Representation::MiddlewarePortInstance& port);
 
     protected:
-        types::SocketAddress GetBrokerAddress() const;
+        sem::types::SocketAddress GetBrokerAddress() const;
         std::string GetTopic() const;
         void FillPortPb(NodeManager::Port& port_pb) final;
 
     private:
         std::string topic_name_;
-        types::SocketAddress broker_address_;
+        sem::types::SocketAddress broker_address_;
 };
 };
 };

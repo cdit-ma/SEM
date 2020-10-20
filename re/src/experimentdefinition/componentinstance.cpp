@@ -36,7 +36,7 @@ auto ComponentInstance::ToProto() const -> std::unique_ptr<PbType>
 ComponentInstance::ComponentInstance(const ComponentInstance::PbType& pb) :
     DefaultModelEntity{pb.core_data()}
 {
-    definition_uuid_ = types::Uuid(pb.definition_uuid());
+    definition_uuid_ = sem::types::Uuid(pb.definition_uuid());
     medea_type_ = pb.medea_type();
 
     for(const auto& middleware_port_instance_uuid : pb.middleware_port_instance_uuids()) {
@@ -62,8 +62,8 @@ ComponentInstance::ComponentInstance(const ComponentInstance::PbType& pb) :
 
 ComponentInstance::ComponentInstance(GraphmlParser& parser,
                                      const std::string& medea_id,
-                                     const types::Uuid& definition_uuid) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
+                                     const sem::types::Uuid& definition_uuid) :
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}},
     medea_type_{parser.GetDataValue(medea_id, "type")},
     definition_uuid_{definition_uuid}
 {
@@ -77,7 +77,7 @@ auto ComponentInstance::AddPeriodicPortInstance(const PeriodicPortInstance& port
 {
     periodic_port_instance_uuids_.emplace_back(port_instance.GetCoreData().GetUuid());
 }
-auto ComponentInstance::GetDefinitionUuid() const -> types::Uuid
+auto ComponentInstance::GetDefinitionUuid() const -> sem::types::Uuid
 {
     return definition_uuid_;
 }
