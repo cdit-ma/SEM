@@ -28,8 +28,8 @@ std::string to_lower(std::string str)
 
 // REVIEW (Mitch): replace params with config struct. Use std::filesystem path for library path
 // REVIEW (Mitch): This constructor is not used, roll into other constructor
-DeploymentContainer::DeploymentContainer(re::types::Uuid experiment_uuid,
-                                         re::types::SocketAddress broker_address,
+DeploymentContainer::DeploymentContainer(sem::types::Uuid experiment_uuid,
+                                         sem::types::SocketAddress broker_address,
                                          const std::string& experiment_name,
                                          const std::string& host_name,
                                          const std::string& library_path) :
@@ -44,8 +44,8 @@ DeploymentContainer::DeploymentContainer(re::types::Uuid experiment_uuid,
 
 // REVIEW (Mitch): Document differences between constructors
 //  Appears that this is just a convenience constructor that also calls configure.
-DeploymentContainer::DeploymentContainer(re::types::Uuid experiment_uuid,
-                                         re::types::SocketAddress broker_address,
+DeploymentContainer::DeploymentContainer(sem::types::Uuid experiment_uuid,
+                                         sem::types::SocketAddress broker_address,
                                          const std::string& experiment_name,
                                          const std::string& host_name,
                                          const std::string& library_path,

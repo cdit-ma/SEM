@@ -27,15 +27,15 @@ public:
     Container(GraphmlParser& parser, const std::string& medea_id);
 
     auto GetType() const -> Type;
-    auto GetDeployedComponents() const -> std::vector<types::Uuid>;
+    auto GetDeployedComponents() const -> std::vector<sem::types::Uuid>;
 
     auto Duplicate() -> Container;
 
 private:
     Type container_type_;
-    std::vector<types::Uuid> component_instance_uuids_;
-    std::vector<types::Uuid> component_assembly_uuids_;
-    std::vector<types::Uuid> logger_definition_uuids_;
+    std::vector<sem::types::Uuid> component_instance_uuids_;
+    std::vector<sem::types::Uuid> component_assembly_uuids_;
+    std::vector<sem::types::Uuid> logger_definition_uuids_;
 };
 } // namespace re::Representation
 

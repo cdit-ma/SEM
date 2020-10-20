@@ -26,14 +26,14 @@ public:
 
     auto HasDeployedContainer(const Container& container) const -> bool;
 
-    auto GetIpAddress() const -> types::Ipv4;
+    auto GetIpAddress() const -> sem::types::Ipv4;
 private:
-    types::Ipv4 ip_address_;
-    std::vector<types::Uuid> deployed_container_uuids_;
-    std::vector<types::Uuid> deployed_component_instance_uuids_;
-    std::vector<types::Uuid> deployed_component_assembly_uuids;
-    std::vector<types::Uuid> deployed_logging_client_uuids_;
-    std::vector<types::Uuid> deployed_logging_server_uuids_;
+    sem::types::Ipv4 ip_address_;
+    std::vector<sem::types::Uuid> deployed_container_uuids_;
+    std::vector<sem::types::Uuid> deployed_component_instance_uuids_;
+    std::vector<sem::types::Uuid> deployed_component_assembly_uuids;
+    std::vector<sem::types::Uuid> deployed_logging_client_uuids_;
+    std::vector<sem::types::Uuid> deployed_logging_server_uuids_;
 };
 
 } // namespace re::Representation

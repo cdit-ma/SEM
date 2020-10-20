@@ -31,7 +31,7 @@ public:
     explicit ExperimentDefinition(const PbType& definition_pb);
     explicit ExperimentDefinition(std::istream& model);
 
-    auto GetUuid() -> types::Uuid;
+    auto GetUuid() -> sem::types::Uuid;
 
     auto SetName(const std::string& experiment_name) -> void;
     [[nodiscard]] auto ToProto() const -> std::unique_ptr<PbType>;
@@ -67,44 +67,44 @@ public:
 
 private:
     std::string experiment_name_;
-    types::Uuid uuid_;
+    sem::types::Uuid uuid_;
 
-    std::unordered_map<types::Uuid, AttributeDefinition> attribute_definitions_;
-    std::unordered_map<types::Uuid, std::unique_ptr<AttributeInstanceInterface>>
+    std::unordered_map<sem::types::Uuid, AttributeDefinition> attribute_definitions_;
+    std::unordered_map<sem::types::Uuid, std::unique_ptr<AttributeInstanceInterface>>
         attribute_instances_;
 
     // TODO: Add deployment attributes.
 
-    std::unordered_map<types::Uuid, ComponentDefinition> component_definitions_;
-    std::unordered_map<types::Uuid, ComponentInstance> component_instances_;
+    std::unordered_map<sem::types::Uuid, ComponentDefinition> component_definitions_;
+    std::unordered_map<sem::types::Uuid, ComponentInstance> component_instances_;
 
-    std::unordered_map<types::Uuid, ComponentAssembly> component_assemblies_;
-    std::unordered_map<types::Uuid, PortDelegateInstance> port_delegates_;
+    std::unordered_map<sem::types::Uuid, ComponentAssembly> component_assemblies_;
+    std::unordered_map<sem::types::Uuid, PortDelegateInstance> port_delegates_;
 
-    std::unordered_map<types::Uuid, Container> container_definitions_;
+    std::unordered_map<sem::types::Uuid, Container> container_definitions_;
 
-    std::unordered_map<types::Uuid, MiddlewarePortDefinition> middleware_port_definitions_;
-    std::unordered_map<types::Uuid, MiddlewarePortInstance> middleware_port_instances_;
+    std::unordered_map<sem::types::Uuid, MiddlewarePortDefinition> middleware_port_definitions_;
+    std::unordered_map<sem::types::Uuid, MiddlewarePortInstance> middleware_port_instances_;
 
-    std::unordered_map<types::Uuid, PeriodicPortDefinition> periodic_port_definitions_;
-    std::unordered_map<types::Uuid, PeriodicPortInstance> periodic_port_instances_;
+    std::unordered_map<sem::types::Uuid, PeriodicPortDefinition> periodic_port_definitions_;
+    std::unordered_map<sem::types::Uuid, PeriodicPortInstance> periodic_port_instances_;
 
-    std::unordered_map<types::Uuid, WorkerDefinition> worker_definitions_;
-    std::unordered_map<types::Uuid, WorkerInstance> worker_instances_;
+    std::unordered_map<sem::types::Uuid, WorkerDefinition> worker_definitions_;
+    std::unordered_map<sem::types::Uuid, WorkerInstance> worker_instances_;
 
-    std::unordered_map<types::Uuid, Node> node_definitions_;
-    std::unordered_map<types::Uuid, Cluster> cluster_definitions_;
+    std::unordered_map<sem::types::Uuid, Node> node_definitions_;
+    std::unordered_map<sem::types::Uuid, Cluster> cluster_definitions_;
 
-    std::unordered_map<types::Uuid, TriggerDefinition> trigger_definitions_;
-    std::unordered_map<types::Uuid, TriggerInstance> trigger_instances_;
-    std::unordered_map<types::Uuid, Strategy> strategies_;
+    std::unordered_map<sem::types::Uuid, TriggerDefinition> trigger_definitions_;
+    std::unordered_map<sem::types::Uuid, TriggerInstance> trigger_instances_;
+    std::unordered_map<sem::types::Uuid, Strategy> strategies_;
 
-    std::unordered_map<types::Uuid, LoggingServerDefinition> logging_server_definitions_;
-    std::unordered_map<types::Uuid, LoggingClientDefinition> logging_client_definitions_;
+    std::unordered_map<sem::types::Uuid, LoggingServerDefinition> logging_server_definitions_;
+    std::unordered_map<sem::types::Uuid, LoggingClientDefinition> logging_client_definitions_;
 
-    std::unordered_map<types::Uuid, std::string> uuid_to_medea_id_map_;
-    void RegisterMedeaId(const types::Uuid& uuid, const std::string& medea_id);
-    auto GetUuidFromMedeaId(const std::string& medea_id) -> types::Uuid;
+    std::unordered_map<sem::types::Uuid, std::string> uuid_to_medea_id_map_;
+    void RegisterMedeaId(const sem::types::Uuid& uuid, const std::string& medea_id);
+    auto GetUuidFromMedeaId(const std::string& medea_id) -> sem::types::Uuid;
 
     auto PopulateClusters(GraphmlParser& graphml_parser) -> void;
     void PopulateNodes(GraphmlParser& graphml_parser);
@@ -115,7 +115,7 @@ private:
 
     void PopulateLoggingServers(GraphmlParser& parser);
     void PopulateLoggingClients(GraphmlParser& parser);
-    std::vector<types::Uuid>
+    std::vector<sem::types::Uuid>
     GetDeploymentLocations(GraphmlParser& parser, const std::string& deployed_entity_medea_id);
     void ConnectLoggingClientsToServers(GraphmlParser& parser);
     void PopulateComponents(GraphmlParser& parser);

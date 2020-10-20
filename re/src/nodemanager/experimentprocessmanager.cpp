@@ -70,12 +70,12 @@ auto ExperimentProcessManager::HandleArguments(int argc, char** argv)
     po::notify(parsed_options);
 
     try {
-        ExperimentProcessManagerConfig config{types::Uuid{},
-                                              types::Uuid{experiment_uuid_string},
-                                              types::Uuid{creation_request_uuid_string},
-                                              types::Uuid{registration_entity_uuid_string},
-                                              types::Ipv4(ip_address_string),
-                                              types::SocketAddress(
+        ExperimentProcessManagerConfig config{sem::types::Uuid{},
+                                              sem::types::Uuid{experiment_uuid_string},
+                                              sem::types::Uuid{creation_request_uuid_string},
+                                              sem::types::Uuid{registration_entity_uuid_string},
+                                              sem::types::Ipv4(ip_address_string),
+                                              sem::types::SocketAddress(
                                                   qpid_broker_endpoint_string),
                                               lib_root_dir,
                                               re_bin_dir};
@@ -136,8 +136,8 @@ auto ExperimentProcessManager::HandleEpmControl(const ControlRequest& request) -
             auto deployment_manager = std::make_unique<DeploymentManager>(
                 epm_config_.experiment_uuid, epm_config_.qpid_broker_endpoint,
                 sub_message.experiment_name(), epm_config_.ip_address, sub_message.container_id(),
-                types::SocketAddress(sub_message.master_publisher_endpoint()),
-                types::SocketAddress(sub_message.master_registration_endpoint()),
+                sem::types::SocketAddress(sub_message.master_publisher_endpoint()),
+                sem::types::SocketAddress(sub_message.master_registration_endpoint()),
                 // This library path should look something like "lib_root_dir/<experiment_uuid>/lib
                 epm_config_.lib_root_dir + "/" + sub_message.library_path());
             std::cout << "[ExperimentProcessManager] - Started new DeploymentManager." << std::endl;
@@ -180,7 +180,7 @@ auto ExperimentProcessManager::GetErrorReply(const std::string& error_message) -
 
 /// Send registration request to our node manager (if this is started as a docker container, we're
 ///  actually registering with the environment manager).
-auto ExperimentProcessManager::RegisterWithNodeManager(const types::Uuid& request_id) -> void
+auto ExperimentProcessManager::RegisterWithNodeManager(const sem::types::Uuid& request_id) -> void
 {
     network::Requester<RegistrationRequest, RegistrationReply> node_manager_registration_requester{
         epm_config_.qpid_broker_endpoint, BuildEpmRegistrationTopic(), ""};

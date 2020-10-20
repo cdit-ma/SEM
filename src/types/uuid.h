@@ -5,7 +5,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <string>
 #include <string_view>
-namespace re::types {
+namespace sem::types {
 class Uuid {
 public:
     Uuid();
@@ -31,12 +31,12 @@ inline auto operator<<(std::ostream& out, const Uuid& id) -> std::ostream&
 {
     return out << id.to_string();
 }
-} // namespace re::types
+} // namespace sem::types
 
 /// Supply std namespaced hash function object s.t. we can use re::uuid as std::unordered map key.
 namespace std {
-template<> struct hash<re::types::Uuid> {
-    auto operator()(const re::types::Uuid& id) const -> size_t { return id.hash(); }
+template<> struct hash<sem::types::Uuid> {
+    auto operator()(const sem::types::Uuid& id) const -> size_t { return id.hash(); }
 };
 } // namespace std
 #endif // RE_UUID_H

@@ -15,7 +15,7 @@ target_sources(${CONFIG_TEST_NAME} PRIVATE
 target_include_directories(${CONFIG_TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 target_include_directories(${CONFIG_TEST_NAME} PRIVATE ${GOOGLE_TEST_DIR}/include)
 
-target_link_libraries(${CONFIG_TEST_NAME} PRIVATE re_types)
+target_link_libraries(${CONFIG_TEST_NAME} PRIVATE sem_types)
 target_link_libraries(${CONFIG_TEST_NAME} PRIVATE re_node_manager_lib)
 target_link_libraries(${CONFIG_TEST_NAME} PRIVATE gtest)
 target_link_libraries(${CONFIG_TEST_NAME} PRIVATE gtest_main)

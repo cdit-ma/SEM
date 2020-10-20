@@ -18,7 +18,7 @@ Port::Port(Component& parent, const NodeManager::Port& port) :
 
 Port::Port(Experiment& parent, const NodeManager::ExternalPort& port) :
     EnvironmentManager::Port(parent, port),
-    broker_address_(types::SocketAddress(
+    broker_address_(sem::types::SocketAddress(
         NodeManager::GetAttribute(port.attributes(), "broker_address").s(0)))
 {
     if(topic_name_.empty()) {
@@ -26,7 +26,7 @@ Port::Port(Experiment& parent, const NodeManager::ExternalPort& port) :
     }
 }
 
-Port::Port(const types::Uuid& event_uuid,
+Port::Port(const sem::types::Uuid& event_uuid,
            Component& parent,
            const Representation::ExperimentDefinition& experiment_definition,
            const Representation::MiddlewarePortInstance& port) :
@@ -45,7 +45,7 @@ std::string Port::GetTopic() const
     return topic_name_;
 }
 
-types::SocketAddress Port::GetBrokerAddress() const
+sem::types::SocketAddress Port::GetBrokerAddress() const
 {
     return broker_address_;
 }

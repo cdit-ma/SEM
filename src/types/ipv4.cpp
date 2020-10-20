@@ -6,7 +6,7 @@
 #include <regex>
 #include <stdexcept>
 
-namespace re::types {
+namespace sem::types {
 namespace detail {
 auto parse_octet_from_string(const std::string& in) -> uint8_t
 {
@@ -42,4 +42,4 @@ auto Ipv4::parse_string_to_octets(const std::string& addr_string) -> std::array<
     return octets;
 }
 
-} // namespace re::types
+} // namespace sem::types

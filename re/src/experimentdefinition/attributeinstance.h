@@ -31,19 +31,19 @@ auto ConstructAttributeInstance(const AttributeInstancePb& attr_pb)
 
 auto ConstructAttributeInstance(GraphmlParser& parser,
                                 const std::string& medea_id,
-                                const types::Uuid& definition_uuid)
+                                const sem::types::Uuid& definition_uuid)
     -> std::unique_ptr<AttributeInstanceInterface>;
 
 template<typename ValueType> class AttributeInstance final : public AttributeInstanceInterface {
 public:
     AttributeInstance(const CoreData::PbType& core_data_pb,
-                      types::Uuid definition_uuid,
+                      sem::types::Uuid definition_uuid,
                       const ValueType& value) :
         core_data_{core_data_pb}, definition_uuid_{definition_uuid}, value_{value}
     {
     }
 
-    AttributeInstance(CoreData core_data, types::Uuid definition_uuid, const ValueType& value) :
+    AttributeInstance(CoreData core_data, sem::types::Uuid definition_uuid, const ValueType& value) :
         core_data_{std::move(core_data)}, definition_uuid_{definition_uuid}, value_{value}
     {
     }
@@ -62,7 +62,7 @@ public:
 
 private:
     CoreData core_data_;
-    types::Uuid definition_uuid_;
+    sem::types::Uuid definition_uuid_;
     ValueType value_;
     [[nodiscard]] auto GetPrefilledProto() const -> std::unique_ptr<AttributeInstancePb>
     {

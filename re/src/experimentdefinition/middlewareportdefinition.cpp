@@ -65,7 +65,7 @@ auto MiddlewarePortDefinition::ToProto() const -> std::unique_ptr<PbType>
 }
 MiddlewarePortDefinition::MiddlewarePortDefinition(GraphmlParser& parser,
                                                    const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
 {
     // Port kind is of either "PublisherPort" "SubscriberPort" "RequesterPort" or "ReplierPort"
     auto kind_string = parser.GetDataValue(medea_id, "kind");

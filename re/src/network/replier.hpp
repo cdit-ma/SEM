@@ -18,7 +18,7 @@ namespace re::network {
 template<typename RequestType, typename ReplyType> class Replier {
     std::string topic_;
     std::string subject_;
-    types::SocketAddress broker_address_;
+    sem::types::SocketAddress broker_address_;
 
     qpid::messaging::Connection connection_;
     qpid::messaging::Session session_ = nullptr;
@@ -26,7 +26,7 @@ template<typename RequestType, typename ReplyType> class Replier {
     std::future<void> run_handle_;
 
 public:
-    Replier(types::SocketAddress broker_address, std::string_view topic, std::string_view subject) :
+    Replier(sem::types::SocketAddress broker_address, std::string_view topic, std::string_view subject) :
         broker_address_{broker_address},
         topic_{topic},
         subject_{subject},
@@ -76,8 +76,8 @@ private:
                 try {
                     qpid::messaging::Sender sender = session_.createSender(reply_address);
                     ReplyType reply_message = handler(
-                        re::types::Serializable<RequestType>::deserialize(message.getContent()));
-                    sender.send(re::types::Serializable<ReplyType>::serialize(reply_message));
+                        sem::types::Serializable<RequestType>::deserialize(message.getContent()));
+                    sender.send(sem::types::Serializable<ReplyType>::serialize(reply_message));
                     // TODO: Investigate whether we should ack before or after sending.
                     session_.acknowledge();
                     sender.close();

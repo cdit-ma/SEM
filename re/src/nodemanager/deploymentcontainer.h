@@ -35,14 +35,14 @@ class DeploymentContainer : public Activatable {
 public:
     // REVIEW (Mitch): document differences between two constructors. Implement deployment container
     //  config struct?
-    DeploymentContainer(re::types::Uuid experiment_uuid,
-                        re::types::SocketAddress broker_address,
+    DeploymentContainer(sem::types::Uuid experiment_uuid,
+                        sem::types::SocketAddress broker_address,
                         const std::string& experiment_name,
                         const std::string& host_name,
                         const std::string& library_path,
                         const NodeManager::Container& container);
-    DeploymentContainer(re::types::Uuid experiment_uuid,
-                        re::types::SocketAddress broker_address,
+    DeploymentContainer(sem::types::Uuid experiment_uuid,
+                        sem::types::SocketAddress broker_address,
                         const std::string& experiment_name,
                         const std::string& host_name,
                         const std::string& library_path);
@@ -76,8 +76,8 @@ public:
     void SetLoggers(Activatable& entity);
 
 private:
-    re::types::Uuid experiment_uuid_;
-    re::types::SocketAddress broker_address_;
+    sem::types::Uuid experiment_uuid_;
+    sem::types::SocketAddress broker_address_;
     // REVIEW (Mitch): can be static member or free function. Name better than
     //  GetNamespaceString
     std::string GetNamespaceString(const NodeManager::Info& port);

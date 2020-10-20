@@ -11,7 +11,7 @@ class Attribute;
 class Worker{
     public:
         Worker(Component& parent, const NodeManager::Worker& worker);
-        Worker(const re::types::Uuid& event_uuid,
+        Worker(const sem::types::Uuid& event_uuid,
                Component& component,
                const re::Representation::ExperimentDefinition& definition,
                const re::Representation::WorkerInstance& instance);

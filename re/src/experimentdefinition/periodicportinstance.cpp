@@ -23,7 +23,7 @@ PeriodicPortInstance::PeriodicPortInstance(GraphmlParser& parser,
                                            const std::string& medea_id,
                                            const PeriodicPortDefinition& definition,
                                            const AttributeInstanceInterface& frequency_attribute) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
 {
     definition_uuid_ = definition.GetCoreData().GetUuid();
     frequency_attribute_uuid_ = frequency_attribute.GetCoreData().GetUuid();

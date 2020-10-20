@@ -11,11 +11,11 @@
 #include <vector>
 
 namespace re::EnvironmentManager {
-Environment::Environment(const types::Ipv4& ip_address,
-                         const types::SocketAddress& qpid_broker_address,
+Environment::Environment(const sem::types::Ipv4& ip_address,
+                         const sem::types::SocketAddress& qpid_broker_address,
                          std::string tao_naming_service_address,
-                         types::unique_queue<uint16_t> manager_port_pool,
-                         types::unique_queue<uint16_t> default_experiment_node_port_pool) :
+                         sem::types::unique_queue<uint16_t> manager_port_pool,
+                         sem::types::unique_queue<uint16_t> default_experiment_node_port_pool) :
     ip_address_(ip_address),
     qpid_broker_address_(qpid_broker_address),
     tao_naming_service_address_(std::move(tao_naming_service_address)),
@@ -66,7 +66,7 @@ auto Environment::PopulateExperiment(NodeManagerRegistry& node_manager_registry,
         auto& experiment = *experiment_map_.at(experiment_uuid);
 
         if(message.duration_seconds() == -1) {
-            experiment.SetDuration(types::NeverTimeout());
+            experiment.SetDuration(sem::types::NeverTimeout());
         } else {
             experiment.SetDuration(std::chrono::milliseconds(message.duration_seconds() * 1000));
         }
@@ -100,7 +100,7 @@ auto Environment::PopulateExperiment(NodeManagerRegistry& node_manager_registry,
     }
 }
 
-void Environment::AddNodes(const types::Uuid& experiment_uuid, const NodeManager::Cluster& cluster)
+void Environment::AddNodes(const sem::types::Uuid& experiment_uuid, const NodeManager::Cluster& cluster)
 {
     for(const auto& node : cluster.nodes()) {
         AddNodeToExperiment(experiment_uuid, node);
@@ -123,7 +123,7 @@ void Environment::AddNodes(const types::Uuid& experiment_uuid, const NodeManager
 }
 
 void Environment::DistributeContainerToImplicitNodeContainers(
-    const types::Uuid& experiment_uuid, const NodeManager::Container& container)
+    const sem::types::Uuid& experiment_uuid, const NodeManager::Container& container)
 {
     // will end up deployed to nodes not necessarily belonging to that cluster
     for(const auto& component : container.components()) {
@@ -146,15 +146,15 @@ void Environment::DistributeContainerToImplicitNodeContainers(
     }
 }
 
-void Environment::DeployContainer(const types::Uuid& experiment_uuid,
+void Environment::DeployContainer(const sem::types::Uuid& experiment_uuid,
                                   const NodeManager::Container& container)
 {
     GetExperimentInternal(experiment_uuid).GetLeastDeployedToNode().AddContainer(container);
 }
 
-auto Environment::GetDeploymentHandlerEndpoint(const types::Uuid& experiment_uuid,
+auto Environment::GetDeploymentHandlerEndpoint(const sem::types::Uuid& experiment_uuid,
                                                DeploymentType deployment_type)
-    -> types::SocketAddress
+    -> sem::types::SocketAddress
 {
     switch(deployment_type) {
         case DeploymentType::LOGAN_SERVER: {
@@ -166,13 +166,13 @@ auto Environment::GetDeploymentHandlerEndpoint(const types::Uuid& experiment_uui
     }
 }
 
-Experiment& Environment::GetExperiment(const types::Uuid& experiment_uuid)
+Experiment& Environment::GetExperiment(const sem::types::Uuid& experiment_uuid)
 {
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     return GetExperimentInternal(experiment_uuid);
 }
 
-Experiment& Environment::GetExperimentInternal(const types::Uuid& experiment_uuid)
+Experiment& Environment::GetExperimentInternal(const sem::types::Uuid& experiment_uuid)
 {
     if(experiment_map_.count(experiment_uuid)) {
         return *(experiment_map_.at(experiment_uuid));
@@ -181,7 +181,7 @@ Experiment& Environment::GetExperimentInternal(const types::Uuid& experiment_uui
 }
 
 std::unique_ptr<NodeManager::RegisterExperimentReply>
-Environment::GetExperimentDeploymentInfo(const types::Uuid& experiment_uuid)
+Environment::GetExperimentDeploymentInfo(const sem::types::Uuid& experiment_uuid)
 {
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     auto& experiment = GetExperimentInternal(experiment_uuid);
@@ -189,7 +189,7 @@ Environment::GetExperimentDeploymentInfo(const types::Uuid& experiment_uuid)
 }
 
 std::unique_ptr<NodeManager::EnvironmentMessage>
-Environment::GetProto(const types::Uuid& experiment_uuid, const bool full_update)
+Environment::GetProto(const sem::types::Uuid& experiment_uuid, const bool full_update)
 {
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     auto& experiment = GetExperimentInternal(experiment_uuid);
@@ -203,7 +203,7 @@ Environment::GetProto(const types::Uuid& experiment_uuid, const bool full_update
     return proto;
 }
 
-void Environment::ShutdownExperiment(const types::Uuid& experiment_uuid)
+void Environment::ShutdownExperiment(const sem::types::Uuid& experiment_uuid)
 {
     std::lock(configure_experiment_mutex_, experiment_mutex_);
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
@@ -211,7 +211,7 @@ void Environment::ShutdownExperiment(const types::Uuid& experiment_uuid)
     ShutdownExperimentInternal(experiment_uuid);
 }
 
-std::vector<types::Uuid> Environment::ShutdownExperimentRegex(const std::string& regex)
+std::vector<sem::types::Uuid> Environment::ShutdownExperimentRegex(const std::string& regex)
 {
     std::lock(configure_experiment_mutex_, experiment_mutex_);
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
@@ -224,7 +224,7 @@ std::vector<types::Uuid> Environment::ShutdownExperimentRegex(const std::string&
     return experiment_uuids;
 }
 
-void Environment::ShutdownExperimentInternal(const types::Uuid& experiment_uuid)
+void Environment::ShutdownExperimentInternal(const sem::types::Uuid& experiment_uuid)
 {
     auto& experiment = GetExperimentInternal(experiment_uuid);
     if(experiment.IsActive()) {
@@ -234,10 +234,10 @@ void Environment::ShutdownExperimentInternal(const types::Uuid& experiment_uuid)
     }
 }
 
-std::vector<types::Uuid>
+std::vector<sem::types::Uuid>
 Environment::GetMatchingExperiments(const std::string& experiment_name_regex)
 {
-    std::vector<types::Uuid> experiment_list;
+    std::vector<sem::types::Uuid> experiment_list;
     std::regex match_re(experiment_name_regex);
 
     for(const auto& e_pair : experiment_map_) {
@@ -250,7 +250,7 @@ Environment::GetMatchingExperiments(const std::string& experiment_name_regex)
     return experiment_list;
 }
 
-void Environment::RemoveExperiment(const types::Uuid& experiment_uuid)
+void Environment::RemoveExperiment(const sem::types::Uuid& experiment_uuid)
 {
     std::lock(configure_experiment_mutex_, experiment_mutex_);
     std::lock_guard<std::mutex> configure_lock(configure_experiment_mutex_, std::adopt_lock);
@@ -258,7 +258,7 @@ void Environment::RemoveExperiment(const types::Uuid& experiment_uuid)
     RemoveExperimentInternal(experiment_uuid);
 }
 
-void Environment::RemoveExperimentInternal(const types::Uuid& experiment_uuid)
+void Environment::RemoveExperimentInternal(const sem::types::Uuid& experiment_uuid)
 {
     if(experiment_map_.count(experiment_uuid)) {
         auto experiment_name = experiment_map_[experiment_uuid]->GetName();
@@ -279,7 +279,7 @@ void Environment::RemoveExperimentInternal(const types::Uuid& experiment_uuid)
     }
 }
 
-void Environment::AddNodeToExperiment(const types::Uuid& experiment_uuid,
+void Environment::AddNodeToExperiment(const sem::types::Uuid& experiment_uuid,
                                       const NodeManager::Node& node)
 {
     auto& experiment = GetExperimentInternal(experiment_uuid);
@@ -297,7 +297,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node)
     const auto& node_name = node.info().name();
     try {
         const auto& ip_str = node.ip_address();
-        auto ip = types::Ipv4(ip_str);
+        auto ip = sem::types::Ipv4(ip_str);
         std::lock_guard<std::mutex> lock(node_mutex_);
         if(!node_available_endpoint_map_.count(ip)) {
             auto port_tracker = std::make_unique<EnvironmentManager::EndpointTracker>(
@@ -313,7 +313,7 @@ void Environment::AddNodeToEnvironment(const NodeManager::Node& node)
 }
 
 /// Get new allocated endpoint for specified ip_address
-auto Environment::GetEndpoint(types::Ipv4 ip_address) -> types::SocketAddress
+auto Environment::GetEndpoint(sem::types::Ipv4 ip_address) -> sem::types::SocketAddress
 {
     std::lock_guard<std::mutex> lock(node_mutex_);
     if(node_available_endpoint_map_.count(ip_address)) {
@@ -325,7 +325,7 @@ auto Environment::GetEndpoint(types::Ipv4 ip_address) -> types::SocketAddress
 }
 
 /// Free endpoint
-auto Environment::FreeEndpoint(types::SocketAddress endpoint) -> void
+auto Environment::FreeEndpoint(sem::types::SocketAddress endpoint) -> void
 {
     std::lock_guard<std::mutex> lock(node_mutex_);
     if(node_available_endpoint_map_.count(endpoint.ip())) {
@@ -333,17 +333,17 @@ auto Environment::FreeEndpoint(types::SocketAddress endpoint) -> void
     }
 }
 
-auto Environment::GetManagerEndpoint() -> types::SocketAddress
+auto Environment::GetManagerEndpoint() -> sem::types::SocketAddress
 {
     return environment_manager_endpoint_pool_.GetEndpoint();
 }
 
-void Environment::FreeManagerEndpoint(types::SocketAddress endpoint)
+void Environment::FreeManagerEndpoint(sem::types::SocketAddress endpoint)
 {
     environment_manager_endpoint_pool_.FreeEndpoint(endpoint);
 }
 
-bool Environment::NodeDeployedTo(const types::Uuid& experiment_uuid, const std::string& node_ip)
+bool Environment::NodeDeployedTo(const sem::types::Uuid& experiment_uuid, const std::string& node_ip)
 {
     try {
         std::lock_guard<std::mutex> lock(experiment_mutex_);
@@ -353,7 +353,7 @@ bool Environment::NodeDeployedTo(const types::Uuid& experiment_uuid, const std::
     return false;
 }
 
-bool Environment::IsExperimentConfigured(const types::Uuid& experiment_uuid)
+bool Environment::IsExperimentConfigured(const sem::types::Uuid& experiment_uuid)
 {
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     try {
@@ -364,7 +364,7 @@ bool Environment::IsExperimentConfigured(const types::Uuid& experiment_uuid)
     return false;
 }
 
-bool Environment::IsExperimentRegistered(const types::Uuid& experiment_uuid)
+bool Environment::IsExperimentRegistered(const sem::types::Uuid& experiment_uuid)
 {
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     try {
@@ -375,7 +375,7 @@ bool Environment::IsExperimentRegistered(const types::Uuid& experiment_uuid)
     return false;
 }
 
-bool Environment::IsExperimentActive(const types::Uuid& experiment_uuid)
+bool Environment::IsExperimentActive(const sem::types::Uuid& experiment_uuid)
 {
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     try {
@@ -386,13 +386,13 @@ bool Environment::IsExperimentActive(const types::Uuid& experiment_uuid)
     return false;
 }
 
-bool Environment::GotExperiment(const types::Uuid& experiment_uuid) const
+bool Environment::GotExperiment(const sem::types::Uuid& experiment_uuid) const
 {
     std::lock_guard<std::mutex> lock(experiment_mutex_);
     return experiment_map_.count(experiment_uuid) > 0;
 }
 
-bool Environment::ExperimentIsDirty(const types::Uuid& experiment_uuid)
+bool Environment::ExperimentIsDirty(const sem::types::Uuid& experiment_uuid)
 {
     std::lock_guard<std::mutex> lock(configure_experiment_mutex_);
     if(GotExperiment(experiment_uuid)) {
@@ -401,7 +401,7 @@ bool Environment::ExperimentIsDirty(const types::Uuid& experiment_uuid)
     return false;
 }
 
-types::SocketAddress Environment::GetAmqpBrokerAddress()
+sem::types::SocketAddress Environment::GetAmqpBrokerAddress()
 {
     return qpid_broker_address_;
 }
@@ -426,7 +426,7 @@ Environment::GetExternalProducerPorts(const std::string& external_port_label)
     std::vector<std::reference_wrapper<Port>> producer_ports;
     const auto& external_port = GetExternalPort(external_port_label);
 
-    std::vector<types::Uuid> producer_experiments(external_port.producer_experiments.begin(),
+    std::vector<sem::types::Uuid> producer_experiments(external_port.producer_experiments.begin(),
                                                   external_port.producer_experiments.end());
     // Sort the Experiment names
     // REVIEW (MITCH): WHY?
@@ -440,7 +440,7 @@ Environment::GetExternalProducerPorts(const std::string& external_port_label)
     return producer_ports;
 }
 
-void Environment::AddExternalConsumerPort(const types::Uuid& experiment_uuid,
+void Environment::AddExternalConsumerPort(const sem::types::Uuid& experiment_uuid,
                                           const std::string& external_port_label)
 {
     if(!external_eventport_map_.count(external_port_label)) {
@@ -455,7 +455,7 @@ void Environment::AddExternalConsumerPort(const types::Uuid& experiment_uuid,
     external_port.consumer_experiments.insert(experiment_uuid);
 }
 
-void Environment::AddExternalProducerPort(const types::Uuid& experiment_uuid,
+void Environment::AddExternalProducerPort(const sem::types::Uuid& experiment_uuid,
                                           const std::string& external_port_label)
 {
     if(!external_eventport_map_.count(external_port_label)) {
@@ -476,14 +476,14 @@ void Environment::AddExternalProducerPort(const types::Uuid& experiment_uuid,
     }
 }
 
-void Environment::RemoveExternalConsumerPort(const types::Uuid& experiment_uuid,
+void Environment::RemoveExternalConsumerPort(const sem::types::Uuid& experiment_uuid,
                                              const std::string& external_port_label)
 {
     auto& external_port = GetExternalPort(external_port_label);
     external_port.consumer_experiments.erase(experiment_uuid);
 }
 
-void Environment::RemoveExternalProducerPort(const types::Uuid& experiment_uuid,
+void Environment::RemoveExternalProducerPort(const sem::types::Uuid& experiment_uuid,
                                              const std::string& external_port_label)
 {
     auto& external_port = GetExternalPort(external_port_label);
@@ -535,12 +535,12 @@ std::vector<std::unique_ptr<NodeManager::ExternalPort>> Environment::GetExternal
     return external_ports;
 }
 
-auto Environment::GetUpdatePublisherEndpoint() const -> types::SocketAddress
+auto Environment::GetUpdatePublisherEndpoint() const -> sem::types::SocketAddress
 {
     return update_publisher_endpoint_;
 }
 
-auto Environment::GetExperimentUuid(const std::string& name) -> types::Uuid
+auto Environment::GetExperimentUuid(const std::string& name) -> sem::types::Uuid
 {
     for(const auto& experiment_pair : experiment_map_) {
         if(experiment_pair.second->GetName() == name) {
@@ -551,7 +551,7 @@ auto Environment::GetExperimentUuid(const std::string& name) -> types::Uuid
 }
 auto Environment::CleanUpExperiments() -> void
 {
-    std::vector<types::Uuid> to_remove;
+    std::vector<sem::types::Uuid> to_remove;
     std::lock_guard lock(experiment_mutex_);
     for(const auto& experiment : experiment_map_) {
         if(experiment.second->IsFinished()) {

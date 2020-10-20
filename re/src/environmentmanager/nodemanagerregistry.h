@@ -32,7 +32,7 @@ class NodeManagerRegistry {
     std::mutex heartbeat_mutex_;
     std::condition_variable heartbeat_cv_;
     std::atomic<bool> end_heartbeat_{false};
-    types::SocketAddress broker_address_;
+    sem::types::SocketAddress broker_address_;
 
     re::network::Replier<NodeManagerRegistrationRequestType, NodeManagerRegistrationReplyType>
         replier_;
@@ -44,37 +44,37 @@ class NodeManagerRegistry {
         -> NodeManagerRegistrationReplyType;
 
     struct NodeManager{
-        types::Uuid uuid;
+        sem::types::Uuid uuid;
         std::string hostname;
         std::chrono::steady_clock::time_point last_heartbeat;
     };
     std::mutex node_managers_lock_;
-    std::unordered_map<types::Uuid, NodeManager> node_managers_;
+    std::unordered_map<sem::types::Uuid, NodeManager> node_managers_;
 
     // EPM uuid -> the EPM's host node manager's uuid
     // This may need to change once we can launch docker based EPMs??
-    std::unordered_map<types::Uuid, types::Uuid> epm_location_map_;
+    std::unordered_map<sem::types::Uuid, sem::types::Uuid> epm_location_map_;
 
-    static auto BuildNodeManagerControlTopicName(types::Uuid node_uuid) -> std::string;
-    static auto BuildEpmControlTopicName(types::Uuid epm_uuid) -> std::string;
+    static auto BuildNodeManagerControlTopicName(sem::types::Uuid node_uuid) -> std::string;
+    static auto BuildEpmControlTopicName(sem::types::Uuid epm_uuid) -> std::string;
     auto HeartbeatLoop() -> void;
 
 public:
-    explicit NodeManagerRegistry(types::SocketAddress broker_address);
+    explicit NodeManagerRegistry(sem::types::SocketAddress broker_address);
     ~NodeManagerRegistry();
     auto stop() -> void;
-    auto GetNodeManagerUuid(const std::string& hostname) -> types::Uuid;
-    auto NewEpm(types::Uuid node_manager_uuid,
-                types::Uuid experiment_uuid,
-                const std::string& experiment_name) -> types::Uuid;
-    auto StopEpm(types::Uuid epm_uuid) -> void;
-    auto KillBareMetalEpm(types::Uuid epm_uuid) -> void;
-    auto StartExperimentProcess(types::Uuid epm_uuid,
+    auto GetNodeManagerUuid(const std::string& hostname) -> sem::types::Uuid;
+    auto NewEpm(sem::types::Uuid node_manager_uuid,
+                sem::types::Uuid experiment_uuid,
+                const std::string& experiment_name) -> sem::types::Uuid;
+    auto StopEpm(sem::types::Uuid epm_uuid) -> void;
+    auto KillBareMetalEpm(sem::types::Uuid epm_uuid) -> void;
+    auto StartExperimentProcess(sem::types::Uuid epm_uuid,
                                 const std::string& container_id,
-                                types::SocketAddress manager_pubisher_endpoint,
-                                types::SocketAddress manager_registration_endpoint,
+                                sem::types::SocketAddress manager_pubisher_endpoint,
+                                sem::types::SocketAddress manager_registration_endpoint,
                                 const std::string& library_path) -> void;
-    auto UpdateLastHeartbeatTime(types::Uuid uuid) -> void;
+    auto UpdateLastHeartbeatTime(sem::types::Uuid uuid) -> void;
 };
 } // namespace re::EnvironmentManager
 

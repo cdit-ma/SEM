@@ -58,7 +58,7 @@ ComponentDefinition::ComponentDefinition(const PbType& pb) : DefaultModelEntity{
     }
 }
 ComponentDefinition::ComponentDefinition(GraphmlParser& parser, const std::string& medea_id) :
-    DefaultModelEntity{{types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
+    DefaultModelEntity{{sem::types::Uuid{}, medea_id, parser.GetDataValue(medea_id, "label")}}
 {
     // TODO: Populate namespaces.
 }

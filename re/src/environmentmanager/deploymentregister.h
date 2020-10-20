@@ -23,9 +23,9 @@
 namespace re::EnvironmentManager {
 class DeploymentRegister {
 public:
-    DeploymentRegister(const types::Ipv4& environment_manager_ip_address,
+    DeploymentRegister(const sem::types::Ipv4& environment_manager_ip_address,
                        uint16_t registration_port,
-                       const types::SocketAddress& qpid_broker_address,
+                       const sem::types::SocketAddress& qpid_broker_address,
                        const std::string& tao_naming_server_address,
                        uint16_t port_range_min = 30000,
                        uint16_t port_range_max = 40000);
@@ -74,7 +74,7 @@ private:
     std::unique_ptr<EnvironmentControl::StartExperimentReply>
     HandleStartExperiment(const EnvironmentControl::StartExperimentRequest& request);
 
-    const types::Ipv4 environment_manager_ip_address_;
+    const sem::types::Ipv4 environment_manager_ip_address_;
 
     NodeManagerRegistry node_manager_registry_;
 

@@ -5,9 +5,9 @@
 #include "helper.h"
 
 namespace re::EnvironmentManager {
-ExperimentManager::ExperimentManager(Experiment& experiment, const types::Timeout& duration) :
+ExperimentManager::ExperimentManager(Experiment& experiment, const sem::types::Timeout& duration) :
     experiment_(experiment),
-    experiment_manager_uuid_(types::Uuid{}),
+    experiment_manager_uuid_(sem::types::Uuid{}),
     master_publisher_endpoint_(experiment_.GetExperimentManagerPublisherEndpoint()),
     master_registration_endpoint_(experiment_.GetExperimentManagerRegistrationEndpoint()),
     experiment_logger_endpoint_(experiment_.GetExperimentLoggerEndpoint())
@@ -394,7 +394,7 @@ void ExperimentManager::PushStateChange(const NodeManager::ControlMessage::Type&
     }
 }
 
-void ExperimentManager::ExecutionLoop(const types::Timeout& duration,
+void ExperimentManager::ExecutionLoop(const sem::types::Timeout& duration,
                                       std::future<void> execute_future,
                                       std::future<void> terminate_future)
 {

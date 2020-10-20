@@ -24,7 +24,7 @@ public:
     // Info getters
     std::string GetId() const;
     std::string GetName() const;
-    auto GetIp() const -> types::Ipv4;
+    auto GetIp() const -> sem::types::Ipv4;
 
     std::unique_ptr<NodeManager::HardwareId> GetHardwareId() const;
     std::vector<std::unique_ptr<NodeManager::ContainerId>> GetComponentContainerIds() const;
@@ -32,7 +32,7 @@ public:
     // Node, component, attribute and logger adders
     void AddContainer(const NodeManager::Container& container);
 
-    Container& AddContainer(const types::Uuid& event_uuid,
+    Container& AddContainer(const sem::types::Uuid& event_uuid,
                             const re::Representation::ExperimentDefinition& experiment_definition,
                             const re::Representation::Container& container);
 
@@ -73,7 +73,7 @@ private:
     Experiment& experiment_;
     std::string id_;
     std::string name_;
-    types::Ipv4 ip_;
+    sem::types::Ipv4 ip_;
 
     std::string implicit_container_id_;
 

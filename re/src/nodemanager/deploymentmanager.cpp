@@ -9,13 +9,13 @@
 #include "helper.h"
 #include "protoreceiver.h"
 
-DeploymentManager::DeploymentManager(re::types::Uuid experiment_uuid,
-                                     re::types::SocketAddress broker_address,
+DeploymentManager::DeploymentManager(sem::types::Uuid experiment_uuid,
+                                     sem::types::SocketAddress broker_address,
                                      std::string experiment_name,
-                                     const re::types::Ipv4& ip_address,
+                                     const sem::types::Ipv4& ip_address,
                                      std::string container_id,
-                                     const re::types::SocketAddress& master_publisher_endpoint,
-                                     const re::types::SocketAddress& master_registration_endpoint,
+                                     const sem::types::SocketAddress& master_publisher_endpoint,
+                                     const sem::types::SocketAddress& master_registration_endpoint,
                                      std::string library_path) :
     experiment_uuid_{experiment_uuid},
     broker_address_{broker_address},

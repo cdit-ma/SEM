@@ -23,15 +23,15 @@ public:
     ~Port();
 
 protected:
-    auto GetProducerEndpoint() const -> types::SocketAddress;
+    auto GetProducerEndpoint() const -> sem::types::SocketAddress;
     void FillPortPb(NodeManager::Port& port_pb) final;
 
 private:
     // REVIEW (Mitch): Optional needed here because
-    std::optional<types::SocketAddress> producer_endpoint_;
-    auto FillEndpointPublisher() -> std::optional<types::SocketAddress>;
+    std::optional<sem::types::SocketAddress> producer_endpoint_;
+    auto FillEndpointPublisher() -> std::optional<sem::types::SocketAddress>;
     auto FillEndpointSubscriber(const NodeManager::ExternalPort& port)
-        -> std::optional<types::SocketAddress>;
+        -> std::optional<sem::types::SocketAddress>;
 };
 }; // namespace zmq
 }; // namespace re::EnvironmentManager

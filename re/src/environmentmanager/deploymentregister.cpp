@@ -11,9 +11,9 @@
 #include <zmq.hpp>
 
 namespace re::EnvironmentManager {
-DeploymentRegister::DeploymentRegister(const types::Ipv4& environment_manager_ip_address,
+DeploymentRegister::DeploymentRegister(const sem::types::Ipv4& environment_manager_ip_address,
                                        uint16_t registration_port,
-                                       const types::SocketAddress& qpid_broker_address,
+                                       const sem::types::SocketAddress& qpid_broker_address,
                                        const std::string& tao_naming_server_address,
                                        uint16_t port_range_min,
                                        uint16_t port_range_max) :
@@ -23,12 +23,12 @@ DeploymentRegister::DeploymentRegister(const types::Ipv4& environment_manager_ip
     assert(port_range_min < port_range_max);
     assert(std::numeric_limits<uint16_t>::max() - port_range_max > 10000);
 
-    types::unique_queue<uint16_t> default_node_port_pool_;
+    sem::types::unique_queue<uint16_t> default_node_port_pool_;
     for(uint16_t i = port_range_min; i < port_range_max; i++) {
         default_node_port_pool_.push(i);
     }
 
-    types::unique_queue<uint16_t> environment_manager_port_pool_;
+    sem::types::unique_queue<uint16_t> environment_manager_port_pool_;
     for(uint16_t i = port_range_min + 10000; i < port_range_max + 10000; i++) {
         environment_manager_port_pool_.push(i);
     }
@@ -38,7 +38,7 @@ DeploymentRegister::DeploymentRegister(const types::Ipv4& environment_manager_ip
         environment_manager_port_pool_, default_node_port_pool_);
 
     replier_ = std::make_unique<zmq::ProtoReplier>();
-    auto registration_endpoint = types::SocketAddress(environment_manager_ip_address,
+    auto registration_endpoint = sem::types::SocketAddress(environment_manager_ip_address,
                                                                  registration_port);
     replier_->Bind(registration_endpoint.tcp());
 
@@ -143,8 +143,8 @@ void DeploymentRegister::Terminate()
 std::unique_ptr<NodeManager::LoganRegistrationReply>
 DeploymentRegister::HandleLoganRegistration(const NodeManager::LoganRegistrationRequest& request)
 {
-    const auto& experiment_uuid = types::Uuid{request.id().experiment_uuid()};
-    const auto logan_server_ip_address = types::Ipv4(request.id().ip_address());
+    const auto& experiment_uuid = sem::types::Uuid{request.id().experiment_uuid()};
+    const auto logan_server_ip_address = sem::types::Ipv4(request.id().ip_address());
 
     std::promise<uint16_t> port_promise;
     auto port_future = port_promise.get_future();
@@ -172,7 +172,7 @@ DeploymentRegister::HandleLoganRegistration(const NodeManager::LoganRegistration
             }
             // Wait for port assignment from heartbeat loop, .get() will throw if out of ports.
             auto heartbeat_endpoint =
-                types::SocketAddress(environment_manager_ip_address_, port_future.get());
+                sem::types::SocketAddress(environment_manager_ip_address_, port_future.get());
             reply->set_heartbeat_endpoint(heartbeat_endpoint.tcp());
         }
 
@@ -231,7 +231,7 @@ DeploymentRegister::HandleRegisterExperiment(
              + request.experiment().uuid() + "}"});
     auto&& experiment_name = request.experiment().experiment_name();
     re::Representation::ExperimentDefinition definition(request.experiment());
-    auto experiment_uuid = types::Uuid{definition.GetUuid()};
+    auto experiment_uuid = sem::types::Uuid{definition.GetUuid()};
 
     auto out = std::make_unique<re::network::protocol::experimentdefinition::RegistrationReply>();
     out->set_experiment_uuid(definition.GetUuid().to_string());
@@ -253,7 +253,7 @@ auto DeploymentRegister::HandleStartExperiment(
     const EnvironmentControl::StartExperimentRequest& request)
     -> std::unique_ptr<EnvironmentControl::StartExperimentReply>
 {
-    const auto experiment_uuid = types::Uuid{request.experiment_uuid()};
+    const auto experiment_uuid = sem::types::Uuid{request.experiment_uuid()};
 
     auto& experiment = environment_->GetExperiment(experiment_uuid);
     try {

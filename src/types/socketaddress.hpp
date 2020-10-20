@@ -4,9 +4,9 @@
 #include "ipv4.hpp"
 #include <ostream>
 
-namespace re::types {
+namespace sem::types {
 
-/// Simple wrapper class for a re::types::Ipv4 + a port number
+/// Simple wrapper class for a sem::types::Ipv4 + a port number
 ///  Note: No support for ipv6 addresses currently
 class SocketAddress {
 public:
@@ -38,7 +38,8 @@ public:
         return ip_addr_.to_string() + ':' + std::to_string(port_);
     }
 
-    [[nodiscard]] auto tcp() const -> std::string {
+    [[nodiscard]] auto tcp() const -> std::string
+    {
         return "tcp://" + ip_addr_.to_string() + ':' + std::to_string(port_);
     }
 
@@ -79,5 +80,5 @@ inline auto operator==(const SocketAddress& a, const SocketAddress& b)
     return (a.port() == b.port()) && (a.ip() == b.ip());
 }
 
-} // namespace re::types
+} // namespace sem::types
 #endif // CPP_UTIL_SOCKET_ADDR_HPP

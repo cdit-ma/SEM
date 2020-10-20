@@ -45,7 +45,7 @@ auto NodeManager::HandleEpmManagementRequest(const EnvironmentManagerRequestType
     // Parse message and start EPM if required.
     if(request.has_new_epm()) {
         try {
-            auto epm_uuid = NewEpm(types::Uuid{request.new_epm().experiment_uuid()},
+            auto epm_uuid = NewEpm(sem::types::Uuid{request.new_epm().experiment_uuid()},
                                    request.new_epm().experiment_name());
 
             // Respond with EPM's uuid s.t. the experiment manager can send config info to the EPM's
@@ -68,7 +68,7 @@ auto NodeManager::HandleEpmManagementRequest(const EnvironmentManagerRequestType
     } else if(request.has_stop_epm()) {
         // Stopping an epm this way should be seen as a last resort.
         auto&& sub_message = request.stop_epm();
-        auto epm_uuid = types::Uuid{sub_message.epm_uuid()};
+        auto epm_uuid = sem::types::Uuid{sub_message.epm_uuid()};
 
         try {
             StopEpm(epm_uuid);
@@ -155,7 +155,7 @@ auto NodeManager::RegisterNodeManager(const NodeConfig& config) -> void
                              + config.environment_manager_registration_endpoint.to_string());
 }
 
-auto NodeManager::BuildControlTopicName(const types::Uuid& uuid) -> std::string
+auto NodeManager::BuildControlTopicName(const sem::types::Uuid& uuid) -> std::string
 {
     return uuid.to_string() + "_control_topic";
 }
@@ -163,14 +163,14 @@ auto NodeManager::BuildControlTopicName(const types::Uuid& uuid) -> std::string
 /// Starts a new ExperimentProcessManager with the given configuration details.
 /// EPM will communicate directly with EnvironmentManager(ExperimentManager) for further, experiment
 ///  specific, configuration details.
-auto NodeManager::NewEpm(const types::Uuid& experiment_uuid, const std::string& experiment_name)
-    -> types::Uuid
+auto NodeManager::NewEpm(const sem::types::Uuid& experiment_uuid, const std::string& experiment_name)
+    -> sem::types::Uuid
 {
     std::cout << "[NodeManager] - Starting new epm for experiment:\n    " << experiment_name << " ("
               << experiment_uuid << ")" << std::endl;
 
     namespace bp = boost::process;
-    auto&& request_uuid = types::Uuid{};
+    auto&& request_uuid = sem::types::Uuid{};
     auto&& epm_start_command = BuildEpmStartCommand(node_config_, experiment_uuid, request_uuid);
 
     // Wait for our epm to send its registration message back to the node manager. Return its
@@ -184,7 +184,7 @@ auto NodeManager::NewEpm(const types::Uuid& experiment_uuid, const std::string& 
 
 /// Waits on a semaphore that is notified in the epm registration replier thread that runs:
 ///  HandleEpmRegistration
-auto NodeManager::WaitForEpmRegistrationMessage(const types::Uuid& request_uuid) -> types::Uuid
+auto NodeManager::WaitForEpmRegistrationMessage(const sem::types::Uuid& request_uuid) -> sem::types::Uuid
 {
     // How long we should wait for the EPM to start
     // TODO: Tune this number?
@@ -207,7 +207,7 @@ auto NodeManager::WaitForEpmRegistrationMessage(const types::Uuid& request_uuid)
     }
 }
 
-auto NodeManager::BuildEpmRegistrationTopicName(const types::Uuid& uuid) -> std::string
+auto NodeManager::BuildEpmRegistrationTopicName(const sem::types::Uuid& uuid) -> std::string
 {
     return uuid.to_string() + "_epm_registration";
 }
@@ -217,8 +217,8 @@ auto NodeManager::HandleEpmRegistration(const EpmRegistrationRequest& request)
     -> EpmRegistrationReply
 {
     // TODO: Build list of pending registration uuids. Check against that before we notify.
-    auto request_uuid = types::Uuid{request.request_uuid()};
-    auto epm_uuid = types::Uuid{request.epm_uuid()};
+    auto request_uuid = sem::types::Uuid{request.request_uuid()};
+    auto epm_uuid = sem::types::Uuid{request.epm_uuid()};
     {
         std::lock_guard lock{epm_registration_mutex_};
         epm_registrations_.push({request_uuid, epm_uuid});
@@ -231,8 +231,8 @@ auto NodeManager::HandleEpmRegistration(const EpmRegistrationRequest& request)
 
 /// Constructs a string used to run EPM through boost::process::child
 auto NodeManager::BuildEpmStartCommand(const NodeConfig& node_config,
-                                       types::Uuid experiment_uuid,
-                                       types::Uuid creation_request_id) -> std::string
+                                       sem::types::Uuid experiment_uuid,
+                                       sem::types::Uuid creation_request_id) -> std::string
 {
     auto epm_exe_path = FindEpmExecutable(node_config.re_bin_path);
     return epm_exe_path + " --experiment_uuid=" + experiment_uuid.to_string()
@@ -259,7 +259,7 @@ auto NodeManager::FindEpmExecutable(const std::string& re_bin_path) -> std::stri
 
 /// Hard terminates process running EPM. Uses SIGTERM
 /// Throws on EPM uuid not found.
-void NodeManager::StopEpm(types::Uuid uuid)
+void NodeManager::StopEpm(sem::types::Uuid uuid)
 {
     if(epm_process_handles_.count(uuid) != 1) {
         throw std::runtime_error("Could not find epm to stop.");
