@@ -42,8 +42,14 @@ private:
     QColor highlight_color_;
 
     QGraphicsLinearLayout* main_layout_ = nullptr;
+    QGraphicsLinearLayout* info_layout_ = nullptr;
+    QGraphicsLinearLayout* sub_info_layout_ = nullptr;
+
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
+    PixmapGraphicsItem* metadata_pixmap_item_ = nullptr;
+
     TextGraphicsItem* label_text_item_ = nullptr;
+    TextGraphicsItem* metadata_text_item_ = nullptr;
 
     const WorkerInstanceData& worker_inst_data_; // TODO: Ask if this is okay
 };

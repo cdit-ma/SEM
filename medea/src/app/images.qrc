@@ -204,6 +204,7 @@
         <file alias="clockUp">Resources/Icons/clockUp.png</file>
         <file alias="cloud">Resources/Icons/cloud.png</file>
         <file alias="cloudCircle">Resources/Icons/cloudCircle.png</file>
+        <file alias="code">Resources/Icons/code.png</file>
         <file alias="compass">Resources/Icons/compass.png</file>
         <file alias="connect">Resources/Icons/connect.png</file>
         <file alias="connectFork">Resources/Icons/connectFork.png</file>
@@ -232,6 +233,7 @@
         <file alias="dropPin">Resources/Icons/dropPin.png</file>
         <file alias="ear">Resources/Icons/ear.png</file>
         <file alias="envelopeTwoTone">Resources/Icons/envelopeTwoTone.png</file>
+        <file alias="ethernet">Resources/Icons/ethernet.png</file>
         <file alias="exclamation">Resources/Icons/exclamation.png</file>
         <file alias="exclamationInBubble">Resources/Icons/exclamationInBubble.png</file>
         <file alias="eye">Resources/Icons/eye.png</file>
