@@ -3,20 +3,27 @@
 #include <fstream>
 #include <iostream>
 #include <optional>
-auto re::NodeManager::NodeConfig::FromIstream(std::basic_istream<char>& file_contents)
+namespace re::node_manager {
+
+auto NodeConfig::FromIstream(std::basic_istream<char>& file_contents)
     -> std::optional<NodeConfig>
 {
     namespace po = boost::program_options;
     po::options_description config_file_options("Config file options");
-    std::string ip_address_str{};
+    std::string control_ip_address_str{};
+    std::string data_ip_address_str{};
     std::string env_manager_registration_endpoint_string{};
     std::string library_root_str{};
     std::string node_uuid_str{};
     std::string re_bin_path{};
     std::string hostname_string{};
 
-    config_file_options.add_options()("ip_address,i",
-                                      po::value<std::string>(&ip_address_str)->required(),
+    config_file_options.add_options()("control_ip_address,i",
+                                      po::value<std::string>(&control_ip_address_str)->required(),
+                                      "node ip address");
+
+    config_file_options.add_options()("data_ip_address,i",
+                                      po::value<std::string>(&data_ip_address_str)->required(),
                                       "node ip address");
     config_file_options.add_options()(
         "environment_manager_registration_endpoint,e",
@@ -51,9 +58,9 @@ auto re::NodeManager::NodeConfig::FromIstream(std::basic_istream<char>& file_con
             hostname = hostname_string;
         }
 
-        return {{sem::types::Ipv4(ip_address_str),
-                 sem::types::SocketAddress(env_manager_registration_endpoint_string), library_root_str,
-                 uuid, hostname, re_bin_path}};
+        return {{sem::types::Ipv4(control_ip_address_str), sem::types::Ipv4(data_ip_address_str),
+                 sem::types::SocketAddress(env_manager_registration_endpoint_string),
+                 library_root_str, uuid, hostname, re_bin_path}};
     } catch(const std::exception& ex) {
         std::cout << config_file_options << std::endl;
         std::string error_message{"Error parsing config file: "};
@@ -62,7 +69,7 @@ auto re::NodeManager::NodeConfig::FromIstream(std::basic_istream<char>& file_con
     }
 }
 
-auto re::NodeManager::NodeConfig::SaveConfigFile(const NodeConfig& config) -> void
+auto NodeConfig::SaveConfigFile(const NodeConfig& config) -> void
 {
     std::ofstream file{config.file_path};
     if(file.is_open()) {
@@ -74,7 +81,7 @@ auto re::NodeManager::NodeConfig::SaveConfigFile(const NodeConfig& config) -> vo
         throw std::runtime_error("Could not save nodemanager config file!");
     }
 }
-auto re::NodeManager::NodeConfig::ParseArguments(int argc, char** argv)
+auto NodeConfig::ParseArguments(int argc, char** argv)
     -> std::optional<std::string>
 {
     namespace po = boost::program_options;
@@ -98,7 +105,7 @@ auto re::NodeManager::NodeConfig::ParseArguments(int argc, char** argv)
     }
     return config_file_path;
 }
-auto re::NodeManager::NodeConfig::HandleArguments(int argc, char** argv)
+auto NodeConfig::HandleArguments(int argc, char** argv)
     -> std::optional<NodeConfig>
 {
     auto config_file_path = ParseArguments(argc, argv);
@@ -109,4 +116,5 @@ auto re::NodeManager::NodeConfig::HandleArguments(int argc, char** argv)
         return config;
     }
     return std::nullopt;
+}
 }
