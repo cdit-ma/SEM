@@ -1,20 +1,12 @@
 #include <boost/program_options.hpp>
-#include <csignal>
 #include <iostream>
-#include <memory>
-#include "uuid.h"
 
 #include "sem_version.hpp"
 
-#include "deploymentregister.h"
+#include "nodemanagerregistrarimpl.h"
 
-namespace {
-volatile std::sig_atomic_t envmanager_signal_status = 0;
-}
-void signal_handler(int signal)
-{
-    envmanager_signal_status = signal;
-}
+#include "grpc_util/server.h"
+#include "socketaddress.hpp"
 
 /**
  * Environment manager main function.
@@ -28,9 +20,6 @@ void signal_handler(int signal)
  */
 int main(int argc, char** argv)
 {
-    signal(SIGINT, signal_handler);
-    signal(SIGTERM, signal_handler);
-
     std::string ip_address;
     uint16_t registration_port;
     std::string qpid_address;
@@ -47,7 +36,7 @@ int main(int argc, char** argv)
                           "Port number for deployment registration.");
 
     options.add_options()("qpid_address,q",
-                          boost::program_options::value<std::string>(&qpid_address)->required(),
+                          boost::program_options::value<std::string>(&qpid_address),
                           "Endpoint of qpid broker. <ip_addr:port>");
 
     options.add_options()("tao_naming_service_address,t",
@@ -77,13 +66,17 @@ int main(int argc, char** argv)
                   << std::endl;
     }
 
-    re::EnvironmentManager::DeploymentRegister dep_reg{
-        sem::types::Ipv4(ip_address), registration_port,
-        sem::types::SocketAddress(qpid_address), tao_naming_service_address};
+    using namespace sem::environment_manager;
 
-    while(envmanager_signal_status == 0) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+    std::unique_ptr<NodeManagerRegistry> nm_registry = std::make_unique<NodeManagerRegistryImpl>();
+
+    auto nm_registrar = std::make_shared<NodeManagerRegistrarImpl>(*nm_registry);
+
+    sem::grpc_util::Server environment_manager_server{
+        sem::types::SocketAddress{sem::types::Ipv4{ip_address}, registration_port}, {nm_registrar}};
+
+    // TODO: Do ctrl-c handling right...
+    environment_manager_server.wait();
 
     return 0;
 }

@@ -38,7 +38,8 @@ target_link_libraries(re_node_manager_lib
         re_network
         re_core
         sem_types
-        node_manager_registration_protocol
+        sem_grpc_util
+        node_manager_registration_service
         node_manager_control_protocol
         epm_registration_protocol
         epm_control_protocol
