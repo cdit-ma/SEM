@@ -1,1 +1,1 @@
-add_subdirectory(services)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/services)

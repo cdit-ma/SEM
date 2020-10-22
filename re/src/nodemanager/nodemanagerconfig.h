@@ -8,13 +8,14 @@
 #include <future>
 #include <memory>
 
-namespace re::NodeManager {
+namespace re::node_manager {
 
 /// Node manager daemon configuration struct.
 /// Should be read from node manager configuration file.
 struct NodeConfig {
     // Upon adding fields, ensure << operator is updated along with arg parsing.
-    sem::types::Ipv4 ip_address;
+    sem::types::Ipv4 control_ip_address;
+    sem::types::Ipv4 data_ip_address;
     sem::types::SocketAddress environment_manager_registration_endpoint;
     std::string lib_root_dir{};
     sem::types::Uuid uuid;
@@ -34,7 +35,8 @@ private:
 
 inline auto operator<<(std::ostream& out, const NodeConfig& config) -> std::ostream&
 {
-    out << "ip_address=" << config.ip_address << '\n'
+    out << "control_ip_address=" << config.control_ip_address << '\n'
+        << "data_ip_address=" << config.data_ip_address << '\n'
         << "environment_manager_registration_endpoint="
         << config.environment_manager_registration_endpoint << '\n'
         << "library_root=" << config.lib_root_dir << '\n'
