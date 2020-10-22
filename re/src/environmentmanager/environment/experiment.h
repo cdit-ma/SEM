@@ -12,7 +12,6 @@
 #include <unordered_map>
 
 #include "docker.h"
-#include "../nodemanagerregistry.h"
 #include "experimentdefinition.h"
 #include "epmregistration.pb.h"
 #include "triggerevent.pb.h"

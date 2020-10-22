@@ -11,12 +11,14 @@ message RegistrationRequest {
     string uuid = 1;
 
     // sem::types::Ipv4
-    string node_ip_address = 2;
-    string hostname = 3;
-    string library_path = 4;
+    string control_ip_address = 2;
+    // sem::types::Ipv4
+    string data_ip_address = 3;
+    string hostname = 4;
+    string library_path = 5;
 
     // sem::types::SocketAddress
-    string node_manager_control_endpoint = 5;
+    string node_manager_control_endpoint = 6;
 }
 
 message RegistrationReply {
