@@ -379,7 +379,7 @@ void ContainerInstanceGraphicsItem::setupLayout()
     top_layout_ = new QGraphicsLinearLayout(Qt::Horizontal);
     top_layout_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     top_layout_->setSpacing(top_layout_spacing);
-    top_layout_->setContentsMargins(top_layout_horizontal_margin, 0, top_layout_horizontal_margin, 0);
+    top_layout_->setContentsMargins(top_layout_horizontal_margin, 0, top_layout_horizontal_margin * 2, 0);
     top_layout_->addItem(icon_pixmap_item_);
     top_layout_->setStretchFactor(icon_pixmap_item_, 0);
     top_layout_->addItem(info_layout_);
