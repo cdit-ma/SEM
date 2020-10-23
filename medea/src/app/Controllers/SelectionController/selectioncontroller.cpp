@@ -117,7 +117,6 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *new_dock)
     if(new_dock != currentViewDockWidget){
         if(currentViewDockWidget){
             NodeView* nodeView = currentViewDockWidget->getNodeView();
-            
             disconnect(this, &SelectionController::zoomIn, nodeView, &NodeView::zoomIn);
             disconnect(this, &SelectionController::zoomOut, nodeView, &NodeView::zoomOut);
             disconnect(this, &SelectionController::clearSelection, nodeView, &NodeView::clearSelection);
