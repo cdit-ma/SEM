@@ -9,11 +9,15 @@ service NodeManagerControl {
 
 
 message NewEpmRequest {
+    string experiment_uuid = 1;
 
+    string container_uuid = 2;
 }
 
 message NewEpmResponse {
-
+    string uuid = 1;
+    string control_endpoint = 2;
+    string data_ip_address = 3;
 }
 
 message StopEpmRequest {

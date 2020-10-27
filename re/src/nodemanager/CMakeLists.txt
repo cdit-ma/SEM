@@ -7,11 +7,6 @@ target_compile_definitions(re_node_manager_lib PUBLIC BOOST_ALL_DYN_LINK)
 
 target_sources(re_node_manager_lib PRIVATE
         # Sources
-        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerconfig.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagercontrolimpl.cpp
@@ -25,11 +20,6 @@ target_sources(re_node_manager_lib PRIVATE
 
 
         # Headers
-        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanager.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/deploymentcontainer.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/loganclient.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/dllloader.h
 
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerconfig.h
@@ -47,15 +37,17 @@ target_include_directories(re_node_manager_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 
 target_link_libraries(re_node_manager_lib
         PUBLIC
+        re_loggers
+        re_core
         sem_types
         sem_grpc_util
         node_manager_registration_service
         node_manager_control_service
         epm_registration_service
         system_info_broker
+        PRIVATE
         Boost::filesystem
         Boost::program_options
-        PRIVATE
         )
 
 # Link against pthread if unix

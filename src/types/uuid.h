@@ -10,7 +10,7 @@ class Uuid {
 public:
     Uuid();
     explicit Uuid(boost::uuids::uuid b_uuid);
-    explicit Uuid(std::string_view string);
+    Uuid(std::string_view string);
     [[nodiscard]] auto to_string() const -> std::string;
     [[nodiscard]] auto hash() const -> std::size_t;
 

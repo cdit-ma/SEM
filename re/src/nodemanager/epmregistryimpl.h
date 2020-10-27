@@ -14,8 +14,10 @@ public:
     auto remove_epm(sem::types::Uuid uuid) -> void final;
     auto get_epm_info(sem::types::Uuid uuid) -> EpmInfo final;
 
+    static constexpr std::chrono::seconds epm_start_duration_max{5};
 private:
     std::mutex mutex_;
+
 
 #if 0
 

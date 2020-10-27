@@ -6,21 +6,15 @@
 namespace sem::node_manager {
 using namespace sem::network::services::epm_registration;
 
-EpmRegistrarImpl::EpmRegistrarImpl() {}
 EpmRegistrarImpl::~EpmRegistrarImpl() = default;
 
 auto EpmRegistrarImpl::RegisterEpm(grpc::ServerContext* context,
                                    const RegistrationRequest* request,
                                    RegistrationResponse* response) -> grpc::Status
 {
-    // Set config details, control_endpoint, data_endpoint
-
-    // Notify waiting "start_epm" call.
-    {
-        std::lock_guard lock(mutex_);
-        registered_ = true;
-    }
-    cv_.notify_all();
+    promise_to_fill_.set_value({{request->uuid()},
+                                types::SocketAddress{request->epm_control_endpoint()},
+                                types::Ipv4{request->data_ip_address()}});
 }
 auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
                                      const DeregistrationRequest* request,
@@ -28,8 +22,9 @@ auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
 {
     return grpc::Status::OK;
 }
-
-
-
+EpmRegistrarImpl::EpmRegistrarImpl(std::promise<EpmRegistry::EpmInfo> promise_to_fill) :
+    promise_to_fill_{std::move(promise_to_fill)}
+{
+}
 
 } // namespace sem::node_manager

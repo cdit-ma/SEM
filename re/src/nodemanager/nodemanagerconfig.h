@@ -4,7 +4,6 @@
 #include "ipv4.hpp"
 #include "socketaddress.hpp"
 #include "uuid.h"
-#include <future>
 #include <memory>
 
 namespace sem::node_manager {

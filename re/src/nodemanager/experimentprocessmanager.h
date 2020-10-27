@@ -12,8 +12,6 @@
 #include "epmregistration.pb.h"
 #include "epmstdout.pb.h"
 
-#include "publisher.hpp"
-#include "replier.hpp"
 #include "ipv4.hpp"
 #include "socketaddress.hpp"
 #include "uuid.h"

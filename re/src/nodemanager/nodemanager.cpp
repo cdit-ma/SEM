@@ -94,7 +94,6 @@ auto BuildEpmStartCommand(const NodeConfig& node_config,
 NodeManager::NodeManager(NodeConfig config, EpmRegistry& epm_registry) :
     epm_registry_{epm_registry},
     node_config_{std::move(config)},
-    epm_registration_service_{std::make_shared<EpmRegistrarImpl>(epm_registry_)},
     control_service_{std::make_shared<NodeManagerControlImpl>(epm_registry_)},
     server_{node_config_.control_ip_address, {control_service_}}
 {
