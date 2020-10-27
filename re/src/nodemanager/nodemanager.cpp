@@ -6,12 +6,12 @@
 #include <fstream>
 #include <utility>
 
-namespace re::node_manager {
+namespace sem::node_manager {
 namespace detail {
 
 /// Tries to register this NodeManager with the EnvironmentManager.
 /// Throws on any sort of registration failure.
-auto RegisterNodeManager(const NodeConfig& config, sem::types::SocketAddress control_endpoint)
+auto register_node_manager(const NodeConfig& config, sem::types::SocketAddress control_endpoint)
     -> void
 {
     using namespace sem::network::services::node_manager_registration;
@@ -26,17 +26,45 @@ auto RegisterNodeManager(const NodeConfig& config, sem::types::SocketAddress con
     if(config.hostname) {
         request.set_hostname(*config.hostname);
     }
-    RegistrationReply reply;
+    RegistrationResponse reply;
     grpc::ClientContext context;
     auto status = registration_stub->RegisterNodeManager(&context, request, &reply);
     if(!status.ok()) {
+        throw std::runtime_error("[NodeManager] - Failed to connect to environment manager. gRPC "
+                                 "call cancelled.");
+    }
+    if(!reply.success()) {
+        throw std::runtime_error("[NodeManager] - Failed to connect to environment manager.\n    "
+                                 + reply.message());
+    }
+}
+
+auto deregister_node_manager(const NodeConfig& config)
+{
+    using namespace sem::network::services::node_manager_registration;
+    auto registration_stub = sem::grpc_util::get_stub<NodeManagerRegistrar>(
+        config.environment_manager_registration_endpoint);
+
+    DeregistrationRequest request;
+    request.set_uuid(config.uuid.to_string());
+
+    DeregistrationResponse reply;
+    grpc::ClientContext context;
+    auto status = registration_stub->DeregisterNodeManager(&context, request, &reply);
+    if(!status.ok()) {
+        throw std::runtime_error("[NodeManager] - Failed to deregister node manager. gRPC "
+                                 "call cancelled.");
+    }
+    if(!reply.success()) {
+        throw std::runtime_error("[NodeManager] - Failed to deregister node manager.\n    "
+                                 + reply.message());
     }
 }
 
 /// Finds EPM executable at path specified. Not using std::filesystem::path as some compilers don't
 ///  yet support it.
 /// Throws if EPM executable is not found.
-auto FindEpmExecutable(const std::string& re_bin_path) -> std::string
+auto find_epm_executable(const std::string& re_bin_path) -> std::string
 {
     namespace bp = boost::process;
     auto epm_exe_path = bp::search_path("experiment_process_manager", {re_bin_path});
@@ -52,7 +80,7 @@ auto BuildEpmStartCommand(const NodeConfig& node_config,
                           sem::types::Uuid experiment_uuid,
                           sem::types::Uuid creation_request_id) -> std::string
 {
-    auto epm_exe_path = FindEpmExecutable(node_config.re_bin_path);
+    auto epm_exe_path = find_epm_executable(node_config.re_bin_path);
     return epm_exe_path + " --experiment_uuid=" + experiment_uuid.to_string()
            + " --creation_request_uuid=" + creation_request_id.to_string()
            + " --environment_manager_registration_endpoint="
@@ -63,33 +91,44 @@ auto BuildEpmStartCommand(const NodeConfig& node_config,
 }
 } // namespace detail
 
-NodeManager::NodeManager(NodeConfig config) :
-    node_config_{std::move(config)}
-//    control_server_{node_config_.control_ip_address, {/* TODO: services go here*/}}
+NodeManager::NodeManager(NodeConfig config, EpmRegistry& epm_registry) :
+    epm_registry_{epm_registry},
+    node_config_{std::move(config)},
+    epm_registration_service_{std::make_shared<EpmRegistrarImpl>(epm_registry_)},
+    control_service_{std::make_shared<NodeManagerControlImpl>(epm_registry_)},
+    server_{node_config_.control_ip_address, {control_service_}}
 {
     // Test that we can find the EPM executable before doing anything else.
     // Fail early my dudes.
-    detail::FindEpmExecutable(node_config_.re_bin_path);
+    detail::find_epm_executable(node_config_.re_bin_path);
 
     std::cout << "[NodeManager] - Started with uuid: (" << node_config_.uuid << ")" << std::endl;
-
-    // Start Control service
-
-    control_endpoint_ = sem::types::SocketAddress(node_config_.control_ip_address, 45000);
-
-    // Start Epm registration service
-
     // We now have all of our threads/repliers set up so we can register with the env manager.
     // Register with environment manager. Throws on failure.
-    detail::RegisterNodeManager(node_config_, *control_endpoint_);
+    detail::register_node_manager(node_config_, server_.endpoint());
     std::cout << "[NodeManager] - Registered with environment manager at:\n    ("
               << node_config_.environment_manager_registration_endpoint.to_string() << ")"
               << std::endl;
 }
 
-auto NodeManager::wait() -> void
+NodeManager::~NodeManager()
 {
-//    control_server_.wait();
+    try {
+        detail::deregister_node_manager(node_config_);
+    } catch(const std::exception& ex) {
+        std::cout << ex.what() << std::endl;
+    }
 }
 
-} // namespace re::NodeManager
+
+auto NodeManager::wait() -> void
+{
+    server_.wait();
+}
+
+auto NodeManager::shutdown() -> void
+{
+    server_.shutdown();
+}
+
+} // namespace sem::node_manager

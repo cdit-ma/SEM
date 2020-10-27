@@ -7,7 +7,7 @@
 #include <future>
 #include <memory>
 
-namespace re::node_manager {
+namespace sem::node_manager {
 
 /// Node manager daemon configuration struct.
 /// Should be read from node manager configuration file.
@@ -47,6 +47,6 @@ inline auto operator<<(std::ostream& out, const NodeConfig& config) -> std::ostr
     return out;
 }
 
-} // namespace re::NodeManager
+} // namespace sem::node_manager
 
 #endif // RE_NODEMANAGERCONFIG_H

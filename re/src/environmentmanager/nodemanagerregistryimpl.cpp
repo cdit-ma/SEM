@@ -6,8 +6,9 @@ auto NodeManagerRegistryImpl::add_node_manager(types::Uuid uuid, const NodeManag
 {
     std::lock_guard lock(mutex_);
     if(node_manager_handles_.count(uuid) != 0) {
-        throw std::invalid_argument(
-            "[NodeManagerRegistry] Tried to register NodeManager that has already been registered." + uuid.to_string());
+        throw std::invalid_argument("[NodeManagerRegistry] - Tried to register NodeManager that has "
+                                    "already been registered. ("
+                                    + uuid.to_string() + ")");
     }
     node_manager_handles_.emplace(uuid, info);
 }

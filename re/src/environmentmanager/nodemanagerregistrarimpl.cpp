@@ -10,7 +10,7 @@ NodeManagerRegistrarImpl::~NodeManagerRegistrarImpl() = default;
 
 auto NodeManagerRegistrarImpl::RegisterNodeManager(grpc::ServerContext* context,
                                                    const RegistrationRequest* request,
-                                                   RegistrationReply* response) -> grpc::Status
+                                                   RegistrationResponse* response) -> grpc::Status
 {
     try {
         registry_.add_node_manager(types::Uuid(request->uuid()),
@@ -18,6 +18,7 @@ auto NodeManagerRegistrarImpl::RegisterNodeManager(grpc::ServerContext* context,
                                     types::Ipv4(request->data_ip_address()),
                                     types::SocketAddress(request->node_manager_control_endpoint()),
                                     request->hostname(), request->library_path()});
+        response->set_success(true);
     } catch(const std::exception& ex) {
         response->set_success(false);
         response->set_message(ex.what());
@@ -27,10 +28,11 @@ auto NodeManagerRegistrarImpl::RegisterNodeManager(grpc::ServerContext* context,
 
 auto NodeManagerRegistrarImpl::DeregisterNodeManager(grpc::ServerContext* context,
                                                      const DeregistrationRequest* request,
-                                                     DeregistrationReply* response) -> grpc::Status
+                                                     DeregistrationResponse* response) -> grpc::Status
 {
     try {
         registry_.remove_node_manager(types::Uuid{request->uuid()});
+        response->set_success(true);
     } catch(const std::exception& ex) {
         response->set_success(false);
         response->set_message(ex.what());

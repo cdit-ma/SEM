@@ -1,3 +1,25 @@
 syntax = "proto3";
 
-package sem.network.services.node_manager_registration;
+package sem.network.services.node_manager_control;
+
+service NodeManagerControl {
+    rpc NewEpm (NewEpmRequest) returns (NewEpmResponse);
+    rpc StopEpm (StopEpmRequest) returns (StopEpmResponse);
+}
+
+
+message NewEpmRequest {
+
+}
+
+message NewEpmResponse {
+
+}
+
+message StopEpmRequest {
+
+}
+
+message StopEpmResponse {
+
+}
