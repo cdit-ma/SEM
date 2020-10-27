@@ -12,6 +12,7 @@ grpc::Status NodeManagerControlImpl::NewEpm(grpc::ServerContext* context,
                                             const NewEpmRequest* request,
                                             NewEpmResponse* response)
 {
+    epm_registry_.start_epm();
     return Service::NewEpm(context, request, response);
 }
 

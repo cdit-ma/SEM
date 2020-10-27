@@ -9,15 +9,12 @@ service EpmRegistrar {
 
 message RegistrationRequest {
     string uuid = 1;
-    string request_uuid = 2;
+    // sem::types::SocketAddress
+    string epm_control_endpoint = 3;
 
-    // sem::types::Ipv4
-    string control_ip_address = 3;
     // sem::types::Ipv4
     string data_ip_address = 4;
 
-    // sem::types::SocketAddress
-    string epm_control_endpoint = 5;
 }
 
 message RegistrationResponse {

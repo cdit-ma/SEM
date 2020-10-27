@@ -1,6 +1,5 @@
 #include <boost/program_options.hpp>
 #include <network/protocols/epmstdout/epmstdout.pb.h>
-#include <network/subscriber.hpp>
 #include "socketaddress.hpp"
 #include "uuid.h"
 
@@ -46,10 +45,10 @@ auto main(int argc, char** argv) -> int
     auto listen_topic = uuid.to_string() + "_epm_std_out";
 
     using MessageType = re::network::protocol::epmstdout::Message;
-    auto subscriber = re::network::Subscriber<MessageType>{qpid_broker_endpoint, listen_topic, ""};
-    subscriber.run([](MessageType message) { HandleMessage(message); });
-
-    while(running_) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+//    auto subscriber = re::network::Subscriber<MessageType>{qpid_broker_endpoint, listen_topic, ""};
+//    subscriber.run([](MessageType message) { HandleMessage(message); });
+//
+//    while(running_) {
+//        std::this_thread::sleep_for(std::chrono::seconds(1));
+//    }
 }
