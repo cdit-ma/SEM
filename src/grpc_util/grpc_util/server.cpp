@@ -27,15 +27,15 @@ auto run_grpc_server(const types::SocketAddress& bind_address,
 }
 } // namespace detail
 
-auto Server::address() const -> types::SocketAddress
+auto Server::endpoint() const -> types::SocketAddress
 {
     // Address should not actually be optional, only use optional for delayed init
-    return *address_;
+    return *endpoint_;
 }
 Server::Server(types::SocketAddress addr, const GrpcServiceVector& services)
 {
     auto [assigned_address, server] = detail::run_grpc_server(addr, services);
-    address_ = assigned_address;
+    endpoint_ = assigned_address;
     server_ = std::move(server);
 }
 Server::Server(types::Ipv4 addr, const GrpcServiceVector& services)
@@ -43,11 +43,15 @@ Server::Server(types::Ipv4 addr, const GrpcServiceVector& services)
     auto [assigned_address, server] = detail::run_grpc_server(types::SocketAddress(addr, 0),
                                                               services);
 
-    address_ = assigned_address;
+    endpoint_ = assigned_address;
     server_ = std::move(server);
 }
 auto Server::wait() const -> void
 {
     server_->Wait();
 }
+auto Server::shutdown() const -> void {
+    server_->Shutdown();
+}
+
 } // namespace sem::grpc_util

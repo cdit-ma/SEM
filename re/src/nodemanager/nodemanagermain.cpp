@@ -1,16 +1,30 @@
+#include "epmregistryimpl.h"
 #include "nodemanager.h"
 #include "nodemanagerconfig.h"
 
+std::function<void(void)> interrupt_function;
+
+void signal_handler(int sig)
+{
+    interrupt_function();
+}
+
 auto main(int argc, char** argv) -> int
 {
-    using namespace re::node_manager;
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+    using namespace sem::node_manager;
     try {
         // Parse our command line args, these are consumed at this point.
         auto config = NodeConfig::HandleArguments(argc, argv);
         if(config.has_value()) {
             // Save our config file immediately in case we had to generate a uuid
             NodeConfig::SaveConfigFile(config.value());
-            re::node_manager::NodeManager node_manager{config.value()};
+            std::unique_ptr<EpmRegistry> epm_registry = std::make_unique<EpmRegistryImpl>();
+            sem::node_manager::NodeManager node_manager{config.value(), *epm_registry};
+
+            interrupt_function = [&node_manager]() { node_manager.shutdown(); };
+
             node_manager.wait();
         }
     } catch(const std::exception& ex) {

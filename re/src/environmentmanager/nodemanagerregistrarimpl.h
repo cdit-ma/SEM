@@ -18,12 +18,12 @@ public:
     auto RegisterNodeManager(
         grpc::ServerContext* context,
         const network::services::node_manager_registration::RegistrationRequest* request,
-        network::services::node_manager_registration::RegistrationReply* response)
+        network::services::node_manager_registration::RegistrationResponse* response)
         -> grpc::Status final;
     auto DeregisterNodeManager(
         grpc::ServerContext* context,
         const network::services::node_manager_registration::DeregistrationRequest* request,
-        network::services::node_manager_registration::DeregistrationReply* response)
+        network::services::node_manager_registration::DeregistrationResponse* response)
         -> grpc::Status final;
 
 private:

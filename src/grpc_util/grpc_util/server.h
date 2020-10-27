@@ -29,13 +29,14 @@ public:
      */
     Server(types::Ipv4 addr, const GrpcServiceVector& services);
 
-    [[nodiscard]] auto address() const -> types::SocketAddress;
+    [[nodiscard]] auto endpoint() const -> types::SocketAddress;
     auto wait() const -> void;
+    auto shutdown() const -> void;
 
 private:
     std::unique_ptr<grpc::Server> server_;
     // We use optional here for delayed initialisation
-    std::optional<types::SocketAddress> address_;
+    std::optional<types::SocketAddress> endpoint_;
 };
 
 } // namespace sem::grpc_util
