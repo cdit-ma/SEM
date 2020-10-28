@@ -7,6 +7,7 @@
 
 #include <QGraphicsTextItem>
 #include <QGraphicsLayoutItem>
+#include <QFontMetrics>
 
 namespace Pulse::View {
 
@@ -14,16 +15,9 @@ class TextItem : public QGraphicsTextItem, public QGraphicsLayoutItem {
 public:
     explicit TextItem(const QString& text = "", QGraphicsItem* parent = nullptr);
 
-    void setText(const QString& text);
-    void setAlignment(Qt::Alignment alignment);
-
 protected:
     void setGeometry(const QRectF& geom) override;
-    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint) const override;
-
-private:
-    QPointF getAlignedPos() const;
-    Qt::Alignment alignment_ = Qt::AlignVCenter | Qt::AlignLeft;
+    QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
 };
 
 } // end Pulse::View namespace

@@ -347,6 +347,7 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/pulseviewdefaults.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/edgeanchor.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/entity.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.h

@@ -14,19 +14,9 @@ class PixmapItem : public QGraphicsPixmapItem, public QGraphicsLayoutItem {
 public:
     explicit PixmapItem(const QPixmap& pixmap = QPixmap(), QGraphicsItem* parent = nullptr);
 
-    void setPixmap(const QString& pixmap_name);
-
-    void setPixmapPadding(int padding);
-    void setPixmapSize(int width, int height);
-    void setAlignment(Qt::Alignment alignment);
-
 protected:
     void setGeometry(const QRectF& geom) override;
-    QSizeF sizeHint(Qt::SizeHint which, const QSizeF &constraint) const override;
-
-private:
-    //int pixmap_size_ = getDefaultHeight();
-    //int pixmap_padding_ = getPadding();
+    [[nodiscard]] QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
 };
 
 } // end Pulse::View namespace

@@ -3,74 +3,174 @@
 //
 
 #include "nameplate.h"
-#include <QGraphicsLinearLayout>
+#include "../pulseviewdefaults.h"
+#include "../../../theme.h"
 
 using namespace Pulse::View;
 
-const int pixmap_size = 50;
-const int pixmap_padding = 10;
-const int meta_pixmap_size = pixmap_size / 2.5;
-
-const QString font_family = "Verdana";
-const int font_point_size = 14;
-const int meta_font_point_size = 8;
-
-const int main_layout_spacing = 5;
-const int layout_spacing = 2;
-const int layout_horizontal_margin = 5;
-
+/**
+ * @brief NamePlate::NamePlate
+ * @param label
+ * @param icon_path
+ * @param icon_name
+ * @param meta_label
+ * @param meta_icon_path
+ * @param meta_icon_name
+ * @param parent
+ */
 NamePlate::NamePlate(const QString& label,
+                     const QString& icon_path,
                      const QString& icon_name,
                      const QString& meta_label,
+                     const QString& meta_icon_path,
                      const QString& meta_icon_name,
                      QGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      text_item_(new TextItem(label, this)),
-      pixmap_item_(new PixmapItem(icon_name, this)),
-      meta_text_item_(new TextItem(meta_label, this)),
-      meta_pixmap_item_(new PixmapItem(meta_icon_name, this))
+      primary_text_item_(new TextItem(label, this)),
+      primary_pixmap_item_(new PixmapItem(QPixmap(), this)),
+      secondary_text_item_(new TextItem(meta_label, this)),
+      secondary_pixmap_item_(new PixmapItem(QPixmap(), this))
 {
-    pixmap_item_->setPixmapPadding(pixmap_padding);
-    pixmap_item_->setPixmapSize(pixmap_size, pixmap_size);
-    meta_pixmap_item_->setPixmapSize(meta_pixmap_size, meta_pixmap_size);
+    primary_icon_ = {icon_path, icon_name};
+    secondary_icon_ = {meta_icon_path, meta_icon_name};
 
-    text_item_->setFont(QFont(font_family, font_point_size));
-    meta_text_item_->setFont(QFont(font_family, meta_font_point_size));
+    primary_text_item_->setFont(Defaults::primary_font);
+    secondary_text_item_->setFont(Defaults::secondary_font);
 
-    auto meta_layout = new QGraphicsLinearLayout(Qt::Horizontal);
-    meta_layout->setSpacing(layout_spacing);
-    meta_layout->setContentsMargins(0, 0, 0, 0);
-    meta_layout->addItem(meta_pixmap_item_);
-    meta_layout->addItem(meta_text_item_);
-    meta_layout->setAlignment(meta_text_item_, Qt::AlignLeft);
-    meta_layout->setStretchFactor(meta_text_item_, 1);
-
-    auto info_layout = new QGraphicsLinearLayout(Qt::Vertical);
-    info_layout->setSpacing(layout_spacing);
-    info_layout->setContentsMargins(0, 0, 0, 0);
-    info_layout->addItem(text_item_);
-    info_layout->addItem(meta_layout);
-
-    auto main_layout = new QGraphicsLinearLayout(Qt::Horizontal, this);
-    main_layout->setSpacing(main_layout_spacing);
-    main_layout->setContentsMargins(layout_horizontal_margin, 0, layout_horizontal_margin, 0);
-    main_layout->addItem(pixmap_item_);
-    main_layout->addItem(info_layout);
-    main_layout->setAlignment(info_layout, Qt::AlignLeft);
-    main_layout->setStretchFactor(info_layout, 1);
+    primary_pixmap_item_->setMaximumSize(Defaults::primary_icon_size);
+    secondary_pixmap_item_->setMaximumSize(Defaults::secondary_icon_size);
 
     setContentsMargins(0, 0, 0, 0);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    setupLayout();
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &NamePlate::themeChanged);
+    themeChanged();
 }
 
-void NamePlate::changeIcon(const QString& icon_name)
+/**
+ * @brief NamePlate::changeIcon
+ * @param icon_path
+ * @param icon_name
+ */
+void NamePlate::changeIcon(const QString& icon_path, const QString& icon_name)
 {
-    pixmap_item_->setPixmap(icon_name);
+    primary_icon_ = {icon_path, icon_name};
+    primary_pixmap_item_->setPixmap(scaledPixmap(icon_path, icon_name, Defaults::primary_icon_size));
 }
 
+/**
+ * @brief NamePlate::changeLabel
+ * @param label
+ */
 void NamePlate::changeLabel(const QString& label)
 {
     prepareGeometryChange();
-    text_item_->setText(label);
+    primary_text_item_->setPlainText(label);
     updateGeometry();
+}
+
+/**
+ *
+ * @param left
+ */
+void NamePlate::setIconPos(IconPos pos)
+{
+    if (pos == current_icon_pos_) {
+        return;
+    }
+
+    // Remove them from the layout before re-ordering them
+    main_layout_->removeItem(primary_pixmap_item_);
+    main_layout_->removeItem(info_layout_);
+
+    // Re-add the items in order
+    if (pos == IconPos::Left) {
+        main_layout_->insertItem(0, info_layout_);
+        main_layout_->insertItem(0, primary_pixmap_item_);
+    } else {
+        main_layout_->insertItem(0, primary_pixmap_item_);
+        main_layout_->insertItem(0, info_layout_);
+    }
+
+    main_layout_->setAlignment(info_layout_, Qt::AlignLeft);
+    main_layout_->setAlignment(primary_pixmap_item_, Qt::AlignCenter);
+    themeChanged();
+}
+
+/**
+ *
+ * @return
+ */
+QRectF NamePlate::getIconGeometry() const
+{
+    return primary_pixmap_item_->geometry();
+}
+
+/**
+ * @brief NamePlate::scaledPixmap
+ * @param path
+ * @param name
+ * @param size
+ * @return
+ */
+QPixmap NamePlate::scaledPixmap(const QString& path, const QString& name, const QSize& size)
+{
+    auto pixmap = Theme::theme()->getImage(path, name,QSize(), Theme::theme()->getMenuIconColor());
+    return pixmap.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
+
+/**
+ * @brief NamePlate::themeChanged
+ */
+void NamePlate::themeChanged()
+{
+    primary_text_item_->setDefaultTextColor(Theme::theme()->getTextColor());
+    secondary_text_item_->setDefaultTextColor(Theme::theme()->getTextColor());
+
+    primary_pixmap_item_->setPixmap(scaledPixmap(primary_icon_.first, primary_icon_.second, Defaults::primary_icon_size));
+    secondary_pixmap_item_->setPixmap(scaledPixmap(secondary_icon_.first, secondary_icon_.second, Defaults::secondary_icon_size));
+}
+
+/**
+ * @brief NamePlate::setupLayout
+ */
+void NamePlate::setupLayout()
+{
+    auto meta_layout = new QGraphicsLinearLayout(Qt::Horizontal);
+    meta_layout->setSpacing(Defaults::tertiary_layout_spacing);
+    meta_layout->setContentsMargins(Defaults::padding, 0, 0, 0);
+    meta_layout->addItem(secondary_pixmap_item_);
+    meta_layout->addItem(secondary_text_item_);
+    meta_layout->setAlignment(secondary_pixmap_item_, Qt::AlignCenter);
+    meta_layout->setStretchFactor(secondary_text_item_, 1);
+
+    info_layout_ = new QGraphicsLinearLayout(Qt::Vertical);
+    info_layout_->setSpacing(0);
+    info_layout_->setContentsMargins(0, Defaults::layout_margin, 0, Defaults::layout_margin);
+    info_layout_->addItem(primary_text_item_);
+    info_layout_->addItem(meta_layout);
+
+    main_layout_ = new QGraphicsLinearLayout(Qt::Horizontal, this);
+    main_layout_->setSpacing(Defaults::primary_layout_spacing);
+    main_layout_->setContentsMargins(Defaults::layout_margin, 0, Defaults::layout_margin, 0);
+    main_layout_->addItem(primary_pixmap_item_);
+    main_layout_->addItem(info_layout_);
+    main_layout_->setAlignment(primary_pixmap_item_, Qt::AlignCenter);
+    main_layout_->setStretchFactor(info_layout_, 1);
+}
+
+#include <QPainter>
+void NamePlate::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+    return;
+    painter->setBrush(Qt::NoBrush);
+    painter->setPen(Qt::red);
+    painter->drawRect(primary_pixmap_item_->geometry());
+    painter->drawRect(primary_text_item_->geometry());
+    painter->setPen(Qt::green);
+    painter->drawRect(secondary_pixmap_item_->geometry());
+    painter->drawRect(secondary_text_item_->geometry());
+    painter->setPen(Qt::magenta);
+    painter->drawRect(info_layout_->geometry());
 }
