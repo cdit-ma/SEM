@@ -20,5 +20,7 @@ public:
     virtual void contract() = 0;
 };
 
+inline EntityContainer::~EntityContainer() = default;
+
 } // end Pulse::View namespace
 #endif // PULSE_VIEW_ENTITYCONTAINER_H

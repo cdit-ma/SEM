@@ -5,6 +5,8 @@
 #ifndef PULSE_VIEW_ENTITY_H
 #define PULSE_VIEW_ENTITY_H
 
+#include "../../Dataflow/EntityItems/pulsemodelentity.h"
+
 #include <QObject>
 
 namespace Pulse::View {
@@ -15,9 +17,11 @@ public:
 
     // TODO: Create an interface for Pulse::Model that sends signals when the model has changed
     //  Then use that here instead of a QObject
-    virtual void connectModelData(QPointer<QObject> model_data) = 0;
+    virtual void connectModelData(QPointer<Pulse::Model::Entity> model_data) = 0;
     virtual void onModelDeleted() = 0;
 };
+
+inline Entity::~Entity() = default;
 
 } // end Pulse::View namespace
 #endif // PULSE_VIEW_ENTITY_H

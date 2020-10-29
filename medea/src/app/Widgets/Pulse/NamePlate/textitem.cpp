@@ -48,7 +48,7 @@ QSizeF TextItem::sizeHint(Qt::SizeHint which, const QSizeF& constraint) const
         case Qt::MinimumSize: {
             QFontMetrics font_metrics(font());
             QSizeF txt_size(font_metrics.horizontalAdvance(toPlainText()), font_metrics.ascent());
-            return txt_size; // + QSizeF(Defaults::padding, Defaults::padding);
+            return txt_size; // + QSizeF(Defaults::small_padding, Defaults::small_padding);
         }
         case Qt::PreferredSize:
             return boundingRect().size();

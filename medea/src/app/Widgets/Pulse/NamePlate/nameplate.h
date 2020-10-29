@@ -32,7 +32,7 @@ public:
     void changeLabel(const QString& label) override;
 
     void setIconPos(IconPos pos);
-    QRectF getIconGeometry() const;
+    [[nodiscard]] QRectF getIconGeometry() const;
 
     static QPixmap scaledPixmap(const QString& path, const QString& name, const QSize& size);
 

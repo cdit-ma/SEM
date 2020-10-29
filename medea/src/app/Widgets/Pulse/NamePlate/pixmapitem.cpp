@@ -51,7 +51,7 @@ QSizeF PixmapItem::sizeHint(Qt::SizeHint which, const QSizeF &constraint) const
             if (pixmap().isNull()) {
                 return QSizeF(Defaults::minimum_height, Defaults::minimum_height);
             } else {
-                return pixmap().size() + QSizeF(Defaults::padding, Defaults::padding);
+                return pixmap().size() + QSizeF(Defaults::small_padding, Defaults::small_padding);
             }
         case Qt::MaximumSize:
             return QSizeF(10000, 10000);

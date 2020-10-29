@@ -71,7 +71,7 @@ void NamePlate::changeLabel(const QString& label)
 }
 
 /**
- *
+ * @brief NamePlate::setIconPos
  * @param left
  */
 void NamePlate::setIconPos(IconPos pos)
@@ -99,7 +99,7 @@ void NamePlate::setIconPos(IconPos pos)
 }
 
 /**
- *
+ * @brief NamePlate::getIconGeometry
  * @return
  */
 QRectF NamePlate::getIconGeometry() const
@@ -139,7 +139,7 @@ void NamePlate::setupLayout()
 {
     auto meta_layout = new QGraphicsLinearLayout(Qt::Horizontal);
     meta_layout->setSpacing(Defaults::tertiary_layout_spacing);
-    meta_layout->setContentsMargins(Defaults::padding, 0, 0, 0);
+    meta_layout->setContentsMargins(Defaults::small_padding, 0, 0, 0);
     meta_layout->addItem(secondary_pixmap_item_);
     meta_layout->addItem(secondary_text_item_);
     meta_layout->setAlignment(secondary_pixmap_item_, Qt::AlignCenter);
