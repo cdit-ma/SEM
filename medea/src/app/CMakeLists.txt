@@ -185,6 +185,7 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/defaultentitycontainer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/freeformtray.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/tricolumntray.cpp
         )
 
 if (WIN32)
@@ -362,11 +363,12 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/nameplate.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/tray.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/freeformtray.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/tricolumntray.h
         )
 
 set(RESOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc
-        )
+    )
 
 if (WIN32)
     SET(QT_USE_QTMAIN TRUE)

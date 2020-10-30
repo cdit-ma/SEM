@@ -159,18 +159,3 @@ void NamePlate::setupLayout()
     main_layout_->setAlignment(primary_pixmap_item_, Qt::AlignCenter);
     main_layout_->setStretchFactor(info_layout_, 1);
 }
-
-#include <QPainter>
-void NamePlate::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-    return;
-    painter->setBrush(Qt::NoBrush);
-    painter->setPen(Qt::red);
-    painter->drawRect(primary_pixmap_item_->geometry());
-    painter->drawRect(primary_text_item_->geometry());
-    painter->setPen(Qt::green);
-    painter->drawRect(secondary_pixmap_item_->geometry());
-    painter->drawRect(secondary_text_item_->geometry());
-    painter->setPen(Qt::magenta);
-    painter->drawRect(info_layout_->geometry());
-}

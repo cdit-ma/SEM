@@ -14,18 +14,21 @@ public:
     explicit FreeFormTray(QGraphicsItem* parent = nullptr);
     ~FreeFormTray() override = default;
 
-    void add(QGraphicsWidget* widget) override;
+    void addItem(QGraphicsWidget* widget) override;
 
     [[nodiscard]] QRectF boundingRect() const override;
 
 public slots:
-    void validateContentMove(QGraphicsWidget* widget, const QPointF& pos);
+    void validateItemMove(QGraphicsWidget* widget, const QPointF& pos);
 
 private:
     [[nodiscard]] static QPointF getContentOrigin();
-    [[nodiscard]] QPointF getContentStackPos() const;
+    [[nodiscard]] QPointF getNextStackPos() const;
+    [[nodiscard]] QRectF getVisibleItemsRect() const;
 
-    std::vector<QGraphicsWidget*> content_widgets_;
+    void checkPreCondition(QGraphicsWidget* widget) const;
+
+    std::vector<QGraphicsWidget*> contained_items_;
 };
 
 } // end Pulse::View namespace

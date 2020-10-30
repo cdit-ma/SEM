@@ -12,7 +12,7 @@ namespace Pulse::View {
 class Tray {
 public:
     virtual ~Tray() = 0;
-    virtual void add(QGraphicsWidget* widget) = 0;
+    virtual void addItem(QGraphicsWidget* widget) = 0;
 };
 
 inline Tray::~Tray() = default;

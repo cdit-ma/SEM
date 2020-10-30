@@ -36,8 +36,6 @@ public:
 
     static QPixmap scaledPixmap(const QString& path, const QString& name, const QSize& size);
 
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-
 private:
     void themeChanged();
     void setupLayout();
