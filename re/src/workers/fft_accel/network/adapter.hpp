@@ -10,16 +10,28 @@
 
 namespace sem::fft_accel::network {
 
-    template <typename SerializedType, typename LocalType>
-    Result<SerializedType> serialize(const LocalType& data);
+    template<typename SerializedType, typename LocalType>
+    Result<SerializedType> serialize(const LocalType &data);
 
-    template <typename LocalType, typename SerializedType>
-    Result<LocalType> deserialize(const SerializedType& data);
+    template<typename LocalType, typename SerializedType>
+    Result<LocalType> deserialize(const SerializedType &data);
 
+    /**
+     * A class that implments the fft_result_listener interface must also implement the receive_processed_fft
+     * function. This allow these implementing classes to be registered with objects that will produce
+     * fft results.
+     */
     class fft_result_listener {
     public:
         virtual ~fft_result_listener() = 0;
 
+        /**
+         * The receive_processed_fft function will be called by other other classes when they have fft_results
+         * to pass to the fft_result_listener in question
+         * @param data The result of the FFT data operation in complex interleaved format
+         * @return void result if the listener was able to successfully receive the fft_result, otherwise returns an
+         *     ErrorResult with a description of the error encountered.
+         */
         virtual Result<void> receive_processed_fft(std::vector<float> data) = 0;
     };
 
@@ -39,12 +51,8 @@ namespace sem::fft_accel::network {
 
         virtual Result<void> register_listener(std::weak_ptr<fft_result_listener> listener) = 0;
 
-        /**
-         * Used to check whether or not the adapter in question is in an active state. When not in an active state messages
-         * will not be sent or received and will instead result in an error.
-         * @return
-         */
-        //virtual bool is_active() = 0;
+        [[nodiscard]]
+        virtual Result<uint16_t> get_bound_port() const = 0;
     };
 
 

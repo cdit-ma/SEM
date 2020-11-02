@@ -20,6 +20,7 @@ target_link_libraries(sem_fft_accel_udp
         PUBLIC
         sem_fft_accel_network
         re_types
+        Boost::thread
         )
 
 add_subdirectory(test)

@@ -21,6 +21,7 @@ public:
 
     MOCK_METHOD(Result<void>, send, (std::vector<float>));
     MOCK_METHOD(Result<void>, register_listener, (std::weak_ptr<network::fft_result_listener>));
+    MOCK_METHOD(Result<uint16_t>, get_bound_port, (), (const, override));
 
     MOCK_METHOD(bool, is_active, ());
 };

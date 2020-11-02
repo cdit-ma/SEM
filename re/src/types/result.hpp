@@ -61,6 +61,7 @@ struct Result {
     using val_or_err_t = std::variant<ValueType, ErrorResult>;
 
     constexpr Result(val_or_err_t &&value) : value_(std::move(value)) {};
+    constexpr Result(ErrorResult&& errorResult) : Result(val_or_err_t(std::move(errorResult))) {};
 
     [[nodiscard]]
     constexpr ValueType GetValue() const {
@@ -78,6 +79,15 @@ struct Result {
                 }
         }, value_);
     };
+
+    [[nodiscard]]
+    constexpr bool is_error() const {
+        return std::visit(
+                [](auto &&value) -> bool {
+                    using T = std::decay_t<decltype(value)>;
+                    return std::is_same_v<T, ErrorResult>;
+                }, value_);
+    }
 
     bool operator==(const Result& other) {
         return value_ == other.value_;
@@ -101,6 +111,11 @@ struct Result<void>{
             throw unhandled_error_result(err_->msg);
         }
     };
+    [[nodiscard]]
+    constexpr bool is_error() const {
+        return err_.has_value();
+    }
+
     bool operator==(const Result<void>& other) const {
         return err_ == other.err_;
     };
