@@ -8,6 +8,8 @@
 #include "result.hpp"
 #include "data/fft_data.hpp"
 
+#include <memory>
+
 namespace sem::fft_accel::network {
 
     template<typename SerializedType, typename LocalType>
