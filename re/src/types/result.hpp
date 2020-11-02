@@ -62,6 +62,7 @@ struct Result {
 
     constexpr Result(val_or_err_t &&value) : value_(std::move(value)) {};
     constexpr Result(ErrorResult&& errorResult) : Result(val_or_err_t(std::move(errorResult))) {};
+    constexpr Result(ValueType&& value) : Result(val_or_err_t(std::move(value))) {};
 
     [[nodiscard]]
     constexpr ValueType GetValue() const {
