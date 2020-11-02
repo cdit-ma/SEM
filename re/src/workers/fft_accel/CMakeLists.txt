@@ -4,6 +4,8 @@ add_subdirectory(data)
 add_subdirectory(network)
 add_subdirectory(runtime)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Worker library to be exposed to RE
 add_library(sem_fft_accel_fpga_worker SHARED)
 

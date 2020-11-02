@@ -60,9 +60,9 @@ template<typename ValueType>
 struct Result {
     using val_or_err_t = std::variant<ValueType, ErrorResult>;
 
-    constexpr Result(val_or_err_t &&value) : value_(std::move(value)) {};
-    constexpr Result(ErrorResult&& errorResult) : Result(val_or_err_t(std::move(errorResult))) {};
-    constexpr Result(ValueType&& value) : Result(val_or_err_t(std::move(value))) {};
+    constexpr Result(val_or_err_t value) : value_(std::move(value)) {};
+    Result(ErrorResult errorResult) : Result(val_or_err_t(std::move(errorResult))) {};
+    constexpr Result(ValueType value) : Result(val_or_err_t(std::move(value))) {};
 
     [[nodiscard]]
     constexpr ValueType GetValue() const {
