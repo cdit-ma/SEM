@@ -3,7 +3,6 @@
 
 #include "grpc_util/grpc_util.h"
 #include "ipv4.hpp"
-#include "node_manager_control_service.grpc.pb.h"
 #include "socketaddress.hpp"
 #include "uuid.h"
 #include "nodemanagerregistry.h"
