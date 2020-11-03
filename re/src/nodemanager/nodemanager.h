@@ -9,6 +9,11 @@
 #include <memory>
 namespace sem::node_manager {
 
+auto register_node_manager(const NodeConfig& config, sem::types::SocketAddress control_endpoint)
+    -> void;
+
+auto deregister_node_manager(const NodeConfig& config) -> void;
+
 class NodeManager {
 public:
     explicit NodeManager(NodeConfig config, EpmRegistry& epm_registry);

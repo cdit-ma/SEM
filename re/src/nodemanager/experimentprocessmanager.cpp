@@ -11,95 +11,11 @@
 
 namespace re::NodeManager {
 
-/**
- * Accepts the following command line args:
- * experiment_uuid[e] experiment uuid
- * creation_request_uuid[r] uuid of the request used to start this EPM
- * qpid_broker_endpoint[q] qpid broker endpoint
- * ip_addres[i] ip address
- * lib_root_dir[l]
- * re_bin_dir[b]
- * registration_entity_uuid[u]
- */
-auto ExperimentProcessManager::HandleArguments(int argc, char** argv)
-    -> ExperimentProcessManagerConfig
-{
-    namespace po = boost::program_options;
-    po::options_description command_line_options("Node manager options");
-    std::string experiment_uuid_string{};
-    std::string creation_request_uuid_string{};
-    std::string qpid_broker_endpoint_string{};
-    std::string ip_address_string{};
-    std::string lib_root_dir{};
-    std::string re_bin_dir{};
-    std::string registration_entity_uuid_string{};
 
-    command_line_options.add_options()("experiment_uuid,e",
-                                       po::value<std::string>(&experiment_uuid_string)->required(),
-                                       "Experiment uuid");
-
-    command_line_options.add_options()(
-        "creation_request_uuid,r",
-        po::value<std::string>(&creation_request_uuid_string)->required(), "Creation request uuid");
-
-    command_line_options.add_options()(
-        "qpid_broker_endpoint,q", po::value<std::string>(&qpid_broker_endpoint_string)->required(),
-        "qpid broker endpoint");
-
-    command_line_options.add_options()("ip_address,i",
-                                       po::value<std::string>(&ip_address_string)->required(),
-                                       "ip address");
-
-    command_line_options.add_options()("lib_root_dir,l",
-                                       po::value<std::string>(&lib_root_dir)->required(),
-                                       "component library root directory path");
-
-    command_line_options.add_options()("re_bin_dir,b",
-                                       po::value<std::string>(&re_bin_dir)->required(),
-                                       "re binary directory path");
-
-    command_line_options.add_options()(
-        "registration_entity_uuid,u",
-        po::value<std::string>(&registration_entity_uuid_string)->required(),
-        "re binary directory path");
-
-    command_line_options.add_options()("help,h", "help");
-
-    po::variables_map parsed_options;
-    po::store(po::parse_command_line(argc, argv, command_line_options), parsed_options);
-    po::notify(parsed_options);
-
-    try {
-        ExperimentProcessManagerConfig config{sem::types::Uuid{},
-                                              sem::types::Uuid{experiment_uuid_string},
-                                              sem::types::Uuid{creation_request_uuid_string},
-                                              sem::types::Uuid{registration_entity_uuid_string},
-                                              sem::types::Ipv4(ip_address_string),
-                                              sem::types::SocketAddress(
-                                                  qpid_broker_endpoint_string),
-                                              lib_root_dir,
-                                              re_bin_dir};
-        return config;
-    } catch(const std::exception& ex) {
-        std::cout << command_line_options << std::endl;
-        throw std::invalid_argument("Failed to parse EPM options.");
-    }
-}
 
 ExperimentProcessManager::ExperimentProcessManager(ExperimentProcessManagerConfig config) :
     epm_config_{std::move(config)},
-    epm_control_replier_{epm_config_.qpid_broker_endpoint, BuildEpmControlTopic(), ""}
 {
-    // Start experiment management listener
-    epm_control_replier_.run(
-        [this](const ControlRequest& request) { return HandleEpmControl(request); });
-
-    // Tell node manager that we've successfully started, throws if registration fails.
-    RegisterWithNodeManager(epm_config_.creation_request_uuid);
-
-    original_std_out_stream_pointer_ = std::cout.rdbuf(buffer_.rdbuf());
-    std_out_sender_future_ = std::async(std::launch::async, &ExperimentProcessManager::SendStdOut,
-                                        this);
 }
 
 /// Evil hack
@@ -170,13 +86,6 @@ auto ExperimentProcessManager::HandleEpmControl(const ControlRequest& request) -
         return GetErrorReply("Unhandled oneof type in ControlRequest");
     }
 }
-auto ExperimentProcessManager::GetErrorReply(const std::string& error_message) -> ControlReply
-{
-    ControlReply reply;
-    reply.set_success(false);
-    reply.set_error_message(error_message);
-    return reply;
-}
 
 /// Send registration request to our node manager (if this is started as a docker container, we're
 ///  actually registering with the environment manager).
@@ -202,20 +111,7 @@ auto ExperimentProcessManager::RegisterWithNodeManager(const sem::types::Uuid& r
     }
 }
 
-auto ExperimentProcessManager::BuildEpmControlTopic() -> std::string
-{
-    return epm_config_.epm_uuid.to_string() + "_epm_control";
-}
 
-auto ExperimentProcessManager::BuildEpmRegistrationTopic() -> std::string
-{
-    return epm_config_.registration_entity_uuid.to_string() + "_epm_registration";
-}
-
-auto ExperimentProcessManager::BuildEpmStdOutTopic() -> std::string
-{
-    return epm_config_.experiment_uuid.to_string() + "_epm_std_out";
-}
 void ExperimentProcessManager::StopStdOutCapture()
 {
     stop_std_out_capture_ = true;
@@ -225,11 +121,4 @@ void ExperimentProcessManager::StopStdOutCapture()
     std::cout.rdbuf(original_std_out_stream_pointer_);
 }
 
-auto ExperimentProcessManager::Start() -> void
-{
-    {
-        std::unique_lock lock(running_mutex_);
-        running_cv_.wait(lock, [this] { return finished_; });
-    }
-}
 } // namespace re::NodeManager

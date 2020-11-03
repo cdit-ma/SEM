@@ -12,9 +12,11 @@ auto EpmRegistrarImpl::RegisterEpm(grpc::ServerContext* context,
                                    const RegistrationRequest* request,
                                    RegistrationResponse* response) -> grpc::Status
 {
-    promise_to_fill_.set_value({{request->uuid()},
-                                types::SocketAddress{request->epm_control_endpoint()},
-                                types::Ipv4{request->data_ip_address()}});
+    promise_to_fill_.set_value(
+        {{request->uuid()},
+         EpmRegistry::EpmInfo{types::SocketAddress{request->epm_control_endpoint()},
+                               types::Ipv4{request->data_ip_address()}}});
+    return grpc::Status::OK;
 }
 auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
                                      const DeregistrationRequest* request,
@@ -22,7 +24,7 @@ auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
 {
     return grpc::Status::OK;
 }
-EpmRegistrarImpl::EpmRegistrarImpl(std::promise<EpmRegistry::EpmInfo> promise_to_fill) :
+EpmRegistrarImpl::EpmRegistrarImpl(std::promise<EpmRegistrationResult> promise_to_fill) :
     promise_to_fill_{std::move(promise_to_fill)}
 {
 }

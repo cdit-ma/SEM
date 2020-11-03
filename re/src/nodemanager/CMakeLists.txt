@@ -15,6 +15,8 @@ target_sources(re_node_manager_lib PRIVATE
 
         ${CMAKE_CURRENT_SOURCE_DIR}/epmregistrarimpl.cpp
 
+        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.cpp
+
         ${CMAKE_CURRENT_SOURCE_DIR}/trigger.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/strategy.cpp
 
@@ -29,6 +31,7 @@ target_sources(re_node_manager_lib PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/epmregistryimpl.h
 
         ${CMAKE_CURRENT_SOURCE_DIR}/epmregistrarimpl.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.h
 
         ${CMAKE_CURRENT_SOURCE_DIR}/trigger.h
         ${CMAKE_CURRENT_SOURCE_DIR}/strategy.h
@@ -75,6 +78,9 @@ target_compile_features(experiment_process_manager PRIVATE cxx_std_17)
 
 target_sources(experiment_process_manager PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagermain.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.cpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.h
         )
 
 target_link_libraries(experiment_process_manager

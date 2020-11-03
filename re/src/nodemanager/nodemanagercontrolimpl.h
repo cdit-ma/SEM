@@ -1,7 +1,3 @@
-//
-// Created by mitchell on 22/10/20.
-//
-
 #ifndef SEM_NODEMANAGERCONTROLIMPL_H
 #define SEM_NODEMANAGERCONTROLIMPL_H
 #include "epmregistry.h"
@@ -9,19 +5,19 @@
 
 namespace sem::node_manager {
 
-class NodeManagerControlImpl
+class NodeManagerControlImpl final
     : public sem::network::services::node_manager_control::NodeManagerControl::Service {
 public:
     NodeManagerControlImpl(EpmRegistry& epm_registry);
-    ~NodeManagerControlImpl() override;
-    grpc::Status
-    NewEpm(grpc::ServerContext* context,
-           const sem::network::services::node_manager_control::NewEpmRequest* request,
-           sem::network::services::node_manager_control::NewEpmResponse* response) override;
-    grpc::Status
-    StopEpm(grpc::ServerContext* context,
-            const sem::network::services::node_manager_control::StopEpmRequest* request,
-            sem::network::services::node_manager_control::StopEpmResponse* response) override;
+    ~NodeManagerControlImpl() final;
+    auto NewEpm(grpc::ServerContext* context,
+                const sem::network::services::node_manager_control::NewEpmRequest* request,
+                sem::network::services::node_manager_control::NewEpmResponse* response)
+        -> grpc::Status final;
+    auto StopEpm(grpc::ServerContext* context,
+                 const sem::network::services::node_manager_control::StopEpmRequest* request,
+                 sem::network::services::node_manager_control::StopEpmResponse* response)
+        -> grpc::Status final;
 
 private:
     EpmRegistry& epm_registry_;

@@ -14,7 +14,12 @@ namespace sem::node_manager {
 class EpmRegistrarImpl final
     : public sem::network::services::epm_registration::EpmRegistrar::Service {
 public:
-    EpmRegistrarImpl(std::promise<EpmRegistry::EpmInfo> promise_to_fill);
+    struct EpmRegistrationResult {
+        types::Uuid epm_uuid;
+        EpmRegistry::EpmInfo epm_info;
+        EpmRegistry::EpmProcessHandle process_handle;
+    };
+    EpmRegistrarImpl(std::promise<EpmRegistrationResult> promise_to_fill);
     ~EpmRegistrarImpl() final;
 
     auto RegisterEpm(grpc::ServerContext* context,
@@ -27,7 +32,7 @@ public:
         -> grpc::Status final;
 
 private:
-    std::promise<EpmRegistry::EpmInfo> promise_to_fill_;
+    std::promise<EpmRegistrationResult> promise_to_fill_;
 };
 
 
