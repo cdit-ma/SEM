@@ -3,6 +3,8 @@ find_package(Boost 1.67.0 REQUIRED COMPONENTS thread regex)
 
 add_library(sem_fft_accel_udp STATIC)
 
+set_target_properties(sem_fft_accel_udp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_sources(sem_fft_accel_udp
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/udp_adapter.hpp

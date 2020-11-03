@@ -1,6 +1,8 @@
 
 add_library(sem_fft_accel_network STATIC)
 
+set_target_properties(sem_fft_accel_network PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_sources(sem_fft_accel_network
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter.hpp

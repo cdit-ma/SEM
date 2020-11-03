@@ -1,6 +1,7 @@
 # Generic FFT Acceleration Worker library
 add_library(sem_fft_accel_runtime STATIC)
 
+set_target_properties(sem_fft_accel_runtime PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(sem_fft_accel_runtime
         PUBLIC
         cxx_std_17
