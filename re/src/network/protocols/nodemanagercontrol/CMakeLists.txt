@@ -1,14 +1,7 @@
 #Set our project names
 project(node_manager_control_protocol VERSION ${PROJECT_VERSION})
 
-find_package(Protobuf REQUIRED)
-
-if(NOT PROTOBUF_FOUND)
-    # Find package Protobuf
-    find_package(Protobuf REQUIRED)
-endif()
-
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagercontrol.proto)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagercontrol.proto)
 
 add_library(${PROJECT_NAME} STATIC "")
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_11)

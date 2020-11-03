@@ -1,7 +1,6 @@
 #ifndef RE_NODEMANAGERCONFIG_H
 #define RE_NODEMANAGERCONFIG_H
 
-#include "experimentprocessmanager.h"
 #include "ipv4.hpp"
 #include "socketaddress.hpp"
 #include "uuid.h"

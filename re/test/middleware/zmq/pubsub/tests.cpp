@@ -157,8 +157,8 @@ TEST(Re_Port_PubSub_Zmq, Basic_Terminate){
 }
 
 #include "controlmessage.pb.h"
-#include "deploymentcontainer.h"
-#include "component.h"
+//#include "deploymentcontainer.h"
+//#include "component.h"
 
 // TODO: Rework this test.
 /*TEST(Re_Port_PubSub_Zmq, Deadlock){
