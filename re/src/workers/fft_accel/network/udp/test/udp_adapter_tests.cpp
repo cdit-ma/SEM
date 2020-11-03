@@ -43,7 +43,7 @@ TEST(fft_accel_udp_adapter, send_short_vec_over_udp) {
                            listen_socket.receive(boost::asio::buffer(listen_vec));
 
                            test_io_service.run();
-                           return {listen_vec};
+                           return listen_vec;
                        });
 
     udp_adapter<float> test_adapter(SocketAddress(Ipv4::localhost(), bind_port));
