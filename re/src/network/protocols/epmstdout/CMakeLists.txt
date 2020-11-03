@@ -1,14 +1,7 @@
 #Set our project names
 project(epm_stdout_protocol VERSION ${PROJECT_VERSION})
 
-find_package(Protobuf REQUIRED)
-
-if(NOT PROTOBUF_FOUND)
-    # Find package Protobuf
-    find_package(Protobuf REQUIRED)
-endif()
-
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS epmstdout.proto)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS epmstdout.proto)
 
 add_library(${PROJECT_NAME} STATIC "")
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_11)
