@@ -15,9 +15,11 @@ message NewEpmRequest {
 }
 
 message NewEpmResponse {
-    string uuid = 1;
-    string control_endpoint = 2;
-    string data_ip_address = 3;
+    bool success = 1;
+    string message = 2;
+    string uuid = 3;
+    string control_endpoint = 4;
+    string data_ip_address = 5;
 }
 
 message StopEpmRequest {

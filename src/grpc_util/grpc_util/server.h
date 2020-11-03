@@ -17,7 +17,6 @@ class Server {
 public:
     using GrpcServiceVector = std::vector<std::weak_ptr<grpc::Service>>;
     /**
-     *
      * Don't use this api unless you know what you're doing.
      * Prefer Server(grpc::Service&, types::Ipv4) by default
      */

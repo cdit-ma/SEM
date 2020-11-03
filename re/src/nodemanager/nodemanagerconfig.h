@@ -27,6 +27,12 @@ struct NodeConfig {
     static auto SaveConfigFile(const NodeConfig& config) -> void;
     [[nodiscard]] static auto HandleArguments(int argc, char** argv) -> std::optional<NodeConfig>;
 
+    /// Finds EPM executable at path specified. Not using std::filesystem::path as some compilers
+    /// don't
+    ///  yet support it.
+    /// Throws if EPM executable is not found.
+    auto find_epm_executable() const -> std::string;
+
 private:
     [[nodiscard]] static auto ParseArguments(int argc, char** argv) -> std::optional<std::string>;
 };

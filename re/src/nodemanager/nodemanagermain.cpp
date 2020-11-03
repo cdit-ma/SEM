@@ -18,9 +18,15 @@ auto main(int argc, char** argv) -> int
         // Parse our command line args, these are consumed at this point.
         auto config = NodeConfig::HandleArguments(argc, argv);
         if(config.has_value()) {
+            // Test that we can find the EPM executable before doing anything else.
+            // Fail early my dudes.
+            config->find_epm_executable();
+
             // Save our config file immediately in case we had to generate a uuid
             NodeConfig::SaveConfigFile(config.value());
-            std::unique_ptr<EpmRegistry> epm_registry = std::make_unique<EpmRegistryImpl>();
+            std::unique_ptr<EpmRegistry> epm_registry = std::make_unique<EpmRegistryImpl>(
+                config.value());
+
             sem::node_manager::NodeManager node_manager{config.value(), *epm_registry};
 
             interrupt_function = [&node_manager]() { node_manager.shutdown(); };

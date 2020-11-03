@@ -1,5 +1,6 @@
 #include "nodemanagerconfig.h"
 #include <boost/program_options.hpp>
+#include <boost/process.hpp>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -113,5 +114,15 @@ auto NodeConfig::HandleArguments(int argc, char** argv) -> std::optional<NodeCon
         return config;
     }
     return std::nullopt;
+}
+auto NodeConfig::find_epm_executable() const -> std::string
+{
+    namespace bp = boost::process;
+    auto epm_exe_path = bp::search_path("experiment_process_manager", {re_bin_path});
+    if(epm_exe_path.empty()) {
+        throw std::runtime_error("Experiment process manager executable not found in path: "
+                                 + re_bin_path);
+    }
+    return epm_exe_path.string();
 }
 } // namespace sem::node_manager
