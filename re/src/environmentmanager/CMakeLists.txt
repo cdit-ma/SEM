@@ -59,7 +59,7 @@ target_sources(re_environment_manager PRIVATE
 target_link_libraries(re_environment_manager
         PRIVATE
         node_manager_registration_service
-        node_manager_control_service
+#        node_manager_control_service
         sem_grpc_util
         sem_version
         Boost::program_options

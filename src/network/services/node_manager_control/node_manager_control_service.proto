@@ -1,0 +1,3 @@
+syntax = "proto3";
+
+package sem.network.services.node_manager_registration;
