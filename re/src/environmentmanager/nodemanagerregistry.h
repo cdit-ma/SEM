@@ -12,12 +12,6 @@ struct NodeManagerInfo {
     types::SocketAddress control_endpoint;
     std::string hostname;
     std::string library_path;
-
-    [[nodiscard]] auto get_control_stub() const
-    {
-        return grpc_util::get_stub<network::services::node_manager_control::NodeManagerControl>(
-            control_endpoint);
-    }
 };
 
 class NodeManagerRegistry {
