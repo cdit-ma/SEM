@@ -6,6 +6,7 @@
 #include "socketaddress.hpp"
 #include "uuid.h"
 #include "nodemanagerregistry.h"
+#include <unordered_map>
 
 namespace sem::environment_manager {
 
