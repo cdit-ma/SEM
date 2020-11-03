@@ -9,6 +9,7 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
+#include <optional>
 
 namespace sem::grpc_util {
 
