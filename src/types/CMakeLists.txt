@@ -2,7 +2,7 @@ find_package(Boost 1.30.0 REQUIRED)
 
 add_library(sem_types STATIC)
 target_compile_features(sem_types PUBLIC cxx_std_17)
-target_compile_options(sem_types PRIVATE -fPIC)
+set_target_properties(sem_types PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_sources(sem_types
         INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/serializable.hpp
