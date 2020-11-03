@@ -45,19 +45,9 @@ udp_adapter<float>::udp_adapter(re::types::SocketAddress accel_engine_addr) :
     udp_socket_.open(ip::udp::v4());
     udp_socket_.bind(ip::udp::endpoint(ip::address_v4::loopback(), 0));
 
-    udp_socket_.async_receive_from(
-            listen_buffer_, fft_engine_,
-            [this](boost::system::error_code error, size_t bytes_transferred){
-                if (error != boost::system::errc::success) {
-                    handle_error_result(error);
-                } else {
-                    handle_fft_result(listen_vec_);
-                }
+    schedule_listen();
 
-            });
-
-    //listen_thread_ = std::async([this]()  {
-    listen_thread_ = boost::thread([this]()  {
+    listen_thread_ = std::async([this]()  {
         try {
             io_service_.run();
         } catch (const std::exception& ex) {
@@ -71,8 +61,7 @@ udp_adapter<float>::~udp_adapter() {
     udp_socket_.cancel();
     io_work_guard_.reset();
     io_service_.stop();
-    //listen_thread_->wait();
-    listen_thread_.join();
+    listen_thread_->wait();
 }
 
 template<>
@@ -114,4 +103,18 @@ Result<uint16_t> udp_adapter<float>::get_bound_port() const {
     } catch (const std::exception &ex) {
         return {ErrorResult("Error when attempting to retrieve UDP adapter's bound port: "s + ex.what())};
     }
+}
+
+template<typename SampleType>
+void udp_adapter<SampleType>::schedule_listen() {
+    udp_socket_.async_receive_from(
+            listen_buffer_, fft_engine_,
+            [this](boost::system::error_code error, size_t bytes_transferred){
+                if (error != boost::system::errc::success) {
+                    handle_error_result(error);
+                } else {
+                    handle_fft_result(listen_vec_);
+                }
+                schedule_listen();
+            });
 }

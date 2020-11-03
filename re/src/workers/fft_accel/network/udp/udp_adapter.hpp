@@ -9,7 +9,6 @@
 
 #include "socketaddress.hpp"
 #include "boost/asio.hpp"
-#include "boost/thread.hpp"
 #include <vector>
 
 /*namespace sem::fft_accel::data {
@@ -74,10 +73,11 @@ namespace sem::fft_accel::network {
             std::cerr << "An error occurred when reading from a UDP adapter socket: " << ec.message() << std::endl;
         };
 
+        void schedule_listen();
+
         std::vector<std::weak_ptr<fft_result_listener>> listeners_;
 
-        //std::optional<std::future<void>> listen_thread_;
-        boost::thread listen_thread_;
+        std::optional<std::future<void>> listen_thread_;
 
         // Order of initialisation of boost member classes matters; socket is dependant on IO service so must come second
         boost::asio::io_service io_service_;
