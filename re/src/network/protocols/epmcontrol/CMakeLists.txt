@@ -15,7 +15,6 @@ target_sources(${PROJECT_NAME} PRIVATE
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
-        ${PROTOBUF_INCLUDE_DIRS}
         ${CMAKE_CURRENT_BINARY_DIR}
         )
 
@@ -27,4 +26,4 @@ if (MSVC)
 endif()
 
 # Link Libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PROTOBUF_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC protobuf::libprotobuf)
