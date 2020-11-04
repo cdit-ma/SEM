@@ -27,7 +27,7 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 struct ErrorResult {
     explicit ErrorResult(std::string error_message) : msg(std::move(error_message)) {};
-    const std::string msg;
+    std::string msg;
     bool operator==(const ErrorResult& other) const {
         return msg == other.msg;
     };
@@ -59,6 +59,11 @@ private:
 template<typename ValueType>
 struct Result {
     using val_or_err_t = std::variant<ValueType, ErrorResult>;
+
+#ifdef _WIN32
+    [[deprecated("Default constructor only exists for compatibility with MSVC std::future")]]
+    constexpr Result() : value_(ErrorResult("Result type created without a value")){};
+#endif
 
     constexpr Result(val_or_err_t value) : value_(std::move(value)) {};
     Result(ErrorResult errorResult) : Result(val_or_err_t(std::move(errorResult))) {};
@@ -100,7 +105,7 @@ struct Result {
     };
 
 private:
-    const val_or_err_t value_;
+    val_or_err_t value_;
 };
 
 template <>
