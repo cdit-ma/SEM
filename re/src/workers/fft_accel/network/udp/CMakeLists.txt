@@ -1,5 +1,5 @@
 # New Boost::Asio changes mean that we should consider bumping this to 1.68
-find_package(Boost 1.67.0 REQUIRED COMPONENTS thread regex)
+find_package(Boost 1.67.0 REQUIRED COMPONENTS system)
 
 add_library(sem_fft_accel_udp STATIC)
 
@@ -22,7 +22,7 @@ target_link_libraries(sem_fft_accel_udp
         PUBLIC
         sem_fft_accel_network
         re_types
-        Boost::thread
+        Boost::system
         )
 
 add_subdirectory(test)
