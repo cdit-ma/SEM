@@ -7,7 +7,6 @@
 #include "helper.h"
 #include <sstream>
 #include <string>
-#include "helper.h"
 
 #include "graphmlparser.h"
 namespace re::ModelParser {

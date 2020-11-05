@@ -16,8 +16,8 @@ target_compile_features(re_graphml_parser_lib PRIVATE cxx_std_11)
 target_include_directories(re_graphml_parser_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(re_graphml_parser_lib
         PRIVATE
-        pugixml
         PUBLIC
+        pugixml
         re_common_proto_control
         )
 
