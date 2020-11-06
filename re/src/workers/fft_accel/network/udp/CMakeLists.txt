@@ -22,7 +22,9 @@ target_link_libraries(sem_fft_accel_udp
         PUBLIC
         sem_fft_accel_network
         re_types
+        Boost::boost
         Boost::system
+        Boost::dynamic_linking
         )
 
 if (BUILD_TEST)

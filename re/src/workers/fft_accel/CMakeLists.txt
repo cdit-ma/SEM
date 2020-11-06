@@ -34,6 +34,14 @@ target_link_libraries(sem_fft_accel_fpga_worker
         sem_fft_accel_udp
         )
 
+#export(TARGETS
+#        sem_fft_accel_fpga_worker
+#        NAMESPACE sem::
+#        APPEND
+#        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
+#        EXPORT_LINK_INTERFACE_LIBRARIES
+#        )
+
 if (BUILD_TEST)
     target_link_libraries(test_sem_fft_accel
             PUBLIC
