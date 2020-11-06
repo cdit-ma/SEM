@@ -25,4 +25,6 @@ target_link_libraries(sem_fft_accel_udp
         Boost::system
         )
 
-add_subdirectory(test)
+if (BUILD_TEST)
+    add_subdirectory(test)
+endif()

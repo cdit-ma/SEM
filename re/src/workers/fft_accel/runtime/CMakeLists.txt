@@ -30,4 +30,6 @@ target_link_libraries(sem_fft_accel_runtime
         sem_fft_accel_network
         )
 
-add_subdirectory(test)
+if (BUILD_TEST)
+    add_subdirectory(test)
+endif()
