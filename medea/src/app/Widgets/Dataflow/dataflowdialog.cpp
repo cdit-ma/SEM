@@ -12,6 +12,7 @@
 #include "../Pulse/Entity/defaultentity.h"
 #include "../Pulse/Entity/portinstance.h"
 #include "../Pulse/EntityContainer/componentinstance.h"
+#include "../Pulse/EntityContainer/defaultentitycontainer.h"
 
 #include <QGraphicsRectItem>
 #include <QVBoxLayout>
