@@ -9,6 +9,10 @@
 
 #include "EntityItems/workerinstancegraphicsitem.h"
 
+#include "../Pulse/Entity/defaultentity.h"
+#include "../Pulse/Entity/portinstance.h"
+#include "../Pulse/EntityContainer/componentinstance.h"
+
 #include <QGraphicsRectItem>
 #include <QVBoxLayout>
 #include <QDockWidget>
@@ -108,6 +112,50 @@ void DataflowDialog::constructGraphicsItemsForExperimentRun(const MEDEA::Experim
 
     // Construct the edges
     constructEdgeItems(port_items_, exp_run_data.getPortConnectionData());
+}
+
+/**
+ * @brief DataflowDialog::constructPulseViewItemsForExperimentRun
+ * @param exp_run_data
+ */
+void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
+{
+    // Clear previous states and items
+    clear();
+
+    using namespace Pulse::View;
+
+    int node_count = 0;
+    for (const auto& node : exp_run_data.getNodeData()) {
+        auto node_item = new DefaultEntityContainer(node->getHostname(), "EntityIcons", "HardwareNode",
+                                                    node->getIP(), "Icons", "ethernet");
+        for (const auto& container : node->getContainerInstanceData()) {
+            auto docker_type = "Generic OS Process";
+            if (container->getType() == AggServerResponse::Container::ContainerType::DOCKER) {
+                docker_type = "Docker Process";
+            }
+            auto container_item = new DefaultEntityContainer(container->getName(), "Icons", "servers",
+                                                             docker_type, "Icons", "terminal", node_item);
+            for (const auto& comp_inst : container->getComponentInstanceData()) {
+                auto comp_inst_item = new ComponentInstance(comp_inst->getName(), comp_inst->getType(), container_item);
+                for (const auto& port_inst : comp_inst->getPortInstanceData()) {
+                    comp_inst_item->add(new PortInstance(port_inst->getName(), port_inst->getKind(), ""));
+                }
+                for (const auto& worker_inst : comp_inst->getWorkerInstanceData()) {
+                    auto worker = new DefaultEntity(worker_inst->getName(), "Icons", "spanner",
+                                                    worker_inst->getType(), "Icons", "code");
+                    auto icon_size = Defaults::primary_icon_size * 0.75;
+                    worker->setPrimaryIconSize(icon_size.width(), icon_size.height());
+                    comp_inst_item->add(worker);
+                }
+                container_item->add(comp_inst_item);
+            }
+            node_item->add(container_item);
+        }
+        auto stack_gap = Defaults::primary_icon_size.height() * node_count++;
+        node_item->setPos(node_item->pos() + QPointF(stack_gap, stack_gap));
+        addItemToScene(node_item);
+    }
 }
 
 /**

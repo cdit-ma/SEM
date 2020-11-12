@@ -16,17 +16,17 @@ public:
 
     void addItem(QGraphicsWidget* widget) override;
 
+    [[nodiscard]] bool isEmpty() const override;
     [[nodiscard]] QRectF boundingRect() const override;
 
-public slots:
-    void validateItemMove(QGraphicsWidget* widget, const QPointF& pos);
+protected:
+    void setGeometry(const QRectF& geom) override;
 
 private:
-    [[nodiscard]] static QPointF getContentOrigin();
     [[nodiscard]] QPointF getNextStackPos() const;
     [[nodiscard]] QRectF getVisibleItemsRect() const;
 
-    void checkPreCondition(QGraphicsWidget* widget) const;
+    void checkPreConditions(QGraphicsWidget* widget) const;
 
     std::vector<QGraphicsWidget*> contained_items_;
 };

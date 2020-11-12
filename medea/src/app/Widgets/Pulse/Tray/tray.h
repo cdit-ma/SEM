@@ -13,6 +13,7 @@ class Tray {
 public:
     virtual ~Tray() = 0;
     virtual void addItem(QGraphicsWidget* widget) = 0;
+    virtual bool isEmpty() const = 0;
 };
 
 inline Tray::~Tray() = default;

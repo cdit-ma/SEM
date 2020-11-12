@@ -7,7 +7,7 @@
 
 #include "../../Dataflow/EntityItems/pulsemodelentity.h"
 
-#include <QObject>
+#include <QGraphicsWidget>
 
 namespace Pulse::View {
 
@@ -19,6 +19,8 @@ public:
     //  Then use that here instead of a QObject
     virtual void connectModelData(QPointer<Pulse::Model::Entity> model_data) = 0;
     virtual void onModelDeleted() = 0;
+
+    virtual QGraphicsWidget* getAsGraphicsWidget() = 0;
 };
 
 inline Entity::~Entity() = default;

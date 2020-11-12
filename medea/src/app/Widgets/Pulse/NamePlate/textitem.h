@@ -7,7 +7,6 @@
 
 #include <QGraphicsTextItem>
 #include <QGraphicsLayoutItem>
-#include <QFontMetrics>
 
 namespace Pulse::View {
 
@@ -17,7 +16,7 @@ public:
 
 protected:
     void setGeometry(const QRectF& geom) override;
-    QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
+    [[nodiscard]] QSizeF sizeHint(Qt::SizeHint which, const QSizeF& constraint) const override;
 };
 
 } // end Pulse::View namespace

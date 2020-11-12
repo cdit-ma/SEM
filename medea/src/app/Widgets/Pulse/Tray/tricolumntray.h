@@ -2,8 +2,8 @@
 // Created by Cathlyn Aston on 29/10/20.
 //
 
-#ifndef PULSE_VIEW_GRIDLOCKEDTRAY_H
-#define PULSE_VIEW_GRIDLOCKEDTRAY_H
+#ifndef PULSE_VIEW_TRICOLUMNTRAY_H
+#define PULSE_VIEW_TRICOLUMNTRAY_H
 
 #include "tray.h"
 
@@ -16,14 +16,25 @@ public:
     explicit TriColumnTray(QGraphicsItem* parent = nullptr);
     ~TriColumnTray() override = default;
 
+    bool isEmpty() const override;
     void addItem(QGraphicsWidget* widget) override;
 
     void addLeft(QGraphicsWidget* widget);
     void addRight(QGraphicsWidget* widget);
     void addCenter(QGraphicsWidget* widget);
 
+    [[nodiscard]] QRectF boundingRect() const override;
+
+protected:
+    void setGeometry(const QRectF& geom) override;
+
 private:
-    void checkPreCondition(QGraphicsWidget* widget) const;
+    [[nodiscard]] QRectF getVisibleItemsRect() const;
+
+    void addWidget(QGraphicsWidget* widget, int row, int column);
+    void checkPreConditions(QGraphicsWidget* widget) const;
+
+    void constructGridLayout();
 
     QGraphicsGridLayout* grid_layout_ = nullptr;
 
@@ -37,4 +48,4 @@ private:
 };
 
 } // end Pulse::View namespace
-#endif // PULSE_VIEW_GRIDLOCKEDTRAY_H
+#endif // PULSE_VIEW_TRICOLUMNTRAY_H

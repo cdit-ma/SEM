@@ -8,6 +8,7 @@
 #include "entityinfodisplay.h"
 #include "textitem.h"
 #include "pixmapitem.h"
+#include "../pulseviewdefaults.h"
 
 #include <QGraphicsWidget>
 #include <QGraphicsLinearLayout>
@@ -34,6 +35,9 @@ public:
     void setIconPos(IconPos pos);
     [[nodiscard]] QRectF getIconGeometry() const;
 
+    void setPrimarySpacing(int spacing);
+    void setPrimaryIconSize(int width, int height);
+
     static QPixmap scaledPixmap(const QString& path, const QString& name, const QSize& size);
 
 private:
@@ -43,6 +47,7 @@ private:
     TextItem* primary_text_item_ = nullptr;
     PixmapItem* primary_pixmap_item_ = nullptr;
     QPair<QString, QString> primary_icon_;
+    QSize primary_icon_size_ = Defaults::primary_icon_size;
 
     TextItem* secondary_text_item_ = nullptr;
     PixmapItem* secondary_pixmap_item_ = nullptr;

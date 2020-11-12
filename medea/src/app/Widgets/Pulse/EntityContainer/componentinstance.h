@@ -1,30 +1,26 @@
 //
-// Created by Cathlyn Aston on 28/10/20.
+// Created by Cathlyn Aston on 5/11/20.
 //
 
-#ifndef PULSE_VIEW_DEFAULTENTITYCONTAINER_H
-#define PULSE_VIEW_DEFAULTENTITYCONTAINER_H
+#ifndef PULSE_VIEW_COMPONENTINSTANCE_H
+#define PULSE_VIEW_COMPONENTINSTANCE_H
 
 #include "entitycontainer.h"
 #include "../Entity/entity.h"
 #include "../NamePlate/nameplate.h"
-#include "../Tray/freeformtray.h"
+#include "../Tray/tricolumntray.h"
 
 #include <QPen>
 
 namespace Pulse::View {
 
-class DefaultEntityContainer : public QGraphicsWidget, public Entity, public EntityContainer {
+class ComponentInstance : public QGraphicsWidget, public Entity, public EntityContainer {
 public:
-    explicit DefaultEntityContainer(const QString& label,
-                                    const QString& icon_path,
-                                    const QString& icon_name,
-                                    const QString& meta_label,
-                                    const QString& meta_icon_path,
-                                    const QString& meta_icon_name,
-                                    QGraphicsItem* parent = nullptr);
+    explicit ComponentInstance(const QString& label,
+                               const QString& meta_label,
+                               QGraphicsItem* parent = nullptr);
 
-    ~DefaultEntityContainer() override = default;
+    ~ComponentInstance() override = default;
 
     void connectModelData(QPointer<Pulse::Model::Entity> model_data) override;
     void onModelDeleted() override;
@@ -41,17 +37,13 @@ public:
 
     [[nodiscard]] QRectF boundingRect() const override;
 
-    void setPrimaryIconSize(int width, int height);
-
 protected:
-    void setGeometry(const QRectF& geom) override;
-
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
     void themeChanged();
 
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
     [[nodiscard]] QRectF topRect() const;
@@ -61,6 +53,8 @@ private:
 
     [[nodiscard]] qreal getWidth() const;
     [[nodiscard]] qreal getHeight() const;
+
+    void setGeometry(const QRectF& rect) override;
 
     static QGraphicsWidget* getEntityGraphicsWidget(Entity* entity);
 
@@ -72,8 +66,8 @@ private:
     bool top_rect_pressed_ = false;
 
     NamePlate* name_plate_ = nullptr;
-    FreeFormTray* tray_ = nullptr;
+    TriColumnTray* tray_ = nullptr;
 };
 
 } // end Pulse::View namespace
-#endif // PULSE_VIEW_DEFAULTENTITYCONTAINER_H
+#endif // PULSE_VIEW_COMPONENTINSTANCE_H

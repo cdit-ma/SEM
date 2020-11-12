@@ -8,6 +8,7 @@
 #include <QFontMetrics>
 
 using namespace Pulse::View;
+const int padding = 4;
 
 /**
  * @brief TextItem::TextItem
@@ -18,6 +19,7 @@ TextItem::TextItem(const QString& text, QGraphicsItem* parent)
     : QGraphicsTextItem(text, parent),
       QGraphicsLayoutItem()
 {
+    setGraphicsItem(this);
     setFont(Defaults::primary_font);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 }
@@ -25,14 +27,14 @@ TextItem::TextItem(const QString& text, QGraphicsItem* parent)
 /**
  * @brief TextItem::setGeometry
  * This gets called whenever the geometry of this item is about to change
- * It updates the item's geometry while keeping the text alignment
+ * It updates the geometry and adjusts the position so that the text alignment is to the left and vertically center
  * @param geom
  */
 void TextItem::setGeometry(const QRectF& geom)
 {
     prepareGeometryChange();
     QGraphicsLayoutItem::setGeometry(geom);
-    setPos(geom.topLeft());
+    setPos(geom.left() - padding, geom.top());
 }
 
 /**
@@ -44,16 +46,17 @@ void TextItem::setGeometry(const QRectF& geom)
  */
 QSizeF TextItem::sizeHint(Qt::SizeHint which, const QSizeF& constraint) const
 {
+    // Restrict the height of the item to be the bounding rect of the text plus some padding
+    QFontMetrics font_metrics(font());
+    qreal text_height = font_metrics.height();
+
     switch (which) {
-        case Qt::MinimumSize: {
-            QFontMetrics font_metrics(font());
-            QSizeF txt_size(font_metrics.horizontalAdvance(toPlainText()), font_metrics.ascent());
-            return txt_size; // + QSizeF(Defaults::small_padding, Defaults::small_padding);
-        }
+        case Qt::MinimumSize:
+            [[fallthrough]];
         case Qt::PreferredSize:
-            return boundingRect().size();
+            return {boundingRect().width(), text_height + padding * 2};
         case Qt::MaximumSize:
-            return {100000, 10000};
+            return {100000, text_height + padding * 2};
         default:
             break;
     }

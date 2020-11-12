@@ -7,64 +7,82 @@
 
 using namespace Pulse::View;
 
-const qreal tray_padding = Defaults::big_padding;
-const qreal stack_gap_ = Defaults::minimum_height / 2.0;
+const qreal stack_gap_ = Defaults::layout_padding * 2;
 
+/**
+ * @brief FreeFormTray::FreeFormTray
+ * @param parent
+ */
 FreeFormTray::FreeFormTray(QGraphicsItem* parent)
     : QGraphicsWidget(parent) {}
 
+/**
+ * @brief FreeFormTray::addItem
+ * @param widget
+ */
 void FreeFormTray::addItem(QGraphicsWidget* widget)
 {
-    checkPreCondition(widget);
+    checkPreConditions(widget);
     prepareGeometryChange();
 
     auto stack_pos = getNextStackPos();
     widget->setPos(stack_pos);
     widget->setParentItem(this);
+    widget->setVisible(true);
     contained_items_.push_back(widget);
+
+    // When a child item's geometry has changed, update the tray's geometry and schedule a repaint
+    connect(widget, &QGraphicsWidget::geometryChanged, [this]() {
+        updateGeometry();
+        update();
+    });
 }
 
+/**
+ * @brief FreeFormTray::isEmpty
+ * @return
+ */
+bool FreeFormTray::isEmpty() const
+{
+    return contained_items_.empty();
+}
+
+/**
+ * @brief FreeFormTray::boundingRect
+ * @return
+ */
 QRectF FreeFormTray::boundingRect() const
 {
-    QRectF rect(QPointF(0,0), getVisibleItemsRect().bottomRight());
-    return rect.adjusted(0, 0, tray_padding, tray_padding);
+    return {QPointF(0,0), getVisibleItemsRect().bottomRight()};
 }
 
-void FreeFormTray::validateItemMove(QGraphicsWidget* widget, const QPointF& pos)
+/**
+ * @brief FreeFormTray::setGeometry
+ * @param geom
+ */
+void FreeFormTray::setGeometry(const QRectF& geom)
 {
-    if (widget == nullptr) {
-        return;
-    }
-
-    auto&& min_x = getContentOrigin().x();
-    auto&& min_y = getContentOrigin().y();
-    auto x = pos.x();
-    auto y = pos.y();
-
-    // This prevents a left/upward drag
-    if (x < min_x) {
-        x = min_x;
-    }
-    if (y < min_y) {
-        y = min_y;
-    }
-
+    // Force this item's geometry to have the same size as the bounding rect
     prepareGeometryChange();
-    widget->setPos(x, y);
+    QRectF adjusted_rect(geom.topLeft(), boundingRect().size());
+    QGraphicsWidget::setGeometry(adjusted_rect);
 }
 
-QPointF FreeFormTray::getContentOrigin()
-{
-    return {tray_padding, tray_padding};
-}
-
+/**
+ * @brief FreeFormTray::getNextStackPos
+ * @return
+ */
 QPointF FreeFormTray::getNextStackPos() const
 {
     const int content_count = contained_items_.size();
     QPointF offset(stack_gap_ * content_count, stack_gap_ * content_count);
-    return getContentOrigin() + offset;
+    return offset;
 }
 
+/**
+ * @brief FreeFormTray::getVisibleItemsRect
+ * @return
+ */
 QRectF FreeFormTray::getVisibleItemsRect() const
 {
     QRectF visible_rect;
@@ -77,7 +95,13 @@ QRectF FreeFormTray::getVisibleItemsRect() const
     return visible_rect;
 }
 
-void FreeFormTray::checkPreCondition(QGraphicsWidget* widget) const
+/**
+ * @brief FreeFormTray::checkPreConditions
+ * @param widget
+ * @throws std::invalid_argument
+ * @throws std::logic_error
+ */
+void FreeFormTray::checkPreConditions(QGraphicsWidget* widget) const
 {
     if (widget == nullptr) {
         throw std::invalid_argument("FreeFormTray - Trying to add a null item");

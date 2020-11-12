@@ -13,6 +13,8 @@
 namespace Pulse::View {
 
 class DefaultEntity : public QGraphicsWidget, public Entity {
+    Q_OBJECT
+
 public:
     explicit DefaultEntity(const QString& label,
                            const QString& icon_path,
@@ -27,8 +29,17 @@ public:
     void connectModelData(QPointer<Pulse::Model::Entity> model_data) override;
     void onModelDeleted() override;
 
+    QGraphicsWidget* getAsGraphicsWidget() override;
+
+    [[nodiscard]] QRectF boundingRect() const override;
+
+    void setPrimaryIconSize(int width, int height);
+
+protected:
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+
 private:
-    NamePlate* name_plate_;
+    NamePlate* name_plate_ = nullptr;
 };
 
 } // end Pulse::View namespace
