@@ -24,7 +24,6 @@ PortInstanceData::PortInstanceData(quint32 exp_run_id, const ComponentInstanceDa
     setupRequests();
     setupSeries();
 
-    //port.
     connect(this, &PortInstanceData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestPortInstanceEvents);
     emit requestData(*this);
 }
