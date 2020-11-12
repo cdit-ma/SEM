@@ -131,10 +131,12 @@ void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::Experi
                                                     node->getIP(), "Icons", "ethernet");
         for (const auto& container : node->getContainerInstanceData()) {
             auto docker_type = "Generic OS Process";
+            auto icon_name = "servers";
             if (container->getType() == AggServerResponse::Container::ContainerType::DOCKER) {
                 docker_type = "Docker Process";
+                icon_name = "docker";
             }
-            auto container_item = new DefaultEntityContainer(container->getName(), "Icons", "servers",
+            auto container_item = new DefaultEntityContainer(container->getName(), "Icons", icon_name,
                                                              docker_type, "Icons", "terminal", node_item);
             for (const auto& comp_inst : container->getComponentInstanceData()) {
                 auto comp_inst_item = new ComponentInstance(comp_inst->getName(), comp_inst->getType(), container_item);
