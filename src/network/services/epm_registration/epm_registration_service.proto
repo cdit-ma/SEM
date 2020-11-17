@@ -8,7 +8,8 @@ service EpmRegistrar {
 }
 
 message RegistrationRequest {
-    string uuid = 1;
+    string epm_uuid = 1;
+    string container_uuid = 2;
     // sem::types::SocketAddress
     string epm_control_endpoint = 3;
 

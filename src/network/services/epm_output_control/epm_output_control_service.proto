@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package sem.network.services.epm_control;
+
+service EpmOutputControl {
+    rpc StartListening (StartRequest) returns (StartResponse);
+    rpc StopListening (StopRequest) returns (StopResponse);
+}
+
+message StartRequest {
+
+};
+
+message StartResponse {
+
+};
+
+message StopRequest {
+
+}
+
+message StopResponse {
+
+}

@@ -5,6 +5,11 @@
 
 namespace sem::node_manager {
 
+/**
+ * This class is NOT thread safe.
+ *  The underlying epm_registry_ SHOULD be thread safe.
+ */
+
 class NodeManagerControlImpl final
     : public sem::network::services::node_manager_control::NodeManagerControl::Service {
 public:

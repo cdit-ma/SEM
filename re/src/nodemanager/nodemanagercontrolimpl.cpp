@@ -28,6 +28,8 @@ grpc::Status NodeManagerControlImpl::StopEpm(grpc::ServerContext* context,
                                              const StopEpmRequest* request,
                                              StopEpmResponse* response)
 {
+
+    epm_registry_.remove_epm(types::Uuid{request->epm_uuid()});
     return Service::StopEpm(context, request, response);
 }
 NodeManagerControlImpl::NodeManagerControlImpl(EpmRegistry& epm_registry) :
