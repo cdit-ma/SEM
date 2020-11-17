@@ -1,7 +1,7 @@
 #include "nodemanager.h"
 #include "grpc_util/grpc_util.h"
 #include "node_manager_registration_service.grpc.pb.h"
-#include "nodemanagerconfig.h"
+#include "nodemanager_config/nodemanagerconfig.h"
 #include <fstream>
 #include <utility>
 

@@ -1,3 +1,7 @@
+add_subdirectory(epm_registry)
+add_subdirectory(nodemanager_config)
+add_subdirectory(experiment_process_manager)
+
 find_package(Boost 1.30.0 COMPONENTS program_options filesystem REQUIRED)
 
 # Node manager library
@@ -8,33 +12,15 @@ target_compile_definitions(re_node_manager_lib PUBLIC BOOST_ALL_DYN_LINK)
 target_sources(re_node_manager_lib PRIVATE
         # Sources
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerconfig.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagercontrolimpl.cpp
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/epmregistryimpl.cpp
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/epmregistrarimpl.cpp
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.cpp
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/trigger.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/strategy.cpp
-
+        experiment_process_manager/experiment_process_manager_config/experimentprocessmanagerconfig.cpp
 
         # Headers
 
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerconfig.h
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagercontrolimpl.h
+        experiment_process_manager/experiment_process_manager_config/experimentprocessmanagerconfig.h
 
-        ${CMAKE_CURRENT_SOURCE_DIR}/epmregistry.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/epmregistryimpl.h
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/epmregistrarimpl.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.h
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/trigger.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/strategy.h
         )
 target_include_directories(re_node_manager_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -48,6 +34,7 @@ target_link_libraries(re_node_manager_lib
         node_manager_control_service
         epm_registration_service
         system_info_broker
+        epm_registry
         PRIVATE
         Boost::filesystem
         Boost::program_options
@@ -71,23 +58,6 @@ target_link_libraries(re_node_manager
         PUBLIC
         re_node_manager_lib
         )
-
-# Experiment manager executable
-add_executable(experiment_process_manager)
-target_compile_features(experiment_process_manager PRIVATE cxx_std_17)
-
-target_sources(experiment_process_manager PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagermain.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.cpp
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/experimentprocessmanagerconfig.h
-        )
-
-target_link_libraries(experiment_process_manager
-        PUBLIC
-        re_node_manager_lib
-        )
-
 
 if (BUILD_TEST)
     add_subdirectory(test)

@@ -1,6 +1,6 @@
 #include "epmregistryimpl.h"
 #include "nodemanager.h"
-#include "nodemanagerconfig.h"
+#include "nodemanager_config/nodemanagerconfig.h"
 
 std::function<void(void)> interrupt_function;
 

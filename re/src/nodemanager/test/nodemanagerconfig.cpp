@@ -1,4 +1,4 @@
-#include "nodemanager/nodemanagerconfig.h"
+#include "nodemanagerconfig.h"
 #include "gtest/gtest.h"
 
 namespace sem::node_manager::test {

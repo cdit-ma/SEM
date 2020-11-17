@@ -4,7 +4,7 @@
 #include "epmregistrarimpl.h"
 #include "epmregistry.h"
 #include "grpc_util/server.h"
-#include "nodemanagerconfig.h"
+#include "nodemanager_config/nodemanagerconfig.h"
 #include "nodemanagercontrolimpl.h"
 #include <memory>
 namespace sem::node_manager {

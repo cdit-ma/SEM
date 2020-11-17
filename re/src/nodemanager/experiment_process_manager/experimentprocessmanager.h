@@ -6,11 +6,11 @@
 #include <thread>
 #include <unordered_map>
 
-#include "deploymentmanager.h"
-#include "nodemanagerconfig.h"
+#include "../deploymentmanager.h"
 #include "epmcontrol.pb.h"
 #include "epmregistration.pb.h"
 #include "epmstdout.pb.h"
+#include "nodemanagerconfig.h"
 
 #include "ipv4.hpp"
 #include "socketaddress.hpp"

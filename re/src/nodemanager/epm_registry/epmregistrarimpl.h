@@ -14,13 +14,14 @@ namespace sem::node_manager {
 class EpmRegistrarImpl final
     : public sem::network::services::epm_registration::EpmRegistrar::Service {
 public:
-    struct EpmRegistrationResult {
-        types::Uuid epm_uuid;
-        EpmRegistry::EpmInfo epm_info;
-        EpmRegistry::EpmProcessHandle process_handle;
-    };
-    EpmRegistrarImpl(std::promise<EpmRegistrationResult> promise_to_fill);
+    EpmRegistrarImpl();
     ~EpmRegistrarImpl() final;
+
+    constexpr static std::chrono::seconds default_registration_timeout{5};
+    auto wait_on_epm_registration(const EpmRegistry::EpmStartArguments& args,
+                                  const types::SocketAddress& server_endpoint,
+                                  std::chrono::seconds timeout = default_registration_timeout)
+        -> EpmRegistry::EpmRegistrationResult;
 
     auto RegisterEpm(grpc::ServerContext* context,
                      const network::services::epm_registration::RegistrationRequest* request,
@@ -32,10 +33,13 @@ public:
         -> grpc::Status final;
 
 private:
-    std::promise<EpmRegistrationResult> promise_to_fill_;
+    std::mutex registration_mutex_;
+    std::unordered_map<types::Uuid, std::promise<EpmRegistry::EpmRegistrationResult>>
+        registration_promises_;
+
+    std::mutex deregistration_mutex_;
+    std::unordered_map<types::Uuid, std::promise<types::Uuid>> deregistration_promises_;
 };
-
-
 
 } // namespace sem::node_manager
 #endif // SEM_EPMREGISTRARIMPL_H
