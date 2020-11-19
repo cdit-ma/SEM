@@ -311,7 +311,6 @@ void ActionController::selectionChanged(int selection_size)
         view_centerOn->setEnabled(got_selection);
 
         //Single Selection
-        edit_selectAll->setEnabled(got_single_selection);
         view_viewInNewWindow->setEnabled(got_single_selection);
 
         //Multi Selection

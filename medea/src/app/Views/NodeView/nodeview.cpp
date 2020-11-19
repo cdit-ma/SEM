@@ -335,23 +335,36 @@ void NodeView::selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool 
  */
 void NodeView::selectAll()
 {
-    EntityItem* gui_item = getEntityItem(getSelectionHandler().getFirstSelectedItem());
-    QList<ViewItem*> items_to_select;
+    // This is triggered by the OS select all key sequence (CTRL+A)
+    // NOTE: This slot is triggered by the edit_selectAll action's triggered signal
+    //  edit_selectAll has a QKeySequence::SelectAll shortcut attached to it which is connected
+    //  to the selectAll signal from the SelectionController that's connected to this NodeView
+    auto items_to_select = getTopLevelViewItems();
+    if (!items_to_select.isEmpty()) {
+        getSelectionHandler().toggleItemsSelection(items_to_select, false);
+    }
+}
 
-    if (gui_item) {
-        if (getSelectionHandler().getSelectionCount() == 1 && gui_item->isNodeItem()) {
-            auto nodeItem = qobject_cast<NodeItem*>(gui_item);
-            for (auto child : nodeItem->getChildNodes()) {
-                items_to_select.append(child->getViewItem());
-            }
+/**
+ * @brief NodeView::selectAllChildren
+ */
+void NodeView::selectAllChildren()
+{
+    // This is triggered by the key sequence (CTRL+Alt+A)
+    // Deselect the current selection and select all their direct children instead
+    QSet<NodeViewItem*> items_to_select;
+
+    const auto& current_selection = getSelectionHandler().getSelection();
+    for (auto item : current_selection) {
+        if (item != nullptr && item->isNode()) {
+            auto node_view_item = qobject_cast<NodeViewItem*>(item);
+            items_to_select.unite(node_view_item->getChildrenNodeViewItems());
         }
-    } else {
-        // Get all top level children
-        items_to_select = getTopLevelViewItems();
     }
 
     if (!items_to_select.isEmpty()) {
-        getSelectionHandler().toggleItemsSelection(items_to_select, false);
+        auto&& to_select_list = QList<ViewItem*>(items_to_select.begin(), items_to_select.end());
+        getSelectionHandler().toggleItemsSelection(to_select_list, false);
     }
 }
 
@@ -1996,6 +2009,12 @@ void NodeView::keyReleaseEvent(QKeyEvent* event)
             }
             break;
         }
+        case Qt::Key_A: {
+            if (event->modifiers().testFlag(Qt::ControlModifier)) {
+                selectAllChildren();
+            }
+            break;
+        }
         default:
             break;
         }
@@ -2176,7 +2195,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         selectItemsInRubberband();
     }
 
-    // Reset mouse event related vairables
+    // Reset mouse event related variables
     pan_distance_ = 0;
     emit mouseReleased();
 

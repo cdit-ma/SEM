@@ -179,6 +179,7 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.cpp
         )
 
 if (WIN32)
@@ -343,6 +344,11 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/edgeanchor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/entity.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/entitycontainer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/entityinfodisplay.h
         )
 
 set(RESOURCES

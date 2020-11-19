@@ -64,9 +64,14 @@ private:
 
     QGraphicsLinearLayout* main_layout_ = nullptr;
     QGraphicsLinearLayout* top_layout_ = nullptr;
+    QGraphicsLinearLayout* info_layout_ = nullptr;
+    QGraphicsLinearLayout* sub_info_layout_ = nullptr;
 
     PixmapGraphicsItem* icon_pixmap_item_ = nullptr;
+    PixmapGraphicsItem* metadata_pixmap_item_ = nullptr;
+
     TextGraphicsItem* label_text_item_ = nullptr;
+    TextGraphicsItem* metadata_text_item_ = nullptr;
 
     std::vector<ContainerInstanceGraphicsItem*> container_inst_items_;
     const NodeData& node_data_;

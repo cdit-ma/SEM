@@ -372,16 +372,16 @@ qreal EntityItem::getDefaultZValue() const
 void EntityItem::handleSelection(bool append)
 {
     bool setActive = false;
-    if(isSelected() && !append){
+    if (isSelected() && !append) {
         setActive = true;
     }
 
-    if(setActive){
-        //If it isnt actively selected, we shouldn't unselect
-        if(!isActiveSelected()){
+    if (setActive) {
+        // If it isnt actively selected, we shouldn't unselect
+        if (!isActiveSelected()) {
             emit req_activeSelected(getViewItem());
         }
-    }else{
+    } else {
         emit req_selected(getViewItem(), append);
     }
 }
@@ -766,7 +766,6 @@ void EntityItem::setSelected(bool selected)
 {
     if(is_selected != selected){
         is_selected = selected;
-
         updateZValue(true, false);
         emit selectionChanged();
         update();

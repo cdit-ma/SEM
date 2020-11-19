@@ -26,7 +26,7 @@ void SelectionHandler::toggleItemsSelection(const QList<ViewItem*>& items, bool 
 {
     int changes = 0;
     if (!append) {
-        //Deselect for non-append
+        // Deselect previous selection first if we're not appending to the current list of selection
         changes += _clearSelection();
     }
     for (ViewItem* item : items) {
@@ -119,7 +119,8 @@ void SelectionHandler::_selectionChanged(int changes)
 int SelectionHandler::_clearSelection()
 {
     int itemsChanged = 0;
-    for (ViewItem* item : currentSelection) {
+    auto current_selection = currentSelection;
+    for (ViewItem* item : current_selection) {
         itemsChanged += _toggleItemsSelection(item);
     }
     return itemsChanged;
@@ -129,16 +130,16 @@ int SelectionHandler::_toggleItemsSelection(ViewItem *item, bool deletingItem)
 {
     int changeCount = 0;
     bool inSelection = currentSelection.contains(item);
-    
-    if(deletingItem){
-        if(!inSelection){
-            //We don't need to unselect item.
+
+    if (deletingItem) {
+        if (!inSelection) {
+            // We don't need to unselect item.
             return changeCount;
         }
     }
     changeCount += _setItemSelected(item, !inSelection);
 
-    if(changeCount > 0 && !deletingItem){
+    if (changeCount > 0 && !deletingItem) {
         emit itemSelectionChanged(item, !inSelection);
     }
     return changeCount;
@@ -163,7 +164,6 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
             //Unregister the selection handler
             item->unregisterObject(this);
         }
-
         //If there is no items left, there is no active item
         if(currentSelection.isEmpty()){
             newActiveSelectedItem = nullptr;
