@@ -179,7 +179,15 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/textitem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/pixmapitem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/nameplate.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/portinstance.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/defaultentitycontainer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/componentinstance.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/freeformtray.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/tricolumntray.cpp
         )
 
 if (WIN32)
@@ -344,16 +352,27 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/portinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/workerinstancegraphicsitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/pulsemodelentity.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/pulseviewdefaults.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/edgeanchor.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/entity.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/portinstance.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/entitycontainer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/defaultentitycontainer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/componentinstance.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/entityinfodisplay.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/textitem.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/pixmapitem.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/nameplate.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/tray.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/freeformtray.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Tray/tricolumntray.h
         )
 
 set(RESOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/images.qrc
-        )
+    )
 
 if (WIN32)
     SET(QT_USE_QTMAIN TRUE)
