@@ -42,14 +42,14 @@ TEST(sem_types_result, error_has_correct_msg) {
     Result<int> result{input_error};
 
     // We expect the correct exception is thrown if we try to unwrap an error to get the value
-    ASSERT_THROW(result.GetValue(), unhandled_error_result);
+    ASSERT_THROW(result.GetValue(), unexpected_error_result);
 
     // Make sure that the error message is what was provided in the error class
     try {
         result.GetValue();
         // Should not reach this point
         FAIL();
-    } catch (const unhandled_error_result& uer) {
+    } catch (const unexpected_error_result& uer) {
         ASSERT_STREQ(uer.what() ,input_error_msg.c_str());
     } catch (...) {
         // Any other type of throw exception is a failure

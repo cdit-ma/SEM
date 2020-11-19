@@ -19,6 +19,8 @@ public:
     //template <typename SampleType>
     virtual Result<void> set_network_adapter(std::weak_ptr<network::adapter> network_adapter) = 0;
 
+    virtual Result<void> submit_fft_calculation(const std::vector<float>& data) = 0;
+
 };
 
 }

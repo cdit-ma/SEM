@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "runtime/worker_adapter.hpp"
+#include "runtime/adapter_impl.hpp"
 
 #include "mock_network_adapter.hpp"
 
@@ -14,44 +14,22 @@ using namespace sem;
 using namespace sem::fft_accel;
 using namespace sem::fft_accel::test::worker;
 
-Component generate_component() {
-    std::string comp_inst_name = "comp_inst_name";
-    return Component(comp_inst_name);
-}
+using test_worker_type = runtime::adapter_impl;
 
-std::string generate_worker_inst_name() {
-    return "worker_inst_name";
-}
-
-std::string generate_FAE_endpoint() {
-    return "123.234.123.234:37256";
-}
-
-using test_worker_type = runtime::worker_adapter;
-
-TEST(fft_accel_worker, nothrow_constructor) {
+TEST(fft_accel_runtime_adapter, nothrow_constructor) {
     std::unique_ptr<runtime::adapter> runtime_adapter;
 
-    const Component test_component = generate_component();
-    std::string worker_inst_name = generate_worker_inst_name();
     ASSERT_NO_THROW(
-            runtime_adapter = std::make_unique<test_worker_type>(
-                    test_component, worker_inst_name
-                    );
+            runtime_adapter = std::make_unique<test_worker_type>();
             );
     ASSERT_NE(runtime_adapter, nullptr);
 }
 
-TEST(fft_accel_worker, network_adapter_registered_when_set) {
-    // Construct dependencies
-    const Component test_component = generate_component();
-    std::string worker_inst_name = generate_worker_inst_name();
+TEST(fft_accel_runtime_adapter, network_adapter_registered_when_set) {
 
     // Construct worker under test
     std::unique_ptr<runtime::adapter> worker;
-    worker = std::make_unique<test_worker_type>(
-            test_component, worker_inst_name
-    );
+    worker = std::make_unique<test_worker_type>();
 
     // Construct mocked network adapter and set its expectations
     auto mock_adapter = std::make_shared<mock_network_adapter<float>>();
@@ -68,33 +46,20 @@ TEST(fft_accel_worker, network_adapter_registered_when_set) {
     }
 }
 
-TEST(fft_accel_worker, ip_address_configured_from_attributes) {
-    // Construct dependencies
-    const Component test_component = generate_component();
-    std::string worker_inst_name = generate_worker_inst_name();
-
+TEST(fft_accel_runtime_adapter, fft_submitted_successfully) {
     // Construct worker under test
     std::unique_ptr<runtime::adapter> worker;
-    worker = std::make_unique<test_worker_type>(
-            test_component, worker_inst_name
-            );
+    worker = std::make_unique<test_worker_type>();
 
-    // Set the appropriate attributes
-    std::string attr_name{test_worker_type::AttrNames::accelerator_endpoint};
-    std::shared_ptr<Attribute> attr;
-    ASSERT_NO_THROW(
-            attr = dynamic_cast<test_worker_type*>(worker.get())->ConstructAttribute(
-                    ATTRIBUTE_TYPE::STRING, attr_name
-                    ).lock();
-        );
-    ASSERT_NE(attr, nullptr);
-    ASSERT_NO_THROW(
-            attr->set_String(generate_FAE_endpoint());
-        );
+    // Construct mocked network adapter and set its expectations
+    auto mock_adapter = std::make_shared<mock_network_adapter<float>>();
+    ASSERT_NE(mock_adapter, nullptr);
+    EXPECT_CALL(*mock_adapter, register_listener);
+    EXPECT_CALL(*mock_adapter, send);
 
-    ASSERT_NO_THROW(
-            dynamic_cast<test_worker_type*>(worker.get())->Configure();
-            );
+    std::vector<float> dummy_input_data{1.0f, 2.0f, 3.0f, 4.0f};
 
+    ASSERT_FALSE(worker->set_network_adapter(mock_adapter).is_error());
+    ASSERT_FALSE(worker->submit_fft_calculation(dummy_input_data).is_error());
 
 }

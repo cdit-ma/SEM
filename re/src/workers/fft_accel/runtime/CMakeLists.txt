@@ -10,11 +10,13 @@ target_compile_features(sem_fft_accel_runtime
 target_sources(sem_fft_accel_runtime
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/worker_adapter.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/adapter_impl.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fft_request_map.hpp
 
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/worker_adapter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/adapter_impl.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fft_request_map.cpp
         )
 
 target_include_directories(sem_fft_accel_runtime

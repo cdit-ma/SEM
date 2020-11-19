@@ -7,7 +7,7 @@ add_library(sem_fft_accel_fpga_worker SHARED)
 
 # Single executable for all tests within the project
 if (BUILD_TEST)
-    add_executable(test_sem_fft_accel)
+    add_subdirectory(test)
 endif()
 
 add_subdirectory(data)
@@ -15,12 +15,14 @@ add_subdirectory(network)
 add_subdirectory(runtime)
 
 target_compile_features(sem_fft_accel_fpga_worker
-        PRIVATE
+        INTERFACE
         cxx_std_17
         )
 target_sources(sem_fft_accel_fpga_worker
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/sem_fft_accel_worker.hpp
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/sem_fft_accel_worker.cpp
         )
 
 target_include_directories(sem_fft_accel_fpga_worker
@@ -31,6 +33,7 @@ target_include_directories(sem_fft_accel_fpga_worker
 target_link_libraries(sem_fft_accel_fpga_worker
         PUBLIC
         sem_fft_accel_runtime
+        re_core
         sem_fft_accel_udp
         )
 
@@ -42,27 +45,6 @@ target_link_libraries(sem_fft_accel_fpga_worker
 #        EXPORT_LINK_INTERFACE_LIBRARIES
 #        )
 
-if (BUILD_TEST)
-    target_link_libraries(test_sem_fft_accel
-            PUBLIC
-            gtest_main
-            #sem_fft_accel_runtime_test
-            #sem_fft_accel_udp_adapter_tests
-            )
-    if(MSVC)
-        set(TEST_OUTPUT_DIR "")
-    else()
-        set(TEST_OUTPUT_DIR "/test/gtest")
-    endif()
+#if (BUILD_TEST)
 
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TEST_OUTPUT_DIR})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_$<CONFIG> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TEST_OUTPUT_DIR})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${TEST_OUTPUT_DIR})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_$<CONFIG> ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${TEST_OUTPUT_DIR})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${TEST_OUTPUT_DIR})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_$<CONFIG> ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${TEST_OUTPUT_DIR})
-
-    if(MSVC)
-        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    endif(MSVC)
-endif()
+#endif()

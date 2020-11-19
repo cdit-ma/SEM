@@ -14,3 +14,7 @@ target_include_directories(sem_fft_accel_data
         PUBLIC
         ${PROJECT_SOURCE_DIR}
         )
+
+if(BUILD_TEST)
+    add_subdirectory(test)
+endif()

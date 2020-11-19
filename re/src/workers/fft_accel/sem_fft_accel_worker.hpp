@@ -5,12 +5,38 @@
 #ifndef SEM_SEM_FFT_ACCEL_WORKER_H
 #define SEM_SEM_FFT_ACCEL_WORKER_H
 
-#include "worker.hpp"
-#include "network/udp_adapter.hpp"
+#include "worker.h"
+#include "runtime/adapter_impl.hpp"
+#include "network/udp/udp_adapter.hpp"
+
+namespace sem::fft_accel {
+class Worker : public ::Worker {
+public:
+    Worker(const BehaviourContainer &container, const std::string &inst_name);
+
+    const std::string &get_version() const override;
+
+    std::vector<float> calculate_fft(const std::vector<float>& data);
+
+    /**
+     * A grouping of constant component attribute names
+     */
+    struct AttrNames {
+        /// The qualified endpoint (eg ip address + port) for the FFT Acceleration Engine
+        constexpr static std::string_view accelerator_endpoint{"accelerator_endpoint"};
+    };
+
+protected:
+    void HandleConfigure() override;
+
+
+private:
+    std::shared_ptr<runtime::adapter> runtime_adapter_;
+    std::shared_ptr<network::adapter> network_adapter_;
+};
+}
 
 // Expose the worker class to the global namespace as codegen doesn't currently support namespacing
-using FFTAccelWorker = sem::fft_accel::worker<
-        sem::fft_accel::network::udp_adapter<float>
-        >;
+using FFTAccelWorker = sem::fft_accel::Worker;
 
 #endif //SEM_SEM_FFT_ACCEL_WORKER_H
