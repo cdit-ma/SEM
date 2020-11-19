@@ -58,7 +58,10 @@ pipeline{
                     checkout scm
                     stash includes: "**", name: "source_code"
 
-                    def rollout_file = "sem-${GIT_ID}-rollout.tar.gz"
+                    def raw_git_id = "${GIT_ID}"
+                    def sanitised_git_id = raw_git_id.replaceAll("/", "-")
+
+                    def rollout_file = "sem-${sanitised_git_id}-rollout.tar.gz"
 
                     println rollout_file
 
