@@ -6,12 +6,12 @@
 
 namespace sem::grpc_util {
 namespace detail {
-auto run_grpc_server(const types::SocketAddress& bind_address,
-                     const Server::GrpcServiceVector& services)
+auto run_grpc_server(const types::SocketAddress& bind_address, const GrpcServiceVector& services)
     -> std::pair<types::SocketAddress, std::unique_ptr<grpc::Server>>
 {
     grpc::ServerBuilder builder;
-    int assigned_port{};
+    // Zero here is used to signal to builder.AddListeningPort that we want a randomly assigned port
+    int assigned_port{0};
 
     builder.AddListeningPort(bind_address.to_string(), grpc::InsecureServerCredentials(),
                              &assigned_port);
@@ -50,8 +50,33 @@ auto Server::wait() const -> void
 {
     server_->Wait();
 }
-auto Server::shutdown() const -> void {
+auto Server::shutdown() const -> void
+{
     server_->Shutdown();
 }
 
+LifetimeManagedServer::LifetimeManagedServer(ServerLifetimeManager& lifetime_manager,
+                                             types::Ipv4 addr,
+                                             const GrpcServiceVector& services) :
+    lifetime_manager_{lifetime_manager}
+{
+    auto [assigned_address, server] = detail::run_grpc_server(types::SocketAddress(addr, 0),
+                                                              services);
+    endpoint_ = assigned_address;
+    server_ = std::move(server);
+    lifetime_manager_.set_shutdown_call([this]() { server_->Shutdown(); });
+    lifetime_manager_.set_wait_call([this]() { server_->Wait(); });
+}
+
+LifetimeManagedServer::LifetimeManagedServer(ServerLifetimeManager& lifetime_manager,
+                                             types::SocketAddress addr,
+                                             const GrpcServiceVector& services) :
+    lifetime_manager_{lifetime_manager}
+{
+    auto [assigned_address, server] = detail::run_grpc_server(addr, services);
+    endpoint_ = assigned_address;
+    server_ = std::move(server);
+    lifetime_manager_.set_shutdown_call([this]() { server_->Shutdown(); });
+    lifetime_manager_.set_wait_call([this]() { server_->Wait(); });
+}
 } // namespace sem::grpc_util
