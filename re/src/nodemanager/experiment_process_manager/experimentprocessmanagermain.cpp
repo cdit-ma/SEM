@@ -1,9 +1,10 @@
 #include "epm_registration_service.grpc.pb.h"
 #include "experimentprocessmanagerconfig.h"
+#include "grpc_util/grpc_util.h"
+#include "grpc_util/server.h"
+#include "grpc_util/serverlifetimemanagerimpl.h"
 #include <exception>
-#include <grpc_util/grpc_util.h>
 #include <iostream>
-#include <thread>
 
 bool running = true;
 std::function<void(void)> interrupt_function;
@@ -57,18 +58,24 @@ auto main(int argc, char** argv) -> int
 
     try {
         auto config = ExperimentProcessManagerConfig::ParseArguments(argc, argv);
-        interrupt_function = [&config]() { deregister_process(config); };
-
-        auto epm_control_endpoint = sem::types::SocketAddress::unspecified();
-
-        register_process(config, epm_control_endpoint);
-
 
         // START epm_control_service and server.
 
+        sem::grpc_util::ServerLifetimeManagerImpl lifetime_manager;
+
+        interrupt_function = [&config, &lifetime_manager]() {
+            lifetime_manager.shutdown();
+            deregister_process(config);
+        };
+
+        sem::grpc_util::LifetimeManagedServer server(lifetime_manager, config.control_ip_address,
+                                                     {/*services*/});
+
+        lifetime_manager.wait();
+
+        register_process(config, server.endpoint());
 
         // Add epm control service's shutdown
-
 
     } catch(const std::invalid_argument& ex) {
         // Return non-zero on failure

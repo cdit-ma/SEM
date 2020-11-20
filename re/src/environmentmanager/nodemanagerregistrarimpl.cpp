@@ -3,7 +3,11 @@ namespace sem::environment_manager {
 using namespace network::services::node_manager_registration;
 
 NodeManagerRegistrarImpl::NodeManagerRegistrarImpl(NodeManagerRegistryProvider& registry_provider) :
-    registry_{registry_provider.get_registry()}
+    NodeManagerRegistrarImpl(registry_provider.get_registry())
+{
+}
+NodeManagerRegistrarImpl::NodeManagerRegistrarImpl(NodeManagerRegistry& registry) :
+    registry_(registry)
 {
 }
 NodeManagerRegistrarImpl::~NodeManagerRegistrarImpl() = default;
@@ -28,7 +32,8 @@ auto NodeManagerRegistrarImpl::RegisterNodeManager(grpc::ServerContext* context,
 
 auto NodeManagerRegistrarImpl::DeregisterNodeManager(grpc::ServerContext* context,
                                                      const DeregistrationRequest* request,
-                                                     DeregistrationResponse* response) -> grpc::Status
+                                                     DeregistrationResponse* response)
+    -> grpc::Status
 {
     try {
         registry_.remove_node_manager(types::Uuid{request->uuid()});
@@ -39,8 +44,5 @@ auto NodeManagerRegistrarImpl::DeregisterNodeManager(grpc::ServerContext* contex
     }
     return grpc::Status::OK;
 }
-NodeManagerRegistrarImpl::NodeManagerRegistrarImpl(NodeManagerRegistry& registry) :
-    registry_(registry)
-{
-}
+
 } // namespace sem::environment_manager
