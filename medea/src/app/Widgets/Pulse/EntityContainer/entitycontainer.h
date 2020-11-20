@@ -13,12 +13,14 @@ class EntityContainer {
 public:
     virtual ~EntityContainer() = 0;
 
-    virtual void add(QPointer<Entity> entity) = 0;
-    virtual void remove(QPointer<Entity> entity) = 0;
+    virtual void add(Entity* entity) = 0;
+    virtual void remove(Entity* entity) = 0;
 
     virtual void expand() = 0;
     virtual void contract() = 0;
 };
+
+inline EntityContainer::~EntityContainer() = default;
 
 } // end Pulse::View namespace
 #endif // PULSE_VIEW_ENTITYCONTAINER_H

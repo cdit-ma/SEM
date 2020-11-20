@@ -19,6 +19,7 @@ public:
     explicit DataflowDialog(QWidget* parent = nullptr);
 
     void constructGraphicsItemsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
+    void constructPulseViewItemsForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data);
 
 signals:
     void playbackActivated(bool active);
