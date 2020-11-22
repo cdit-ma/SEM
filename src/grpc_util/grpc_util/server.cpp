@@ -11,7 +11,7 @@ auto run_grpc_server(const types::SocketAddress& bind_address, const GrpcService
 {
     grpc::ServerBuilder builder;
     // Zero here is used to signal to builder.AddListeningPort that we want a randomly assigned port
-    int assigned_port{0};
+    int assigned_port{bind_address.port()};
 
     builder.AddListeningPort(bind_address.to_string(), grpc::InsecureServerCredentials(),
                              &assigned_port);
@@ -24,6 +24,11 @@ auto run_grpc_server(const types::SocketAddress& bind_address, const GrpcService
     std::unique_ptr<grpc::Server> server_ptr{builder.BuildAndStart()};
 
     return {types::SocketAddress(bind_address.ip(), assigned_port), std::move(server_ptr)};
+}
+auto run_grpc_server(const types::Ipv4& bind_address, const GrpcServiceVector& services)
+    -> std::pair<types::SocketAddress, std::unique_ptr<grpc::Server>>
+{
+    return run_grpc_server(types::SocketAddress(bind_address, 0), services);
 }
 } // namespace detail
 
@@ -40,8 +45,7 @@ Server::Server(types::SocketAddress addr, const GrpcServiceVector& services)
 }
 Server::Server(types::Ipv4 addr, const GrpcServiceVector& services)
 {
-    auto [assigned_address, server] = detail::run_grpc_server(types::SocketAddress(addr, 0),
-                                                              services);
+    auto [assigned_address, server] = detail::run_grpc_server(addr, services);
 
     endpoint_ = assigned_address;
     server_ = std::move(server);

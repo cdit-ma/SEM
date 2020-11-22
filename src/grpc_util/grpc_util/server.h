@@ -10,7 +10,8 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
-#include <optional>
+#include <unordered_map>
+#include <set>
 
 namespace sem::grpc_util {
 
@@ -39,7 +40,7 @@ public:
 private:
     std::unique_ptr<grpc::Server> server_;
     // We use optional here for delayed initialisation
-    std::optional<types::SocketAddress> endpoint_;
+    std::unordered_map<types::Ipv4, types::SocketAddress> endpoints_;
 };
 
 class LifetimeManagedServer {
@@ -59,7 +60,7 @@ public:
 private:
     ServerLifetimeManager& lifetime_manager_;
     std::unique_ptr<grpc::Server> server_;
-    std::optional<types::SocketAddress> endpoint_;
+    std::unordered_map<types::Ipv4, types::SocketAddress> endpoints_;
 };
 
 } // namespace sem::grpc_util

@@ -1,17 +1,15 @@
-project("std_out_listener"
-        VERSION ${PROJECT_VERSION})
-
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
-add_executable(${PROJECT_NAME} "")
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_ALL_DYN_LINK)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+add_executable(std_out_listener)
+target_compile_features(std_out_listener PRIVATE cxx_std_17)
+target_compile_definitions(std_out_listener PUBLIC BOOST_ALL_DYN_LINK)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC sem_types)
-target_link_libraries(${PROJECT_NAME} PUBLIC epm_stdout_protocol)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${Boost_PROGRAM_OPTIONS_LIBRARY})
+target_link_libraries(std_out_listener
+        PUBLIC
+        sem_types
+        epm_output_service
+        epm_output_control_service
+        Boost::program_options
+        )
 
-target_sources(${PROJECT_NAME} PUBLIC stdoutlistener.cpp)
+target_sources(std_out_listener PUBLIC stdoutlistener.cpp)
