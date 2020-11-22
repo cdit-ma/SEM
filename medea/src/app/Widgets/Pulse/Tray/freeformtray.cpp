@@ -5,6 +5,8 @@
 #include "freeformtray.h"
 #include "../pulseviewdefaults.h"
 
+#include <stdexcept>
+
 using namespace Pulse::View;
 
 const qreal stack_gap_ = Defaults::layout_padding * 2;
