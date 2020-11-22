@@ -3,7 +3,7 @@
 message(STATUS "Fetching exprtk")
 FetchContent_Declare(exprtk
         GIT_REPOSITORY https://github.com/ArashPartow/exprtk
-        GIT_TAG d312ba91419c9cb12c8279fd3a19096d39dfcb5e
+        GIT_TAG 2fe9235cdb6f3019ee29b3fe6f7651474495c5cf
         )
 if (NOT exprtk_POPULATE)
     FetchContent_Populate(exprtk)

@@ -5,7 +5,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/network")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/experimentdefinition")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logging")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/logging")
 
 # Have to have this before workers append to sem_exports.
 # MAKE SURE APPEND IS NOT ON THE FIRST INSTANCE OF EXPORT
