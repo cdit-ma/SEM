@@ -4,6 +4,8 @@
 
 #include "defaultentity.h"
 
+#include <stdexcept>
+
 using namespace Pulse::View;
 
 /**

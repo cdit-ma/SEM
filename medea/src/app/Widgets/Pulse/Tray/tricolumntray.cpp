@@ -5,6 +5,8 @@
 #include "tricolumntray.h"
 #include "../pulseviewdefaults.h"
 
+#include <stdexcept>
+
 using namespace Pulse::View;
 
 const qreal vertical_spacing = Defaults::layout_margin;
