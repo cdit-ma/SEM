@@ -17,7 +17,8 @@ final UPLOAD_PACKAGE = IS_TAG
 
 final CI_BUILD_NODES = nodesByLabel("ci_build_node")
 
-final EXPECTED_PLATFORMS = ["Windows 10", "Linux", "Mac OS X"]
+// Two linux values, one for Centos and one for Ubuntu
+final EXPECTED_PLATFORMS = ["Windows 10", "Linux", "Linux", "Mac OS X"]
 
 @NonCPS
 def get_test_status(){
