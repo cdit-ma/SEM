@@ -73,7 +73,7 @@ auto main(int argc, char** argv) -> int
 
         lifetime_manager.wait();
 
-        register_process(config, server.endpoint());
+        register_process(config, server.endpoints().at(config.control_ip_address));
 
         // Add epm control service's shutdown
 
