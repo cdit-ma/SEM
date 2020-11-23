@@ -65,7 +65,7 @@ NodeManager::NodeManager(NodeConfig config, EpmRegistry& epm_registry) :
     // Register with environment manager. Throws on failure.
     auto registration_stub = sem::grpc_util::get_stub<NodeManagerRegistrar>(
         config.environment_manager_registration_endpoint);
-    register_node_manager(*registration_stub, node_config_, server_.endpoint());
+    register_node_manager(*registration_stub, node_config_, server_.endpoints().at(node_config_.control_ip_address));
     std::cout << "[NodeManager] - Registered with environment manager at:\n    ("
               << node_config_.environment_manager_registration_endpoint.to_string() << ")"
               << std::endl;
