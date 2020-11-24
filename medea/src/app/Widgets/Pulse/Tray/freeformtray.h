@@ -24,7 +24,6 @@ protected:
 
 private:
     [[nodiscard]] QPointF getNextStackPos() const;
-    [[nodiscard]] QRectF getVisibleItemsRect() const;
 
     void checkPreConditions(QGraphicsWidget* widget) const;
 

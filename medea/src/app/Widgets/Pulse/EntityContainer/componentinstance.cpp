@@ -4,6 +4,7 @@
 
 #include "componentinstance.h"
 #include "../Entity/portinstance.h"
+#include "../pulseviewutils.h"
 #include "../../../theme.h"
 
 #include <QPainter>
@@ -87,7 +88,8 @@ QGraphicsWidget* ComponentInstance::getAsGraphicsWidget()
  */
 void ComponentInstance::add(Entity* entity)
 {
-    auto widget = getEntityGraphicsWidget(entity);
+    auto widget = Utils::getEntityAsGraphicsWidget(entity);
+    widget->setParentItem(this);
     widget->setFlags(flags() ^ QGraphicsWidget::ItemIsMovable);
     prepareGeometryChange();
 
@@ -110,6 +112,7 @@ void ComponentInstance::add(Entity* entity)
                 break;
         }
     }
+
     tray_->addCenter(widget);
 }
 
@@ -233,25 +236,6 @@ void ComponentInstance::setGeometry(const QRectF& rect)
 }
 
 /**
- * @brief ComponentInstance::getEntityGraphicsWidget
- * @param entity
- * @throws std::invalid_argument
- * @throws std::runtime_error
- * @return
- */
-QGraphicsWidget* ComponentInstance::getEntityGraphicsWidget(Entity* entity)
-{
-    if (entity == nullptr) {
-        throw std::invalid_argument("ComponentInstance - The entity is null");
-    }
-    auto widget = entity->getAsGraphicsWidget();
-    if (widget == nullptr) {
-        throw std::runtime_error("ComponentInstance - The entity is not a QGraphicsWidget");
-    }
-    return widget;
-}
-
-/**
  * @brief ComponentInstance::itemChange
  * @param change
  * @param value
@@ -289,19 +273,12 @@ void ComponentInstance::themeChanged()
     border_pen_ = QPen(top_color_, Defaults::pen_width);
     tray_color_ = theme->getBackgroundColor();
 
-    int level = 1;
-    auto parent_item = parentItem();
-    while (parent_item != nullptr) {
-        level++;
-        parent_item = parent_item->parentItem();
-    }
-
+    int level = Utils::getDepth(this) + 1;
     if (theme->getTextColor() == theme->black()) {
         tray_color_ = tray_color_.lighter(100 + 5 * level);
     } else {
         tray_color_ = tray_color_.lighter(100 + 15 * level);
     }
-
     update();
 }
 

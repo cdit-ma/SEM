@@ -4,6 +4,7 @@
 
 #include "freeformtray.h"
 #include "../pulseviewdefaults.h"
+#include "../pulseviewutils.h"
 
 #include <stdexcept>
 
@@ -55,7 +56,7 @@ bool FreeFormTray::isEmpty() const
  */
 QRectF FreeFormTray::boundingRect() const
 {
-    return {QPointF(0,0), getVisibleItemsRect().bottomRight()};
+    return {QPointF(0,0), Utils::getVisibleChildrenRect(this).bottomRight()};
 }
 
 /**
@@ -79,22 +80,6 @@ QPointF FreeFormTray::getNextStackPos() const
     const int content_count = contained_items_.size();
     QPointF offset(stack_gap_ * content_count, stack_gap_ * content_count);
     return offset;
-}
-
-/**
- * @brief FreeFormTray::getVisibleItemsRect
- * @return
- */
-QRectF FreeFormTray::getVisibleItemsRect() const
-{
-    QRectF visible_rect;
-    for (const auto& child_item : childItems()) {
-        if (child_item->isVisible()) {
-            auto&& child_geom = QRectF(child_item->pos(), child_item->boundingRect().size());
-            visible_rect = visible_rect.united(child_geom);
-        }
-    }
-    return visible_rect;
 }
 
 /**
