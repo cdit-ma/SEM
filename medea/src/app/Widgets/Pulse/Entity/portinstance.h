@@ -6,26 +6,34 @@
 #define PULSE_VIEW_PORTINSTANCE_H
 
 #include "entity.h"
+#include "../Edge/connectable.h"
 #include "../NamePlate/nameplate.h"
+#include "../EdgeAnchor/naturalanchor.h"
 #include "../../../Widgets/Charts/Data/protomessagestructs.h"
 
 #include <QPointer>
 
 namespace Pulse::View {
 
-class PortInstance : public QGraphicsWidget, public Entity {
+class PortInstance final : public QGraphicsWidget, public Entity, public Connectable {
     Q_OBJECT
 
 public:
     explicit PortInstance(const QString& label,
                           const AggServerResponse::Port::Kind kind,
-                          const QString& meta_label,
+                          const QString& meta_label = "Message",
                           QGraphicsItem* parent = nullptr);
 
-    ~PortInstance() override = default;
+    ~PortInstance() final = default;
 
     void connectModelData(QPointer<Pulse::Model::Entity> model_data) override;
     void onModelDeleted() override;
+
+    void connectEdge(Edge* edge);
+    void disconnectEdges();
+
+    NaturalAnchor* getInputAnchor() override;
+    NaturalAnchor* getOutputAnchor() override;
 
     QGraphicsWidget* getAsGraphicsWidget() override;
 
@@ -38,6 +46,10 @@ protected:
 
 private:
     NamePlate* name_plate_ = nullptr;
+
+    NaturalAnchor* input_anchor_ = nullptr;
+    NaturalAnchor* output_anchor_ = nullptr;
+
     QColor ellipse_color_;
     AggServerResponse::Port::Kind kind_;
 };

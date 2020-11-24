@@ -29,8 +29,6 @@ protected:
     void setGeometry(const QRectF& geom) override;
 
 private:
-    [[nodiscard]] QRectF getVisibleItemsRect() const;
-
     void addWidget(QGraphicsWidget* widget, int row, int column);
     void checkPreConditions(QGraphicsWidget* widget) const;
 
