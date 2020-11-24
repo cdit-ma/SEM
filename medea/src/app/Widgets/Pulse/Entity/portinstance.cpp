@@ -58,7 +58,20 @@ PortInstance::PortInstance(const QString& label,
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addItem(name_plate_);
 
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    const auto& icon_geom = name_plate_->getIconGeometry();
+    if (input_anchor_ != nullptr) {
+        input_anchor_->setPos(icon_geom.left(), icon_geom.center().y());
+    }
+    if (output_anchor_ != nullptr) {
+        output_anchor_->setPos(icon_geom.right(), icon_geom.center().y());
+    }
+
+    /*
+    ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::ERROR);
+    if (icon_pos == NamePlate::IconPos::Right) {
+        ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::SUCCESS);
+    }
+     */
 
     auto connect_anchor = [this, icon_pos] (NaturalAnchor* anchor) {
         if (anchor != nullptr) {

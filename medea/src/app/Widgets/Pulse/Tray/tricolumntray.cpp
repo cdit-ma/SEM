@@ -5,6 +5,7 @@
 #include "tricolumntray.h"
 #include "../pulseviewutils.h"
 #include "../pulseviewdefaults.h"
+#include "../pulseviewutils.h"
 
 #include <stdexcept>
 
