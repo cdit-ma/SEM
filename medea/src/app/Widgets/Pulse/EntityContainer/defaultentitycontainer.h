@@ -46,7 +46,7 @@ public:
 protected:
     void setGeometry(const QRectF& geom) override;
 
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+    QVariant itemChange(GraphicsItemChange change, const QVariant& value) override;
     void themeChanged();
 
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
@@ -61,8 +61,6 @@ private:
 
     [[nodiscard]] qreal getWidth() const;
     [[nodiscard]] qreal getHeight() const;
-
-    static QGraphicsWidget* getEntityGraphicsWidget(Entity* entity);
 
     QColor top_color_;
     QColor tray_color_;

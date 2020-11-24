@@ -56,8 +56,6 @@ private:
 
     void setGeometry(const QRectF& rect) override;
 
-    static QGraphicsWidget* getEntityGraphicsWidget(Entity* entity);
-
     QColor top_color_;
     QColor tray_color_;
     QPen border_pen_;

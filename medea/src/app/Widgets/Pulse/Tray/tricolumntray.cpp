@@ -4,6 +4,7 @@
 
 #include "tricolumntray.h"
 #include "../pulseviewdefaults.h"
+#include "../pulseviewutils.h"
 
 #include <stdexcept>
 
@@ -75,7 +76,7 @@ void TriColumnTray::addCenter(QGraphicsWidget* widget)
  */
 QRectF TriColumnTray::boundingRect() const
 {
-    return {QPointF(0,0), getVisibleItemsRect().bottomRight()};
+    return {QPointF(0,0), Utils::getVisibleChildrenRect(this).bottomRight()};
 }
 
 /**
@@ -87,22 +88,6 @@ void TriColumnTray::setGeometry(const QRectF& geom)
     prepareGeometryChange();
     QRectF adjusted_rect(geom.topLeft(), boundingRect().size());
     QGraphicsWidget::setGeometry(adjusted_rect);
-}
-
-/**
- * @brief TriColumnTray::getVisibleItemsRect
- * @return
- */
-QRectF TriColumnTray::getVisibleItemsRect() const
-{
-    QRectF visible_rect;
-    for (const auto& child_item : childItems()) {
-        if (child_item->isVisible()) {
-            auto&& child_geom = QRectF(child_item->pos(), child_item->boundingRect().size());
-            visible_rect = visible_rect.united(child_geom);
-        }
-    }
-    return visible_rect;
 }
 
 /**

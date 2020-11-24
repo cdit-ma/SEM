@@ -182,6 +182,10 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/textitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/pixmapitem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/NamePlate/nameplate.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Edge/defaultedge.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/naturalanchor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/delegateanchor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeConnector/edgeconnector.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/portinstance.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EntityContainer/defaultentitycontainer.cpp
@@ -354,7 +358,15 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/GraphicsItems/edgeitem.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Dataflow/EntityItems/pulsemodelentity.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/pulseviewdefaults.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/pulseviewutils.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Edge/connectable.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Edge/edge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Edge/defaultedge.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/edgeadopter.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/edgeanchor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/naturalanchor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeAnchor/delegateanchor.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/EdgeConnector/edgeconnector.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/entity.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/defaultentity.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Pulse/Entity/portinstance.h
@@ -433,6 +445,7 @@ target_link_libraries(${PROJ_NAME}
         Qt5::Network
         Qt5::Concurrent
         sem_version
+        re_types
         )
 
 # Install should copy the MEDEA app into the bin folder
