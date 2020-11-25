@@ -10,18 +10,19 @@ namespace sem::node_manager {
  *  The underlying epm_registry_ SHOULD be thread safe.
  */
 
+namespace ServiceNamespace = sem::network::services::node_manager;
 class NodeManagerControlImpl final
-    : public sem::network::services::node_manager_control::NodeManagerControl::Service {
+    : public ServiceNamespace::Control::Service {
 public:
     NodeManagerControlImpl(EpmRegistry& epm_registry);
     ~NodeManagerControlImpl() final;
     auto NewEpm(grpc::ServerContext* context,
-                const sem::network::services::node_manager_control::NewEpmRequest* request,
-                sem::network::services::node_manager_control::NewEpmResponse* response)
+                const ServiceNamespace::NewEpmRequest* request,
+                ServiceNamespace::NewEpmResponse* response)
         -> grpc::Status final;
     auto StopEpm(grpc::ServerContext* context,
-                 const sem::network::services::node_manager_control::StopEpmRequest* request,
-                 sem::network::services::node_manager_control::StopEpmResponse* response)
+                 const ServiceNamespace::StopEpmRequest* request,
+                 ServiceNamespace::StopEpmResponse* response)
         -> grpc::Status final;
 
 private:

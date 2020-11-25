@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package sem.network.services.node_manager_registration;
+package sem.network.services.environment_manager;
 
 service NodeManagerRegistrar {
     rpc RegisterNodeManager (RegistrationRequest) returns (RegistrationResponse);
@@ -23,7 +23,7 @@ message RegistrationRequest {
 
 message RegistrationResponse {
     bool success = 1;
-    string message = 2;
+    string error_message = 2;
 }
 
 message DeregistrationRequest {
@@ -32,5 +32,5 @@ message DeregistrationRequest {
 
 message DeregistrationResponse {
     bool success = 1;
-    string message = 2;
+    string error_message = 2;
 }

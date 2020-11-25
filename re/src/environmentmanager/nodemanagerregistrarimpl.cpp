@@ -1,6 +1,6 @@
 #include "nodemanagerregistrarimpl.h"
 namespace sem::environment_manager {
-using namespace network::services::node_manager_registration;
+using namespace network::services::environment_manager;
 
 NodeManagerRegistrarImpl::NodeManagerRegistrarImpl(NodeManagerRegistryProvider& registry_provider) :
     NodeManagerRegistrarImpl(registry_provider.get_registry())
@@ -25,7 +25,7 @@ auto NodeManagerRegistrarImpl::RegisterNodeManager(grpc::ServerContext* context,
         response->set_success(true);
     } catch(const std::exception& ex) {
         response->set_success(false);
-        response->set_message(ex.what());
+        response->set_error_message(ex.what());
     }
     return grpc::Status::OK;
 }
@@ -40,7 +40,7 @@ auto NodeManagerRegistrarImpl::DeregisterNodeManager(grpc::ServerContext* contex
         response->set_success(true);
     } catch(const std::exception& ex) {
         response->set_success(false);
-        response->set_message(ex.what());
+        response->set_error_message(ex.what());
     }
     return grpc::Status::OK;
 }

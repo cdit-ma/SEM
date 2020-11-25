@@ -7,7 +7,8 @@
 
 namespace sem::node_manager {
 
-using namespace sem::network::services::node_manager_registration;
+namespace EnvManagerService = sem::network::services::environment_manager;
+using namespace EnvManagerService;
 /// Tries to register this NodeManager with the EnvironmentManager.
 /// Throws on any sort of registration failure.
 auto register_node_manager(NodeManagerRegistrar::StubInterface& registration_stub,
@@ -31,7 +32,7 @@ auto register_node_manager(NodeManagerRegistrar::StubInterface& registration_stu
     }
     if(!reply.success()) {
         throw std::runtime_error("[NodeManager] - Failed to connect to environment manager.\n    "
-                                 + reply.message());
+                                 + reply.error_message());
     }
 }
 
@@ -50,7 +51,7 @@ auto deregister_node_manager(NodeManagerRegistrar::StubInterface& registration_s
     }
     if(!reply.success()) {
         throw std::runtime_error("[NodeManager] - Failed to deregister node manager.\n    "
-                                 + reply.message());
+                                 + reply.error_message());
     }
 }
 
