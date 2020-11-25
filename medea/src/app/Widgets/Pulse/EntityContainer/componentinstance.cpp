@@ -3,9 +3,7 @@
 //
 
 #include "componentinstance.h"
-#include "../Entity/portinstance.h"
 #include "../pulseviewutils.h"
-#include "../../../theme.h"
 
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>

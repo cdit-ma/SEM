@@ -119,10 +119,7 @@ NaturalAnchor* PortInstance::getInputAnchor()
     return input_anchor_;
 }
 
-/**
- * @brief PortInstance::getOutputAnchor
- * @return
- */
+
 NaturalAnchor* PortInstance::getOutputAnchor()
 {
     return output_anchor_;
