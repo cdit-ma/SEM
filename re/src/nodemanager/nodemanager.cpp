@@ -61,12 +61,15 @@ NodeManager::NodeManager(NodeConfig config, epm_registry::EpmRegistry& epm_regis
     control_service_{std::make_shared<NodeManagerControlImpl>(epm_registry_)},
     server_{node_config_.control_ip_address, {control_service_}}
 {
-    std::cout << "[NodeManager] - Started with uuid: (" << node_config_.uuid << ")" << std::endl;
+    std::cout << "[NodeManager] - Started with uuid: (" << node_config_.uuid << ")\n"
+              << "              - NodeManagerControlService started on: "
+              << server_.endpoints().begin()->second << std::endl;
     // We now have all of our threads/repliers set up so we can register with the env manager.
     // Register with environment manager. Throws on failure.
     auto registration_stub = sem::grpc_util::get_stub<NodeManagerRegistrar>(
         node_config_.environment_manager_registration_endpoint);
-    register_node_manager(*registration_stub, node_config_, server_.endpoints().at(node_config_.control_ip_address));
+    register_node_manager(*registration_stub, node_config_,
+                          server_.endpoints().at(node_config_.control_ip_address));
     std::cout << "[NodeManager] - Registered with environment manager at:\n    ("
               << node_config_.environment_manager_registration_endpoint.to_string() << ")"
               << std::endl;
