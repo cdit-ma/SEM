@@ -3,8 +3,8 @@
 //
 
 #include "freeformtray.h"
-#include "../pulseviewdefaults.h"
 #include "../pulseviewutils.h"
+#include "../pulseviewdefaults.h"
 
 #include <stdexcept>
 
@@ -32,13 +32,27 @@ void FreeFormTray::addItem(QGraphicsWidget* widget)
     widget->setPos(stack_pos);
     widget->setParentItem(this);
     widget->setVisible(true);
-    contained_items_.push_back(widget);
+    contained_items_.append(widget);
 
     // When a child item's geometry has changed, update the tray's geometry and schedule a repaint
     connect(widget, &QGraphicsWidget::geometryChanged, [this]() {
         updateGeometry();
         update();
     });
+}
+
+/**
+ * @brief FreeFormTray::removeItem
+ * @param widget
+ */
+void FreeFormTray::removeItem(QGraphicsWidget* widget)
+{
+    if (widget != nullptr) {
+        prepareGeometryChange();
+        widget->setParentItem(nullptr);
+        disconnect(widget, nullptr, this, nullptr);
+        contained_items_.removeAll(widget);
+    }
 }
 
 /**
@@ -67,8 +81,7 @@ void FreeFormTray::setGeometry(const QRectF& geom)
 {
     // Force this item's geometry to have the same size as the bounding rect
     prepareGeometryChange();
-    QRectF adjusted_rect(geom.topLeft(), boundingRect().size());
-    QGraphicsWidget::setGeometry(adjusted_rect);
+    QGraphicsWidget::setGeometry(QRectF(geom.topLeft(), boundingRect().size()));
 }
 
 /**
@@ -78,8 +91,7 @@ void FreeFormTray::setGeometry(const QRectF& geom)
 QPointF FreeFormTray::getNextStackPos() const
 {
     const int content_count = contained_items_.size();
-    QPointF offset(stack_gap_ * content_count, stack_gap_ * content_count);
-    return offset;
+    return {stack_gap_ * content_count, stack_gap_ * content_count};
 }
 
 /**
@@ -93,7 +105,7 @@ void FreeFormTray::checkPreConditions(QGraphicsWidget* widget) const
     if (widget == nullptr) {
         throw std::invalid_argument("FreeFormTray - Trying to add a null item");
     }
-    if (childItems().contains(widget)) {
+    if (contained_items_.contains(widget)) {
         throw std::logic_error("FreeFormTray - Trying to add an item that already exists");
     }
 }

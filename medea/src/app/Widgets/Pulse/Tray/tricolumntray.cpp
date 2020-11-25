@@ -3,8 +3,8 @@
 //
 
 #include "tricolumntray.h"
-#include "../pulseviewdefaults.h"
 #include "../pulseviewutils.h"
+#include "../pulseviewdefaults.h"
 
 #include <stdexcept>
 
@@ -21,26 +21,29 @@ TriColumnTray::TriColumnTray(QGraphicsItem* parent)
     : QGraphicsWidget(parent) {}
 
 /**
- * @brief TriColumnTray::isEmpty
- * @return
- */
-bool TriColumnTray::isEmpty() const
-{
-    for (const auto child : childItems()) {
-        if (child->isWidget()) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
  * @brief TriColumnTray::addItem
  * @param widget
  */
 void TriColumnTray::addItem(QGraphicsWidget* widget)
 {
     addCenter(widget);
+}
+
+/**
+ * @brief TriColumnTray::removeItem
+ * @param widget
+ */
+void TriColumnTray::removeItem(QGraphicsWidget* widget)
+{
+    if (widget != nullptr) {
+        if (grid_layout_ != nullptr) {
+            prepareGeometryChange();
+            grid_layout_->removeItem(widget);
+            widget->setParentItem(nullptr);
+            // TODO: Find out what happens to the position of the remaining widgets in the layout
+            //  If they don't get adjusted automatically, ask if that will be a problem
+        }
+    }
 }
 
 /**
@@ -71,6 +74,20 @@ void TriColumnTray::addCenter(QGraphicsWidget* widget)
 }
 
 /**
+ * @brief TriColumnTray::isEmpty
+ * @return
+ */
+bool TriColumnTray::isEmpty() const
+{
+    for (const auto child : childItems()) {
+        if (child->isWidget()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * @brief TriColumnTray::boundingRect
  * @return
  */
@@ -86,8 +103,7 @@ QRectF TriColumnTray::boundingRect() const
 void TriColumnTray::setGeometry(const QRectF& geom)
 {
     prepareGeometryChange();
-    QRectF adjusted_rect(geom.topLeft(), boundingRect().size());
-    QGraphicsWidget::setGeometry(adjusted_rect);
+    QGraphicsWidget::setGeometry(QRectF(geom.topLeft(), boundingRect().size()));
 }
 
 /**

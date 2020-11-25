@@ -3,9 +3,7 @@
 //
 
 #include "componentinstance.h"
-#include "../Entity/portinstance.h"
 #include "../pulseviewutils.h"
-#include "../../../theme.h"
 
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
@@ -24,8 +22,11 @@ ComponentInstance::ComponentInstance(const QString& label,
                                      const QString& meta_label,
                                      QGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      name_plate_(new NamePlate(label, "EntityIcons", "ComponentInstance", meta_label, "Icons", "code", this)),
-      tray_(new TriColumnTray(this))
+      name_plate_(new NamePlate(label, "EntityIcons", "ComponentInstance",
+                                meta_label, "Icons", "code", this)),
+      tray_(new TriColumnTray(this)),
+      input_delegate_anchor_(new DelegateAnchor(this)),
+      output_delegate_anchor_(new DelegateAnchor(this))
 {
     auto icon_size = Defaults::primary_icon_size * 1.15;
     name_plate_->setPrimarySpacing(Defaults::layout_padding);
@@ -38,22 +39,30 @@ ComponentInstance::ComponentInstance(const QString& label,
     main_layout_->addItem(tray_);
     main_layout_->setStretchFactor(tray_, 1);
 
-    setFlags(flags() | QGraphicsWidget::ItemIsMovable);
-
-    // Connect the theme to update the colors
-    connect(Theme::theme(), &Theme::theme_Changed, [this]() { themeChanged(); });
-    themeChanged();
+    auto update_anchors = [this]() {
+        if (isVisible()) {
+            input_delegate_anchor_->triggerPositionChange(topRect().left(), topRect().center().y());
+            output_delegate_anchor_->triggerPositionChange(topRect().right(), topRect().center().y());
+        }
+    };
+    connect(this, &ComponentInstance::geometryChanged, [=]() { update_anchors(); });
+    update_anchors();
 
     // When the tray's geometry has changed, update the container's geometry and schedule a repaint
     connect(tray_, &QGraphicsWidget::geometryChanged, [this]() {
         updateGeometry();
         update();
     });
+
+    setFlags(flags() | QGraphicsWidget::ItemIsMovable);
+    connect(Theme::theme(), &Theme::theme_Changed, [this]() { themeChanged(); });
+    themeChanged();
 }
 
 /**
  * @brief ComponentInstance::connectModelData
  * @param model_data
+ * @throws std::invalid_argument
  */
 void ComponentInstance::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 {
@@ -61,7 +70,7 @@ void ComponentInstance::connectModelData(QPointer<Pulse::Model::Entity> model_da
         throw std::invalid_argument("DefaultEntityContainer - The model data is null");
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &ComponentInstance::onModelDeleted);
-    connect(model_data, &Pulse::Model::Entity::labelChanged, name_plate_, &NamePlate::changeLabel);
+    connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);
     connect(model_data, &Pulse::Model::Entity::iconChanged, name_plate_, &NamePlate::changeIcon);
 }
 
@@ -83,6 +92,24 @@ QGraphicsWidget* ComponentInstance::getAsGraphicsWidget()
 }
 
 /**
+ * @brief ComponentInstance::getInputAnchor
+ * @return
+ */
+DelegateAnchor* ComponentInstance::getInputAnchor()
+{
+    return input_delegate_anchor_;
+}
+
+/**
+ * @brief ComponentInstance::getOutputAnchor
+ * @return
+ */
+DelegateAnchor* ComponentInstance::getOutputAnchor()
+{
+    return output_delegate_anchor_;
+}
+
+/**
  * @brief ComponentInstance::add
  * @param entity
  */
@@ -91,10 +118,17 @@ void ComponentInstance::add(Entity* entity)
     auto widget = Utils::getEntityAsGraphicsWidget(entity);
     widget->setParentItem(this);
     widget->setFlags(flags() ^ QGraphicsWidget::ItemIsMovable);
+
+    connect(this, &ComponentInstance::geometryChanged, widget, &QGraphicsWidget::geometryChanged);
     prepareGeometryChange();
 
     auto port = dynamic_cast<PortInstance*>(widget);
     if (port != nullptr) {
+
+        connect(port, &PortInstance::visibleChanged, [this, port]() {
+            portVisibilityChanged(port);
+        });
+
         switch (port->getKind()) {
             case AggServerResponse::Port::Kind::PERIODIC:
                 [[fallthrough]];
@@ -231,8 +265,37 @@ void ComponentInstance::setGeometry(const QRectF& rect)
 {
     // Force this item's geometry to have the same size as the bounding rect
     prepareGeometryChange();
-    QRectF adjusted_rect(rect.topLeft(), boundingRect().size());
-    QGraphicsWidget::setGeometry(adjusted_rect);
+    QGraphicsWidget::setGeometry(QRectF(rect.topLeft(), boundingRect().size()));
+}
+
+/**
+ * @brief ComponentInstance::portVisibilityChanged
+ * @param port_inst
+ * @throws std::runtime_error
+ */
+void ComponentInstance::portVisibilityChanged(PortInstance* port_inst)
+{
+    if (port_inst == nullptr) {
+        throw std::runtime_error("ComponentInstance::portVisibilityChanged - Port instance is null");
+    }
+
+    const bool visible = port_inst->isVisible();
+    auto in_anchor = port_inst->getInputAnchor();
+    auto out_anchor = port_inst->getOutputAnchor();
+
+    if (in_anchor != nullptr) {
+        if (visible) {
+            in_anchor->retrieveFromAdopter();
+        } else {
+            in_anchor->transferToAdopter(input_delegate_anchor_);
+        }
+    } else if (out_anchor != nullptr) {
+        if (visible) {
+            out_anchor->retrieveFromAdopter();
+        } else {
+            out_anchor->transferToAdopter(output_delegate_anchor_);
+        }
+    }
 }
 
 /**
@@ -277,7 +340,7 @@ void ComponentInstance::themeChanged()
     if (theme->getTextColor() == theme->black()) {
         tray_color_ = tray_color_.lighter(100 + 5 * level);
     } else {
-        tray_color_ = tray_color_.lighter(100 + 15 * level);
+        tray_color_ = tray_color_.lighter(100 + 20 * level);
     }
     update();
 }

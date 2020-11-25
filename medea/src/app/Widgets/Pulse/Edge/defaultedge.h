@@ -8,6 +8,7 @@
 #include "uuid.h"
 #include "edge.h"
 #include "../EdgeAnchor/naturalanchor.h"
+#include "../EdgeConnector/edgeconnector.h"
 
 #include <QGraphicsObject>
 #include <QPen>
@@ -18,7 +19,9 @@ class DefaultEdge : public QGraphicsObject, public Edge {
     Q_OBJECT
 
 public:
-    explicit DefaultEdge(NaturalAnchor* src_anchor, NaturalAnchor* dst_anchor, QGraphicsItem* parent = nullptr);
+    explicit DefaultEdge(NaturalAnchor& src_anchor, NaturalAnchor& dst_anchor, QGraphicsItem* parent = nullptr);
+    explicit DefaultEdge(EdgeConnector& src_connector, EdgeConnector& dst_connector, QGraphicsItem* parent = nullptr);
+
     ~DefaultEdge() override = default;
 
     [[nodiscard]] re::types::Uuid getID() const;
@@ -35,14 +38,18 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
+    void updateEdgePath();
+    static QPainterPath getCubicPath(const QPointF& p1, const QPointF& ctrl_p1, const QPointF& ctrl_p2, const QPointF& p2);
+
     QPen pen_;
     re::types::Uuid id_;
 
-    QPointF source_pos_;
-    QPointF destination_pos_;
+    QPointF src_pos_;
+    QPointF dst_pos_;
+    QPainterPath edge_path_;
 
-    NaturalAnchor* natural_src_anchor_ = nullptr;
-    NaturalAnchor* natural_dst_anchor_ = nullptr;
+    bool src_visible_ = true;
+    bool dst_visible_ = true;
 };
 
 } // end Pulse::View namespace

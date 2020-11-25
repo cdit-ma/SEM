@@ -7,14 +7,17 @@
 
 #include "entitycontainer.h"
 #include "../Entity/entity.h"
+#include "../Edge/connectable.h"
+#include "../Entity/portinstance.h"
 #include "../NamePlate/nameplate.h"
 #include "../Tray/tricolumntray.h"
+#include "../EdgeAnchor/delegateanchor.h"
 
 #include <QPen>
 
 namespace Pulse::View {
 
-class ComponentInstance : public QGraphicsWidget, public Entity, public EntityContainer {
+class ComponentInstance : public QGraphicsWidget, public Entity, public EntityContainer, public Connectable {
 public:
     explicit ComponentInstance(const QString& label,
                                const QString& meta_label,
@@ -27,6 +30,9 @@ public:
 
     QGraphicsWidget* getAsGraphicsWidget() override;
 
+    DelegateAnchor* getInputAnchor() override;
+    DelegateAnchor* getOutputAnchor() override;
+
     void add(Entity* entity) override;
     void remove(Entity* entity) override {};
 
@@ -36,6 +42,9 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
     [[nodiscard]] QRectF boundingRect() const override;
+
+public slots:
+    void portVisibilityChanged(PortInstance* port_inst);
 
 protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
@@ -65,6 +74,9 @@ private:
 
     NamePlate* name_plate_ = nullptr;
     TriColumnTray* tray_ = nullptr;
+
+    DelegateAnchor* input_delegate_anchor_ = nullptr;
+    DelegateAnchor* output_delegate_anchor_ = nullptr;
 };
 
 } // end Pulse::View namespace
