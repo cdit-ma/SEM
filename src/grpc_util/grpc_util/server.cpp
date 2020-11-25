@@ -8,47 +8,48 @@
 namespace sem::grpc_util {
 namespace detail {
 
-auto bind_address(grpc::ServerBuilder& server, AddressVariant addr) -> types::SocketAddress
+auto bind_addresses(grpc::ServerBuilder& server, const AddressSet& addrs)
+    -> std::unordered_map<types::Ipv4, std::shared_ptr<int>>
 {
-    int assigned_port{};
-    types::Ipv4 ip_address = types::Ipv4::unspecified();
-    types::SocketAddress socket_address = types::SocketAddress::unspecified();
+    std::unordered_map<types::Ipv4, std::shared_ptr<int>> port_map;
 
-    // Set all our required values from our extracted SocketAddress
-    if(std::holds_alternative<types::SocketAddress>(addr)) {
-        auto socket_addr = std::get<types::SocketAddress>(addr);
-        ip_address = socket_addr.ip();
-        assigned_port = socket_addr.port();
+    for(const auto& addr : addrs) {
+        auto current_sock = types::SocketAddress::unspecified();
+        // Set all our required values from our extracted SocketAddress
+        if(std::holds_alternative<types::SocketAddress>(addr)) {
+            auto socket_addr = std::get<types::SocketAddress>(addr);
+            current_sock = socket_addr;
+            port_map.try_emplace(socket_addr.ip(), std::make_shared<int>(socket_addr.port()));
+        }
+
+        // Set all our required values from our extracted Ipv4 address
+        // If we get an ip address, set our port to 0 s.t. grpc get a random unassigned port for us
+        else if(std::holds_alternative<types::Ipv4>(addr)) {
+            auto ip_address = std::get<types::Ipv4>(addr);
+            current_sock = types::SocketAddress(ip_address, 0);
+            port_map.try_emplace(ip_address, std::make_shared<int>(0));
+        }
+
+        // If we get a variant we aren't handling, throw a fit
+        else {
+            throw std::logic_error("Tried to evaluate AddressVariant type that isn't accepted by "
+                                   "bind_address. See sem/src/grpc_util/server.h");
+        }
+
+        server.AddListeningPort(current_sock.to_string(), grpc::InsecureServerCredentials(),
+                                port_map.at(current_sock.ip()).get());
     }
 
-    // Set all our required values from our extracted Ipv4 address
-    // If we get an ip address, set our port to 0 s.t. grpc get a random unassigned port for us
-    else if(std::holds_alternative<types::Ipv4>(addr)) {
-        ip_address = std::get<types::Ipv4>(addr);
-        assigned_port = 0;
-        socket_address = types::SocketAddress(ip_address, assigned_port);
-    }
-
-    // If we get a variant we aren't handling, throw a fit
-    else {
-        throw std::logic_error("Tried to evaluate AddressVariant type that isn't accepted by "
-                               "bind_address. See sem/src/grpc_util/server.h");
-    }
-
-    server.AddListeningPort(socket_address.to_string(), grpc::InsecureServerCredentials(),
-                            &assigned_port);
-    return types::SocketAddress(ip_address, assigned_port);
+    return port_map;
 }
 
 auto run_grpc_server(const AddressSet& addrs, const GrpcServiceVector& services)
     -> std::pair<std::unordered_map<types::Ipv4, types::SocketAddress>, std::unique_ptr<grpc::Server>>
 {
     grpc::ServerBuilder builder;
+
+    auto port_map = bind_addresses(builder, addrs);
     std::unordered_map<types::Ipv4, types::SocketAddress> out_map;
-    for(const auto& addr : addrs) {
-        types::SocketAddress bound_addr = bind_address(builder, addr);
-        out_map.try_emplace(bound_addr.ip(), bound_addr);
-    }
 
     for(const auto& service : services) {
         builder.RegisterService(service.lock().get());
@@ -56,6 +57,10 @@ auto run_grpc_server(const AddressSet& addrs, const GrpcServiceVector& services)
 
     // Build and start returns a server unique ptr, this is doing elided move assignment.
     std::unique_ptr<grpc::Server> server_ptr{builder.BuildAndStart()};
+
+    for(const auto& [addr, port_no] : port_map) {
+        out_map.try_emplace(addr, types::SocketAddress{addr, (uint16_t)*port_no});
+    }
 
     return {out_map, std::move(server_ptr)};
 }
