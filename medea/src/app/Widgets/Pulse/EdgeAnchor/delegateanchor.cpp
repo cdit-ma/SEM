@@ -117,6 +117,7 @@ void DelegateAnchor::connectEdgeConnector(EdgeConnector* connector)
     connect(this, &DelegateAnchor::edgeAnchorVisibilityChanged, connector, &EdgeConnector::visibilityChanged);
     connect(this, &DelegateAnchor::edgeAnchorMoved, connector, &EdgeConnector::positionChanged);
     connector->setParentItem(this);
+    connector->visibilityChanged(isVisible());
     connector->positionChanged(scenePos());
 }
 
