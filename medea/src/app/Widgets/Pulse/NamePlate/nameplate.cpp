@@ -4,6 +4,7 @@
 
 #include "nameplate.h"
 #include "../../../theme.h"
+#include "../pulseviewutils.h"
 
 using namespace Pulse::View;
 
@@ -55,18 +56,18 @@ NamePlate::NamePlate(const QString& label,
 void NamePlate::changeIcon(const QString& icon_path, const QString& icon_name)
 {
     primary_icon_ = {icon_path, icon_name};
-    primary_pixmap_item_->setPixmap(scaledPixmap(icon_path, icon_name, primary_icon_size_));
+    primary_pixmap_item_->setPixmap(Utils::scaledPixmap(icon_path, icon_name, primary_icon_size_));
     primary_pixmap_item_->updateGeometry();
 }
 
 /**
- * @brief NamePlate::changeLabel
- * @param label
+ * @brief NamePlate::changeName
+ * @param name
  */
-void NamePlate::changeLabel(const QString& label)
+void NamePlate::changeName(const QString& name)
 {
     prepareGeometryChange();
-    primary_text_item_->setPlainText(label);
+    primary_text_item_->setPlainText(name);
     primary_text_item_->updateGeometry();
     updateGeometry();
 }
@@ -129,7 +130,7 @@ void NamePlate::setPrimarySpacing(int spacing)
 void NamePlate::setPrimaryIconSize(int width, int height)
 {
     primary_icon_size_ = QSize(width, height);
-    primary_pixmap_item_->setPixmap(scaledPixmap(primary_icon_.first, primary_icon_.second, primary_icon_size_));
+    primary_pixmap_item_->setPixmap(Utils::scaledPixmap(primary_icon_.first, primary_icon_.second, primary_icon_size_));
     primary_pixmap_item_->updateGeometry();
 
     // Re-center the new pixmap in its geometry
@@ -145,19 +146,6 @@ void NamePlate::setPrimaryIconSize(int width, int height)
 }
 
 /**
- * @brief NamePlate::scaledPixmap
- * @param path
- * @param name
- * @param size
- * @return
- */
-QPixmap NamePlate::scaledPixmap(const QString& path, const QString& name, const QSize& size)
-{
-    auto pixmap = Theme::theme()->getImage(path, name,QSize(), Theme::theme()->getMenuIconColor());
-    return pixmap.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-}
-
-/**
  * @brief NamePlate::themeChanged
  */
 void NamePlate::themeChanged()
@@ -165,8 +153,8 @@ void NamePlate::themeChanged()
     primary_text_item_->setDefaultTextColor(Theme::theme()->getTextColor());
     secondary_text_item_->setDefaultTextColor(Theme::theme()->getTextColor());
 
-    primary_pixmap_item_->setPixmap(scaledPixmap(primary_icon_.first, primary_icon_.second, primary_icon_size_));
-    secondary_pixmap_item_->setPixmap(scaledPixmap(secondary_icon_.first, secondary_icon_.second, Defaults::secondary_icon_size));
+    primary_pixmap_item_->setPixmap(Utils::scaledPixmap(primary_icon_.first, primary_icon_.second, primary_icon_size_));
+    secondary_pixmap_item_->setPixmap(Utils::scaledPixmap(secondary_icon_.first, secondary_icon_.second, Defaults::secondary_icon_size));
 }
 
 /**

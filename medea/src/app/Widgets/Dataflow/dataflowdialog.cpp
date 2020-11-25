@@ -14,7 +14,6 @@
 #include "../Pulse/EntityContainer/componentinstance.h"
 #include "../Pulse/EntityContainer/defaultentitycontainer.h"
 #include "../Pulse/Edge/defaultedge.h"
-#include "../Pulse/EdgeAnchor/naturalanchor.h"
 
 #include <QGraphicsRectItem>
 #include <QVBoxLayout>
@@ -134,7 +133,7 @@ void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::Experi
     for (const auto& node : exp_run_data.getNodeData()) {
         auto node_item = new DefaultEntityContainer(node->getHostname(), "EntityIcons", "HardwareNode",
                                                     node->getIP(), "Icons", "ethernet");
-        for (const auto& container : node->getContainerInstanceData()) {
+        for (const auto &container : node->getContainerInstanceData()) {
             auto docker_type = "Generic OS Process";
             auto icon_name = "servers";
             if (container->getType() == AggServerResponse::Container::ContainerType::DOCKER) {
@@ -143,14 +142,14 @@ void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::Experi
             }
             auto container_item = new DefaultEntityContainer(container->getName(), "Icons", icon_name,
                                                              docker_type, "Icons", "terminal", node_item);
-            for (const auto& comp_inst : container->getComponentInstanceData()) {
+            for (const auto &comp_inst : container->getComponentInstanceData()) {
                 auto comp_inst_item = new ComponentInstance(comp_inst->getName(), comp_inst->getType(), container_item);
-                for (const auto& port_inst : comp_inst->getPortInstanceData()) {
+                for (const auto &port_inst : comp_inst->getPortInstanceData()) {
                     auto port = new PortInstance(port_inst->getName(), port_inst->getKind());
                     port_instances.insert(port_inst->getGraphmlID(), port);
                     comp_inst_item->add(port);
                 }
-                for (const auto& worker_inst : comp_inst->getWorkerInstanceData()) {
+                for (const auto &worker_inst : comp_inst->getWorkerInstanceData()) {
                     auto worker = new DefaultEntity(worker_inst->getName(), "Icons", "spanner",
                                                     worker_inst->getType(), "Icons", "code");
                     auto icon_size = Defaults::primary_icon_size * 0.75;
@@ -166,14 +165,13 @@ void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::Experi
         addItemToScene(node_item);
     }
 
-
+    // Construct the edges
     const auto& port_connections = exp_run_data.getPortConnectionData();
     for (const auto& p_c : port_connections) {
         auto src = port_instances.value(p_c->getFromPortID(), nullptr);
         auto dst = port_instances.value(p_c->getToPortID(), nullptr);
         if (src && dst) {
-            auto edge = new DefaultEdge(src->getOutputAnchor(), dst->getInputAnchor());
-            addItemToScene(edge);
+            addItemToScene(new DefaultEdge(*src->getOutputAnchor(), *dst->getInputAnchor()));
         }
     }
 }

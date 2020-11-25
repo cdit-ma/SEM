@@ -6,12 +6,17 @@
 #define PULSE_VIEW_NATURALANCHOR_H
 
 #include "edgeanchor.h"
-#include "../Edge/edge.h"
+#include "edgeadopter.h"
+#include "../EdgeConnector/edgeconnector.h"
 
 #include <QGraphicsObject>
 
 namespace Pulse::View {
 
+/**
+ * @brief The NaturalAnchor is designed for Entities that have Edges connected directly to them
+ * It constructs the EdgeConnector that the Edges will connect to both visually and for geometry/visible change signals
+ */
 class NaturalAnchor : public QGraphicsObject, public EdgeAnchor {
     Q_OBJECT
 
@@ -19,24 +24,26 @@ public:
     explicit NaturalAnchor(QGraphicsItem* parent = nullptr);
     ~NaturalAnchor() override = default;
 
+    EdgeConnector& getEdgeConnector();
+
     void transferToAdopter(EdgeAdopter* adopter) override;
-    void reclaimEdges();
+    void retrieveFromAdopter() override;
 
-    void connectEdge(Edge* edge);
-    void disconnectEdges();
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override {};
 
-    [[nodiscard]] QRectF boundingRect() const override;
+    [[nodiscard]] QRectF boundingRect() const override { return {}; };
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    void triggerPositionChange(qreal x, qreal y);
 
 signals:
     void edgeAnchorMoved(const QPointF& pos) override;
     void edgeAnchorVisibilityChanged(bool visible) override;
 
 private:
-    QColor anchor_color_ = Qt::white;
+    void connectEdgeConnector();
+
+    EdgeConnector* edge_connector_ = nullptr;
     EdgeAdopter* active_adopter_ = nullptr;
-    std::vector<Edge*> edges_;
 };
 
 } // end Pulse::View namespace

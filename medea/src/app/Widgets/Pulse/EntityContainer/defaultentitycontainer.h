@@ -7,14 +7,16 @@
 
 #include "entitycontainer.h"
 #include "../Entity/entity.h"
+#include "../Edge/connectable.h"
 #include "../NamePlate/nameplate.h"
 #include "../Tray/freeformtray.h"
+#include "../EdgeAnchor/delegateanchor.h"
 
 #include <QPen>
 
 namespace Pulse::View {
 
-class DefaultEntityContainer : public QGraphicsWidget, public Entity, public EntityContainer {
+class DefaultEntityContainer : public QGraphicsWidget, public Entity, public EntityContainer, public Connectable {
 public:
     explicit DefaultEntityContainer(const QString& label,
                                     const QString& icon_path,
@@ -31,17 +33,23 @@ public:
 
     QGraphicsWidget* getAsGraphicsWidget() override;
 
+    DelegateAnchor* getInputAnchor() override;
+    DelegateAnchor* getOutputAnchor() override;
+
     void add(Entity* entity) override;
     void remove(Entity* entity) override {};
 
     void expand() override;
     void contract() override;
 
+    void setPrimaryIconSize(int width, int height);
+
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
     [[nodiscard]] QRectF boundingRect() const override;
 
-    void setPrimaryIconSize(int width, int height);
+public slots:
+    void childVisibilityChanged(Connectable* child, bool visible);
 
 protected:
     void setGeometry(const QRectF& geom) override;
@@ -71,6 +79,9 @@ private:
 
     NamePlate* name_plate_ = nullptr;
     FreeFormTray* tray_ = nullptr;
+
+    DelegateAnchor* input_delegate_anchor_ = nullptr;
+    DelegateAnchor* output_delegate_anchor_ = nullptr;
 };
 
 } // end Pulse::View namespace
