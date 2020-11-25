@@ -16,7 +16,7 @@ auto deregister_node_manager(const NodeConfig& config) -> void;
 
 class NodeManager {
 public:
-    explicit NodeManager(NodeConfig config, EpmRegistry& epm_registry);
+    explicit NodeManager(NodeConfig config, epm_registry::EpmRegistry& epm_registry);
     ~NodeManager();
     auto wait() -> void;
     auto shutdown() -> void;
@@ -24,7 +24,7 @@ public:
 private:
     // Data member order matters as we initialise most data members in class' init list
     const NodeConfig node_config_;
-    EpmRegistry& epm_registry_;
+    epm_registry::EpmRegistry& epm_registry_;
 
     std::shared_ptr<NodeManagerControlImpl> control_service_;
 

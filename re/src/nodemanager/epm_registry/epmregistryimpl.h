@@ -10,7 +10,7 @@
 #include <grpc_util/server.h>
 #include <mutex>
 
-namespace sem::node_manager {
+namespace sem::node_manager::epm_registry {
 
 class EpmRegistryImpl : public EpmRegistry {
 public:
@@ -25,7 +25,7 @@ private:
     grpc_util::Server epm_registrar_server_;
 
     std::mutex mutex_;
-    std::unordered_map<types::Uuid, EpmRegistry::EpmInfo> epm_info_;
+    std::unordered_map<types::Uuid, EpmInfo> epm_info_;
     std::unordered_map<types::Uuid, EpmProcessHandle> epm_process_handles_;
 };
 

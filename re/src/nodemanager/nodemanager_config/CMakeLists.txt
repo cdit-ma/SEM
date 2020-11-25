@@ -1,9 +1,8 @@
-find_package(Boost 1.30.0 COMPONENTS program_options filesystem REQUIRED)
+find_package(Boost 1.67.0 COMPONENTS program_options filesystem REQUIRED)
 
 # Node manager library
 add_library(nodemanager_config)
 target_compile_features(nodemanager_config PRIVATE cxx_std_17)
-target_compile_definitions(nodemanager_config PUBLIC BOOST_ALL_DYN_LINK)
 
 target_sources(nodemanager_config
         PRIVATE
@@ -20,4 +19,5 @@ target_link_libraries(nodemanager_config
         PRIVATE
         Boost::filesystem
         Boost::program_options
+        Boost::dynamic_linking
         )

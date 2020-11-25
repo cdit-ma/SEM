@@ -55,7 +55,7 @@ auto deregister_node_manager(NodeManagerRegistrar::StubInterface& registration_s
     }
 }
 
-NodeManager::NodeManager(NodeConfig config, EpmRegistry& epm_registry) :
+NodeManager::NodeManager(NodeConfig config, epm_registry::EpmRegistry& epm_registry) :
     epm_registry_{epm_registry},
     node_config_{std::move(config)},
     control_service_{std::make_shared<NodeManagerControlImpl>(epm_registry_)},

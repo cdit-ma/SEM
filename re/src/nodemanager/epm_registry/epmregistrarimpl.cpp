@@ -3,7 +3,7 @@
 //
 
 #include "epmregistrarimpl.h"
-namespace sem::node_manager {
+namespace sem::node_manager::epm_registry {
 using namespace sem::network::services::epm_registration;
 
 EpmRegistrarImpl::~EpmRegistrarImpl() = default;
@@ -17,7 +17,7 @@ auto EpmRegistrarImpl::RegisterEpm(grpc::ServerContext* context,
     if(registration_promises_.count(container_uuid)) {
         registration_promises_.at(container_uuid)
             .set_value({{request->epm_uuid()},
-                        EpmRegistry::EpmInfo{types::SocketAddress{request->epm_control_endpoint()},
+                        EpmInfo{types::SocketAddress{request->epm_control_endpoint()},
                                              types::Ipv4{request->data_ip_address()}}});
         registration_promises_.erase(container_uuid);
     }
@@ -36,12 +36,12 @@ auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
     }
     return grpc::Status::OK;
 }
-auto EpmRegistrarImpl::wait_on_epm_registration(const EpmRegistry::EpmStartArguments& args,
+auto EpmRegistrarImpl::wait_on_epm_registration(const EpmStartArguments& args,
                                                 const types::SocketAddress& server_endpoint,
                                                 const std::chrono::seconds timeout)
-    -> EpmRegistry::EpmRegistrationResult
+    -> EpmRegistrationResult
 {
-    using EpmRegistrationResult = EpmRegistry::EpmRegistrationResult;
+    using EpmRegistrationResult = EpmRegistrationResult;
     // Create grpc service with std future to fill as arg.
     std::promise<EpmRegistrationResult> promise;
     std::future<EpmRegistrationResult> future = promise.get_future();
