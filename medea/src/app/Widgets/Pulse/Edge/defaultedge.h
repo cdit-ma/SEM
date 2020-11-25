@@ -9,6 +9,7 @@
 #include "edge.h"
 #include "../EdgeAnchor/naturalanchor.h"
 #include "../EdgeConnector/edgeconnector.h"
+#include "../../../theme.h"
 
 #include <QGraphicsObject>
 #include <QPen>
@@ -34,6 +35,8 @@ public slots:
     void onSourceVisibilityChanged(bool visible) override;
     void onDestinationVisibilityChanged(bool visible) override;
 
+    void themeChanged();
+
 protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
@@ -41,7 +44,8 @@ private:
     void updateEdgePath();
     static QPainterPath getCubicPath(const QPointF& p1, const QPointF& ctrl_p1, const QPointF& ctrl_p2, const QPointF& p2);
 
-    QPen pen_;
+    QPen line_pen_;
+    QPen point_pen_;
     re::types::Uuid id_;
 
     QPointF src_pos_;
