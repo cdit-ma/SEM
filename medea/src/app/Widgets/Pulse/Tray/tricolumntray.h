@@ -11,18 +11,23 @@
 
 namespace Pulse::View {
 
+/**
+ * @brief This Tray implementation adds its contained QGraphicsWidgets into one of 3 columns (left, center, right)
+ * It also inherits QGraphicsWidget which means that it can be added into a QGraphicsLayout
+ */
 class TriColumnTray : public QGraphicsWidget, public Tray {
 public:
     explicit TriColumnTray(QGraphicsItem* parent = nullptr);
     ~TriColumnTray() override = default;
 
-    bool isEmpty() const override;
     void addItem(QGraphicsWidget* widget) override;
+    void removeItem(QGraphicsWidget* widget) override;
 
     void addLeft(QGraphicsWidget* widget);
     void addRight(QGraphicsWidget* widget);
     void addCenter(QGraphicsWidget* widget);
 
+    [[nodiscard]] bool isEmpty() const override;
     [[nodiscard]] QRectF boundingRect() const override;
 
 protected:
