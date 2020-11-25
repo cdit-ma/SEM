@@ -9,7 +9,7 @@
 #include "epmregistry.h"
 #include <future>
 
-namespace sem::node_manager {
+namespace sem::node_manager::epm_registry {
 
 class EpmRegistrarImpl final
     : public sem::network::services::epm_registration::EpmRegistrar::Service {
@@ -18,10 +18,10 @@ public:
     ~EpmRegistrarImpl() final;
 
     constexpr static std::chrono::seconds default_registration_timeout{5};
-    auto wait_on_epm_registration(const EpmRegistry::EpmStartArguments& args,
+    auto wait_on_epm_registration(const EpmStartArguments& args,
                                   const types::SocketAddress& server_endpoint,
                                   std::chrono::seconds timeout = default_registration_timeout)
-        -> EpmRegistry::EpmRegistrationResult;
+        -> EpmRegistrationResult;
 
     auto RegisterEpm(grpc::ServerContext* context,
                      const network::services::epm_registration::RegistrationRequest* request,
@@ -34,7 +34,7 @@ public:
 
 private:
     std::mutex registration_mutex_;
-    std::unordered_map<types::Uuid, std::promise<EpmRegistry::EpmRegistrationResult>>
+    std::unordered_map<types::Uuid, std::promise<EpmRegistrationResult>>
         registration_promises_;
 
     std::mutex deregistration_mutex_;

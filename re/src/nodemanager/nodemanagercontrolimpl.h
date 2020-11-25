@@ -14,7 +14,7 @@ namespace ServiceNamespace = sem::network::services::node_manager;
 class NodeManagerControlImpl final
     : public ServiceNamespace::Control::Service {
 public:
-    NodeManagerControlImpl(EpmRegistry& epm_registry);
+    NodeManagerControlImpl(epm_registry::EpmRegistry& epm_registry);
     ~NodeManagerControlImpl() final;
     auto NewEpm(grpc::ServerContext* context,
                 const ServiceNamespace::NewEpmRequest* request,
@@ -26,7 +26,7 @@ public:
         -> grpc::Status final;
 
 private:
-    EpmRegistry& epm_registry_;
+    epm_registry::EpmRegistry& epm_registry_;
 };
 } // namespace sem::node_manager
 

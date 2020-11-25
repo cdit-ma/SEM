@@ -2,7 +2,7 @@
 #include "grpc_util/server.h"
 #include <future>
 #include <utility>
-namespace sem::node_manager {
+namespace sem::node_manager::epm_registry {
 
 /// Starts a new ExperimentProcessManager with the given configuration details.
 /// EPM will communicate directly with EnvironmentManager(ExperimentManager) for further, experiment
@@ -45,7 +45,7 @@ auto EpmRegistryImpl::remove_epm(sem::types::Uuid uuid) -> void
     }
 }
 
-auto EpmRegistryImpl::get_epm_info(sem::types::Uuid uuid) -> EpmRegistry::EpmInfo
+auto EpmRegistryImpl::get_epm_info(sem::types::Uuid uuid) -> EpmInfo
 {
     std::lock_guard lock(mutex_);
     return epm_info_.at(uuid);
