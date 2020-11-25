@@ -53,7 +53,7 @@ auto EpmRegistryImpl::get_epm_info(sem::types::Uuid uuid) -> EpmRegistry::EpmInf
 EpmRegistryImpl::EpmRegistryImpl(NodeConfig node_config) :
     node_config_{std::move(node_config)},
     epm_registrar_service_{std::make_shared<EpmRegistrarImpl>()},
-    epm_registrar_server_(node_config.control_ip_address, {epm_registrar_service_})
+    epm_registrar_server_(node_config_.control_ip_address, {epm_registrar_service_})
 {
 }
 
