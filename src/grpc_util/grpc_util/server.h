@@ -60,9 +60,6 @@ public:
 
     Server(const AddressSet& addrs, const GrpcServiceVector& services);
 
-    [[deprecated("May throw in cases where server has multiple endpoints defined, prefer "
-                 "endpoints()")]] [[nodiscard]] auto
-    endpoint() const -> types::SocketAddress;
     [[nodiscard]] auto endpoints() const -> std::unordered_map<types::Ipv4, types::SocketAddress>;
     auto wait() const -> void;
     auto shutdown() const -> void;
@@ -82,9 +79,6 @@ public:
                           const AddressSet& addr,
                           const GrpcServiceVector& services);
 
-    [[deprecated("May throw in cases where server has multiple endpoints defined, prefer "
-                 "endpoints()")]] [[nodiscard]] auto
-    endpoint() const -> types::SocketAddress;
     auto endpoints() const -> std::unordered_map<types::Ipv4, types::SocketAddress>;
     auto wait() const -> void;
     auto shutdown() const -> void;

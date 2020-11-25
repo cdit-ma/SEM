@@ -20,15 +20,15 @@ message RegistrationRequest {
 
 message RegistrationResponse {
     bool success = 1;
-    string message = 2;
+    string error_message = 2;
     string request_uuid = 3;
 }
 
 message DeregistrationRequest {
-    string uuid = 1;
+    string epm_uuid = 1;
 }
 
 message DeregistrationResponse {
     bool success = 1;
-    string message = 2;
+    string error_message = 2;
 }

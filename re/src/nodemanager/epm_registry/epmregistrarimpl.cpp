@@ -29,7 +29,7 @@ auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
 {
 
     std::lock_guard lock(deregistration_mutex_);
-    auto epm_uuid = types::Uuid{request->uuid()};
+    auto epm_uuid = types::Uuid{request->epm_uuid()};
     if(deregistration_promises_.count(epm_uuid)) {
         deregistration_promises_.at(epm_uuid).set_value(epm_uuid);
         deregistration_promises_.erase(epm_uuid);

@@ -62,17 +62,6 @@ auto run_grpc_server(const AddressSet& addrs, const GrpcServiceVector& services)
 
 } // namespace detail
 
-auto Server::endpoint() const -> types::SocketAddress
-{
-    // l o l ? ?
-    if(endpoints_.size() == 1) {
-        return endpoints_.begin()->second;
-    } else {
-        throw std::logic_error("Tried to call 'endpoint()' on grpc server with multiple endpoints, "
-                               "try using endpoints() instead");
-    }
-}
-
 auto Server::endpoints() const -> std::unordered_map<types::Ipv4, types::SocketAddress>
 {
     return endpoints_;
@@ -117,16 +106,6 @@ LifetimeManagedServer::LifetimeManagedServer(ServerLifetimeManager& lifetime_man
 {
 }
 
-auto LifetimeManagedServer::endpoint() const -> types::SocketAddress
-{
-    // l 0 l ? ?
-    if(endpoints_.size() == 1) {
-        return endpoints_.begin()->second;
-    } else {
-        throw std::logic_error("Tried to call 'endpoint()' on grpc server with multiple endpoints, "
-                               "try using endpoints() instead");
-    }
-}
 auto LifetimeManagedServer::endpoints() const
     -> std::unordered_map<types::Ipv4, types::SocketAddress>
 {
