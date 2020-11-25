@@ -87,5 +87,6 @@ void NaturalAnchor::connectEdgeConnector()
     connect(this, &NaturalAnchor::edgeAnchorVisibilityChanged, edge_connector_, &EdgeConnector::visibilityChanged);
     connect(this, &NaturalAnchor::edgeAnchorMoved, edge_connector_, &EdgeConnector::positionChanged);
     edge_connector_->setParentItem(this);
+    edge_connector_->visibilityChanged(isVisible());
     edge_connector_->positionChanged(scenePos());
 }

@@ -3,12 +3,12 @@
 //
 
 #include "defaultedge.h"
-#include "../../../theme.h"
 
 #include <QPainter>
 
 using namespace Pulse::View;
 
+const qreal pen_width = 2.0;
 const qreal min_offset = 40.0;
 const qreal max_offset = 60.0;
 
@@ -38,11 +38,8 @@ DefaultEdge::DefaultEdge(EdgeConnector& src_connector, EdgeConnector& dst_connec
     connect(&dst_connector, &EdgeConnector::positionChanged, this, &DefaultEdge::onDestinationMoved);
     connect(&dst_connector, &EdgeConnector::visibilityChanged, this, &DefaultEdge::onDestinationVisibilityChanged);
 
-    pen_ = QPen(Theme::theme()->getTextColor(), 2.0);
-    connect(Theme::theme(), &Theme::theme_Changed, [this]() {
-        pen_ = QPen(Theme::theme()->getTextColor(), 2.0);
-        update();
-    });
+    connect(Theme::theme(), &Theme::theme_Changed, this, &DefaultEdge::themeChanged);
+    themeChanged();
 }
 
 /**
@@ -60,7 +57,7 @@ re::types::Uuid DefaultEdge::getID() const
  */
 QRectF DefaultEdge::boundingRect() const
 {
-    auto half_pen_width = pen_.widthF() / 2;
+    auto half_pen_width = line_pen_.widthF() / 2;
     return edge_path_.boundingRect().adjusted(-half_pen_width, -half_pen_width, half_pen_width, half_pen_width);
 }
 
@@ -92,7 +89,7 @@ void DefaultEdge::onSourceVisibilityChanged(bool visible)
 {
     // check that both of the src and dst is visible; if not, hide the edge
     src_visible_ = visible;
-    //setVisible(src_visible_ && dst_visible_);
+    setVisible(src_visible_ && dst_visible_);
 }
 
 /**
@@ -103,7 +100,18 @@ void DefaultEdge::onDestinationVisibilityChanged(bool visible)
 {
     // check that both of the src and dst is visible; if not, hide the edge
     dst_visible_ = visible;
-    //setVisible(src_visible_ && dst_visible_);
+    setVisible(src_visible_ && dst_visible_);
+}
+
+/**
+ * @brief DefaultEdge::themeChanged
+ */
+void DefaultEdge::themeChanged()
+{
+    auto theme = Theme::theme();
+    line_pen_ = QPen(theme->getTextColor(), pen_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    point_pen_ = QPen(theme->getTextColor(ColorRole::SELECTED), pen_width * 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    update();
 }
 
 /**
@@ -116,7 +124,11 @@ void DefaultEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* optio
 {
     Q_UNUSED(widget);
     Q_UNUSED(option);
-    painter->strokePath(edge_path_, pen_);
+
+    painter->strokePath(edge_path_, line_pen_);
+    painter->setPen(point_pen_);
+    painter->drawPoint(src_pos_);
+    painter->drawPoint(dst_pos_);
 }
 
 /**
