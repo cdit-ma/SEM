@@ -6,7 +6,9 @@
 #define PULSE_VIEW_UTILS_H
 
 #include "Entity/entity.h"
+#include "EntityContainer/entitycontainer.h"
 #include "../../Widgets/Charts/Data/protomessagestructs.h"
+#include "../../theme.h"
 
 #include <QGraphicsWidget>
 #include <stdexcept>
@@ -32,6 +34,12 @@ static QGraphicsWidget* getEntityAsGraphicsWidget(Entity* entity)
     return widget;
 }
 
+/**
+ * @brief Pulse::View::Utils::getTopmostParentWidget
+ * @param widget
+ * @throws std::invalid_argument
+ * @return
+ */
 static QGraphicsWidget* getTopmostParentWidget(const QGraphicsWidget* widget)
 {
     if (widget == nullptr) {
@@ -44,6 +52,12 @@ static QGraphicsWidget* getTopmostParentWidget(const QGraphicsWidget* widget)
     return parent;
 }
 
+/**
+ * @brief Pulse::View::Utils::getDepth
+ * @param widget
+ * @throws std::invalid_argument
+ * @return
+ */
 static int getDepth(const QGraphicsWidget* widget)
 {
     if (widget == nullptr) {
@@ -52,12 +66,21 @@ static int getDepth(const QGraphicsWidget* widget)
     int depth = 0;
     auto parent = widget->parentWidget();
     while (parent != nullptr) {
+        auto container = dynamic_cast<EntityContainer*>(parent);
+        if (container != nullptr) {
+            depth++;
+        }
         parent = parent->parentWidget();
-        depth++;
     }
     return depth;
 }
 
+/**
+ * @brief Pulse::View::Utils::getVisibleChildrenRect
+ * @param widget
+ * @throws std::invalid_argument
+ * @return
+ */
 static QRectF getVisibleChildrenRect(const QGraphicsWidget* widget)
 {
     if (widget == nullptr) {
@@ -73,7 +96,13 @@ static QRectF getVisibleChildrenRect(const QGraphicsWidget* widget)
     return visible_rect;
 }
 
-static QString getIconName(AggServerResponse::Port::Kind kind)
+/**
+ * @brief Pulse::View::Utils::getPortIconName
+ * @param kind
+ * @throws std::invalid_argument
+ * @return
+ */
+static QString getPortIconName(AggServerResponse::Port::Kind kind)
 {
     switch (kind) {
         case AggServerResponse::Port::Kind::PERIODIC:
@@ -89,6 +118,19 @@ static QString getIconName(AggServerResponse::Port::Kind kind)
         case AggServerResponse::Port::Kind::NO_KIND:
             throw std::invalid_argument("Pulse::View::Utils::getIconName - Port kind is unknown");
     }
+}
+
+/**
+ * @brief Pulse::View::Utils::scaledPixmap
+ * @param path
+ * @param name
+ * @param size
+ * @return
+ */
+static QPixmap scaledPixmap(const QString& path, const QString& name, const QSize& size)
+{
+    auto pixmap = Theme::theme()->getImage(path, name,QSize(), Theme::theme()->getMenuIconColor());
+    return pixmap.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 } // end Pulse::View namespace

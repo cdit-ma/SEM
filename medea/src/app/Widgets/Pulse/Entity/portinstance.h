@@ -29,16 +29,12 @@ public:
     void connectModelData(QPointer<Pulse::Model::Entity> model_data) override;
     void onModelDeleted() override;
 
-    void connectEdge(Edge* edge);
-    void disconnectEdges();
-
     NaturalAnchor* getInputAnchor() override;
     NaturalAnchor* getOutputAnchor() override;
 
     QGraphicsWidget* getAsGraphicsWidget() override;
 
     [[nodiscard]] QRectF boundingRect() const override;
-
     [[nodiscard]] AggServerResponse::Port::Kind getKind() const;
 
 protected:

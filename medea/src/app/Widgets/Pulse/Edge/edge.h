@@ -8,17 +8,17 @@
 #include "../EdgeAnchor/edgeanchor.h"
 
 #include <QPointF>
-//#include <QObject>
 
 namespace Pulse::View {
 
-class Edge { //: public QObject {
-    //Q_OBJECT
-
+/**
+ * @brief This attempts to make sure that an Edge listens to and handles its source's and
+ * destination's geometry (position and size) changes and visibility state change
+ */
+class Edge {
 public:
     virtual ~Edge() = 0;
 
-//public slots:
     virtual void onSourceMoved(const QPointF& pos) = 0;
     virtual void onDestinationMoved(const QPointF& pos) = 0;
 

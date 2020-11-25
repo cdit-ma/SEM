@@ -4,7 +4,6 @@
 
 #include "portinstance.h"
 #include "../pulseviewutils.h"
-#include "../../../theme.h"
 
 #include <QPainter>
 
@@ -16,15 +15,15 @@ using namespace Pulse::View;
  * @param kind
  * @param meta_label
  * @param parent
+ * @throws std::invalid_argument
  */
 PortInstance::PortInstance(const QString& label,
                            const AggServerResponse::Port::Kind kind,
                            const QString& meta_label,
                            QGraphicsItem* parent)
     : QGraphicsWidget(parent),
-      name_plate_(new NamePlate(label, "Icons", Utils::getIconName(kind),
-                                meta_label, "Icons", "envelopeTwoTone",
-                                this)),
+      name_plate_(new NamePlate(label, "Icons", Utils::getPortIconName(kind),
+                                meta_label, "Icons", "envelopeTwoTone",this)),
       kind_(kind)
 {
     auto icon_pos = NamePlate::IconPos::Left;
@@ -56,20 +55,21 @@ PortInstance::PortInstance(const QString& label,
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addItem(name_plate_);
 
-    const auto& icon_geom = name_plate_->getIconGeometry();
     if (input_anchor_ != nullptr) {
-        input_anchor_->setPos(icon_geom.left(), icon_geom.center().y());
+        connect(this, &PortInstance::geometryChanged, [this]() {
+            if (isVisible()) {
+                const auto& icon_geom = name_plate_->getIconGeometry();
+                input_anchor_->triggerPositionChange(icon_geom.left(), icon_geom.center().y());
+            }
+        });
+    } else if (output_anchor_ != nullptr) {
+        connect(this, &PortInstance::geometryChanged, [this]() {
+            if (isVisible()) {
+                const auto& icon_geom = name_plate_->getIconGeometry();
+                output_anchor_->triggerPositionChange(icon_geom.right(), icon_geom.center().y());
+            }
+        });
     }
-    if (output_anchor_ != nullptr) {
-        output_anchor_->setPos(icon_geom.right(), icon_geom.center().y());
-    }
-
-    /*
-    ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::ERROR);
-    if (icon_pos == NamePlate::IconPos::Right) {
-        ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::SUCCESS);
-    }
-     */
 
     auto theme_changed = [icon_pos, this]() {
         ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::ERROR);
@@ -79,25 +79,15 @@ PortInstance::PortInstance(const QString& label,
         update();
     };
 
-    connect(Theme::theme(), &Theme::theme_Changed, [=]() { theme_changed(); });
-
-    /*
-        // Connect the theme to update the ellipse color
-    connect(Theme::theme(), &Theme::theme_Changed, [icon_pos, this]() {
-        ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::ERROR);
-        if (icon_pos == NamePlate::IconPos::Right) {
-            ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::SUCCESS);
-        }
-        update();
-    });*/
-
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    connect(Theme::theme(), &Theme::theme_Changed, [=]() { theme_changed(); });
     theme_changed();
 }
 
 /**
  * @brief PortInstance::connectModelData
  * @param model_data
+ * @throws std::invalid_argument
  */
 void PortInstance::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 {
@@ -105,7 +95,7 @@ void PortInstance::connectModelData(QPointer<Pulse::Model::Entity> model_data)
         throw std::invalid_argument("DefaultEntity - The model data is null");
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &PortInstance::onModelDeleted);
-    connect(model_data, &Pulse::Model::Entity::labelChanged, name_plate_, &NamePlate::changeLabel);
+    connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);
     connect(model_data, &Pulse::Model::Entity::iconChanged, name_plate_, &NamePlate::changeIcon);
 }
 
@@ -117,23 +107,19 @@ void PortInstance::onModelDeleted()
     deleteLater();
 }
 
-
-void PortInstance::connectEdge(Edge* edge)
-{
-    input_anchor_->connectEdge(edge);
-}
-
-void PortInstance::disconnectEdges()
-{
-    input_anchor_->disconnectEdges();
-}
-
+/**
+ * @brief PortInstance::getInputAnchor
+ * @return
+ */
 NaturalAnchor* PortInstance::getInputAnchor()
 {
     return input_anchor_;
 }
 
-
+/**
+ * @brief PortInstance::getOutputAnchor
+ * @return
+ */
 NaturalAnchor* PortInstance::getOutputAnchor()
 {
     return output_anchor_;

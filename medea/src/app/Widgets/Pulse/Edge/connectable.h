@@ -9,12 +9,16 @@
 
 namespace Pulse::View {
 
+/**
+ * @brief All this interface does is guarantee that it has an input and an output EdgeAnchors
+ * These EdgeAnchors allow the instances to be visually connected; hence the name
+ */
 class Connectable {
 public:
     virtual ~Connectable() = 0;
 
-    virtual NaturalAnchor* getInputAnchor() = 0;
-    virtual NaturalAnchor* getOutputAnchor() = 0;
+    virtual EdgeAnchor* getInputAnchor() = 0;
+    virtual EdgeAnchor* getOutputAnchor() = 0;
 };
 
 inline Connectable::~Connectable() = default;

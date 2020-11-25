@@ -9,6 +9,9 @@
 
 namespace Pulse::View {
 
+/**
+ * @brief An EntityContainer can contain Entities and be able to be contracted and expanded
+ */
 class EntityContainer {
 public:
     virtual ~EntityContainer() = 0;

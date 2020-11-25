@@ -3,61 +3,89 @@
 //
 
 #include "naturalanchor.h"
-#include "edgeadopter.h"
 #include "../pulseviewutils.h"
-#include "../../../theme.h"
 
 #include <QPainter>
 
 using namespace Pulse::View;
 
+/**
+ * @brief NaturalAnchor::NaturalAnchor
+ * @param parent
+ */
 NaturalAnchor::NaturalAnchor(QGraphicsItem* parent)
-    : QGraphicsObject(parent)
+    : QGraphicsObject(parent),
+      edge_connector_(new EdgeConnector(this))
 {
-    connect(this, &NaturalAnchor::visibleChanged, [this]() { edgeAnchorVisibilityChanged(isVisible()); } );
-    connect(this, &NaturalAnchor::xChanged, []() { qDebug() << "x changed"; } );
-    connect(Theme::theme(), &Theme::theme_Changed, [this]() {
-        anchor_color_ = Theme::theme()->getMenuIconColor();
-        update();
+    connect(this, &NaturalAnchor::visibleChanged, [this]() {
+        emit edgeAnchorVisibilityChanged(isVisible());
     });
+    connectEdgeConnector();
 }
 
+/**
+ * @brief NaturalAnchor::getEdgeConnector
+ * @throws std::runtime_error
+ * @return
+ */
+EdgeConnector& NaturalAnchor::getEdgeConnector()
+{
+    if (edge_connector_ == nullptr) {
+        throw std::runtime_error("NaturalAnchor::getEdgeConnector - The edge connector is null");
+    }
+    return *edge_connector_;
+}
+
+/*
+ * @brief NaturalAnchor::transferToAdopter
+ * @param adopter
+ * @throws std::invalid_argument
+ */
 void NaturalAnchor::transferToAdopter(EdgeAdopter* adopter)
 {
     if (adopter == nullptr) {
         throw std::invalid_argument("NaturalAnchor::transferToAdopter - The edge adopter is null");
     }
-    adopter->adoptEdges(this);
+
+    // We need to update the EdgeConnector's parentItem() if we want to see it at all depth
+    auto graphics_obj = dynamic_cast<QGraphicsObject*>(adopter);
+    edge_connector_->setParentItem(graphics_obj);
+
+    disconnect(this, nullptr, edge_connector_, nullptr);
+    adopter->adoptEdges(this, edge_connector_);
     active_adopter_ = adopter;
 }
 
-void NaturalAnchor::reclaimEdges()
+/**
+ * @brief NaturalAnchor::retrieveFromAdopter
+ */
+void NaturalAnchor::retrieveFromAdopter()
 {
     if (active_adopter_ != nullptr) {
         active_adopter_->returnEdges(this);
+        active_adopter_ = nullptr;
     }
-    active_adopter_ = nullptr;
+    connectEdgeConnector();
 }
 
-void NaturalAnchor::connectEdge(Edge* edge)
+/**
+ * @brief NaturalAnchor::triggerPositionChange
+ * @param x
+ * @param y
+ */
+void NaturalAnchor::triggerPositionChange(qreal x, qreal y)
 {
-    if (edge == nullptr) {
-        throw std::invalid_argument("NaturalAnchor::connectEdge - Edge is null");
-    }
-    edges_.push_back(edge);
+    setPos(x, y);
+    emit edgeAnchorMoved(scenePos());
 }
 
-void NaturalAnchor::disconnectEdges()
+/**
+ * @brief NaturalAnchor::connectEdgeConnector
+ */
+void NaturalAnchor::connectEdgeConnector()
 {
-    edges_.clear();
-}
-
-QRectF NaturalAnchor::boundingRect() const
-{
-    return QRectF(-5, -5, 10, 10);
-}
-
-void NaturalAnchor::paint(QPainter *painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-    painter->fillRect(boundingRect(), anchor_color_);
+    connect(this, &NaturalAnchor::edgeAnchorVisibilityChanged, edge_connector_, &EdgeConnector::visibilityChanged);
+    connect(this, &NaturalAnchor::edgeAnchorMoved, edge_connector_, &EdgeConnector::positionChanged);
+    edge_connector_->setParentItem(this);
+    edge_connector_->positionChanged(scenePos());
 }
