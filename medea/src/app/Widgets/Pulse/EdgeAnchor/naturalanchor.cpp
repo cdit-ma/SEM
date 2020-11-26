@@ -18,7 +18,7 @@ NaturalAnchor::NaturalAnchor(QGraphicsItem* parent)
       edge_connector_(new EdgeConnector(this))
 {
     connect(this, &NaturalAnchor::visibleChanged, [this] () {
-        emit edgeAnchorVisibilityChanged(isVisible());
+        emit visibilityChanged(isVisible());
     });
     edge_connector_->setNaturalAnchor(this);
     connectEdgeConnector();
@@ -77,7 +77,7 @@ void NaturalAnchor::retrieveFromAdopter()
 void NaturalAnchor::triggerPositionChange(qreal x, qreal y)
 {
     setPos(x, y);
-    emit edgeAnchorMoved(scenePos());
+    emit positionChanged(scenePos());
 }
 
 /**
@@ -85,7 +85,7 @@ void NaturalAnchor::triggerPositionChange(qreal x, qreal y)
  */
 void NaturalAnchor::connectEdgeConnector()
 {
-    connect(this, &NaturalAnchor::edgeAnchorMoved, &getEdgeConnector(), &EdgeConnector::positionChanged);
+    connect(this, &NaturalAnchor::positionChanged, &getEdgeConnector(), &EdgeConnector::positionChanged);
     getEdgeConnector().setParentItem(this);
     getEdgeConnector().visibilityChanged(isVisible());
     getEdgeConnector().positionChanged(scenePos());

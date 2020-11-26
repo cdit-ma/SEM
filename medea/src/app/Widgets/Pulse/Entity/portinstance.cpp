@@ -60,20 +60,18 @@ PortInstance::PortInstance(const QString& label,
 
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
-    auto connect_anchor = [this] (NaturalAnchor* anchor, NamePlate::IconPos pos) {
+    auto connect_anchor = [this, icon_pos] (NaturalAnchor* anchor) {
         if (anchor != nullptr) {
-            //connect(this, &PortInstance::geometryChanged, [this, anchor, x, y]() {
-            connect(this, &PortInstance::geometryChanged, [this, anchor, pos]() {
+            connect(this, &PortInstance::geometryChanged, [this, anchor, icon_pos]() {
                 const auto& icon_geom = name_plate_->getIconGeometry();
-                auto x = (pos == NamePlate::Left) ? icon_geom.left() : icon_geom.right();
-                auto y = icon_geom.center().y();
-                if (isVisible()) { anchor->triggerPositionChange(x, y); }
+                auto x = (icon_pos == NamePlate::Left) ? icon_geom.left() : icon_geom.right();
+                if (isVisible()) { anchor->triggerPositionChange(x, icon_geom.center().y()); }
             });
         }
     };
 
-    connect_anchor(input_anchor_, icon_pos);
-    connect_anchor(output_anchor_, icon_pos);
+    connect_anchor(input_anchor_);
+    connect_anchor(output_anchor_);
 }
 
 /**
@@ -84,7 +82,7 @@ PortInstance::PortInstance(const QString& label,
 void PortInstance::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 {
     if (model_data.isNull()) {
-        throw std::invalid_argument("DefaultEntity - The model data is null");
+        throw std::invalid_argument("PortInstance::connectModelData - The model data is null");
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &PortInstance::onModelDeleted);
     connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);

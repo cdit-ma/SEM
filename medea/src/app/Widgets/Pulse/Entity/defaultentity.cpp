@@ -44,7 +44,7 @@ DefaultEntity::DefaultEntity(const QString& label,
 void DefaultEntity::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 {
     if (model_data.isNull()) {
-        throw std::invalid_argument("DefaultEntity - The model data is null");
+        throw std::invalid_argument("DefaultEntity::connectModelData - The model data is null");
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &DefaultEntity::onModelDeleted);
     connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);

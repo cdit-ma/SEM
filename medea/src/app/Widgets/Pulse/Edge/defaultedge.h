@@ -21,7 +21,7 @@ class DefaultEdge : public QGraphicsObject, public Edge {
 
 public:
     explicit DefaultEdge(const NaturalAnchor& src_anchor, const NaturalAnchor& dst_anchor, QGraphicsItem* parent = nullptr);
-    explicit DefaultEdge(const EdgeConnector& src_connector, const EdgeConnector& dst_connector, QGraphicsItem* parent = nullptr);
+    explicit DefaultEdge(EdgeConnector& src_connector, EdgeConnector& dst_connector, QGraphicsItem* parent = nullptr);
 
     ~DefaultEdge() override = default;
 
@@ -29,11 +29,8 @@ public:
     [[nodiscard]] QRectF boundingRect() const override;
 
 public slots:
-    void onSourceMoved(const QPointF& pos) override;
-    void onDestinationMoved(const QPointF& pos) override;
-
-    void onSourceVisibilityChanged(bool visible) override;
-    void onDestinationVisibilityChanged(bool visible) override;
+    void endPointPositionChanged() override;
+    void endPointVisibilityChanged() override;
 
     void onSourceParentChanged(bool natural_parent);
     void onDestinationParentChanged(bool natural_parent);
@@ -44,19 +41,18 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 private:
+    EdgeConnector& getSourceConnector();
+    EdgeConnector& getDestinationConnector();
+
     void updateEdgePath();
     static QPainterPath getCubicPath(const QPointF& p1, const QPointF& ctrl_p1, const QPointF& ctrl_p2, const QPointF& p2);
 
-    struct EdgeConnectorProperties {
-        QPointF pos;
-        QPen pen;
-        bool visible = true;
-    };
-
-    EdgeConnectorProperties src_properties_;
-    EdgeConnectorProperties dst_properties_;
+    EdgeConnector* src_connector_ = nullptr;
+    EdgeConnector* dst_connector_ = nullptr;
 
     QPen line_pen_;
+    QPen src_point_pen_;
+    QPen dst_point_pen_;
     QColor default_point_color_;
 
     QPainterPath edge_path_;

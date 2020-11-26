@@ -28,6 +28,41 @@ EdgeConnector::EdgeConnector(QGraphicsItem* parent)
         color_ = Theme::theme()->getTextColor();
         update();
     });
+
+    // The EdgeConnector doesn't show until an edge has been connected to it
+    setVisible(false);
+}
+
+/**
+ * @brief EdgeConnector::connectEdge
+ * @param edge
+ * @throws std::invalid_argument
+ */
+void EdgeConnector::connectEdge(Edge* edge)
+{
+    if (edge == nullptr) {
+        throw std::invalid_argument("EdgeConnector::connectEdge - The edge is null");
+    }
+    if (!connected_edges_.contains(edge)) {
+        connected_edges_.append(edge);
+        setVisible(true);
+    }
+}
+
+/**
+ * @brief EdgeConnector::disconnectEdge
+ * @param edge
+ * @throws std::invalid_argument
+ */
+void EdgeConnector::disconnectEdge(Edge* edge)
+{
+    if (edge == nullptr) {
+        throw std::invalid_argument("EdgeConnector::disconnectEdge");
+    }
+    connected_edges_.removeAll(edge);
+    if (connected_edges_.isEmpty()) {
+        setVisible(false);
+    }
 }
 
 /**
