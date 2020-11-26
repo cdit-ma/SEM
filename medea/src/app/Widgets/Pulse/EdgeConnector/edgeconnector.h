@@ -22,6 +22,8 @@ class EdgeConnector : public QGraphicsObject {
     friend class NaturalAnchor;
 
 public:
+    bool isConnectedToNaturalAnchor() const;
+
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     [[nodiscard]] QRectF boundingRect() const override;
 
@@ -31,7 +33,9 @@ signals:
 
 private:
     explicit EdgeConnector(QGraphicsItem* parent = nullptr);
+    void setNaturalAnchor(NaturalAnchor* anchor);
 
+    NaturalAnchor* natural_anchor_ = nullptr;
     QColor color_;
 };
 

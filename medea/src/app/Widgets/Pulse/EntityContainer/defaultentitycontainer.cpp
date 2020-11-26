@@ -49,8 +49,8 @@ DefaultEntityContainer::DefaultEntityContainer(const QString& label,
 
     auto update_anchors = [this]() {
         if (isVisible()) {
-            input_delegate_anchor_->triggerPositionChange(topRect().left(), topRect().center().y());
-            output_delegate_anchor_->triggerPositionChange(topRect().right(), topRect().center().y());
+            getInputAnchor()->triggerPositionChange(topRect().left(), topRect().center().y());
+            getOutputAnchor()->triggerPositionChange(topRect().right(), topRect().center().y());
         }
     };
     connect(this, &DefaultEntityContainer::geometryChanged, [=]() { update_anchors(); });
@@ -101,19 +101,27 @@ QGraphicsWidget* DefaultEntityContainer::getAsGraphicsWidget()
 
 /**
  * @brief DefaultEntityContainer::getInputAnchor
+ * @throws std::runtime_error
  * @return
  */
 DelegateAnchor* DefaultEntityContainer::getInputAnchor()
 {
+    if (input_delegate_anchor_ == nullptr) {
+        throw std::runtime_error("DefaultEntityContainer::getInputAnchor - The input delegate anchor is null");
+    }
     return input_delegate_anchor_;
 }
 
 /**
  * @brief DefaultEntityContainer::getOutputAnchor
+ * @throws std::runtime_error
  * @return
  */
 DelegateAnchor* DefaultEntityContainer::getOutputAnchor()
 {
+    if (output_delegate_anchor_ == nullptr) {
+        throw std::runtime_error("DefaultEntityContainer::getOutputAnchor - The input delegate anchor is null");
+    }
     return output_delegate_anchor_;
 }
 
@@ -210,23 +218,18 @@ void DefaultEntityContainer::childVisibilityChanged(Connectable* child, bool vis
         throw std::runtime_error("DefaultEntityContainer::childVisibilityChanged - Child entity container is null");
     }
 
-    auto input_anchor = child->getInputAnchor();
-    if (input_anchor != nullptr) {
-        if (visible) {
-            input_anchor->retrieveFromAdopter();
-        } else {
-            input_anchor->transferToAdopter(input_delegate_anchor_);
+    auto update_child_anchor = [] (bool child_visible, EdgeAnchor* anchor, EdgeAdopter& adopter) {
+        if (anchor != nullptr) {
+            if (child_visible) {
+                anchor->retrieveFromAdopter();
+            } else {
+                anchor->transferToAdopter(&adopter);
+            }
         }
-    }
+    };
 
-    auto output_anchor = child->getOutputAnchor();
-    if (output_anchor != nullptr) {
-        if (visible) {
-            output_anchor->retrieveFromAdopter();
-        } else {
-            output_anchor->transferToAdopter(output_delegate_anchor_);
-        }
-    }
+    update_child_anchor(visible, child->getInputAnchor(), *getInputAnchor());
+    update_child_anchor(visible, child->getOutputAnchor(), *getOutputAnchor());
 }
 
 /**

@@ -20,8 +20,8 @@ class DefaultEdge : public QGraphicsObject, public Edge {
     Q_OBJECT
 
 public:
-    explicit DefaultEdge(NaturalAnchor& src_anchor, NaturalAnchor& dst_anchor, QGraphicsItem* parent = nullptr);
-    explicit DefaultEdge(EdgeConnector& src_connector, EdgeConnector& dst_connector, QGraphicsItem* parent = nullptr);
+    explicit DefaultEdge(const NaturalAnchor& src_anchor, const NaturalAnchor& dst_anchor, QGraphicsItem* parent = nullptr);
+    explicit DefaultEdge(const EdgeConnector& src_connector, const EdgeConnector& dst_connector, QGraphicsItem* parent = nullptr);
 
     ~DefaultEdge() override = default;
 
@@ -35,6 +35,9 @@ public slots:
     void onSourceVisibilityChanged(bool visible) override;
     void onDestinationVisibilityChanged(bool visible) override;
 
+    void onSourceParentChanged(bool natural_parent);
+    void onDestinationParentChanged(bool natural_parent);
+
     void themeChanged();
 
 protected:
@@ -44,16 +47,20 @@ private:
     void updateEdgePath();
     static QPainterPath getCubicPath(const QPointF& p1, const QPointF& ctrl_p1, const QPointF& ctrl_p2, const QPointF& p2);
 
+    struct EdgeConnectorProperties {
+        QPointF pos;
+        QPen pen;
+        bool visible = true;
+    };
+
+    EdgeConnectorProperties src_properties_;
+    EdgeConnectorProperties dst_properties_;
+
     QPen line_pen_;
-    QPen point_pen_;
-    re::types::Uuid id_;
+    QColor default_point_color_;
 
-    QPointF src_pos_;
-    QPointF dst_pos_;
     QPainterPath edge_path_;
-
-    bool src_visible_ = true;
-    bool dst_visible_ = true;
+    re::types::Uuid id_;
 };
 
 } // end Pulse::View namespace

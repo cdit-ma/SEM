@@ -24,7 +24,7 @@ public:
     explicit NaturalAnchor(QGraphicsItem* parent = nullptr);
     ~NaturalAnchor() override = default;
 
-    EdgeConnector& getEdgeConnector();
+    EdgeConnector& getEdgeConnector() const;
 
     void transferToAdopter(EdgeAdopter* adopter) override;
     void retrieveFromAdopter() override;

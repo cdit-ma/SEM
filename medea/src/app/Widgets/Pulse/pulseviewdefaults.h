@@ -20,5 +20,8 @@ static inline const QSize secondary_icon_size = primary_icon_size / 3.5;
 static inline const QFont primary_font("Verdana", 10);
 static inline const QFont secondary_font("Verdana", 6);
 
+static inline const QColor input_port_color(244, 0, 0);
+static inline const QColor output_port_color(0, 214, 0);
+
 } // end Pulse::View::Defaults namespace
 #endif // PULSE_VIEW_DEFAULTS_H
