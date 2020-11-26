@@ -12,12 +12,12 @@
 
 namespace sem::node_manager::epm_registry {
 
-class EpmRegistryImpl : public EpmRegistry {
+class EpmRegistryImpl final: public EpmRegistry {
 public:
     EpmRegistryImpl(NodeConfig node_config);
     auto start_epm(types::Uuid experiment_uuid, types::Uuid container_uuid) -> types::Uuid final;
-    auto remove_epm(sem::types::Uuid uuid) -> void final;
-    auto get_epm_info(sem::types::Uuid uuid) -> EpmInfo final;
+    auto remove_epm(sem::types::Uuid epm_uuid) -> void final;
+    auto get_epm_info(sem::types::Uuid epm_uuid) -> EpmInfo final;
 
 private:
     const NodeConfig node_config_;

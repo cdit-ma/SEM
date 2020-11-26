@@ -21,7 +21,6 @@ message RegistrationRequest {
 message RegistrationResponse {
     bool success = 1;
     string error_message = 2;
-    string request_uuid = 3;
 }
 
 message DeregistrationRequest {
