@@ -41,8 +41,8 @@ ComponentInstance::ComponentInstance(const QString& label,
 
     auto update_anchors = [this]() {
         if (isVisible()) {
-            input_delegate_anchor_->triggerPositionChange(topRect().left(), topRect().center().y());
-            output_delegate_anchor_->triggerPositionChange(topRect().right(), topRect().center().y());
+            getInputAnchor()->triggerPositionChange(topRect().left(), topRect().center().y());
+            getOutputAnchor()->triggerPositionChange(topRect().right(), topRect().center().y());
         }
     };
     connect(this, &ComponentInstance::geometryChanged, [=]() { update_anchors(); });
@@ -93,19 +93,27 @@ QGraphicsWidget* ComponentInstance::getAsGraphicsWidget()
 
 /**
  * @brief ComponentInstance::getInputAnchor
+ * @throws std::runtime_error
  * @return
  */
 DelegateAnchor* ComponentInstance::getInputAnchor()
 {
+    if (input_delegate_anchor_ == nullptr) {
+        throw std::runtime_error("ComponentInstance::getInputAnchor - The input delegate anchor is null");
+    }
     return input_delegate_anchor_;
 }
 
 /**
  * @brief ComponentInstance::getOutputAnchor
+ * @throws std::runtime_error
  * @return
  */
 DelegateAnchor* ComponentInstance::getOutputAnchor()
 {
+    if (output_delegate_anchor_ == nullptr) {
+        throw std::runtime_error("ComponentInstance::getOutputAnchor - The output delegate anchor is null");
+    }
     return output_delegate_anchor_;
 }
 
@@ -279,23 +287,19 @@ void ComponentInstance::portVisibilityChanged(PortInstance* port_inst)
         throw std::runtime_error("ComponentInstance::portVisibilityChanged - Port instance is null");
     }
 
-    const bool visible = port_inst->isVisible();
-    auto in_anchor = port_inst->getInputAnchor();
-    auto out_anchor = port_inst->getOutputAnchor();
+    auto update_port_anchor = [] (bool port_visible, EdgeAnchor* anchor, EdgeAdopter& adopter) {
+        if (anchor != nullptr) {
+            if (port_visible) {
+                anchor->retrieveFromAdopter();
+            } else {
+                anchor->transferToAdopter(&adopter);
+            }
+        }
+    };
 
-    if (in_anchor != nullptr) {
-        if (visible) {
-            in_anchor->retrieveFromAdopter();
-        } else {
-            in_anchor->transferToAdopter(input_delegate_anchor_);
-        }
-    } else if (out_anchor != nullptr) {
-        if (visible) {
-            out_anchor->retrieveFromAdopter();
-        } else {
-            out_anchor->transferToAdopter(output_delegate_anchor_);
-        }
-    }
+    const bool visible = port_inst->isVisible();
+    update_port_anchor(visible, port_inst->getInputAnchor(), *getInputAnchor());
+    update_port_anchor(visible, port_inst->getOutputAnchor(), *getOutputAnchor());
 }
 
 /**

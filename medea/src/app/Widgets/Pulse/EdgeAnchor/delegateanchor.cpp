@@ -13,7 +13,7 @@ using namespace Pulse::View;
 DelegateAnchor::DelegateAnchor(QGraphicsItem* parent)
     : QGraphicsObject(parent)
 {
-    connect(this, &DelegateAnchor::visibleChanged, [this]() {
+    connect(this, &DelegateAnchor::visibleChanged, [this] () {
         emit edgeAnchorVisibilityChanged(isVisible());
     });
 }
@@ -32,7 +32,7 @@ void DelegateAnchor::transferToAdopter(EdgeAdopter* adopter)
     // Disconnect the signals to all attached EdgeConnectors before transferring them to the EdgeAdopter
     disconnectEdgeConnectors();
 
-    // We need to update the EdgeConnector's parentItem() if we want to see it at all depth
+    // Transfer the parent-ship of the attached EdgeConnectors to the adopter
     auto graphics_obj = dynamic_cast<QGraphicsObject*>(adopter);
     for (auto connector : attached_connectors_) {
         connector->setParentItem(graphics_obj);
@@ -114,7 +114,6 @@ void DelegateAnchor::connectEdgeConnector(EdgeConnector* connector)
     if (connector == nullptr) {
         throw std::invalid_argument("DelegateAnchor::connectEdgeConnector - The edge connector is null");
     }
-    connect(this, &DelegateAnchor::edgeAnchorVisibilityChanged, connector, &EdgeConnector::visibilityChanged);
     connect(this, &DelegateAnchor::edgeAnchorMoved, connector, &EdgeConnector::positionChanged);
     connector->setParentItem(this);
     connector->visibilityChanged(isVisible());

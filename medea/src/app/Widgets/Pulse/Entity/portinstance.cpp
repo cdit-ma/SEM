@@ -29,17 +29,20 @@ PortInstance::PortInstance(const QString& label,
     auto icon_pos = NamePlate::IconPos::Left;
     switch (kind) {
         case AggServerResponse::Port::Kind::PERIODIC:
+            ellipse_color_ = Defaults::input_port_color;
             break;
         case AggServerResponse::Port::Kind::SUBSCRIBER:
             [[fallthrough]];
         case AggServerResponse::Port::Kind::REPLIER:
             input_anchor_ = new NaturalAnchor(this);
+            ellipse_color_ = Defaults::input_port_color;
             break;
         case AggServerResponse::Port::Kind::PUBLISHER:
             [[fallthrough]];
         case AggServerResponse::Port::Kind::REQUESTER:
             icon_pos = NamePlate::IconPos::Right;
             output_anchor_ = new NaturalAnchor(this);
+            ellipse_color_ = Defaults::output_port_color;
             break;
         case AggServerResponse::Port::Kind::NO_KIND:
             throw std::invalid_argument("PortInstanceGraphicsItem::PortInstanceGraphicsItem - Port kind is unknown");
@@ -55,33 +58,22 @@ PortInstance::PortInstance(const QString& label,
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addItem(name_plate_);
 
-    if (input_anchor_ != nullptr) {
-        connect(this, &PortInstance::geometryChanged, [this]() {
-            if (isVisible()) {
-                const auto& icon_geom = name_plate_->getIconGeometry();
-                input_anchor_->triggerPositionChange(icon_geom.left(), icon_geom.center().y());
-            }
-        });
-    } else if (output_anchor_ != nullptr) {
-        connect(this, &PortInstance::geometryChanged, [this]() {
-            if (isVisible()) {
-                const auto& icon_geom = name_plate_->getIconGeometry();
-                output_anchor_->triggerPositionChange(icon_geom.right(), icon_geom.center().y());
-            }
-        });
-    }
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 
-    auto theme_changed = [icon_pos, this]() {
-        ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::ERROR);
-        if (icon_pos == NamePlate::IconPos::Right) {
-            ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::SUCCESS);
+    auto connect_anchor = [this] (NaturalAnchor* anchor, NamePlate::IconPos pos) {
+        if (anchor != nullptr) {
+            //connect(this, &PortInstance::geometryChanged, [this, anchor, x, y]() {
+            connect(this, &PortInstance::geometryChanged, [this, anchor, pos]() {
+                const auto& icon_geom = name_plate_->getIconGeometry();
+                auto x = (pos == NamePlate::Left) ? icon_geom.left() : icon_geom.right();
+                auto y = icon_geom.center().y();
+                if (isVisible()) { anchor->triggerPositionChange(x, y); }
+            });
         }
-        update();
     };
 
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-    connect(Theme::theme(), &Theme::theme_Changed, [=]() { theme_changed(); });
-    theme_changed();
+    connect_anchor(input_anchor_, icon_pos);
+    connect_anchor(output_anchor_, icon_pos);
 }
 
 /**
