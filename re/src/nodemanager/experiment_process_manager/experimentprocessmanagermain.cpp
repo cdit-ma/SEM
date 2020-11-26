@@ -6,22 +6,16 @@
 #include <exception>
 #include <iostream>
 
+namespace sem::experiment_process_manager::main {
+
 bool running = true;
-std::function<void(void)> interrupt_function;
+std::optional<grpc_util::ServerLifetimeManagerImpl> lifetime_manager;
+std::optional<ExperimentProcessManagerConfig> epm_config;
 
-void signal_handler(int sig)
+void register_process(const ExperimentProcessManagerConfig& config,
+                      types::SocketAddress epm_control_endpoint)
 {
-    if(!interrupt_function) {
-        std::cerr << "[EpmMain] - NO VALID INTERRUPT HANDLER SET" << std::endl;
-        assert(false);
-    }
-    interrupt_function();
-}
-
-void register_process(const sem::experiment_process_manager::ExperimentProcessManagerConfig& config,
-                      sem::types::SocketAddress epm_control_endpoint)
-{
-    using namespace sem::network::services::epm_registration;
+    using namespace sem::network::services::node_manager;
     RegistrationRequest request;
     request.set_epm_uuid(config.epm_uuid.to_string());
     request.set_container_uuid(config.container_uuid.to_string());
@@ -42,11 +36,43 @@ void register_process(const sem::experiment_process_manager::ExperimentProcessMa
 }
 
 void deregister_process(
-    const sem::experiment_process_manager::ExperimentProcessManagerConfig& config)
+    const ExperimentProcessManagerConfig& config)
 {
-    // TODO: Implement!
+    using namespace sem::network::services::node_manager;
+    DeregistrationRequest request;
+    request.set_epm_uuid(config.epm_uuid.to_string());
+
+    DeregistrationResponse response;
+    grpc::ClientContext context;
+
+    auto registration_stub = sem::grpc_util::get_stub<EpmRegistrar>(
+        config.process_registration_endpoint);
+
+    auto status = registration_stub->DeregisterEpm(&context, request, &response);
+    if(!status.ok()) {
+        throw std::runtime_error("[EpmMain] - Failed to deregister with node manager.");
+    }
     std::cout << "Deregistered process" << std::endl;
     running = false;
+}
+
+} // namespace sem::experiment_process_manager::main
+void signal_handler(int sig)
+{
+    using namespace sem::experiment_process_manager::main;
+
+    if(lifetime_manager) {
+        lifetime_manager->shutdown();
+    } else {
+        std::cerr << "[EPMMain] - signal_handler called before lifetime_manager initialised."
+                  << std::endl;
+    }
+    if(epm_config) {
+        deregister_process(*epm_config);
+    } else {
+        std::cerr << "[EPMMain] - signal_handler called before config initialised."
+                  << std::endl;
+    }
 }
 
 auto main(int argc, char** argv) -> int
@@ -54,28 +80,19 @@ auto main(int argc, char** argv) -> int
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    using namespace sem::experiment_process_manager;
-
     try {
-        auto config = ExperimentProcessManagerConfig::ParseArguments(argc, argv);
+        using namespace sem::experiment_process_manager;
+        using namespace sem::experiment_process_manager::main;
+        epm_config = ExperimentProcessManagerConfig::ParseArguments(argc, argv);
 
         // START epm_control_service and server.
-
-        sem::grpc_util::ServerLifetimeManagerImpl lifetime_manager;
-
-        interrupt_function = [&config, &lifetime_manager]() {
-            lifetime_manager.shutdown();
-            deregister_process(config);
-        };
-
-        sem::grpc_util::LifetimeManagedServer server(lifetime_manager, config.control_ip_address,
+        lifetime_manager.emplace();
+        sem::grpc_util::LifetimeManagedServer server(*lifetime_manager, epm_config->control_ip_address,
                                                      {/*services*/});
 
-        lifetime_manager.wait();
-
-        register_process(config, server.endpoints().at(config.control_ip_address));
-
-        // Add epm control service's shutdown
+        register_process(*epm_config, server.endpoints().at(epm_config->control_ip_address));
+        lifetime_manager->wait();
+        deregister_process(*epm_config);
 
     } catch(const std::invalid_argument& ex) {
         // Return non-zero on failure

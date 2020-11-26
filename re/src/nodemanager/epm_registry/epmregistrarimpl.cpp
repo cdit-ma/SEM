@@ -4,7 +4,7 @@
 
 #include "epmregistrarimpl.h"
 namespace sem::node_manager::epm_registry {
-using namespace sem::network::services::epm_registration;
+using namespace sem::network::services::node_manager;
 
 EpmRegistrarImpl::~EpmRegistrarImpl() = default;
 
