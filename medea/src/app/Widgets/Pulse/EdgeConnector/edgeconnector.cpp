@@ -89,6 +89,28 @@ bool EdgeConnector::isConnectedToNaturalAnchor() const
 }
 
 /**
+ * @brief EdgeConnector::setNaturalAnchor
+ * @param anchor
+ */
+void EdgeConnector::setNaturalAnchor(NaturalAnchor* anchor)
+{
+    if (anchor == nullptr) {
+        throw std::invalid_argument("EdgeConnector::setNaturalAnchor - The anchor is null");
+    }
+    natural_anchor_ = anchor;
+    connect(natural_anchor_, &NaturalAnchor::destroyed, this, &EdgeConnector::deleteLater);
+}
+
+/**
+ * @brief EdgeConnector::isConnectedToNaturalAnchor()
+ * @return
+ */
+bool EdgeConnector::isConnectedToNaturalAnchor() const
+{
+    return parentItem() == natural_anchor_;
+}
+
+/**
  * @brief EdgeConnector::paint
  * @param painter
  * @param option

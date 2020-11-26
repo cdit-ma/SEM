@@ -81,6 +81,7 @@ PortInstance::PortInstance(const QString& label,
                 if (isVisible()) { anchor->triggerPositionChange(x, icon_geom.center().y()); }
             });
         }
+        update();
     };
 
     connect_anchor(input_anchor_);

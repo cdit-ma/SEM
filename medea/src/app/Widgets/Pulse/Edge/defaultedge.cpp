@@ -33,7 +33,7 @@ DefaultEdge::DefaultEdge(const NaturalAnchor& src_anchor, const NaturalAnchor& d
  * @param dst_connector
  * @param parent
  */
-DefaultEdge::DefaultEdge(EdgeConnector& src_connector, EdgeConnector& dst_connector, QGraphicsItem* parent)
+DefaultEdge::DefaultEdge(const EdgeConnector& src_connector, const EdgeConnector& dst_connector, QGraphicsItem* parent)
     : QGraphicsObject(parent)
 {
     src_connector_ = &src_connector;
