@@ -73,14 +73,6 @@ NodeManager::NodeManager(NodeConfig config, epm_registry::EpmRegistry& epm_regis
     std::cout << "[NodeManager] - Registered with environment manager at:\n    ("
               << node_config_.environment_manager_registration_endpoint.to_string() << ")"
               << std::endl;
-
-    try {
-        auto epm_uuid = epm_registry.start_epm(types::Uuid{}, types::Uuid{});
-    } catch(const std::exception& ex) {
-        // deregister if anything goes wrong
-        deregister_node_manager(*registration_stub, node_config_);
-        throw;
-    }
 }
 
 NodeManager::~NodeManager()

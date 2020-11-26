@@ -22,15 +22,20 @@ grpc::Status NodeManagerControlImpl::NewEpm(grpc::ServerContext* context,
         response->set_error_message(ex.what());
         return grpc::Status::OK;
     }
+
 }
 
 grpc::Status NodeManagerControlImpl::StopEpm(grpc::ServerContext* context,
                                              const StopEpmRequest* request,
                                              StopEpmResponse* response)
 {
+    try {
+        epm_registry_.remove_epm(types::Uuid{request->epm_uuid()});
+        return grpc::Status::OK;
+    } catch(const std::exception& ex) {
+        return grpc::Status(grpc::StatusCode::INTERNAL, ex.what());
+    }
 
-    epm_registry_.remove_epm(types::Uuid{request->epm_uuid()});
-    return Service::StopEpm(context, request, response);
 }
 NodeManagerControlImpl::NodeManagerControlImpl(epm_registry::EpmRegistry& epm_registry) :
     epm_registry_{epm_registry}
