@@ -24,8 +24,8 @@ public:
     virtual void transferToAdopter(EdgeAdopter* adopter) = 0;
     virtual void retrieveFromAdopter() = 0;
 
-    virtual void edgeAnchorMoved(const QPointF& pos) = 0;
-    virtual void edgeAnchorVisibilityChanged(bool visible) = 0;
+    virtual void positionChanged(const QPointF& pos) = 0;
+    virtual void visibilityChanged(bool visible) = 0;
 };
 
 inline EdgeAnchor::~EdgeAnchor() = default;

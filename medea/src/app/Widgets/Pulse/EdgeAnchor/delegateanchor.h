@@ -39,8 +39,8 @@ public:
     void triggerPositionChange(qreal x, qreal y);
 
 signals:
-    void edgeAnchorMoved(const QPointF& pos) override;
-    void edgeAnchorVisibilityChanged(bool visible) override;
+    void positionChanged(const QPointF& pos) override;
+    void visibilityChanged(bool visible) override;
 
 private:
     void connectEdgeConnector(EdgeConnector* connector);

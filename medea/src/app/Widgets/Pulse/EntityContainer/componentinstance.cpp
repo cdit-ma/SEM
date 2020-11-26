@@ -67,7 +67,7 @@ ComponentInstance::ComponentInstance(const QString& label,
 void ComponentInstance::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 {
     if (model_data.isNull()) {
-        throw std::invalid_argument("DefaultEntityContainer - The model data is null");
+        throw std::invalid_argument("ComponentInstance::connectModelData - The model data is null");
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &ComponentInstance::onModelDeleted);
     connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);
