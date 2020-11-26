@@ -1,0 +1,13 @@
+#ifndef SEM_NODE_MANAGER_BUILD_TIME_VARIABLES_H
+#define SEM_NODE_MANAGER_BUILD_TIME_VARIABLES_H
+#include <string_view>
+namespace sem::node_manager::test::build_time {
+constexpr auto get_binary_directory_path() -> std::string_view
+{
+    using namespace std::string_view_literals;
+    // Tokens surrounded by the @ will be replaced by CMake
+    return "@SEM_BINARY_DIRECTORY_PATH@";
+}
+} // namespace sem::node_manager::test::build_time
+
+#endif // SEM_NODE_MANAGER_BUILD_TIME_VARIABLES_H

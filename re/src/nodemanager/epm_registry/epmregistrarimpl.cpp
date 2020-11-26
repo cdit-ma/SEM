@@ -15,11 +15,19 @@ auto EpmRegistrarImpl::RegisterEpm(grpc::ServerContext* context,
     std::lock_guard lock(registration_mutex_);
     auto container_uuid = types::Uuid{request->container_uuid()};
     if(registration_promises_.count(container_uuid)) {
-        registration_promises_.at(container_uuid)
-            .set_value({{request->epm_uuid()},
-                        EpmInfo{types::SocketAddress{request->epm_control_endpoint()},
-                                             types::Ipv4{request->data_ip_address()}}});
+        auto&& result =
+            EpmRegistrationResult{{request->epm_uuid()},
+                                  EpmInfo{types::SocketAddress{request->epm_control_endpoint()},
+                                          types::Ipv4{request->data_ip_address()}}};
+
+        // Set shared state of promise, remove from map to signal we're done with it.
+        registration_promises_.at(container_uuid).set_value(std::move(result));
         registration_promises_.erase(container_uuid);
+        response->set_success(true);
+    } else {
+        response->set_success(false);
+        response->set_error_message("Epm with container id: " + container_uuid.to_string()
+                                    + " not found while deregistering.");
     }
     return grpc::Status::OK;
 }
@@ -27,7 +35,6 @@ auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
                                      const DeregistrationRequest* request,
                                      DeregistrationResponse* response) -> grpc::Status
 {
-
     std::lock_guard lock(deregistration_mutex_);
     auto epm_uuid = types::Uuid{request->epm_uuid()};
     if(deregistration_promises_.count(epm_uuid)) {
@@ -36,10 +43,9 @@ auto EpmRegistrarImpl::DeregisterEpm(grpc::ServerContext* context,
     }
     return grpc::Status::OK;
 }
-auto EpmRegistrarImpl::wait_on_epm_registration(const EpmStartArguments& args,
-                                                const types::SocketAddress& server_endpoint,
-                                                const std::chrono::seconds timeout)
-    -> EpmRegistrationResult
+auto EpmRegistrarImpl::start_epm(const EpmStartArguments& args,
+                                 const types::SocketAddress& server_endpoint,
+                                 std::chrono::seconds timeout) -> EpmRegistrationResult
 {
     using EpmRegistrationResult = EpmRegistrationResult;
     // Create grpc service with std future to fill as arg.
@@ -70,4 +76,4 @@ auto EpmRegistrarImpl::wait_on_epm_registration(const EpmStartArguments& args,
 }
 EpmRegistrarImpl::EpmRegistrarImpl() = default;
 
-} // namespace sem::node_manager
+} // namespace sem::node_manager::epm_registry

@@ -43,8 +43,8 @@ public:
 
     virtual auto
     start_epm(types::Uuid experiment_uuid, types::Uuid container_uuid) -> types::Uuid = 0;
-    virtual auto remove_epm(types::Uuid) -> void = 0;
-    [[nodiscard]] virtual auto get_epm_info(types::Uuid) -> EpmInfo = 0;
+    virtual auto remove_epm(types::Uuid epm_uuid) -> void = 0;
+    [[nodiscard]] virtual auto get_epm_info(types::Uuid epm_uuid) -> EpmInfo = 0;
     virtual ~EpmRegistry() = 0;
 };
 

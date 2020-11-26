@@ -1,4 +1,22 @@
 
+set(SEM_BINARY_DIRECTORY_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/build_time_variables.hpp.in
+        ${CMAKE_CURRENT_BINARY_DIR}/build_time_variables.hpp
+        @ONLY
+        )
+
+add_library(build_time_variables INTERFACE)
+target_compile_features(build_time_variables INTERFACE cxx_std_17)
+target_sources(build_time_variables
+        INTERFACE
+        ${CMAKE_CURRENT_BINARY_DIR}/build_time_variables.hpp
+        )
+target_include_directories(build_time_variables
+        INTERFACE
+        ${CMAKE_CURRENT_BINARY_DIR}
+        )
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/test)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/test)
@@ -45,4 +63,5 @@ target_link_libraries(epm_registry_test
         epm_registry
         gtest
         gtest_main
+        build_time_variables
         )

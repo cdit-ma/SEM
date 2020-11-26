@@ -17,9 +17,8 @@ auto EpmRegistryImpl::start_epm(types::Uuid experiment_uuid, types::Uuid contain
               << "\n  for experiment:\n    " << experiment_uuid << std::endl;
 
     auto [epm_uuid, epm_info, epm_process_handle] =
-        epm_registrar_service_->wait_on_epm_registration(
-            {node_config_, experiment_uuid, container_uuid},
-            epm_registrar_server_.endpoints().begin()->second);
+        epm_registrar_service_->start_epm({node_config_, experiment_uuid, container_uuid},
+                                          epm_registrar_server_.endpoints().begin()->second);
 
     std::cout << "[EpmRegistry] - Successfully STARTED EPM:\n    " << epm_uuid << std::endl;
 
@@ -57,4 +56,4 @@ EpmRegistryImpl::EpmRegistryImpl(NodeConfig node_config) :
 {
 }
 
-} // namespace sem::node_manager
+} // namespace sem::node_manager::epm_registry
