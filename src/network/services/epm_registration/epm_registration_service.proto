@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package sem.network.services.epm_registration;
+package sem.network.services.node_manager;
 
 service EpmRegistrar {
     rpc RegisterEpm (RegistrationRequest) returns (RegistrationResponse);

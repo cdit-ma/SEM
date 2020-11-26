@@ -11,11 +11,13 @@
 
 namespace sem::node_manager::epm_registry {
 
+namespace ServiceNamespace = sem::network::services::node_manager;
 class EpmRegistrarImpl final
-    : public sem::network::services::epm_registration::EpmRegistrar::Service {
+    : public sem::network::services::node_manager::EpmRegistrar::Service {
 public:
     EpmRegistrarImpl();
     ~EpmRegistrarImpl() final;
+
 
     constexpr static std::chrono::seconds default_registration_timeout{5};
     auto wait_on_epm_registration(const EpmStartArguments& args,
@@ -24,12 +26,12 @@ public:
         -> EpmRegistrationResult;
 
     auto RegisterEpm(grpc::ServerContext* context,
-                     const network::services::epm_registration::RegistrationRequest* request,
-                     network::services::epm_registration::RegistrationResponse* response)
+                     const ServiceNamespace::RegistrationRequest* request,
+                     ServiceNamespace::RegistrationResponse* response)
         -> grpc::Status final;
     auto DeregisterEpm(grpc::ServerContext* context,
-                       const network::services::epm_registration::DeregistrationRequest* request,
-                       network::services::epm_registration::DeregistrationResponse* response)
+                       const ServiceNamespace::DeregistrationRequest* request,
+                       ServiceNamespace::DeregistrationResponse* response)
         -> grpc::Status final;
 
 private:
