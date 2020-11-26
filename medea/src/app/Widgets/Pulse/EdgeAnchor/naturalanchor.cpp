@@ -17,9 +17,10 @@ NaturalAnchor::NaturalAnchor(QGraphicsItem* parent)
     : QGraphicsObject(parent),
       edge_connector_(new EdgeConnector(this))
 {
-    connect(this, &NaturalAnchor::visibleChanged, [this]() {
+    connect(this, &NaturalAnchor::visibleChanged, [this] () {
         emit edgeAnchorVisibilityChanged(isVisible());
     });
+    edge_connector_->setNaturalAnchor(this);
     connectEdgeConnector();
 }
 
@@ -28,7 +29,7 @@ NaturalAnchor::NaturalAnchor(QGraphicsItem* parent)
  * @throws std::runtime_error
  * @return
  */
-EdgeConnector& NaturalAnchor::getEdgeConnector()
+EdgeConnector& NaturalAnchor::getEdgeConnector() const
 {
     if (edge_connector_ == nullptr) {
         throw std::runtime_error("NaturalAnchor::getEdgeConnector - The edge connector is null");
@@ -47,12 +48,12 @@ void NaturalAnchor::transferToAdopter(EdgeAdopter* adopter)
         throw std::invalid_argument("NaturalAnchor::transferToAdopter - The edge adopter is null");
     }
 
-    // We need to update the EdgeConnector's parentItem() if we want to see it at all depth
+    // Transfer the parent-ship of the EdgeConnector to the adopter
     auto graphics_obj = dynamic_cast<QGraphicsObject*>(adopter);
-    edge_connector_->setParentItem(graphics_obj);
+    getEdgeConnector().setParentItem(graphics_obj);
 
-    disconnect(this, nullptr, edge_connector_, nullptr);
-    adopter->adoptEdges(this, edge_connector_);
+    disconnect(this, nullptr, &getEdgeConnector(), nullptr);
+    adopter->adoptEdges(this, &getEdgeConnector());
     active_adopter_ = adopter;
 }
 
@@ -84,9 +85,8 @@ void NaturalAnchor::triggerPositionChange(qreal x, qreal y)
  */
 void NaturalAnchor::connectEdgeConnector()
 {
-    connect(this, &NaturalAnchor::edgeAnchorVisibilityChanged, edge_connector_, &EdgeConnector::visibilityChanged);
-    connect(this, &NaturalAnchor::edgeAnchorMoved, edge_connector_, &EdgeConnector::positionChanged);
-    edge_connector_->setParentItem(this);
-    edge_connector_->visibilityChanged(isVisible());
-    edge_connector_->positionChanged(scenePos());
+    connect(this, &NaturalAnchor::edgeAnchorMoved, &getEdgeConnector(), &EdgeConnector::positionChanged);
+    getEdgeConnector().setParentItem(this);
+    getEdgeConnector().visibilityChanged(isVisible());
+    getEdgeConnector().positionChanged(scenePos());
 }

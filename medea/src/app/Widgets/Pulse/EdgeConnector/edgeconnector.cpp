@@ -3,13 +3,14 @@
 //
 
 #include "edgeconnector.h"
+#include "../EdgeAnchor/naturalanchor.h"
 #include "../../../theme.h"
 
 #include <QPainter>
 
 using namespace Pulse::View;
 
-const qreal size = 8;
+const qreal size = 10;
 
 /**
  * @brief EdgeConnector::EdgeConnector
@@ -21,11 +22,34 @@ EdgeConnector::EdgeConnector(QGraphicsItem* parent)
     connect(this, &EdgeConnector::visibleChanged, [this]() {
         emit visibilityChanged(isVisible());
     });
+
     color_ = Theme::theme()->getTextColor();
     connect(Theme::theme(), &Theme::theme_Changed, [this]() {
         color_ = Theme::theme()->getTextColor();
         update();
     });
+}
+
+/**
+ * @brief EdgeConnector::setNaturalAnchor
+ * @param anchor
+ */
+void EdgeConnector::setNaturalAnchor(NaturalAnchor* anchor)
+{
+    if (anchor == nullptr) {
+        throw std::invalid_argument("EdgeConnector::setNaturalAnchor - The anchor is null");
+    }
+    natural_anchor_ = anchor;
+    connect(natural_anchor_, &NaturalAnchor::destroyed, this, &EdgeConnector::deleteLater);
+}
+
+/**
+ * @brief EdgeConnector::isConnectedToNaturalAnchor()
+ * @return
+ */
+bool EdgeConnector::isConnectedToNaturalAnchor() const
+{
+    return parentItem() == natural_anchor_;
 }
 
 /**
