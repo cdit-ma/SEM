@@ -14,7 +14,7 @@ DelegateAnchor::DelegateAnchor(QGraphicsItem* parent)
     : QGraphicsObject(parent)
 {
     connect(this, &DelegateAnchor::visibleChanged, [this] () {
-        emit edgeAnchorVisibilityChanged(isVisible());
+        emit visibilityChanged(isVisible());
     });
 }
 
@@ -101,7 +101,7 @@ void DelegateAnchor::returnEdges(EdgeAnchor* anchor)
 void DelegateAnchor::triggerPositionChange(qreal x, qreal y)
 {
     setPos(x, y);
-    emit edgeAnchorMoved(scenePos());
+    emit positionChanged(scenePos());
 }
 
 /**
@@ -114,7 +114,7 @@ void DelegateAnchor::connectEdgeConnector(EdgeConnector* connector)
     if (connector == nullptr) {
         throw std::invalid_argument("DelegateAnchor::connectEdgeConnector - The edge connector is null");
     }
-    connect(this, &DelegateAnchor::edgeAnchorMoved, connector, &EdgeConnector::positionChanged);
+    connect(this, &DelegateAnchor::positionChanged, connector, &EdgeConnector::positionChanged);
     connector->setParentItem(this);
     connector->visibilityChanged(isVisible());
     connector->positionChanged(scenePos());

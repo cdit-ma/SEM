@@ -19,11 +19,8 @@ class Edge {
 public:
     virtual ~Edge() = 0;
 
-    virtual void onSourceMoved(const QPointF& pos) = 0;
-    virtual void onDestinationMoved(const QPointF& pos) = 0;
-
-    virtual void onSourceVisibilityChanged(bool visible) = 0;
-    virtual void onDestinationVisibilityChanged(bool visible) = 0;
+    virtual void endPointPositionChanged() = 0;
+    virtual void endPointVisibilityChanged() = 0;
 };
 
 inline Edge::~Edge() = default;

@@ -5,6 +5,8 @@
 #ifndef PULSE_VIEW_EDGECONNECTOR_H
 #define PULSE_VIEW_EDGECONNECTOR_H
 
+#include "../Edge/edge.h"
+
 #include <QGraphicsObject>
 
 namespace Pulse::View {
@@ -22,6 +24,9 @@ class EdgeConnector : public QGraphicsObject {
     friend class NaturalAnchor;
 
 public:
+    void connectEdge(Edge* edge);
+    void disconnectEdge(Edge* edge);
+
     bool isConnectedToNaturalAnchor() const;
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
@@ -37,6 +42,8 @@ private:
 
     NaturalAnchor* natural_anchor_ = nullptr;
     QColor color_;
+
+    QList<Edge*> connected_edges_;
 };
 
 } // end Pulse::View namespace
