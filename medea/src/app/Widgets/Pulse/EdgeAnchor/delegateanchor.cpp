@@ -3,6 +3,7 @@
 //
 
 #include "delegateanchor.h"
+#include <stdexcept>
 
 using namespace Pulse::View;
 
