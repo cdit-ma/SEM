@@ -6,6 +6,7 @@
 #include "../EdgeAnchor/naturalanchor.h"
 #include "../../../theme.h"
 
+#include <stdexcept>
 #include <QPainter>
 
 using namespace Pulse::View;
