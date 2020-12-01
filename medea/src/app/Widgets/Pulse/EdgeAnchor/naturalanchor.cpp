@@ -5,6 +5,7 @@
 #include "naturalanchor.h"
 #include "../pulseviewutils.h"
 
+#include <stdexcept>
 #include <QPainter>
 
 using namespace Pulse::View;
