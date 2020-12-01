@@ -5,6 +5,7 @@
 #include "defaultedge.h"
 #include "../pulseviewdefaults.h"
 
+#include <stdexcept>
 #include <QPainter>
 
 using namespace Pulse::View;
