@@ -4,6 +4,8 @@
 #include "../../theme.h"
 
 #include <QHBoxLayout>
+#include <QApplication>
+#include <QDesktopWidget>
 
 NotificationPopup::NotificationPopup()
 	: PopupWidget(PopupWidget::TYPE::SPLASH, nullptr)
@@ -34,8 +36,11 @@ void NotificationPopup::DisplayNotification(QSharedPointer<NotificationObject> n
 {
     current_notification = notification;
 
+    // NOTE: Used the screen geometry to calculate the max width of the notification text
+    //  This may not be accurate if we move the window to different screens with different resolutions
+    auto screen_width = QApplication::desktop()->geometry().width();
     auto font_metrics = label->fontMetrics();
-    auto notification_text  = font_metrics.elidedText(notification->getTitle(), Qt::ElideMiddle, 500);
+    auto notification_text  = font_metrics.elidedText(notification->getTitle(), Qt::ElideMiddle, screen_width - 50);
     if (notification_text != label->text()) {
         label->setText(notification_text);
     }
