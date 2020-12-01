@@ -5,6 +5,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <string>
 #include <string_view>
+#include <ostream>
+
 namespace re::types {
 class Uuid {
 public:
