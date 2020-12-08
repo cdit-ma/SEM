@@ -1,5 +1,8 @@
 # Generic FFT Acceleration Worker library
-add_library(sem_fft_accel_runtime STATIC)
+add_library(sem_fft_accel_runtime
+        STATIC
+        EXCLUDE_FROM_ALL
+        )
 
 set_target_properties(sem_fft_accel_runtime PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(sem_fft_accel_runtime
@@ -16,7 +19,6 @@ target_sources(sem_fft_accel_runtime
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter_impl.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/fft_request_map.cpp
         )
 
 target_include_directories(sem_fft_accel_runtime
@@ -30,6 +32,7 @@ target_link_libraries(sem_fft_accel_runtime
         re_types
         re_loggers
         sem_fft_accel_network
+        sem_fft_accel_data
         )
 
 if (BUILD_TEST)

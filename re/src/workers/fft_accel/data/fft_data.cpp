@@ -2,39 +2,26 @@
 // Created by Jackson Michael on 8/9/20.
 //
 
-
 #include "fft_data.hpp"
 
 using namespace sem::fft_accel::data;
 
-template <packet_type PacketType>
-void fill_control_from(control_data& data, const byte_span& bytes);
+template<>
+fft_data_packet<float>::fft_data_packet(SerializedPacket &serialized_data) :
+        header_data_(serialized_data.bytes().subspan(0,6)) {
+    auto &&bytes = serialized_data.bytes();
 
-template <>
-void fill_control_from<packet_type::data>(control_data& data, const byte_span& bytes) {
-    std::byte frag_sequence_num_byte = bytes[1];
-    data.packet_sequence_num_ = static_cast<uint8_t>(frag_sequence_num_byte);
-
-    std::byte fft_request_id = bytes[2];
-    data.fft_request_id_ = static_cast<uint8_t>(fft_request_id);
-
-    std::byte control_state_register_byte = bytes[3];
-    data.control_state_register_ = static_cast<uint8_t>(control_state_register_byte);
-
-    auto fft_length_short = bytes.at<uint16_t>(4);
-    uint16_t fft_length = ntohs(fft_length_short);
+    // TODO: Thoroughly investigate endianness of deserialized payload
+    size_t payload_byte_length = (bytes.size() - 6);
+    fft_data_.resize(payload_byte_length / sizeof(float));
+    memcpy(&(*fft_data_.begin()), &(*bytes.subspan(6).begin()), payload_byte_length);
 }
 
-template <>
-fft_data_packet<float>::fft_data_packet(const SerializedPacket &serialized_data) {
-    auto&& bytes = serialized_data.bytes();
+template<>
+uint8_t fft_data_packet<float>::sequence_number() const { return header_data_.sequence_number(); };
 
-    packet_type type = packet_type_from_byte(bytes[0]);
-    if (type != packet_type::data) {
-        throw std::runtime_error("Attempting to construct data packet from non-data packet bytestream");
-    }
+template<>
+uint8_t fft_data_packet<float>::request_id() const { return header_data_.request_id(); };
 
-
-}
-
-//fft_data::~fft_data() = default;
+template<>
+const std::vector<float> &fft_data_packet<float>::payload_data() const { return fft_data_; };

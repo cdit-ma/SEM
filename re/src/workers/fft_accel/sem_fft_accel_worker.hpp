@@ -17,6 +17,10 @@ public:
     const std::string &get_version() const override;
 
     std::vector<float> calculate_fft(const std::vector<float>& data);
+    uint16_t calculate_fft_async(const std::vector<float>& data);
+
+
+    void SetResponseCallback(std::function<void (uint8_t, const std::vector<float> &)> func);
 
     /**
      * A grouping of constant component attribute names
@@ -33,6 +37,8 @@ protected:
 private:
     std::shared_ptr<runtime::adapter> runtime_adapter_;
     std::shared_ptr<network::adapter> network_adapter_;
+
+    std::function<void (uint8_t, std::vector<float>)> callback_function_;
 };
 }
 

@@ -1,5 +1,5 @@
 //
-// Created by cdit-ma on 17/11/20.
+// Created by Jackson Michael on 17/11/20.
 //
 
 #ifndef SEM_FFT_REQUEST_MAP_HPP
@@ -9,99 +9,142 @@
 
 #include "result.hpp"
 
-#include "unordered_map"
+#include <unordered_map>
+#include <future>
 
-namespace sem::fft_accel {
+#include "data/fft_packet_group.hpp"
 
+namespace sem::fft_accel::runtime {
+
+    /**
+     * Data grouping of the packet group associated with a given FFT request, along with a
+     * future that can be used to wait for the processed result of the given request
+     * @tparam SampleType
+     */
+    template<typename SampleType>
+    struct pending_request {
+        using response_type = data::fft_packet_group<SampleType>;
+        using request_type = data::fft_packet_group<SampleType>;
+
+        pending_request(std::future<response_type> unfulfilled_future, request_type packets) :
+                packet_group(packets),
+                future(std::move(unfulfilled_future)) {};
+        request_type packet_group;
+        std::future<response_type> future;
+    };
+
+    /**
+     * This class is a datastore for all of the current requests for which a response has yet to be received.
+     * @tparam SampleType
+     */
     template<typename SampleType>
     class fft_request_map {
     public:
         using request_id_type = data::data_request_id;
-        using packet_type = data::fft_data_packet<SampleType>;
+        using fft_request_type = data::fft_packet_group<SampleType>;
+        using packet_type = typename fft_request_type::packet_type;
 
         /**
-         * Construct an empty map, which will begin assigning FFT request IDs beginning from 0
+         * Construct an empty map, which will assign FFT request IDs beginning from 0
          */
         fft_request_map() : id_tracker_{0} {};
 
-        sem::Result<packet_type> construct_packet(const std::vector<SampleType> &fft_input_data) {
-            std::lock_guard map_lock_guard(map_mutex_);
-            try {
-                // Cycle through available id values until a valid value is found
-                // OR until we've cycled through the entire range of values
-                request_id_type new_id;
-                unsigned int attempts = 0;
-                do {
-                    new_id = id_tracker_++;
-                    attempts++;
-                    if (attempts < std::numeric_limits<request_id_type>::max()) {
-                        return ErrorResult(
-                                "fft_request_map failed to construct a packet: unable to find a free request_id; max attempts reached");
-                    }
-                } while (staged_packets_.count(new_id) != 0);
+        /**
+         * Constructs the FFT request (and the packets that it represents) required for an FFT request from the
+         * provided data
+         * @param fft_input_data The FFT samples to be used provided in interleaved-complex form
+         * @return
+         */
+        sem::Result<pending_request<SampleType>> construct_packets(const std::vector<SampleType> &fft_input_data);
 
-                // Create the new packet and return it
-                packet_type new_packet(fft_input_data, new_id);
-                auto[map_iter, successfully_inserted] = staged_packets_.try_emplace(
-                        new_id,
-                        new_packet);
-                if (!successfully_inserted) {
-                    return ErrorResult(
-                            "fft_request_map failed to construct a packet: unable to insert into staged packet map");
-                }
-                return map_iter->second;
-
-            } catch (const std::exception &ex) {
-                return ErrorResult(
-                        std::string("fft_request_map failed to construct a packet; An exception occurred: ")
-                        + ex.what());
-            }
-        };
-
-        sem::Result<void> mark_as_sent(request_id_type id) {
-            std::lock_guard map_lock_guard(map_mutex_);
-
-            try {
-                auto shifted_result = staged_packets_.extract(id);
-                try {
-                    response_pending_packets_.insert(shifted_result);
-                } catch (const std::exception &ex) {
-                    staged_packets_.insert(shifted_result);
-                    ErrorResult(
-                            std::string("fft_request_map failed to mark request as sent: "
-                                        "failed to add to pending packets, returning to staged packet store: ")
-                            + ex.what()
-                    );
-                }
-            } catch (const std::exception &ex) {
-                ErrorResult(std::string("fft_request_map failed to mark request as sent: "
-                                        "") + ex.what());
-            }
-        };
-
-        sem::Result<packet_type> pop_received_packet(request_id_type id) {
-            std::lock_guard map_lock_guard(map_mutex_);
-            try {
-                auto map_iter = response_pending_packets_.erase(id);
-                return map_iter->second;
-            } catch (const std::exception& ex) {
-                return ErrorResult(std::string("fft_request_map failed to pop a pending packet: ")+ ex.what());
-            }
-        };
+        /**
+         * When a new packet has been received in response to one that has been sent earlier this function should
+         * be called to mark that it has been received for the appropriate response
+         * @param received_packet
+         * @return
+         */
+        sem::Result<void> update_pending_packets(packet_type received_packet);
 
     private:
-        using data_packet_map = std::unordered_map<request_id_type, packet_type>;
+        using packet_group_map = std::unordered_map<request_id_type, fft_request_type>;
 
-        /// Packets that have been created and allocated memory, but are yet to be sent
-        data_packet_map staged_packets_;
-
-        /// Packets that have been sent but not yet received
-        data_packet_map response_pending_packets_;
+        /// Request packet groups that have been created and allocated memory, but are yet to be sent
+        packet_group_map staged_packet_groups_{};
+        /// Keep track of the list of response promises that have yet to be fulfilled
+        std::unordered_map<request_id_type, std::promise<fft_request_type>> unfulfilled_promises_;
 
         request_id_type id_tracker_;
 
         mutable std::mutex map_mutex_;
     };
+
+    template<typename SampleType>
+    sem::Result<pending_request<SampleType>>
+    fft_request_map<SampleType>::construct_packets(const std::vector<SampleType> &fft_input_data) {
+        std::lock_guard map_lock_guard(map_mutex_);
+        try {
+            // Cycle through available id values until a valid value is found
+            // OR until we've cycled through the entire range of values
+            request_id_type new_id;
+            unsigned int attempts = 0;
+            do {
+                new_id = id_tracker_++;
+                attempts++;
+                if (attempts >= std::numeric_limits<request_id_type>::max()) {
+                    return ErrorResult(
+                            "fft_request_map failed to construct a packet: unable to find a free request_id; max attempts reached");
+                }
+            } while (staged_packet_groups_.count(new_id) != 0);
+
+            // Create the new packet and return it
+            auto[map_iter, successfully_inserted] = staged_packet_groups_.try_emplace(
+                    new_id,
+                    fft_input_data, new_id);
+            if (!successfully_inserted) {
+                return ErrorResult(
+                        "fft_request_map failed to construct a packet group: unable to insert into staged packets map");
+            }
+
+            auto[promise_map_iter, promise_insert_success] = unfulfilled_promises_.try_emplace(new_id);
+            if (!promise_insert_success) {
+                return ErrorResult(
+                        "fft_request_map failed to promise for unfulfilled request: unable to insert into staged packet map");
+            }
+
+            auto &&output = pending_request<SampleType>{promise_map_iter->second.get_future(), map_iter->second};
+
+            return {std::move(output)};
+
+        } catch (const std::exception &ex) {
+            return ErrorResult(
+                    std::string("fft_request_map failed to construct a packet; An exception occurred: ")
+                    + ex.what());
+        }
+    }
+
+    template<typename SampleType>
+    Result<void>
+    fft_request_map<SampleType>::update_pending_packets(fft_request_map::packet_type received_packet) {
+        auto request_id = received_packet.request_id();
+        try {
+            auto &&request = staged_packet_groups_.at(request_id);
+
+            auto update_result = request.update_packet_with_response(received_packet);
+            if (update_result.is_error()) {
+                return ErrorResult(
+                        "Couldn't update data for request id " + std::to_string(request_id) + ": " +
+                        update_result.GetError().msg);
+            }
+
+            if (request.remaining_packets() == 0) {
+                unfulfilled_promises_.at(request_id).set_value(staged_packet_groups_.at(request_id));
+            }
+            return {};
+        } catch (const std::exception &ex) {
+            return ErrorResult("Exception while updating packet with request ID " + std::to_string(request_id) +
+                               " with new packet data:\n" + ex.what());
+        }
+    }
 
 }
 

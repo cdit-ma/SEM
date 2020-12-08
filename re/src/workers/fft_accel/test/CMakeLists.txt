@@ -1,5 +1,24 @@
 add_executable(test_sem_fft_accel)
 
+add_library(test_sem_fft_accel_udp_loopback
+        STATIC
+        EXCLUDE_FROM_ALL)
+
+target_sources(test_sem_fft_accel_udp_loopback
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/udp_packet_loopback.hpp
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/udp_packet_loopback.cpp
+        )
+
+target_link_libraries(test_sem_fft_accel_udp_loopback
+        PUBLIC
+        sem_fft_accel_data
+        Boost::boost
+        Boost::system
+        Boost::dynamic_linking
+        )
+
 target_sources(test_sem_fft_accel
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/worker_test.cpp
@@ -9,8 +28,7 @@ target_link_libraries(test_sem_fft_accel
         PUBLIC
         gtest_main
         sem_fft_accel_fpga_worker
-        #sem_fft_accel_runtime_test
-        #sem_fft_accel_udp_adapter_tests
+        test_sem_fft_accel_udp_loopback
         )
 if(MSVC)
     set(TEST_OUTPUT_DIR "")

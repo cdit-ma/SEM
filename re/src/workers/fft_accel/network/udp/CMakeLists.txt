@@ -1,7 +1,10 @@
 # New Boost::Asio changes mean that we should consider bumping this to 1.68
 find_package(Boost 1.67.0 REQUIRED COMPONENTS system)
 
-add_library(sem_fft_accel_udp STATIC)
+add_library(sem_fft_accel_udp
+        STATIC
+        EXCLUDE_FROM_ALL
+        )
 
 set_target_properties(sem_fft_accel_udp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 

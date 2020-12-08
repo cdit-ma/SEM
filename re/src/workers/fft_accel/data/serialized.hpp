@@ -1,5 +1,5 @@
 //
-// Created by cdit-ma on 11/11/20.
+// Created by Jackson Michael on 11/11/20.
 //
 
 #ifndef SEM_SERIALIZATION_HPP
@@ -21,7 +21,7 @@ namespace sem::fft_accel::data {
         virtual T deserialize() = 0;
 
         [[nodiscard]]
-        virtual byte_span bytes() const = 0;
+        virtual byte_span bytes() = 0;
     };
 
 

@@ -1,5 +1,5 @@
 //
-// Created by cdit-ma on 13/11/20.
+// Created by Jackson Michael on 13/11/20.
 //
 
 #ifndef SEM_BYTE_SPAN_H
@@ -10,7 +10,7 @@
 namespace sem::fft_accel::data {
 
 /**
- * Provides a view into a contiguous array of bytes.
+ * Provides a view into a contiguous array of bytes. Remains valid only so long as the underlying array remains valid.
  * Intended as a simple and minimal replacement for span (C++20 feature) without adding another dependency.
  * TODO: Candidate for replacement if/when we move to C++20 support
  */
@@ -18,7 +18,7 @@ namespace sem::fft_accel::data {
     public:
         template<size_t Length>
         constexpr
-        byte_span(std::array<std::byte, Length> byte_array) : begin_(byte_array.begin()), length_(Length) {};
+        byte_span(std::array<std::byte, Length>& byte_array) : begin_(byte_array.begin()), length_(Length) {};
 
         constexpr byte_span(std::byte *begin, size_t length) : begin_(begin), length_(length) {};
 
@@ -28,6 +28,8 @@ namespace sem::fft_accel::data {
 
         [[nodiscard]] constexpr std::byte operator[] (size_t byte_offset) const { return *(begin_ + byte_offset); };
         [[nodiscard]] constexpr std::byte& operator[] (size_t byte_offset) { return *(begin_ + byte_offset); };
+
+        [[nodiscard]] constexpr size_t size() const {return length_;};
 
         [[nodiscard]] constexpr byte_span subspan(size_t byte_offset) {
             if (byte_offset >= length_) {

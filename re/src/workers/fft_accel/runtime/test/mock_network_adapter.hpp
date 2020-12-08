@@ -1,5 +1,5 @@
 //
-// Created by cdit-ma on 26/8/20.
+// Created by Jackson Michael on 26/8/20.
 //
 
 #ifndef SEM_MOCK_NETWORK_ADAPTER_HPP
@@ -19,7 +19,7 @@ public:
     mock_network_adapter() = default;
     ~mock_network_adapter() override = default;
 
-    MOCK_METHOD(Result<void>, send, (std::vector<float>));
+    MOCK_METHOD(Result<void>, send, (data_packet));
     MOCK_METHOD(Result<void>, register_listener, (std::weak_ptr<network::fft_result_listener>));
     MOCK_METHOD(Result<uint16_t>, get_bound_port, (), (const, override));
 

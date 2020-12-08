@@ -1,5 +1,8 @@
 
-add_library(sem_fft_accel_network STATIC)
+add_library(sem_fft_accel_network
+        STATIC
+        EXCLUDE_FROM_ALL
+        )
 
 set_target_properties(sem_fft_accel_network PROPERTIES POSITION_INDEPENDENT_CODE ON)
 

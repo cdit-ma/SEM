@@ -12,19 +12,15 @@
 
 namespace sem::fft_accel::network {
 
-    template<typename SerializedType, typename LocalType>
-    Result<SerializedType> serialize(const LocalType &data);
-
-    template<typename LocalType, typename SerializedType>
-    Result<LocalType> deserialize(const SerializedType &data);
-
     /**
-     * A class that implments the fft_result_listener interface must also implement the receive_processed_fft
+     * A class that implements the fft_result_listener interface must also implement the receive_processed_fft
      * function. This allow these implementing classes to be registered with objects that will produce
      * fft results.
      */
     class fft_result_listener {
     public:
+        using data_packet = data::fft_data_packet<float>::SerializedPacket;
+
         virtual ~fft_result_listener() = 0;
 
         /**
@@ -34,7 +30,7 @@ namespace sem::fft_accel::network {
          * @return void result if the listener was able to successfully receive the fft_result, otherwise returns an
          *     ErrorResult with a description of the error encountered.
          */
-        virtual Result<void> receive_processed_fft(std::vector<float> data) = 0;
+        virtual Result<void> receive_processed_fft(data_packet data) = 0;
     };
 
     /**
@@ -46,10 +42,11 @@ namespace sem::fft_accel::network {
      */
     class adapter {
     public:
+        using data_packet = data::fft_data_packet<float>::SerializedPacket;
 
         virtual ~adapter() = 0;
 
-        virtual Result<void> send(std::vector<float>) = 0;
+        virtual Result<void> send(data_packet data) = 0;
 
         virtual Result<void> register_listener(std::weak_ptr<fft_result_listener> listener) = 0;
 

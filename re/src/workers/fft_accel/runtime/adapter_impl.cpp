@@ -8,15 +8,15 @@
 
 using namespace sem;
 using namespace sem::fft_accel::runtime;
+using namespace sem::fft_accel::data;
 
 using namespace std::literals::string_literals;
 
-adapter_impl::adapter_impl() {
-}
+adapter_impl::adapter_impl() = default;
 
 Result<void> adapter_impl::set_network_adapter(std::weak_ptr<network::adapter> network_adapter) {
     try {
-        auto&& locked_ptr = network_adapter.lock();
+        auto &&locked_ptr = network_adapter.lock();
         if (locked_ptr) {
             adapter_ = locked_ptr;
             adapter_->register_listener(weak_from_this());
@@ -34,24 +34,71 @@ Result<void> adapter_impl::set_network_adapter(std::weak_ptr<network::adapter> n
     }
 }
 
-Result<void> adapter_impl::receive_processed_fft(std::vector<float> data) {
-    return ErrorResult("receive_processed_fft not yet implemented");
+Result<void> adapter_impl::receive_processed_fft(data_packet data) {
+    try {
+        data::fft_data_packet<float> deserialized_data(data);
+        auto update_result = pending_requests_.update_pending_packets(deserialized_data);
+        if (update_result.is_error()) {
+            return ErrorResult("Runtime adapter failed to update pending packets:\n"s + update_result.GetError().msg);
+        }
+
+        return {};
+    } catch (const std::exception &ex) {
+        return ErrorResult("Exception in FFT Runtime Adapter when attempting to handle a received packet:\n"s + ex.what());
+    }
 }
 
-Result<void> adapter_impl::submit_fft_calculation(const std::vector<float> &data) {
+Result<data_request_id> adapter_impl::submit_fft_calculation(const std::vector<float> &data) {
     if (!adapter_) {
         return ErrorResult("Runtime Adapter unable to calculate FFT: no network adapter registered.");
     }
 
-    // TODO: Add the calculation request in a map so that it can be matched with a response
-    auto&& new_packet = pending_requests_.construct_packet(data);
+    auto &&unfulfilled_req = pending_requests_.construct_packets(data);
 
-    auto&& res = adapter_->send(new_packet.GetValue().);
-    if (res.is_error()) {
-        return ErrorResult("Runtime Adapter unable to calculate FFT: \n"s + res.GetError().msg);
+    if (unfulfilled_req.is_error()) {
+        return ErrorResult("Runtime Adapter unable to calculate FFT, failed to construct packet group: \n"s +
+                           unfulfilled_req.GetError().msg);
     }
 
+    auto packets_group = unfulfilled_req.GetValue().packet_group;
 
+    for (const auto &packet : packets_group.packets()) {
+        auto &&res = adapter_->send(data_packet{packet});
+        if (res.is_error()) {
+            return ErrorResult(
+                    "Runtime Adapter unable to calculate FFT, error occurred while sending packet group:\n"s +
+                    res.GetError().msg);
+        }
+    }
 
-    return {};
+    request_id new_id = packets_group.request_id();
+
+    response_futures_.try_emplace(new_id, std::move(unfulfilled_req.GetValue().future));
+
+    return {new_id};
+}
+
+Result<std::vector<float>>
+adapter_impl::wait_on_request_completion(fft_accel::data::data_request_id id, re::types::Timeout timeout) {
+    try {
+        // If we don't want to block forever then perform a timeout check
+        if (!std::holds_alternative<re::types::NeverTimeout>(timeout)) {
+            auto millis = std::get<std::chrono::milliseconds>(timeout);
+            auto &&timeout_result = response_futures_.at(id).wait_for(millis);
+            switch (timeout_result) {
+                case std::future_status::timeout:
+                    return ErrorResult(
+                            "Timed out while waiting for request (" + std::to_string(millis.count()) + "ms)");
+                case std::future_status::ready:
+                    [[fallthrough]];
+                case std::future_status::deferred:
+                    break;
+            }
+        }
+
+        auto response = response_futures_.at(id).get();
+        return {response.to_vector()};
+    } catch (const std::exception &ex) {
+        return ErrorResult("Failed to get response while waiting for request to complete: "s + ex.what());
+    }
 }

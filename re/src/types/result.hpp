@@ -84,6 +84,28 @@ namespace sem {
 
         constexpr Result(ValueType value) : Result(val_or_err_t(std::move(value))) {};
 
+        // NOTE: rvalue ref constructors should only be enabled if the provided value is an rvalue expression
+        // see: https://stackoverflow.com/questions/16999039/why-are-my-t-and-t-copy-constructors-ambiguous
+        template <typename std::enable_if<!std::is_reference_v<ValueType>>::type* = nullptr>
+        constexpr Result(val_or_err_t&& value) : value_(value) {};
+        template <typename std::enable_if<!std::is_reference_v<ValueType>>::type* = nullptr>
+        constexpr Result(ValueType&& value) : Result(val_or_err_t(value)) {};
+
+        [[nodiscard]]
+        constexpr ValueType& GetValue() {
+            return std::visit(
+                    [](auto &&value) -> ValueType& {
+                        using T = std::decay_t<decltype(value)>;
+                        if constexpr (std::is_same_v<T, ValueType>) {
+                            return value;
+                        } else if constexpr (std::is_same_v<T, ErrorResult>) {
+                            throw unexpected_error_result(value.msg);
+                        } else {
+                            static_assert(always_false_v<T>, "non-exhaustive visitor!");
+                        }
+                    }, value_);
+        };
+
         [[nodiscard]]
         constexpr ValueType GetValue() const {
             return std::visit(
@@ -105,7 +127,7 @@ namespace sem {
                     [](auto &&value) -> ErrorResult {
                         using T = std::decay_t<decltype(value)>;
                         if constexpr (std::is_same_v<T, ValueType>) {
-                            throw unexpected_value_result(std::string("Result contains value instead of exception: ")
+                            throw unexpected_value_result(std::string("Result contains Value instead of ErrorResult: ")
                                                           + typeid(ValueType).name());
                         } else if constexpr (std::is_same_v<T, ErrorResult>) {
                             return value;
@@ -129,7 +151,11 @@ namespace sem {
         };
 
         friend std::ostream &operator<<(std::ostream &os, const Result<ValueType> &res) {
-            return os << "Result: {" << res.GetValue() << "}";
+            if (res.is_error()) {
+                return os << "Result: {" << res.GetError() << "}";
+            } else {
+                return os << "Result: {" << res.GetValue() << "}";
+            }
         };
 
     private:
@@ -175,12 +201,6 @@ namespace sem {
     private:
         const std::optional<ErrorResult> err_;
     };
-
-/*template <typename ValueType>
-std::ostream& operator<<(std::ostream& os, const Result<ValueType>& res)
-{
-    return os << res;
-};*/
 
     template<typename LH_ValueType, typename RH_ValueType>
     inline auto operator==(const Result<LH_ValueType> &lh, const Result<RH_ValueType> &rh) {

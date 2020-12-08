@@ -10,110 +10,134 @@
 
 #include "serialized.hpp"
 
+#include "packet_headers.hpp"
+
+#include <iostream>
+
 namespace sem::fft_accel::data {
 
-using data_request_id = uint8_t;
+    //class fft_data {};
 
-enum class packet_type : uint8_t {
-    cmd_write,
-    cmd_read,
-    ack,
-    data,
-};
+    template<typename SampleType, size_t NumElements>
+    class serialized_fft_data;
 
-constexpr std::byte byte_encoding(packet_type type) {
-    switch (type) {
-        case packet_type::cmd_write:
-            return static_cast<std::byte>(0xCDu);
-        case packet_type::cmd_read:
-            return static_cast<std::byte>(0xCEu);
-        case packet_type::ack:
-            return static_cast<std::byte>(0xACu);
-        case packet_type::data:
-            return static_cast<std::byte>(0xDAu);
-    }
-}
-
-constexpr packet_type packet_type_from_byte(std::byte byte) {
-    switch (static_cast<uint8_t>(byte)) {
-        case 0xCDu:
-            return packet_type::cmd_write;
-        case 0xCEu:
-            return packet_type::cmd_read;
-        case 0xACu:
-            return packet_type::ack;
-        case 0xDAu:
-            return packet_type::data;
-        default:
-            throw std::invalid_argument("Error attempting to parse packet type: invalid/unknown byte pattern");
-    }
-}
-
-struct control_data {
-    packet_type type_;
-    uint8_t packet_sequence_num_;
-    data_request_id fft_request_id_;
-    uint8_t control_state_register_;
-    uint16_t fft_size_;
-};
-
-class fft_data {
-
-};
-
-/**
- *
- * @tparam SampleType The type of primitive data being used to store FFT sample values
- */
-    template<typename SampleType>
-    class fft_data_packet {
-        using SerializedPacket = Serialized<fft_data_packet<SampleType>>;
+    /**
+     * Simple implementation of a view into a vector to stand in for standard library support in C++20.
+     * Used to provide a handy way of passing around iterators over a particular subsection of a vector. Pay note to
+     * the convention that end() will NOT return the last element in the subsection, but instead points to the element
+     * after the last included element.
+     * TODO: Replace with a STL equivalent, particularly if/when C++20 is adopted
+     * @tparam SampleType
+     */
+    template<typename ElementType>
+    class vector_range {
     public:
-        fft_data_packet(const std::vector<SampleType> &data, size_t packet_identifier) :
-                fft_data_(data),
-                fft_request_id_(packet_identifier) {};
+        constexpr vector_range(const std::vector<ElementType> &source_vector, size_t start_index, size_t final_index) :
+                source_vec(source_vector), begin_index(start_index), end_index(final_index) {};
 
-        fft_data_packet(const SerializedPacket &serialized_data);
+        constexpr vector_range(const std::vector<ElementType> &source_vector) :
+                vector_range(source_vector, 0, source_vector.size()) {};
 
-        SerializedPacket serialize();
+        constexpr auto begin() const {
+            auto begin_iter = source_vec.begin();
+            std::advance(begin_iter, begin_index);
+            return begin_iter;
+        }
+
+        constexpr auto end() const {
+            auto end_iter = source_vec.begin();
+            std::advance(end_iter, end_index);
+            return end_iter;
+        }
 
     private:
-        uint8_t packet_sequence_num_;
-        uint8_t fft_request_id_;
+        const std::vector<ElementType> &source_vec;
+        size_t begin_index;
+        size_t end_index;
+    };
+
+    /**
+     * This class represents a data packet transmitted as part of the FFT Acceleration Protocol.
+     * A single request may be made from one or more of these packets, with each packet's order in the request
+     * denoted by the sequence number beginning from 0.
+     * @tparam SampleType The type of primitive data elements being used to store FFT sample values
+     */
+    template<typename SampleType>
+    class fft_data_packet {
+    public:
+        constexpr static size_t max_elements = 256;
+        using SerializedPacket = serialized_fft_data<SampleType, max_elements>;
+
+        fft_data_packet(const data::vector_range<SampleType> &data_range, uint8_t request_id,
+                        uint8_t sequence_num) :
+                fft_data_(data_range.begin(), data_range.end()),
+                header_data_(request_id, sequence_num, max_elements){
+            if (fft_data_.size() > max_elements) {
+                throw std::invalid_argument("Attempting to create fft_data_packet from vector that is too large");
+            }
+        };
+
+        explicit fft_data_packet(SerializedPacket &serialized_data);
+
+        [[nodiscard]] uint8_t sequence_number() const;
+
+        [[nodiscard]] uint8_t request_id() const;
+
+        [[nodiscard]] const std::vector<SampleType> &payload_data() const;
+
+    private:
+        data_packet_header header_data_;
+
         std::vector<SampleType> fft_data_;
     };
 
-    template<typename SampleType, size_t NumElements>
+    template<typename SampleType, size_t NumElements = fft_data_packet<SampleType>::max_elements>
     class serialized_fft_data : public Serialized<fft_data_packet<SampleType>> {
     public:
         constexpr static size_t byte_size_from_num_elements(size_t num_elements) {
             return num_elements * sizeof(SampleType) + 6;
         }
 
-        using DeserializableType = fft_data_packet<SampleType>;
-        using byte_array = std::array<std::byte, byte_size_from_num_elements(NumElements)>;
+        using native_packet_type = fft_data_packet<SampleType>;
+        constexpr static auto packet_byte_size = byte_size_from_num_elements(NumElements);
+        using byte_array = std::array<std::byte, packet_byte_size>;
+
+        serialized_fft_data() = default;
+
+        explicit serialized_fft_data(native_packet_type native_packet);
+
         explicit serialized_fft_data(byte_array data_buffer) : data_(data_buffer) {};
 
-        serialized_fft_data(std::byte *data, size_t length) : data_(data, length) {};
+        native_packet_type deserialize() final;
 
-        virtual DeserializableType deserialize() final;
-
-        [[nodiscard]] virtual byte_span bytes() const final;
+        [[nodiscard]] constexpr byte_span bytes() final;
 
     private:
         byte_array data_;
     };
 
     template<typename SampleType, size_t NumElements>
-    fft_data_packet<SampleType> serialized_fft_data<SampleType, NumElements>::deserialize() {
-        return fft_data_packet<SampleType>(*this);
+    serialized_fft_data<SampleType, NumElements>::serialized_fft_data(native_packet_type native_packet) {
+        data_.at(0) = byte_encoding(packet_type::data);
+        data_.at(1) = static_cast<std::byte>(native_packet.sequence_number());
+        data_.at(2) = static_cast<std::byte>(native_packet.request_id());
+        // 3rd byte currently unused, formerly used for CSR
+        // TODO: Thoroughly investigate endianness of remaining fields to be serialized
+        data_.at(4) = static_cast<std::byte>(native_packet.payload_data().size());
+
+        constexpr auto payload_byte_length = NumElements * sizeof(SampleType);
+        memcpy(&(*(data_.begin() + 6)), &(*native_packet.payload_data().begin()), payload_byte_length);
     }
 
     template<typename SampleType, size_t NumElements>
-    byte_span serialized_fft_data<SampleType, NumElements>::bytes() const {
-        return byte_span(data_);
+    fft_data_packet<SampleType> serialized_fft_data<SampleType, NumElements>::deserialize() {
+        return fft_data_packet<SampleType>{*this};
     }
 
+    template<typename SampleType, size_t NumElements>
+    constexpr byte_span serialized_fft_data<SampleType, NumElements>::bytes() {
+        return byte_span(data_);
+    }
 
 };
 
