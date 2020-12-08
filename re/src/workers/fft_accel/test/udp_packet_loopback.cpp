@@ -32,7 +32,7 @@ test::udp_packet_loopback::~udp_packet_loopback() {
     udp_socket_.cancel();
     io_work_guard_.reset();
     io_service_.stop();
-    listen_thread_->wait();
+    listen_thread_.wait();
 }
 
 uint16_t test::udp_packet_loopback::get_port() const {

@@ -23,10 +23,17 @@ namespace sem::fft_accel::data::test {
     template<>
     inline uint8_t get_random<uint8_t>() {
         static std::default_random_engine e;
+#ifdef _WIN32 // MSVC doesn't allow for uniform_int_distribution of 8-bit types
+        static std::uniform_int_distribution<uint16_t> dis(
+                std::numeric_limits<uint8_t>::min(),
+                std::numeric_limits<uint8_t>::max()
+                );
+#else
         static std::uniform_int_distribution<uint8_t> dis(
                 std::numeric_limits<uint8_t>::min(),
                 std::numeric_limits<uint8_t>::max()
                 );
+#endif
         return dis(e);
     }
 

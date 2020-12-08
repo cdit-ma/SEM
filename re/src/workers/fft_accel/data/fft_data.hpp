@@ -5,7 +5,7 @@
 #ifndef SEM_FFT_DATA_HPP
 #define SEM_FFT_DATA_HPP
 
-#include <cstddef>
+#include <cstring>
 #include <vector>
 
 #include "serialized.hpp"

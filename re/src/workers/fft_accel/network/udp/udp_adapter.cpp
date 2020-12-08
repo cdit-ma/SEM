@@ -37,7 +37,7 @@ udp_adapter<float>::~udp_adapter() {
     udp_socket_.cancel();
     io_work_guard_.reset();
     io_service_.stop();
-    listen_thread_->wait();
+    listen_thread_.wait();
 }
 
 template<>
