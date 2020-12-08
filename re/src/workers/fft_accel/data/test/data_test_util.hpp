@@ -39,12 +39,7 @@ namespace sem::fft_accel::data::test {
 
     template<>
     inline std::byte get_random<std::byte>() {
-        static std::default_random_engine e;
-        static std::uniform_int_distribution<uint8_t> dis(
-                std::numeric_limits<uint8_t>::min(),
-                std::numeric_limits<uint8_t>::max()
-        );
-        return static_cast<std::byte>(dis(e));
+        return static_cast<std::byte>(get_random<uint8_t>());
     }
 
     inline std::vector<float> generate_random_fft_data(size_t num_elements) {
