@@ -19,7 +19,7 @@ namespace sem::fft_accel::data {
     public:
         template<size_t Length>
         constexpr
-        byte_span(std::array<std::byte, Length>& byte_array) : begin_(byte_array.begin()), length_(Length) {};
+        byte_span(std::array<std::byte, Length>& byte_array) : begin_(&(*byte_array.begin())), length_(Length) {};
 
         constexpr byte_span(std::byte *begin, size_t length) : begin_(begin), length_(length) {};
 
