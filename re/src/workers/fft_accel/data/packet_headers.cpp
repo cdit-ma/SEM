@@ -4,7 +4,7 @@
 
 #include "packet_headers.hpp"
 
-#include "boost/endian.hpp"
+#include "boost/endian/conversion.hpp"
 
 using namespace sem::fft_accel::data;
 
