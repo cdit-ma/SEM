@@ -6,6 +6,7 @@
 #define SEM_BYTE_SPAN_H
 
 #include <cstddef>
+#include <stdexcept>
 #include <array>
 
 namespace sem::fft_accel::data {
