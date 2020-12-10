@@ -13,30 +13,33 @@
 
 using namespace sem;
 using namespace sem::fft_accel;
-using namespace sem::fft_accel::test::worker;
+using namespace sem::fft_accel::test::runtime;
 
-using test_worker_type = runtime::adapter_impl;
+using test_runtime_adapter_type = runtime::adapter_impl;
 
+// For googletest AssertionResult
 using namespace testing;
 
 using namespace std::string_literals;
 
-#define FAIL_ON_ERROR(desc, result) if (result.is_error()) {return ::testing::AssertionFailure() << desc << ": " << result.GetError();}
+#define FAIL_ON_ERROR(desc, result) if ((result).is_error()) { \
+    return ::testing::AssertionFailure() << (desc) << ": " << (result).GetError(); \
+    }
 
 TEST(fft_accel_runtime_adapter, nothrow_constructor) {
     std::unique_ptr<runtime::adapter> runtime_adapter;
 
     ASSERT_NO_THROW(
-            runtime_adapter = std::make_unique<test_worker_type>();
+            runtime_adapter = std::make_unique<test_runtime_adapter_type>();
     );
     ASSERT_NE(runtime_adapter, nullptr);
 }
 
 TEST(fft_accel_runtime_adapter, network_adapter_registered_when_set) {
 
-    // Construct worker under test
-    std::unique_ptr<runtime::adapter> worker;
-    worker = std::make_unique<test_worker_type>();
+    // Construct runtime adapter under test
+    std::unique_ptr<runtime::adapter> runtime_adapter;
+    runtime_adapter = std::make_unique<test_runtime_adapter_type>();
 
     // Construct mocked network adapter and set its expectations
     auto mock_adapter = std::make_shared<mock_network_adapter<float>>();
@@ -45,7 +48,7 @@ TEST(fft_accel_runtime_adapter, network_adapter_registered_when_set) {
 
     // Perform the set
     try {
-        ASSERT_EQ(worker->set_network_adapter(mock_adapter), Result<void>{});
+        ASSERT_EQ(runtime_adapter->set_network_adapter(mock_adapter), Result<void>{});
     } catch (const std::exception &ex) {
         FAIL() << "An exception was thrown when set_network_adapter was called: " << ex.what();
     } catch (...) {
@@ -54,9 +57,9 @@ TEST(fft_accel_runtime_adapter, network_adapter_registered_when_set) {
 }
 
 TEST(fft_accel_runtime_adapter, fft_submitted_successfully) {
-    // Construct worker under test
-    std::unique_ptr<runtime::adapter> worker;
-    worker = std::make_unique<test_worker_type>();
+    // Construct runtime adapter under test
+    std::unique_ptr<runtime::adapter> runtime_adapter;
+    runtime_adapter = std::make_unique<test_runtime_adapter_type>();
 
     // Construct mocked network adapter and set its expectations
     auto mock_adapter = std::make_shared<mock_network_adapter<float>>();
@@ -66,8 +69,8 @@ TEST(fft_accel_runtime_adapter, fft_submitted_successfully) {
 
     std::vector<float> dummy_input_data = data::test::generate_random_single_packet_fft_vec_data();
 
-    ASSERT_FALSE(worker->set_network_adapter(mock_adapter).is_error());
-    auto result = worker->submit_fft_calculation(dummy_input_data);
+    ASSERT_FALSE(runtime_adapter->set_network_adapter(mock_adapter).is_error());
+    auto result = runtime_adapter->submit_fft_calculation(dummy_input_data);
     ASSERT_FALSE(result.is_error());
 }
 

@@ -9,7 +9,7 @@
 
 #include "network/adapter.hpp"
 
-namespace sem::fft_accel::test::worker{
+namespace sem::fft_accel::test::runtime{
 
 template<typename T>
 class mock_network_adapter : public network::adapter {

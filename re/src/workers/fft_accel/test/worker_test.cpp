@@ -28,7 +28,7 @@ std::string generate_FAE_endpoint() {
     return "123.234.123.234:37256";
 }
 
-using test_worker_type = sem::fft_accel::Worker;
+using test_runtime_adapter_type = sem::fft_accel::Worker;
 
 TEST(fft_accel_worker, nothrow_constructor) {
     std::unique_ptr<sem::fft_accel::Worker> worker_ptr;
@@ -37,7 +37,7 @@ TEST(fft_accel_worker, nothrow_constructor) {
     std::string worker_inst_name = generate_worker_inst_name();
 
     ASSERT_NO_THROW(
-            worker_ptr = std::make_unique<test_worker_type>(test_component, worker_inst_name)
+            worker_ptr = std::make_unique<test_runtime_adapter_type>(test_component, worker_inst_name)
     );
 
     ASSERT_NE(worker_ptr, nullptr);
@@ -50,12 +50,12 @@ TEST(fft_accel_worker, ip_address_configured_from_attributes) {
 
     // Construct worker under test
     std::unique_ptr<sem::fft_accel::Worker> worker;
-    worker = std::make_unique<test_worker_type>(
+    worker = std::make_unique<test_runtime_adapter_type>(
             test_component, worker_inst_name
     );
 
     // Set the appropriate attributes
-    std::string attr_name{test_worker_type::AttrNames::accelerator_endpoint};
+    std::string attr_name{test_runtime_adapter_type::AttrNames::accelerator_endpoint};
     std::shared_ptr<Attribute> attr;
     ASSERT_NO_THROW(
             attr = worker->ConstructAttribute(
@@ -85,10 +85,10 @@ TEST(fft_accel_worker, calculate_fft_through_loopback) {
 
     // Construct worker under test
     std::unique_ptr<sem::fft_accel::Worker> worker;
-    worker = std::make_unique<test_worker_type>(test_component, worker_inst_name);
+    worker = std::make_unique<test_runtime_adapter_type>(test_component, worker_inst_name);
 
     // Set the appropriate attributes
-    std::string attr_name{test_worker_type::AttrNames::accelerator_endpoint};
+    std::string attr_name{test_runtime_adapter_type::AttrNames::accelerator_endpoint};
     auto attr = worker->ConstructAttribute(ATTRIBUTE_TYPE::STRING, attr_name).lock();
     attr->set_String(loopback_addr.to_string());
 
@@ -117,10 +117,10 @@ TEST(fft_accel_worker, calculate_fft_async_and_receive_through_loopback) {
 
     // Construct worker under test
     std::unique_ptr<sem::fft_accel::Worker> worker;
-    worker = std::make_unique<test_worker_type>(test_component, worker_inst_name);
+    worker = std::make_unique<test_runtime_adapter_type>(test_component, worker_inst_name);
 
     // Set the appropriate attributes
-    std::string attr_name{test_worker_type::AttrNames::accelerator_endpoint};
+    std::string attr_name{test_runtime_adapter_type::AttrNames::accelerator_endpoint};
     auto attr = worker->ConstructAttribute(ATTRIBUTE_TYPE::STRING, attr_name).lock();
     attr->set_String(generate_FAE_endpoint());
 
