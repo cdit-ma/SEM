@@ -9,7 +9,7 @@
 #include "mock_network_adapter.hpp"
 #include "data/test/data_test_util.hpp"
 
-#include "component.h"
+#include <deque>
 
 using namespace sem;
 using namespace sem::fft_accel;
