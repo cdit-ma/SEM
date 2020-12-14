@@ -2,7 +2,7 @@ project(sem_fft_acceleration)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(Boost 1.67.0 REQUIRED COMPONENTS system)
+find_package(Boost 1.67.0 REQUIRED COMPONENTS system regex)
 
 # Worker library to be exposed to RE
 add_library(sem_fft_accel_fpga_worker SHARED)

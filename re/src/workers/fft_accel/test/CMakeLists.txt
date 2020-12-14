@@ -16,6 +16,7 @@ target_link_libraries(test_sem_fft_accel_udp_loopback
         sem_fft_accel_data
         Boost::boost
         Boost::system
+        Boost::regex
         Boost::dynamic_linking
         )
 

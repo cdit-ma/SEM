@@ -27,6 +27,7 @@ target_link_libraries(sem_fft_accel_udp
         re_types
         Boost::boost
         Boost::system
+        Boost::regex
         Boost::dynamic_linking
         )
 
