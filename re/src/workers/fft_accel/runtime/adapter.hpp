@@ -10,6 +10,8 @@
 #include "result.hpp"
 #include "timeout.hpp"
 
+#include <functional>
+
 namespace sem::fft_accel::runtime {
 
 /**

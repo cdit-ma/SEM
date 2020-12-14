@@ -30,6 +30,11 @@ namespace sem::fft_accel::data {
          */
         fft_packet_group(const std::vector<SampleType> &fft_data, request_id_type request_id);
 
+#ifdef _WIN32
+        [[deprecated("Default constructor only exists for compatibility with MSVC 2019 std::future")]]
+        fft_packet_group(){};
+#endif
+
         sem::Result<void> update_packet_with_response(data::fft_data_packet<SampleType> response);
 
         [[nodiscard]] constexpr std::vector<packet_type> &packets() { return packets_; }
