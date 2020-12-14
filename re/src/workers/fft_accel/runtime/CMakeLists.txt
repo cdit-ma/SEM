@@ -15,6 +15,8 @@ target_sources(sem_fft_accel_runtime
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter_impl.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fft_request_map.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/event_dispatcher.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/single_thread_dispatcher.hpp
 
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/adapter.cpp

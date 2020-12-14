@@ -60,7 +60,7 @@ Result<void> udp_adapter<float>::send(data_packet data) {
 }
 
 template<>
-Result<void> udp_adapter<float>::register_listener(std::weak_ptr<fft_result_listener> listener) {
+Result<void> udp_adapter<float>::register_listener(std::weak_ptr<response_packet_listener> listener) {
     try {
         listeners_.push_back(listener);
         return {};

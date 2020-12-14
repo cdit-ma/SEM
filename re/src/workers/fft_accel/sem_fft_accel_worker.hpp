@@ -12,15 +12,18 @@
 namespace sem::fft_accel {
 class Worker : public ::Worker {
 public:
+    using callback_func_signature = void (uint8_t, std::vector<float>);
+    using callback_func_type = std::function<callback_func_signature>;
+
     Worker(const BehaviourContainer &container, const std::string &inst_name);
 
     const std::string &get_version() const override;
 
     std::vector<float> calculate_fft(const std::vector<float>& data);
-    uint16_t calculate_fft_async(const std::vector<float>& data);
+    uint8_t calculate_fft_async(const std::vector<float>& data);
 
 
-    void SetResponseCallback(std::function<void (uint8_t, const std::vector<float> &)> func);
+    void SetResponseCallback(std::function<callback_func_signature> func);
 
     /**
      * A grouping of constant component attribute names
@@ -38,7 +41,7 @@ private:
     std::shared_ptr<runtime::adapter> runtime_adapter_;
     std::shared_ptr<network::adapter> network_adapter_;
 
-    std::function<void (uint8_t, std::vector<float>)> callback_function_;
+    //std::function<callback_func_signature> callback_function_;
 };
 }
 

@@ -7,13 +7,19 @@
 #include "sem_fft_accel_worker.hpp"
 
 #include "component.h"
+#include "print_logger.h"
 
 #include "data/test/data_test_util.hpp"
 #include "udp_packet_loopback.hpp"
+#include "runtime/test/callback_handler.hpp"
 
-#include "print_logger.h"
+#include <functional>
+
 
 using namespace sem::fft_accel;
+using namespace testing;
+
+using namespace std::chrono_literals;
 
 Component generate_component() {
     std::string comp_inst_name = "fft_accel_test_component";
@@ -114,6 +120,15 @@ TEST(fft_accel_worker, calculate_fft_async_and_receive_through_loopback) {
     // Construct dependencies
     const Component test_component = generate_component();
     std::string worker_inst_name = generate_worker_inst_name();
+    Print::Logger logger;
+    testing::MockFunction<void(uint8_t, std::vector<float>)> mock_callback;
+
+    auto input_data = data::test::generate_random_single_packet_fft_vec_data();
+
+    // Construct packet looper
+    test::udp_packet_loopback udp_loopback;
+    re::types::SocketAddress loopback_addr(re::types::Ipv4::localhost(), udp_loopback.get_port());
+
 
     // Construct worker under test
     std::unique_ptr<sem::fft_accel::Worker> worker;
@@ -122,13 +137,32 @@ TEST(fft_accel_worker, calculate_fft_async_and_receive_through_loopback) {
     // Set the appropriate attributes
     std::string attr_name{test_runtime_adapter_type::AttrNames::accelerator_endpoint};
     auto attr = worker->ConstructAttribute(ATTRIBUTE_TYPE::STRING, attr_name).lock();
-    attr->set_String(generate_FAE_endpoint());
+    attr->set_String(loopback_addr.to_string());
 
-    worker->Configure();
+    worker->logger().AddLogger(logger);
 
-    auto input_data = data::test::generate_random_single_packet_fft_vec_data();
-    uint16_t output_data;
-    ASSERT_NO_THROW(output_data = worker->calculate_fft_async(input_data));
+    uint8_t callback_request_id;
+    std::promise<std::vector<float>> callback_promise;
+    EXPECT_CALL(mock_callback, Call(_,input_data)).WillOnce(Invoke(
+            [&callback_promise, &callback_request_id](uint8_t id, std::vector<float> vec) {
+                callback_request_id = id;
+                callback_promise.set_value(std::move(vec));
+            }
+    ));
 
-    // TODO: Add check that the response callback was properly called
+    ASSERT_NO_THROW(
+            worker->SetResponseCallback(mock_callback.AsStdFunction());
+    );
+
+    ASSERT_TRUE(worker->Configure());
+
+    uint16_t output_id;
+    ASSERT_NO_THROW(output_id = worker->calculate_fft_async(input_data));
+
+    auto callback_future = callback_promise.get_future();
+    ASSERT_EQ(callback_future.wait_for(300ms), std::future_status::ready);
+    auto callback_result = callback_future.get();
+    ASSERT_EQ(callback_result, input_data);
+
+    ASSERT_EQ(callback_request_id, output_id);
 }

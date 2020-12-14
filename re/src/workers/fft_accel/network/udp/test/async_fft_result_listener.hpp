@@ -14,11 +14,11 @@
 
 namespace sem::fft_accel::network {
 
-    class async_fft_result_listener : public fft_result_listener {
+    class async_fft_result_listener : public response_packet_listener {
     public:
         async_fft_result_listener() = default;
 
-        sem::Result<void> receive_processed_fft(data_packet data) override {
+        sem::Result<void> receive_response_packet(data_packet data) override {
             std::unique_lock lockGuard(cv_fft_processed_mutex_);
             packet_queue_.emplace(std::move(data));
             fft_processed_.notify_one();

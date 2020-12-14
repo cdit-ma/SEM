@@ -34,7 +34,7 @@ Result<void> adapter_impl::set_network_adapter(std::weak_ptr<network::adapter> n
     }
 }
 
-Result<void> adapter_impl::receive_processed_fft(data_packet data) {
+Result<void> adapter_impl::receive_response_packet(data_packet data) {
     try {
         data::fft_data_packet<float> deserialized_data(data);
         auto update_result = pending_requests_.update_pending_packets(deserialized_data);
@@ -42,9 +42,15 @@ Result<void> adapter_impl::receive_processed_fft(data_packet data) {
             return ErrorResult("Runtime adapter failed to update pending packets:\n"s + update_result.GetError().msg);
         }
 
+        auto update_data = update_result.GetValue();
+        if (update_data.has_value()) {
+            auto completed_request = *update_data;
+            event_dispatcher.submit_event(completed_request.id, completed_request.data);
+        }
         return {};
     } catch (const std::exception &ex) {
-        return ErrorResult("Exception in FFT Runtime Adapter when attempting to handle a received packet:\n"s + ex.what());
+        return ErrorResult(
+                "Exception in FFT Runtime Adapter when attempting to handle a received packet:\n"s + ex.what());
     }
 }
 
@@ -53,14 +59,21 @@ Result<data_request_id> adapter_impl::submit_fft_calculation(const std::vector<f
         return ErrorResult("Runtime Adapter unable to calculate FFT: no network adapter registered.");
     }
 
-    auto &&unfulfilled_req = pending_requests_.construct_packets(data);
-
-    if (unfulfilled_req.is_error()) {
+    auto &&new_request_result = pending_requests_.construct_packets(data);
+    if (new_request_result.is_error()) {
         return ErrorResult("Runtime Adapter unable to calculate FFT, failed to construct packet group: \n"s +
-                           unfulfilled_req.GetError().msg);
+                           new_request_result.GetError().msg);
     }
 
-    auto packets_group = unfulfilled_req.GetValue().packet_group;
+    auto packets_group = new_request_result.GetValue().packet_group;
+    request_id new_id = packets_group.request_id();
+
+    auto request_future_result = event_dispatcher.request_event(new_id);
+    if (request_future_result.is_error()) {
+        return ErrorResult("Error occurred retrieving request future in Runtime Adapter: \n"s +
+                           new_request_result.GetError().msg);
+    }
+    response_futures_.try_emplace(new_id, std::move(request_future_result.GetValue()));
 
     for (const auto &packet : packets_group.packets()) {
         auto &&res = adapter_->send(data_packet{packet});
@@ -70,11 +83,31 @@ Result<data_request_id> adapter_impl::submit_fft_calculation(const std::vector<f
                     res.GetError().msg);
         }
     }
+    return {new_id};
+}
 
+Result<data_request_id> adapter_impl::submit_fft_calculation_async(const std::vector<float> &data) {
+    if (!adapter_) {
+        return ErrorResult("Runtime Adapter unable to calculate FFT: no network adapter registered.");
+    }
+
+    auto &&new_request_result = pending_requests_.construct_packets(data);
+    if (new_request_result.is_error()) {
+        return ErrorResult("Runtime Adapter unable to calculate FFT, failed to construct packet group: \n"s +
+                           new_request_result.GetError().msg);
+    }
+
+    auto packets_group = new_request_result.GetValue().packet_group;
     request_id new_id = packets_group.request_id();
 
-    response_futures_.try_emplace(new_id, std::move(unfulfilled_req.GetValue().future));
-
+    for (const auto &packet : packets_group.packets()) {
+        auto &&res = adapter_->send(data_packet{packet});
+        if (res.is_error()) {
+            return ErrorResult(
+                    "Runtime Adapter unable to calculate FFT, error occurred while sending packet group:\n"s +
+                    res.GetError().msg);
+        }
+    }
     return {new_id};
 }
 
@@ -97,8 +130,14 @@ adapter_impl::wait_on_request_completion(fft_accel::data::data_request_id id, re
         }
 
         auto response = response_futures_.at(id).get();
-        return {response.to_vector()};
+//        return {response.to_vector()};
+        return {response};
     } catch (const std::exception &ex) {
         return ErrorResult("Failed to get response while waiting for request to complete: "s + ex.what());
     }
+}
+
+Result<void> adapter_impl::register_result_callback(Callback callback) {
+    auto res = event_dispatcher.register_callback(std::move(callback));
+    return res;
 }

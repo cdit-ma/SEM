@@ -23,7 +23,7 @@ namespace sem::fft_accel::network {
 
         Result<void> send(data_packet data) final;
 
-        Result<void> register_listener(std::weak_ptr<fft_result_listener> listener) final;
+        Result<void> register_listener(std::weak_ptr<response_packet_listener> listener) final;
 
         [[nodiscard]]
         Result<uint16_t> get_bound_port() const final;
@@ -42,7 +42,7 @@ namespace sem::fft_accel::network {
                     return;
                 }
 
-                auto result = listener->receive_processed_fft(data);
+                auto result = listener->receive_response_packet(data);
                 if (result.is_error()) {
                     std::cerr << "An error occurred in a udp_adapter while handing results to an fft_listener:\n"
                               << result.GetError().msg << std::endl;
@@ -61,7 +61,7 @@ namespace sem::fft_accel::network {
          */
         void schedule_listen();
 
-        std::vector<std::weak_ptr<fft_result_listener>> listeners_;
+        std::vector<std::weak_ptr<response_packet_listener>> listeners_;
 
         std::future<void> listen_thread_;
 

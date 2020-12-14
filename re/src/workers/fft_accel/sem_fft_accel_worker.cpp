@@ -3,6 +3,8 @@
 //
 
 #include "sem_fft_accel_worker.hpp"
+
+#include <utility>
 #include "network/udp/udp_adapter.hpp"
 
 using namespace sem::fft_accel;
@@ -86,7 +88,7 @@ std::vector<float> sem::fft_accel::Worker::calculate_fft(const std::vector<float
     return {completion_result.GetValue()};
 }
 
-uint16_t sem::fft_accel::Worker::calculate_fft_async(const std::vector<float> &data) {
+uint8_t sem::fft_accel::Worker::calculate_fft_async(const std::vector<float> &data) {
     auto work_id = get_new_work_id();
     Log(GET_FUNC , Logger::WorkloadEvent::STARTED, work_id,
         "Called calculate_fft_async with vector of length "+std::to_string(data.size()));
@@ -104,7 +106,7 @@ uint16_t sem::fft_accel::Worker::calculate_fft_async(const std::vector<float> &d
         return {};
     }
 
-    auto result = runtime_adapter_->submit_fft_calculation(data);
+    auto result = runtime_adapter_->submit_fft_calculation_async(data);
     if (result.is_error()) {
         Log(GET_FUNC , Logger::WorkloadEvent::Error, work_id,
             "An error occurred while submitting FFT for calculation: "s + result.GetError().msg);
@@ -117,6 +119,11 @@ uint16_t sem::fft_accel::Worker::calculate_fft_async(const std::vector<float> &d
     return result.GetValue();
 }
 
-void sem::fft_accel::Worker::SetResponseCallback(std::function<void(uint8_t, const std::vector<float> &)> func) {
-    callback_function_ = func;
+void sem::fft_accel::Worker::SetResponseCallback(std::function<callback_func_signature> func) {
+    auto result = runtime_adapter_->register_result_callback(std::move(func));
+    if (result.is_error()) {
+        Log(GET_FUNC , Logger::WorkloadEvent::Error, get_new_work_id(),
+            "An error occurred while registering an FFT response callback: "s + result.GetError().msg);
+        return;
+    }
 }

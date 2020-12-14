@@ -17,9 +17,12 @@ namespace sem::fft_accel::runtime {
  * tracking the packets that have been sent and received, as well as returning the result of an FFT
  * execution request once all the associated response packets have been received.
  */
-class adapter : public network::fft_result_listener {
+class adapter : public network::response_packet_listener {
 
 public:
+    using CallbackSignature = void (data::data_request_id , std::vector<float>);
+    using Callback = std::function<CallbackSignature>;
+
     virtual ~adapter() = 0;
 
     /**
@@ -39,6 +42,9 @@ public:
      *         an ErrorResult if the FFT request is not able to be successfully submitted
      */
     virtual Result<data::data_request_id> submit_fft_calculation(const std::vector<float>& data) = 0;
+    virtual Result<data::data_request_id> submit_fft_calculation_async(const std::vector<float>& data) = 0;
+
+    virtual Result<void> register_result_callback(Callback callback) = 0;
 
     virtual Result<std::vector<float>> wait_on_request_completion(data::data_request_id id, re::types::Timeout timeout) = 0;
 

@@ -33,6 +33,14 @@ namespace sem::fft_accel::runtime {
         std::future<response_type> future;
     };
 
+    template<typename SampleType>
+    struct fft_result {
+        fft_result(data::data_request_id result_id, std::vector<SampleType> result_data) :
+        id(result_id), data(result_data) {};
+        data::data_request_id id;
+        std::vector<SampleType> data;
+    };
+
     /**
      * This class is a datastore for all of the current requests for which a response has yet to be received.
      * @tparam SampleType
@@ -55,7 +63,7 @@ namespace sem::fft_accel::runtime {
          * @param fft_input_data The FFT samples to be used provided in interleaved-complex form
          * @return
          */
-        sem::Result<pending_request<SampleType>> construct_packets(const std::vector<SampleType> &fft_input_data);
+        Result<pending_request<SampleType>> construct_packets(const std::vector<SampleType> &fft_input_data);
 
         /**
          * When a new packet has been received in response to one that has been sent earlier this function should
@@ -63,7 +71,7 @@ namespace sem::fft_accel::runtime {
          * @param received_packet
          * @return
          */
-        sem::Result<void> update_pending_packets(packet_type received_packet);
+        Result<std::optional<fft_result<SampleType>>> update_pending_packets(packet_type received_packet);
 
     private:
         using packet_group_map = std::unordered_map<request_id_type, fft_request_type>;
@@ -123,7 +131,7 @@ namespace sem::fft_accel::runtime {
     }
 
     template<typename SampleType>
-    Result<void>
+    Result<std::optional<fft_result<SampleType>>>
     fft_request_map<SampleType>::update_pending_packets(fft_request_map::packet_type received_packet) {
         auto request_id = received_packet.request_id();
         try {
@@ -137,9 +145,12 @@ namespace sem::fft_accel::runtime {
             }
 
             if (request.remaining_packets() == 0) {
-                unfulfilled_promises_.at(request_id).set_value(staged_packet_groups_.at(request_id));
+                auto && fulfilled_request = staged_packet_groups_.at(request_id);
+                unfulfilled_promises_.at(request_id).set_value(fulfilled_request);
+                return {std::optional<fft_result<SampleType>>({request_id, fulfilled_request.to_vector()})};
+            } else {
+                return {std::optional<fft_result<SampleType>>()};
             }
-            return {};
         } catch (const std::exception &ex) {
             return ErrorResult("Exception while updating packet with request ID " + std::to_string(request_id) +
                                " with new packet data:\n" + ex.what());

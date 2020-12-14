@@ -29,6 +29,7 @@ target_link_libraries(test_sem_fft_accel
         gtest_main
         sem_fft_accel_fpga_worker
         test_sem_fft_accel_udp_loopback
+        test_sem_fft_accel_runtime_util
         )
 if(MSVC)
     set(TEST_OUTPUT_DIR "")
