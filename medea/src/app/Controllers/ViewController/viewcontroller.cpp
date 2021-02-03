@@ -673,6 +673,11 @@ void ViewController::SetDefaultIcon(ViewItem& view_item)
             }
             break;
         }
+        case NODE_KIND::FPGA_FFT_DEVICE:{
+            default_icon_prefix = "Icons";
+            default_icon_name = "gpu";
+            break;
+        }
         case NODE_KIND::VARIADIC_PARAMETER:{
             default_icon_prefix = "Icons";
             default_icon_name = "label";
