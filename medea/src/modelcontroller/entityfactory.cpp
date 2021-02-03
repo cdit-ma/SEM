@@ -104,6 +104,7 @@
 #include "Entities/DeploymentDefinitions/loggingserver.h"
 #include "Entities/DeploymentDefinitions/openclplatform.h"
 #include "Entities/DeploymentDefinitions/opencldevice.h"
+#include "Entities/DeploymentDefinitions/fpgafftdevice.h"
 #include "Entities/DeploymentDefinitions/externalpubsubdelegate.h"
 #include "Entities/DeploymentDefinitions/externalserverdelegate.h"
 
@@ -438,6 +439,7 @@ entity_lock_(QReadWriteLock::Recursive)
     LoggingProfile::RegisterWithEntityFactory(registry_broker);
     LoggingServer::RegisterWithEntityFactory(registry_broker);
     
+    FPGAFFTDevice::RegisterWithEntityFactory(registry_broker);
     OpenCLDevice::RegisterWithEntityFactory(registry_broker);
     OpenCLPlatform::RegisterWithEntityFactory(registry_broker);
 

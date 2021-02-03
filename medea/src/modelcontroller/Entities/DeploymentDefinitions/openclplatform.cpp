@@ -1,7 +1,6 @@
 #include "openclplatform.h"
 #include "../../entityfactorybroker.h"
 #include "../../entityfactoryregistrybroker.h"
-#include "../../entityfactoryregistrybroker.h"
 
 const NODE_KIND node_kind = NODE_KIND::OPENCL_PLATFORM;
 const QString kind_string = "OpenCL Platform";
