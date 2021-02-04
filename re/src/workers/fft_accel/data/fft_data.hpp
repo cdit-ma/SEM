@@ -16,8 +16,6 @@
 
 namespace sem::fft_accel::data {
 
-    //class fft_data {};
-
     template<typename SampleType, size_t NumElements>
     class serialized_fft_data;
 
@@ -26,6 +24,7 @@ namespace sem::fft_accel::data {
      * Used to provide a handy way of passing around iterators over a particular subsection of a vector. Pay note to
      * the convention that end() will NOT return the last element in the subsection, but instead points to the element
      * after the last included element.
+     * Lifetime requirements: the underlying source vector supplied to this class must outlive the range.
      * TODO: Replace with a STL equivalent, particularly if/when C++20 is adopted
      * @tparam SampleType
      */
@@ -94,8 +93,9 @@ namespace sem::fft_accel::data {
     template<typename SampleType, size_t NumElements = fft_data_packet<SampleType>::max_elements>
     class serialized_fft_data : public Serialized<fft_data_packet<SampleType>> {
     public:
+        constexpr static size_t header_byte_length = data_packet_header::serialized_byte_length;
         constexpr static size_t byte_size_from_num_elements(size_t num_elements) {
-            return num_elements * sizeof(SampleType) + 6;
+            return num_elements * sizeof(SampleType) + header_byte_length;
         }
 
         using native_packet_type = fft_data_packet<SampleType>;

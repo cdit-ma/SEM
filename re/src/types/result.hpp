@@ -177,7 +177,7 @@ namespace sem {
         [[nodiscard]]
         ErrorResult GetError() const {
             if (!err_) {
-                throw unexpected_error_result(err_->msg);
+                throw unexpected_value_result("Void value");
             }
             return *err_;
         };

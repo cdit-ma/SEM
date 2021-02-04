@@ -8,13 +8,14 @@ using namespace sem::fft_accel::data;
 
 template<>
 fft_data_packet<float>::fft_data_packet(SerializedPacket &serialized_data) :
-        header_data_(serialized_data.bytes().subspan(0,6)) {
+        header_data_(serialized_data.bytes().subspan(0, SerializedPacket::header_byte_length)) {
     auto &&bytes = serialized_data.bytes();
 
+    // Create a span from the remaining bytes after the header data and copy it into the vector
     // TODO: Thoroughly investigate endianness of deserialized payload
-    size_t payload_byte_length = (bytes.size() - 6);
-    fft_data_.resize(payload_byte_length / sizeof(float));
-    memcpy(&(*fft_data_.begin()), &(*bytes.subspan(6).begin()), payload_byte_length);
+    auto data_span = bytes.subspan(SerializedPacket::header_byte_length);
+    fft_data_.resize(data_span.size() / sizeof(float));
+    memcpy(&(*fft_data_.begin()), &(*data_span.begin()), data_span.size());
 }
 
 template<>

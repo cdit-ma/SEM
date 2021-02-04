@@ -8,6 +8,8 @@
 #include <vector>
 #include <random>
 
+#include "data/fft_data.hpp"
+
 namespace sem::fft_accel::data::test {
 
     template<typename T>

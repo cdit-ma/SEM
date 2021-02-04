@@ -12,11 +12,11 @@
 
 #include <queue>
 
-namespace sem::fft_accel::network {
+namespace sem::fft_accel::network::test {
 
     class async_fft_result_listener : public response_packet_listener {
     public:
-        async_fft_result_listener() = default;
+        explicit async_fft_result_listener(std::chrono::milliseconds timeout) : timeout_(timeout){}
 
         sem::Result<void> receive_response_packet(data_packet data) override {
             std::unique_lock lockGuard(cv_fft_processed_mutex_);
@@ -28,9 +28,9 @@ namespace sem::fft_accel::network {
         Result <data::serialized_fft_data<float>> get() {
             std::unique_lock lockGuard(cv_fft_processed_mutex_);
             if (packet_queue_.empty()) {
-                auto wait_status = fft_processed_.wait_for(lockGuard, std::chrono::milliseconds(300));
+                auto wait_status = fft_processed_.wait_for(lockGuard, timeout_);
                 if (wait_status == std::cv_status::timeout) {
-                    return ErrorResult("async_fft_result_listener timed out after waiting for 300ms");
+                    return ErrorResult("async_fft_result_listener timed out");
                 }
             }
             auto vec = std::move(packet_queue_.front());
@@ -41,8 +41,8 @@ namespace sem::fft_accel::network {
     private:
         std::mutex cv_fft_processed_mutex_;
         std::condition_variable fft_processed_;
-        std::future<data::serialized_fft_data<float>> result_future_;
         std::queue<data::serialized_fft_data<float>> packet_queue_;
+        std::chrono::milliseconds timeout_;
     };
 
 }

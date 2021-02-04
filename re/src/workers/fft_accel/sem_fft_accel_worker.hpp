@@ -23,7 +23,7 @@ public:
     uint8_t calculate_fft_async(const std::vector<float>& data);
 
 
-    void SetResponseCallback(std::function<callback_func_signature> func);
+    void SetResponseCallback(callback_func_type func);
 
     /**
      * A grouping of constant component attribute names
@@ -40,8 +40,6 @@ protected:
 private:
     std::shared_ptr<runtime::adapter> runtime_adapter_;
     std::shared_ptr<network::adapter> network_adapter_;
-
-    //std::function<callback_func_signature> callback_function_;
 };
 }
 

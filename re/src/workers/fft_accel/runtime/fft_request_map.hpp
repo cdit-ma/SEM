@@ -36,7 +36,7 @@ namespace sem::fft_accel::runtime {
     template<typename SampleType>
     struct fft_result {
         fft_result(data::data_request_id result_id, std::vector<SampleType> result_data) :
-        id(result_id), data(result_data) {};
+                id(result_id), data(result_data) {};
         data::data_request_id id;
         std::vector<SampleType> data;
     };
@@ -76,6 +76,8 @@ namespace sem::fft_accel::runtime {
     private:
         using packet_group_map = std::unordered_map<request_id_type, fft_request_type>;
 
+        sem::Result<request_id_type> get_new_id();
+
         /// Request packet groups that have been created and allocated memory, but are yet to be sent
         packet_group_map staged_packet_groups_{};
         /// Keep track of the list of response promises that have yet to be fulfilled
@@ -91,18 +93,12 @@ namespace sem::fft_accel::runtime {
     fft_request_map<SampleType>::construct_packets(const std::vector<SampleType> &fft_input_data) {
         std::lock_guard map_lock_guard(map_mutex_);
         try {
-            // Cycle through available id values until a valid value is found
-            // OR until we've cycled through the entire range of values
-            request_id_type new_id;
-            unsigned int attempts = 0;
-            do {
-                new_id = id_tracker_++;
-                attempts++;
-                if (attempts >= std::numeric_limits<request_id_type>::max()) {
-                    return ErrorResult(
-                            "fft_request_map failed to construct a packet: unable to find a free request_id; max attempts reached");
-                }
-            } while (staged_packet_groups_.count(new_id) != 0);
+            auto new_id_result = get_new_id();
+            if (new_id_result.is_error()) {
+                return ErrorResult("Failed to generate a new ID when constructing a packet group: \n" +
+                                   new_id_result.GetError().msg);
+            }
+            auto new_id = new_id_result.GetValue();
 
             // Create the new packet and return it
             auto[map_iter, successfully_inserted] = staged_packet_groups_.try_emplace(
@@ -119,15 +115,36 @@ namespace sem::fft_accel::runtime {
                         "fft_request_map failed to promise for unfulfilled request: unable to insert into staged packet map");
             }
 
-            auto &&output = pending_request<SampleType>{promise_map_iter->second.get_future(), map_iter->second};
 
-            return {std::move(output)};
+            auto &&future = promise_map_iter->second.get_future();
+            auto &&packet_group = map_iter->second;
+            return {pending_request<SampleType>{std::move(future), packet_group}};
+
 
         } catch (const std::exception &ex) {
             return ErrorResult(
                     std::string("fft_request_map failed to construct a packet; An exception occurred: ")
                     + ex.what());
         }
+    }
+
+    template<typename SampleType>
+    sem::Result<typename fft_request_map<SampleType>::request_id_type>
+    fft_request_map<SampleType>::get_new_id() {
+        // Cycle through available id values until a valid value is found
+        // OR until we've cycled through the entire range of values
+        request_id_type new_id;
+        unsigned int attempts = 0;
+        do {
+            new_id = id_tracker_++;
+            attempts++;
+            if (attempts >= std::numeric_limits<request_id_type>::max()) {
+                return ErrorResult(
+                        "unable to find a free request_id; max attempts reached");
+            }
+        } while (staged_packet_groups_.count(new_id) != 0);
+
+        return {new_id};
     }
 
     template<typename SampleType>
@@ -145,7 +162,7 @@ namespace sem::fft_accel::runtime {
             }
 
             if (request.remaining_packets() == 0) {
-                auto && fulfilled_request = staged_packet_groups_.at(request_id);
+                auto &&fulfilled_request = staged_packet_groups_.at(request_id);
                 unfulfilled_promises_.at(request_id).set_value(fulfilled_request);
                 return {std::optional<fft_result<SampleType>>({request_id, fulfilled_request.to_vector()})};
             } else {

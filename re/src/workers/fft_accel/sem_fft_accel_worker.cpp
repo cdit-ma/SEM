@@ -119,7 +119,7 @@ uint8_t sem::fft_accel::Worker::calculate_fft_async(const std::vector<float> &da
     return result.GetValue();
 }
 
-void sem::fft_accel::Worker::SetResponseCallback(std::function<callback_func_signature> func) {
+void sem::fft_accel::Worker::SetResponseCallback(callback_func_type func) {
     auto result = runtime_adapter_->register_result_callback(std::move(func));
     if (result.is_error()) {
         Log(GET_FUNC , Logger::WorkloadEvent::Error, get_new_work_id(),

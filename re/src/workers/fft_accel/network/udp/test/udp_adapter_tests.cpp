@@ -20,6 +20,8 @@ using namespace boost::asio;
 
 using namespace testing;
 
+using namespace std::chrono_literals;
+
 
 TEST(fft_accel_udp_adapter, nothrow_constructor) {
     auto test_addr = re::types::SocketAddress("123.234.123.234:12345");
@@ -69,7 +71,7 @@ TEST(fft_accel_udp_adapter, send_single_packet_over_udp) {
 
 TEST(fft_accel_udp_adapter, receive_multiple_packets_over_udp) {
     // Create test listener so that we can check if a result listener is properly stimulated
-    auto mock_listener = std::make_shared<async_fft_result_listener>();
+    auto mock_listener = std::make_shared<test::async_fft_result_listener>(300ms);
 
     // Create UDP socket to be used for sending test datagrams
     io_context test_io_context;

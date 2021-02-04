@@ -10,7 +10,7 @@
 namespace sem::fft_accel::data {
     using data_request_id = uint8_t;
 
-    enum class packet_type : uint8_t {
+    enum class packet_type {
         cmd_write,
         cmd_read,
         ack,
@@ -47,6 +47,8 @@ namespace sem::fft_accel::data {
 
     class data_packet_header {
     public:
+        static constexpr size_t serialized_byte_length = 6;
+
         explicit data_packet_header(const byte_span& bytes);
         explicit data_packet_header(data_request_id request_id, uint8_t sequence_num, uint16_t fft_size);
 

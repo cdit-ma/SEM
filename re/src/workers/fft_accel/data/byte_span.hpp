@@ -20,22 +20,27 @@ namespace sem::fft_accel::data {
     public:
         template<size_t Length>
         constexpr
-        byte_span(std::array<std::byte, Length>& byte_array) : begin_(&(*byte_array.begin())), length_(Length) {};
+        byte_span(std::array<std::byte, Length> &byte_array) :
+                begin_(&(*byte_array.begin())), // De-referencing required for MSVC to convert iterator to a pointer
+                length_(Length) {};
 
-        constexpr byte_span(std::byte *begin, size_t length) : begin_(begin), length_(length) {};
+        constexpr byte_span(std::byte *begin, size_t length) :
+                begin_(begin),
+                length_(length) {};
 
         [[nodiscard]] constexpr std::byte *begin() const { return begin_; };
 
         [[nodiscard]] constexpr std::byte *end() const { return begin_ + length_; };
 
-        [[nodiscard]] constexpr std::byte operator[] (size_t byte_offset) const { return *(begin_ + byte_offset); };
-        [[nodiscard]] constexpr std::byte& operator[] (size_t byte_offset) { return *(begin_ + byte_offset); };
+        [[nodiscard]] constexpr std::byte operator[](size_t byte_offset) const { return *(begin_ + byte_offset); };
 
-        [[nodiscard]] constexpr size_t size() const {return length_;};
+        [[nodiscard]] constexpr std::byte &operator[](size_t byte_offset) { return *(begin_ + byte_offset); };
+
+        [[nodiscard]] constexpr size_t size() const { return length_; };
 
         [[nodiscard]] constexpr byte_span subspan(size_t byte_offset) {
             if (byte_offset >= length_) {
-                throw std::logic_error(
+                throw std::out_of_range(
                         "Attempting to create subspan that would start beyond the end of a byte_span");
             }
             return byte_span(begin_ + byte_offset, length_ - byte_offset);
@@ -70,7 +75,7 @@ namespace sem::fft_accel::data {
             if (byte_offset + sizeof(T) > length_) {
                 throw std::out_of_range("Attempting to read beyond the end of a byte_span");
             }
-            return *reinterpret_cast<T *>((begin_ + byte_offset));
+            return *reinterpret_cast<T *>(begin_ + byte_offset);
         }
 
     private:
