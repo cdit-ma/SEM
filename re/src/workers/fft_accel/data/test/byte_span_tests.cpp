@@ -8,6 +8,8 @@
 
 #include "data_test_util.hpp"
 
+#include <optional>
+
 using namespace sem::fft_accel::data;
 using namespace sem::fft_accel::data::test;
 
@@ -77,10 +79,10 @@ TEST(fft_accel_worker_byte_span, at_of_short_size_correct_for_all_valid_indices)
 
 TEST(fft_accel_worker_byte_span, at_throws_oor_exception_for_invalid_index) {
     std::array<std::byte, 8> test_array{};
-    ASSERT_THROW(test_array.at(test_array.size()), std::out_of_range);
-    ASSERT_THROW(test_array.at(test_array.size() + 1), std::out_of_range);
+    ASSERT_THROW(auto val = test_array.at(test_array.size()), std::out_of_range);
+    ASSERT_THROW(auto val = test_array.at(test_array.size() + 1), std::out_of_range);
     if (test_array.size() < std::numeric_limits<size_t>::max()) {
-        ASSERT_THROW(test_array.at(std::numeric_limits<size_t>::max()), std::out_of_range);
+        ASSERT_THROW(auto val = test_array.at(std::numeric_limits<size_t>::max()), std::out_of_range);
     }
 }
 
@@ -88,7 +90,7 @@ TEST(fft_accel_worker_byte_span, at_of_short_size_throws_during_buffer_overrun) 
     auto test_array = test::generate_random_array<std::byte, 8>();
     byte_span test_span(test_array);
 
-    ASSERT_THROW(auto value = test_span.at<uint16_t>(test_span.size() - 1), std::out_of_range);
+    ASSERT_THROW(auto val = test_span.at<uint16_t>(test_span.size() - 1), std::out_of_range);
 }
 
 TEST(fft_accel_worker_byte_span, subspan_of_full_length_matches_original_span) {

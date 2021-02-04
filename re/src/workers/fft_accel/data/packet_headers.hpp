@@ -28,6 +28,7 @@ namespace sem::fft_accel::data {
             case packet_type::data:
                 return static_cast<std::byte>(0xDAu);
         }
+        throw std::logic_error("FFT header byte encoding did not switch on a known packet type case");
     }
 
     constexpr packet_type packet_type_from_byte(std::byte byte) {
