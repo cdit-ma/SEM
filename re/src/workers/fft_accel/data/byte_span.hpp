@@ -29,6 +29,12 @@ namespace sem::fft_accel::data {
                 begin_(begin),
                 end_(end) {};
 
+        constexpr byte_span(const byte_span& other) = default;
+        constexpr byte_span& operator=(const byte_span& rhs) = default;
+        constexpr byte_span(byte_span&& other)  noexcept : begin_(other.begin_), end_(other.end_){ }
+        constexpr byte_span& operator=(byte_span&& rhs) = default;
+
+
         [[nodiscard]] constexpr iterator begin() const { return begin_; };
 
         [[nodiscard]] constexpr iterator end() const { return end_; };
