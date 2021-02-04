@@ -29,9 +29,9 @@ namespace sem::fft_accel::data {
                 begin_(begin),
                 end_(end) {};
 
-        [[nodiscard]] constexpr std::byte *begin() const { return begin_; };
+        [[nodiscard]] constexpr iterator begin() const { return begin_; };
 
-        [[nodiscard]] constexpr std::byte *end() const { return end_; };
+        [[nodiscard]] constexpr iterator end() const { return end_; };
 
         [[nodiscard]] constexpr std::byte operator[](size_t byte_offset) const { return *(begin_ + byte_offset); };
 
