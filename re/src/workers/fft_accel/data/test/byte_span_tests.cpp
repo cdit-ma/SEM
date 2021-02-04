@@ -13,15 +13,15 @@
 using namespace sem::fft_accel::data;
 using namespace sem::fft_accel::data::test;
 
-TEST(fft_accel_worker_byte_span, constructor_raw_array_nothrow) {
+/*TEST(fft_accel_worker_byte_span, constructor_raw_array_nothrow) {
     std::vector<std::byte> test_vector{8};
-    ASSERT_NO_THROW(byte_span test_span(test_vector.data(), test_vector.size()));
+    ASSERT_NO_THROW(byte_span test_span(test_vector.begin(), test_vector.size()));
 }
 
 TEST(fft_accel_worker_byte_span, constructor_raw_array_empty_nothrow) {
     std::vector<std::byte> test_vector{0};
     ASSERT_NO_THROW(byte_span test_span(test_vector.data(), test_vector.size()));
-}
+}*/
 
 TEST(fft_accel_worker_byte_span, constructor_array_nothrow) {
     std::array<std::byte, 8> test_array{};

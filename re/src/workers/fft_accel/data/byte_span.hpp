@@ -18,47 +18,50 @@ namespace sem::fft_accel::data {
  */
     class byte_span {
     public:
+        using iterator = std::array<std::byte,0>::iterator;
+
         template<size_t Length>
         constexpr
         byte_span(std::array<std::byte, Length> &byte_array) :
-                begin_(&(*byte_array.begin())), // De-referencing required for MSVC to convert iterator to a pointer
-                length_(Length) {};
+                byte_span(byte_array.begin(), byte_array.end()) {};
 
-        constexpr byte_span(std::byte *begin, size_t length) :
+        constexpr byte_span(iterator begin, iterator end) :
                 begin_(begin),
-                length_(length) {};
+                end_(end) {};
 
         [[nodiscard]] constexpr std::byte *begin() const { return begin_; };
 
-        [[nodiscard]] constexpr std::byte *end() const { return begin_ + length_; };
+        [[nodiscard]] constexpr std::byte *end() const { return end_; };
 
         [[nodiscard]] constexpr std::byte operator[](size_t byte_offset) const { return *(begin_ + byte_offset); };
 
         [[nodiscard]] constexpr std::byte &operator[](size_t byte_offset) { return *(begin_ + byte_offset); };
 
-        [[nodiscard]] constexpr size_t size() const { return length_; };
+        [[nodiscard]] constexpr size_t size() const { return std::distance(begin_, end_); };
 
         [[nodiscard]] constexpr byte_span subspan(size_t byte_offset) {
-            if (byte_offset >= length_) {
+            if (begin_ + byte_offset >= end_) {
                 throw std::out_of_range(
                         "Attempting to create subspan that would start beyond the end of a byte_span");
             }
-            return byte_span(begin_ + byte_offset, length_ - byte_offset);
+            return byte_span(begin_ + byte_offset, end_);
         };
 
         [[nodiscard]] constexpr byte_span subspan(size_t byte_offset, size_t length) {
-            if (byte_offset >= length_) {
+            auto && new_begin = begin_ + byte_offset;
+            if (new_begin >= end_) {
                 throw std::out_of_range(
                         "Attempting to create subspan that would start beyond the end of a byte_span");
             }
-            if (length > length_) {
+            if (length > std::distance(begin_, end_)) {
                 throw std::out_of_range(
                         "Attempting to create subspan that would be longer than the originating byte_span");
             }
-            if (byte_offset + length >= length_) {
+            auto && new_end = new_begin + length;
+            if (new_end >= end_) {
                 throw std::out_of_range("Attempting to create subspan that would over-run the end of a byte_span");
             }
-            return byte_span(begin_ + byte_offset, length);
+            return byte_span(new_begin, new_end);
         };
 
         /**
@@ -72,15 +75,15 @@ namespace sem::fft_accel::data {
          */
         template<typename T>
         [[nodiscard]] constexpr T at(size_t byte_offset) const {
-            if (byte_offset + sizeof(T) > length_) {
+            if (byte_offset + sizeof(T) > std::distance(begin_, end_)) {
                 throw std::out_of_range("Attempting to read beyond the end of a byte_span");
             }
             return *reinterpret_cast<T *>(begin_ + byte_offset);
         }
 
     private:
-        std::byte *begin_;
-        size_t length_;
+        iterator begin_;
+        iterator end_;
     };
 
 };
