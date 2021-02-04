@@ -21,18 +21,12 @@ namespace sem::fft_accel::data {
         using iterator = std::array<std::byte,0>::iterator;
 
         template<size_t Length>
-        constexpr
-        byte_span(std::array<std::byte, Length> &byte_array) :
-                byte_span(byte_array.begin(), byte_array.end()) {};
+        constexpr explicit byte_span(std::array<std::byte, Length> &byte_array) :
+                begin_(byte_array.begin()), end_(byte_array.end()) {};
 
         constexpr byte_span(iterator begin, iterator end) :
                 begin_(begin),
                 end_(end) {};
-
-        constexpr byte_span(const byte_span& other) = default;
-        constexpr byte_span& operator=(const byte_span& rhs) = default;
-        constexpr byte_span(byte_span&& other)  noexcept : begin_(other.begin_), end_(other.end_){ }
-        constexpr byte_span& operator=(byte_span&& rhs) = default;
 
 
         [[nodiscard]] constexpr iterator begin() const { return begin_; };
