@@ -1022,7 +1022,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
             case NODE_KIND::FPGA_FFT_DEVICE:
                 node_item = new StackNodeItem(item, parent_node_item);
                 node_item->setSecondaryTextKey("ip_address");
-                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "ethernet"}, true);
+                //node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "ethernet"}, true);
+                node_item->setIconVisible(EntityItem::EntityRect::SECONDARY_ICON, {"Icons", "arrowsUpDownDark"}, true);
                 break;
             case NODE_KIND::LOGGINGSERVER:
                 node_item = new DefaultNodeItem(item, parent_node_item);
