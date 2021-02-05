@@ -11,18 +11,20 @@
 
 namespace sem::fft_accel::data {
 
-/**
- * Provides a view into a contiguous array of bytes. Remains valid only so long as the underlying array remains valid.
- * Intended as a simple and minimal replacement for span (C++20 feature) without adding another dependency.
- * TODO: Candidate for replacement if/when we move to C++20 support
- */
+    /**
+     * Provides a view into a contiguous array of bytes. Remains valid only so long as the underlying array remains valid.
+     * Intended as a simple and minimal replacement for span (C++20 feature) without adding another dependency.
+     * TODO: Candidate for replacement if/when we move to C++20 support
+     */
     class byte_span {
     public:
         using iterator = std::array<std::byte,0>::iterator;
 
+
         template<size_t Length>
         constexpr explicit byte_span(std::array<std::byte, Length> &byte_array) :
-                begin_(byte_array.begin()), end_(byte_array.end()) {};
+                begin_(&(*byte_array.begin())), // Address casting required for MSVC, if removed it gets stuck
+                end_(&(*byte_array.end())) {};  // converting an array iterator to std::byte*
 
         constexpr byte_span(iterator begin, iterator end) :
                 begin_(begin),
