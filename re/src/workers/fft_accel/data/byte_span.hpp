@@ -80,7 +80,11 @@ namespace sem::fft_accel::data {
             if (byte_offset + sizeof(T) > std::distance(begin_, end_)) {
                 throw std::out_of_range("Attempting to read beyond the end of a byte_span");
             }
-            return *reinterpret_cast<T *>(begin_ + byte_offset);
+
+            // Explicitly take the address of the memory location to coax MSVC into pointer conversions
+            std::byte* memory_location = &(*(begin_ + byte_offset));
+
+            return *reinterpret_cast<T *>(memory_location);
         }
 
     private:
