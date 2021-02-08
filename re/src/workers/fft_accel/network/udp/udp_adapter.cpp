@@ -44,7 +44,8 @@ template<>
 Result<void> udp_adapter<float>::send(data_packet data) {
     try {
         auto &&bytes = data.bytes();
-        auto buffer = boost::asio::buffer(data.bytes().begin(), data.bytes().size());
+        // Address dereferencing shuffle required for MSVC compatibility
+        auto buffer = boost::asio::buffer(&*data.bytes().begin(), data.bytes().size());
         auto bytes_sent = udp_socket_.send_to(buffer, fft_engine_);
 
         if (bytes_sent != data.bytes().size()) {
@@ -86,7 +87,8 @@ template<typename SampleType>
 void udp_adapter<SampleType>::schedule_listen() {
     auto &&bytes = recv_packet_.bytes();
 
-    auto recv_buffer = buffer(bytes.begin(), bytes.size());
+    // Address dereferencing shuffle required for MSVC compatibility
+    auto recv_buffer = buffer(&*bytes.begin(), bytes.size());
 
     udp_socket_.async_receive_from(
             recv_buffer, recv_sender_,

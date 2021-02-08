@@ -40,7 +40,8 @@ uint16_t test::udp_packet_loopback::get_port() const {
 }
 
 void test::udp_packet_loopback::schedule_listen() {
-    auto recv_buffer = buffer(recv_packet_.bytes().begin(), recv_packet_.bytes().size());
+    // Address dereferencing shuffle required for MSVC compatibility
+    auto recv_buffer = buffer(&*recv_packet_.bytes().begin(), recv_packet_.bytes().size());
 
     auto response_handler = [this](boost::system::error_code error, size_t bytes_transferred) {
             switch (error.value()) {
@@ -49,7 +50,8 @@ void test::udp_packet_loopback::schedule_listen() {
                     return;
                 case boost::system::errc::success: {
                     auto&& bytes = recv_packet_.bytes();
-                    auto send_buffer = buffer(bytes.begin(), bytes.size());
+                    // Address dereferencing shuffle required for MSVC compatibility
+                    auto send_buffer = buffer(&*bytes.begin(), bytes.size());
                     udp_socket_.send_to(send_buffer, sender_endpoint_);
                     schedule_listen();
                     return;
