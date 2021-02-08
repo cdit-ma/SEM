@@ -33,20 +33,39 @@ TEST(fft_accel_worker_byte_span, constructor_empty_array_nothrow) {
     ASSERT_NO_THROW(byte_span test_span(test_array_empty));
 }
 
-TEST(fft_accel_worker_byte_span, begin_returns_constructor_input) {
-    std::array<std::byte, 8> test_array{};
+TEST(fft_accel_worker_byte_span, can_read_value_from_begin) {
+    auto test_array = generate_random_array<std::byte, 8>();
     byte_span test_span(test_array);
-    ASSERT_EQ(test_array.begin(), test_span.begin());
+    ASSERT_EQ(*test_array.begin(), *test_span.begin());
 }
 
-TEST(fft_accel_worker_byte_span, end_returns_constructor_input) {
-    std::array<std::byte, 8> test_array{};
+TEST(fft_accel_worker_byte_span, can_read_value_from_end) {
+    auto test_array = generate_random_array<std::byte, 8>();
     byte_span test_span(test_array);
-    ASSERT_EQ(test_array.end(), test_span.end());
+    ASSERT_EQ(*test_array.end(), *test_span.end());
+}
+
+TEST(fft_accel_worker_byte_span, can_write_value_to_begin) {
+    auto test_array = generate_random_array<std::byte, 8>();
+    byte_span test_span(test_array);
+
+    ASSERT_EQ(*test_array.begin(), *test_span.begin());
+    auto modifier = static_cast<uint8_t>(*test_span.begin()) + get_random<uint8_t>();
+    *test_span.begin() = static_cast<std::byte>(modifier);
+    ASSERT_EQ(*test_array.begin(), *test_span.begin());
+}
+
+TEST(fft_accel_worker_byte_span, can_write_value_to_end) {
+    auto test_array = generate_random_array<std::byte, 8>();
+    byte_span test_span(test_array);
+    ASSERT_EQ(*test_array.end(), *test_span.end());
+    auto modifier = static_cast<uint8_t>(*test_span.end()) + get_random<uint8_t>();
+    *test_span.begin() = static_cast<std::byte>(modifier);
+    ASSERT_EQ(*test_array.end(), *test_span.end());
 }
 
 TEST(fft_accel_worker_byte_span, size_returns_constructor_input) {
-    std::array<std::byte, 8> test_array{};
+    auto test_array = generate_random_array<std::byte, 8>();
     byte_span test_span(test_array);
     ASSERT_EQ(test_array.size(), test_span.size());
 }
