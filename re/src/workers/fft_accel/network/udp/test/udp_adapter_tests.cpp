@@ -45,7 +45,8 @@ TEST(fft_accel_udp_adapter, send_single_packet_over_udp) {
             std::async(std::launch::async,
                        [&test_io_service, &listen_socket]() -> sem::Result<data::serialized_fft_data<float>> {
                            data::serialized_fft_data<float> listen_data;
-                           auto buffer = boost::asio::buffer(listen_data.bytes().begin(), listen_data.bytes().size());
+                           // Address dereferencing shuffle required for MSVC compatibility
+                           auto buffer = boost::asio::buffer(&*listen_data.bytes().begin(), listen_data.bytes().size());
                            listen_socket.receive(buffer);
 
                            test_io_service.run();
@@ -91,7 +92,8 @@ TEST(fft_accel_udp_adapter, receive_multiple_packets_over_udp) {
 
     // Create a short test packet and send it
     auto input_data = data::test::generate_random_serialized_data_packet<float>();
-    auto send_buffer = buffer(input_data.bytes().begin(), input_data.bytes().size());
+    // Address dereferencing shuffle required for MSVC compatibility
+    auto send_buffer = buffer(&*input_data.bytes().begin(), input_data.bytes().size());
     auto bytes_sent = send_socket.send_to(send_buffer, adapter_endpoint);
     ASSERT_EQ(bytes_sent, input_data.bytes().size());
 
@@ -107,7 +109,8 @@ TEST(fft_accel_udp_adapter, receive_multiple_packets_over_udp) {
 
     // Repeat a second time
     auto input_data2 = data::test::generate_random_serialized_data_packet<float>();
-    auto send_buffer2 = buffer(input_data2.bytes().begin(), input_data2.bytes().size());
+    // Address dereferencing shuffle required for MSVC compatibility
+    auto send_buffer2 = buffer(&*input_data2.bytes().begin(), input_data2.bytes().size());
     bytes_sent = send_socket.send_to(send_buffer2, adapter_endpoint);
     ASSERT_EQ(bytes_sent, input_data2.bytes().size());
 
