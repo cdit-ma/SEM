@@ -1,11 +1,13 @@
 #include "protoreceiver.h"
 #include "protowriter.h"
 #include <google/protobuf/util/time_util.h>
+
+#include <memory>
 #include "gtest/gtest.h"
 
-
+// TODO: Remove this sleep and replace with a proper synchronisation mechanism
 void Sleep(){
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 TEST(ReCommon_ZmqProto, DynamicConnect) {
@@ -28,8 +30,8 @@ TEST(ReCommon_ZmqProto, DynamicConnect) {
     receiver.Connect(address2);
 
     for(int i = 0; i < 100; i++){
-        writer.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
-        writer2.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
+        writer.PushMessage(std::make_unique<google::protobuf::Timestamp>());
+        writer2.PushMessage(std::make_unique<google::protobuf::Timestamp>());
     }
 
     Sleep();
@@ -39,8 +41,8 @@ TEST(ReCommon_ZmqProto, DynamicConnect) {
     receiver.Connect(address);    
  
     for(int i = 0; i < 100; i++){
-        writer.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
-        writer2.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
+        writer.PushMessage(std::make_unique<google::protobuf::Timestamp>());
+        writer2.PushMessage(std::make_unique<google::protobuf::Timestamp>());
     }
 
     Sleep();
@@ -49,8 +51,8 @@ TEST(ReCommon_ZmqProto, DynamicConnect) {
     receiver.Disconnect(address);
 
     for(int i = 0; i < 100; i++){
-        writer.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
-        writer2.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
+        writer.PushMessage(std::make_unique<google::protobuf::Timestamp>());
+        writer2.PushMessage(std::make_unique<google::protobuf::Timestamp>());
     }
     
     Sleep();
@@ -75,7 +77,7 @@ TEST(ReCommon_ZmqProto, DynamicFilters) {
 
 
     for(int i = 0; i < 100; i++){
-        writer.PushMessage("A", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
+        writer.PushMessage("A", std::make_unique<google::protobuf::Timestamp>());
     }
 
     Sleep();
@@ -84,8 +86,8 @@ TEST(ReCommon_ZmqProto, DynamicFilters) {
     receiver.Filter("A");
 
     for(int i = 0; i < 100; i++){
-        writer.PushMessage("A", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
-        writer.PushMessage("B", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
+        writer.PushMessage("A", std::make_unique<google::protobuf::Timestamp>());
+        writer.PushMessage("B", std::make_unique<google::protobuf::Timestamp>());
     }
 
     Sleep();
@@ -93,8 +95,8 @@ TEST(ReCommon_ZmqProto, DynamicFilters) {
     
     receiver.Unfilter("A");
     for(int i = 0; i < 100; i++){
-        writer.PushMessage("A", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
-        writer.PushMessage("B", std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
+        writer.PushMessage("A", std::make_unique<google::protobuf::Timestamp>());
+        writer.PushMessage("B", std::make_unique<google::protobuf::Timestamp>());
     }
     Sleep();
     EXPECT_EQ(rc_count, 100);
@@ -117,7 +119,7 @@ TEST(ReCommon_ZmqProto, StaticConnect) {
     receiver.Filter("");
 
     for(int i = 0; i < 100; i++){
-        writer.PushMessage(std::unique_ptr<google::protobuf::Timestamp>(new google::protobuf::Timestamp()));
+        writer.PushMessage(std::make_unique<google::protobuf::Timestamp>());
     }
 
     Sleep();
