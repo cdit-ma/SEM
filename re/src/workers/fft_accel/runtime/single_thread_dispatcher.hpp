@@ -24,6 +24,7 @@ namespace sem::fft_accel::runtime {
 
     public:
         single_thread_dispatcher();
+
         ~single_thread_dispatcher() final;
 
         void stop();
@@ -44,15 +45,15 @@ namespace sem::fft_accel::runtime {
 
         std::unordered_map<EventID, std::promise<EventData>> promise_map_;
 
+        std::atomic<bool> should_continue_running_;
         std::thread dispatch_thread_;
         std::condition_variable event_occurred_;
-        std::atomic<bool> should_continue_running_;
     };
 
     template<typename EventID, typename EventData>
     single_thread_dispatcher<EventID, EventData>::single_thread_dispatcher() :
-            dispatch_thread_([this]() { run_dispatch_loop(); }),
-            should_continue_running_(true) {}
+            should_continue_running_(true),
+            dispatch_thread_([this]() { run_dispatch_loop(); }) {}
 
     template<typename EventID, typename EventData>
     single_thread_dispatcher<EventID, EventData>::~single_thread_dispatcher() {
@@ -89,6 +90,9 @@ namespace sem::fft_accel::runtime {
     Result<void> single_thread_dispatcher<EventID, EventData>::register_callback(Callback callback) {
         std::lock_guard queue_lock(queue_mutex_);
         try {
+            if (!callback) {
+                return ErrorResult("An error occurred registering a callback: callback must be valid");
+            }
             registered_callback_ = std::move(callback);
         } catch (const std::exception &ex) {
             return ErrorResult(
@@ -126,10 +130,14 @@ namespace sem::fft_accel::runtime {
                     auto event = event_queue_.front();
                     registered_callback_(event.first, event.second);
                     event_queue_.pop_front();
+                } else {
+                    throw std::runtime_error("Attempting to process an event without having registered a callback");
                 }
             } else {
                 // If the queue is empty we should wait for the signal that something has happened rather than spinning
-                event_occurred_.wait(queue_lock);
+                event_occurred_.wait(queue_lock, [this] {
+                    return !event_queue_.empty() || !should_continue_running_;
+                });
             }
         }
     }

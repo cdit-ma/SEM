@@ -38,10 +38,14 @@ TEST(sem_fft_accel_runtime_single_threaded_dispatcher, can_register_callback) {
 
 TEST(sem_fft_accel_runtime_single_threaded_dispatcher, can_submit_events) {
     implementation_type dispatcher;
-    mock_callback_handler callbackHandler;
+
+    std::function<interface_type::CallbackSignature> test_callback{[](auto,auto){}};
 
     auto input_id = data::test::get_random<uint8_t>();
     auto input_data = data::test::generate_random_single_packet_fft_vec_data();
+
+    auto register_result = dispatcher.register_callback(test_callback);
+    ASSERT_FALSE(register_result.is_error()) << register_result.GetError();
 
     ASSERT_TRUE(can_post_events(dispatcher, input_id, input_data));
 }
