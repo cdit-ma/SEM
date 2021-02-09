@@ -17,7 +17,7 @@ namespace sem::fft_accel::network {
     template<typename SampleType>
     class udp_adapter final : public adapter {
     public:
-        explicit udp_adapter(re::types::SocketAddress accel_engine_addr);
+        explicit udp_adapter(sem::types::SocketAddress accel_engine_addr);
 
         ~udp_adapter() final;
 

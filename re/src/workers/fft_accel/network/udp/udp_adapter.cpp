@@ -11,7 +11,7 @@ using namespace sem::fft_accel::network;
 using namespace boost::asio;
 
 template<>
-udp_adapter<float>::udp_adapter(re::types::SocketAddress accel_engine_addr) :
+udp_adapter<float>::udp_adapter(sem::types::SocketAddress accel_engine_addr) :
         io_work_guard_(boost::asio::make_work_guard(io_service_)),
         udp_socket_(io_service_),
         fft_engine_(ip::make_address_v4(accel_engine_addr.ip().octets()),

@@ -15,7 +15,7 @@
 
 #include <functional>
 
-
+using namespace sem::types;
 using namespace sem::fft_accel;
 using namespace testing;
 
@@ -87,7 +87,7 @@ TEST(fft_accel_worker, calculate_fft_through_loopback) {
 
     // Construct packet looper
     test::udp_packet_loopback udp_loopback;
-    re::types::SocketAddress loopback_addr(re::types::Ipv4::localhost(), udp_loopback.get_port());
+    SocketAddress loopback_addr(Ipv4::localhost(), udp_loopback.get_port());
 
     // Construct worker under test
     std::unique_ptr<sem::fft_accel::Worker> worker;
@@ -127,7 +127,7 @@ TEST(fft_accel_worker, calculate_fft_async_and_receive_through_loopback) {
 
     // Construct packet looper
     test::udp_packet_loopback udp_loopback;
-    re::types::SocketAddress loopback_addr(re::types::Ipv4::localhost(), udp_loopback.get_port());
+    SocketAddress loopback_addr(Ipv4::localhost(), udp_loopback.get_port());
 
 
     // Construct worker under test

@@ -11,6 +11,6 @@ target_link_libraries(test_sem_fft_accel
         gtest
         gmock
         sem_fft_accel_udp
-        re_types
+        sem_types
         test_sem_fft_accel_data_util
 )

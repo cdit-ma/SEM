@@ -7,6 +7,7 @@
 #include <string>
 
 using namespace sem;
+using namespace sem::types;
 using namespace sem::fft_accel::runtime;
 using namespace sem::fft_accel::data;
 
@@ -112,10 +113,10 @@ Result<data_request_id> adapter_impl::submit_fft_calculation_async(const std::ve
 }
 
 Result<std::vector<float>>
-adapter_impl::wait_on_request_completion(fft_accel::data::data_request_id id, re::types::Timeout timeout) {
+adapter_impl::wait_on_request_completion(fft_accel::data::data_request_id id, types::Timeout timeout) {
     try {
         // If we don't want to block forever then perform a timeout check
-        if (!std::holds_alternative<re::types::NeverTimeout>(timeout)) {
+        if (!std::holds_alternative<NeverTimeout>(timeout)) {
             auto millis = std::get<std::chrono::milliseconds>(timeout);
             auto &&timeout_result = response_futures_.at(id).wait_for(millis);
             switch (timeout_result) {
