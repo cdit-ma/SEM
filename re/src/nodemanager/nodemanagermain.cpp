@@ -2,6 +2,8 @@
 #include "nodemanager.h"
 #include "nodemanager_config/nodemanagerconfig.h"
 
+#include <csignal>
+
 std::optional<sem::node_manager::NodeManager> node_manager;
 std::function<void(void)> interrupt_function;
 
