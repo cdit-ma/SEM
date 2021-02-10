@@ -6,6 +6,8 @@
 #include <exception>
 #include <iostream>
 
+#include <csignal>
+
 namespace sem::experiment_process_manager::main {
 
 bool running = true;
