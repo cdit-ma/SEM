@@ -23,8 +23,8 @@ target_link_libraries(epm_registry
         nodemanager_config
         # include boost header only libs for Boost::process
         Boost::boost
+        Boost::dynamic_linking
         PRIVATE
         Boost::filesystem
         Boost::program_options
-        Boost::dynamic_linking
         )
