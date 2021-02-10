@@ -7,6 +7,11 @@
 #include <boost/process/child.hpp>
 namespace sem::node_manager::epm_registry {
 struct EpmInfo {
+#ifdef _WIN32
+    [[deprecated("Default constructor only exists for compatibility with MSVC std::future")]]
+    EpmInfo() : control_endpoint(types::SocketAddress::unspecified()), data_ip_address(types::Ipv4::unspecified()){};
+#endif
+    EpmInfo(types::SocketAddress control, types::Ipv4 data) : control_endpoint(control), data_ip_address(data) {};
     types::SocketAddress control_endpoint;
     types::Ipv4 data_ip_address;
 };
