@@ -34,10 +34,14 @@ udp_adapter<float>::udp_adapter(sem::types::SocketAddress accel_engine_addr) :
 
 template<>
 udp_adapter<float>::~udp_adapter() {
-    udp_socket_.cancel();
-    io_work_guard_.reset();
-    io_service_.stop();
-    listen_thread_.wait();
+    try {
+        udp_socket_.cancel();
+        io_work_guard_.reset();
+        io_service_.stop();
+        listen_thread_.wait();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown during UDP adapter destructor: " << ex.what() << std::endl;
+    }
 }
 
 template<>
