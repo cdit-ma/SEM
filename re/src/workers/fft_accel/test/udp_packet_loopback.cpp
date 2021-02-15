@@ -19,7 +19,7 @@ test::udp_packet_loopback::udp_packet_loopback() :
 
     schedule_listen();
 
-    listen_thread_ = std::async([this]() {
+    listen_thread_ = std::async(std::launch::async, [this]() {
         try {
             io_service_.run();
         } catch (const std::exception &ex) {

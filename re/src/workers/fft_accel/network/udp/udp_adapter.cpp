@@ -22,7 +22,7 @@ udp_adapter<float>::udp_adapter(sem::types::SocketAddress accel_engine_addr) :
 
     schedule_listen();
 
-    listen_thread_ = std::async([this]() {
+    listen_thread_ = std::async(std::launch::async, [this]() {
         try {
             io_service_.run();
         } catch (const std::exception &ex) {
