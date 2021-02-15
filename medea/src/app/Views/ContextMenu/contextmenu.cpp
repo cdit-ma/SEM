@@ -364,8 +364,8 @@ void ContextMenu::update_menu(QMenu* menu)
                     return populate_dynamic_add_node_menu(menu);
                 case ACTION_KIND::ADD_EDGE:
                 case ACTION_KIND::REMOVE_EDGE:{
-                    auto edge_menu = add_edge_menu_hash.value(edge_kind, 0);
-                    if(edge_menu){
+                    auto edge_menu = add_edge_menu_hash.value(edge_kind, nullptr);
+                    if (edge_menu != nullptr) {
                         return populate_dynamic_add_edge_menu(edge_menu);
                     }
                     break;
@@ -1003,7 +1003,7 @@ void ContextMenu::setupMenus()
 
         // SEM-566: To prevent entity IMPLs and INSTANCEs from being able to be disconnected from their DEFINITIONs,
         // catch the EDGE_KIND::DEFINITION here and stop the corresponding "Connect" menu from being constructed
-        // This effectively disables the functionality to disconnect from or connect to entity definitions
+        // This effectively removes the ability to disconnect from and connect to entity definitions
         auto needs_add = (edge_kind != EDGE_KIND::DEPLOYMENT) && (edge_kind != EDGE_KIND::DEFINITION);
 
         if (needs_add) {
