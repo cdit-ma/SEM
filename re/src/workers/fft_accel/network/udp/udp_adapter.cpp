@@ -36,11 +36,26 @@ template<>
 udp_adapter<float>::~udp_adapter() {
     try {
         udp_socket_.cancel();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown when cancelling socket in  UDP adapter destructor: " << ex.what() << std::endl;
+    }
+
+    try{
         io_work_guard_.reset();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown when resetting work guard in UDP adapter destructor: " << ex.what() << std::endl;
+    }
+
+    try{
         io_service_.stop();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown when stopping IO service in UDP adapter destructor: " << ex.what() << std::endl;
+    }
+
+    try{
         listen_thread_.wait();
     } catch (const std::exception &ex) {
-        std::cerr << "exception thrown during UDP adapter destructor: " << ex.what() << std::endl;
+        std::cerr << "exception thrown while waiting on listen thread in UDP adapter destructor: " << ex.what() << std::endl;
     }
 }
 
