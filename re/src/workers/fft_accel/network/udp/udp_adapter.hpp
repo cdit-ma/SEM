@@ -63,7 +63,7 @@ namespace sem::fft_accel::network {
 
         std::vector<std::weak_ptr<response_packet_listener>> listeners_;
 
-        std::future<void> listen_thread_;
+        std::thread listen_thread_;
 
         // Order of initialisation of boost member classes matters; socket is dependant on IO service so must come second
         boost::asio::io_service io_service_;

@@ -22,7 +22,7 @@ udp_adapter<float>::udp_adapter(sem::types::SocketAddress accel_engine_addr) :
 
     schedule_listen();
 
-    listen_thread_ = std::async(std::launch::async, [this]() {
+    listen_thread_ = std::thread( [this]() {
         try {
             io_service_.run();
         } catch (const std::exception &ex) {
@@ -53,7 +53,7 @@ udp_adapter<float>::~udp_adapter() {
     }
 
     try{
-        listen_thread_.wait();
+        listen_thread_.join();
     } catch (const std::exception &ex) {
         std::cerr << "exception thrown while waiting on listen thread in UDP adapter destructor: " << ex.what() << std::endl;
     }
