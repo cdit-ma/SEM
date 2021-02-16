@@ -39,7 +39,7 @@ namespace sem::fft_accel::runtime {
         //using future_type = std::future<data::fft_packet_group<float>>;
         using future_type = std::future<std::vector<float>>;
 
-        std::shared_ptr<network::adapter> adapter_;
+        std::weak_ptr<network::adapter> network_adapter_;
 
         fft_request_map<float> pending_requests_;
         std::unordered_map<request_id, future_type> response_futures_;

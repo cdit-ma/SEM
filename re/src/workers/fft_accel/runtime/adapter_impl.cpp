@@ -17,10 +17,10 @@ adapter_impl::adapter_impl() = default;
 
 Result<void> adapter_impl::set_network_adapter(std::weak_ptr<network::adapter> network_adapter) {
     try {
-        auto &&locked_ptr = network_adapter.lock();
-        if (locked_ptr) {
-            adapter_ = locked_ptr;
-            adapter_->register_listener(weak_from_this());
+        auto &&locked_network_adapter = network_adapter.lock();
+        if (locked_network_adapter) {
+            network_adapter_ = network_adapter;
+            locked_network_adapter->register_listener(weak_from_this());
             return {};
         } else {
             return ErrorResult{"set_network_adapter: Unable to lock the provided network adapter pointer"};
@@ -56,10 +56,6 @@ Result<void> adapter_impl::receive_response_packet(data_packet data) {
 }
 
 Result<data_request_id> adapter_impl::submit_fft_calculation(const std::vector<float> &data) {
-    if (!adapter_) {
-        return ErrorResult("Runtime Adapter unable to calculate FFT: no network adapter registered.");
-    }
-
     auto &&new_request_result = pending_requests_.construct_packets(data);
     if (new_request_result.is_error()) {
         return ErrorResult("Runtime Adapter unable to calculate FFT, failed to construct packet group: \n"s +
@@ -76,8 +72,13 @@ Result<data_request_id> adapter_impl::submit_fft_calculation(const std::vector<f
     }
     response_futures_.try_emplace(new_id, std::move(request_future_result.GetValue()));
 
+    auto locked_network_adapter = network_adapter_.lock();
+    if (!locked_network_adapter) {
+        return ErrorResult("Runtime Adapter unable to calculate FFT: no network adapter registered.");
+    }
+
     for (const auto &packet : packets_group.packets()) {
-        auto &&res = adapter_->send(data_packet{packet});
+        auto &&res = locked_network_adapter->send(data_packet{packet});
         if (res.is_error()) {
             return ErrorResult(
                     "Runtime Adapter unable to calculate FFT, error occurred while sending packet group:\n"s +
@@ -88,9 +89,6 @@ Result<data_request_id> adapter_impl::submit_fft_calculation(const std::vector<f
 }
 
 Result<data_request_id> adapter_impl::submit_fft_calculation_async(const std::vector<float> &data) {
-    if (!adapter_) {
-        return ErrorResult("Runtime Adapter unable to calculate FFT: no network adapter registered.");
-    }
 
     auto &&new_request_result = pending_requests_.construct_packets(data);
     if (new_request_result.is_error()) {
@@ -101,8 +99,13 @@ Result<data_request_id> adapter_impl::submit_fft_calculation_async(const std::ve
     auto packets_group = new_request_result.GetValue().packet_group;
     request_id new_id = packets_group.request_id();
 
+    auto locked_network_adapter = network_adapter_.lock();
+    if (!locked_network_adapter) {
+        return ErrorResult("Runtime Adapter unable to calculate FFT: no network adapter registered.");
+    }
+
     for (const auto &packet : packets_group.packets()) {
-        auto &&res = adapter_->send(data_packet{packet});
+        auto &&res = locked_network_adapter->send(data_packet{packet});
         if (res.is_error()) {
             return ErrorResult(
                     "Runtime Adapter unable to calculate FFT, error occurred while sending packet group:\n"s +
