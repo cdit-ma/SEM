@@ -1,7 +1,7 @@
 #Set our project names
 project(epm_control_protocol VERSION ${PROJECT_VERSION})
 
-cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/epmcontrol.proto)
+CDIT_MA_GENERATE_PROTOBUF_CPP(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/epmcontrol.proto)
 
 add_library(${PROJECT_NAME} STATIC "")
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_11)
@@ -19,4 +19,7 @@ target_include_directories(${PROJECT_NAME}
 
 
 # Link Libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC protobuf::libprotobuf)
+target_link_libraries(${PROJECT_NAME}
+        PUBLIC
+        protobuf::libprotobuf
+        )

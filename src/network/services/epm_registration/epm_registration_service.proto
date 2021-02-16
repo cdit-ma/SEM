@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package sem.network.services.node_manager;
+
+service EpmRegistrar {
+    rpc RegisterEpm (RegistrationRequest) returns (RegistrationResponse);
+    rpc DeregisterEpm (DeregistrationRequest) returns (DeregistrationResponse);
+}
+
+message RegistrationRequest {
+    string epm_uuid = 1;
+    string container_uuid = 2;
+    // sem::types::SocketAddress
+    string epm_control_endpoint = 3;
+
+    // sem::types::Ipv4
+    string data_ip_address = 4;
+
+}
+
+message RegistrationResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message DeregistrationRequest {
+    string epm_uuid = 1;
+}
+
+message DeregistrationResponse {
+    bool success = 1;
+    string error_message = 2;
+}

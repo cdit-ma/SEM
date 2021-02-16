@@ -31,7 +31,7 @@ target_include_directories(sem_fft_accel_runtime
 target_link_libraries(sem_fft_accel_runtime
         PUBLIC
         re_core
-        re_types
+        sem_types
         re_loggers
         sem_fft_accel_network
         sem_fft_accel_data

@@ -1,7 +1,7 @@
-#include "nodemanager/nodemanagerconfig.h"
+#include "nodemanagerconfig.h"
 #include "gtest/gtest.h"
 
-namespace re::node_manager::test {
+namespace sem::node_manager::test {
 auto string_to_lines(const std::string& in) -> std::vector<std::string>
 {
     std::vector<std::string> out;
@@ -26,12 +26,12 @@ library_root=/home/cdit-ma/re)--"};
     auto config = NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
     ASSERT_EQ(config.value().environment_manager_registration_endpoint,
-              sem::types::SocketAddress("192.168."
+              types::SocketAddress("192.168."
                                         "111.230:"
                                         "5672"));
-    ASSERT_EQ(config.value().control_ip_address, sem::types::Ipv4("192.168.111.230"));
-    ASSERT_EQ(config.value().data_ip_address, sem::types::Ipv4("192.168.111.231"));
-    ASSERT_EQ(config.value().uuid, sem::types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
+    ASSERT_EQ(config.value().control_ip_address, types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().data_ip_address, types::Ipv4("192.168.111.231"));
+    ASSERT_EQ(config.value().uuid, types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
 }
 
 /// Test that we can parse a hostname
@@ -48,12 +48,12 @@ host_name=test_hostname)--"};
     auto config = NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
     ASSERT_EQ(config.value().environment_manager_registration_endpoint,
-              sem::types::SocketAddress("192.168."
+              types::SocketAddress("192.168."
                                         "111.230:"
                                         "5672"));
-    ASSERT_EQ(config.value().control_ip_address, sem::types::Ipv4("192.168.111.230"));
-    ASSERT_EQ(config.value().data_ip_address, sem::types::Ipv4("192.168.111.231"));
-    ASSERT_EQ(config.value().uuid, sem::types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
+    ASSERT_EQ(config.value().control_ip_address, types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().data_ip_address, types::Ipv4("192.168.111.231"));
+    ASSERT_EQ(config.value().uuid, types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
     ASSERT_EQ(config.value().hostname.value(), std::string("test_hostname"));
 }
 
@@ -70,12 +70,12 @@ library_root=/home/cdit-ma/re)--"};
     auto config = NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
     ASSERT_EQ(config.value().environment_manager_registration_endpoint,
-              sem::types::SocketAddress("192.168."
+              types::SocketAddress("192.168."
                                         "111.230:"
                                         "5672"));
-    ASSERT_EQ(config.value().control_ip_address, sem::types::Ipv4("192.168.111.230"));
-    ASSERT_EQ(config.value().data_ip_address, sem::types::Ipv4("192.168.111.231"));
-    ASSERT_EQ(config.value().uuid, sem::types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
+    ASSERT_EQ(config.value().control_ip_address, types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().data_ip_address, types::Ipv4("192.168.111.231"));
+    ASSERT_EQ(config.value().uuid, types::Uuid{"47503448-982e-4244-8e9a-8f7054e1ef66"});
     ASSERT_FALSE(config.value().hostname.has_value());
 }
 
@@ -91,15 +91,15 @@ library_root=/home/cdit-ma/re)--"};
     auto config = NodeConfig::FromIstream(input_stream);
     ASSERT_EQ(config.value().lib_root_dir, "/home/cdit-ma/re");
     ASSERT_EQ(config.value().environment_manager_registration_endpoint,
-              sem::types::SocketAddress("192.168."
+              types::SocketAddress("192.168."
                                         "111.230:"
                                         "5672"));
-    ASSERT_EQ(config.value().control_ip_address, sem::types::Ipv4("192.168.111.230"));
-    ASSERT_EQ(config.value().data_ip_address, sem::types::Ipv4("192.168.111.231"));
+    ASSERT_EQ(config.value().control_ip_address, types::Ipv4("192.168.111.230"));
+    ASSERT_EQ(config.value().data_ip_address, types::Ipv4("192.168.111.231"));
 
-    // re::uuid and nodemanager::nodeconfig class invariants enforce that it's a valid uuid and
+    // types::uuid and node_manager::nodeconfig class invariants enforce that it's a valid uuid and
     // config, check that there's something in our to_string to placate paranoia
-    sem::types::Uuid uuid = config.value().uuid;
+    types::Uuid uuid = config.value().uuid;
     ASSERT_NE(uuid.to_string().size(), 0);
 }
 
@@ -148,4 +148,4 @@ library_root=/home/cdit-ma/re)--"};
         }
     }
 }
-} // namespace re::node_manager::test
+} // namespace sem::node_manager::test

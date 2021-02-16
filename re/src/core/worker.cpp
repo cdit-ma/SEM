@@ -13,6 +13,7 @@ Worker::Worker(const BehaviourContainer& container, const std::string& class_nam
 };
 
 Worker::~Worker(){
+    Terminate();
 };
 
 bool Worker::is_custom_class() const{

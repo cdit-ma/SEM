@@ -11,7 +11,7 @@ using namespace sem::fft_accel::network;
 using namespace boost::asio;
 
 template<>
-udp_adapter<float>::udp_adapter(re::types::SocketAddress accel_engine_addr) :
+udp_adapter<float>::udp_adapter(sem::types::SocketAddress accel_engine_addr) :
         io_work_guard_(boost::asio::make_work_guard(io_service_)),
         udp_socket_(io_service_),
         fft_engine_(ip::make_address_v4(accel_engine_addr.ip().octets()),
@@ -22,7 +22,7 @@ udp_adapter<float>::udp_adapter(re::types::SocketAddress accel_engine_addr) :
 
     schedule_listen();
 
-    listen_thread_ = std::async([this]() {
+    listen_thread_ = std::thread( [this]() {
         try {
             io_service_.run();
         } catch (const std::exception &ex) {
@@ -34,10 +34,29 @@ udp_adapter<float>::udp_adapter(re::types::SocketAddress accel_engine_addr) :
 
 template<>
 udp_adapter<float>::~udp_adapter() {
-    udp_socket_.cancel();
-    io_work_guard_.reset();
-    io_service_.stop();
-    listen_thread_.wait();
+    try {
+        udp_socket_.cancel();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown when cancelling socket in  UDP adapter destructor: " << ex.what() << std::endl;
+    }
+
+    try{
+        io_work_guard_.reset();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown when resetting work guard in UDP adapter destructor: " << ex.what() << std::endl;
+    }
+
+    try{
+        io_service_.stop();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown when stopping IO service in UDP adapter destructor: " << ex.what() << std::endl;
+    }
+
+    try{
+        listen_thread_.join();
+    } catch (const std::exception &ex) {
+        std::cerr << "exception thrown while waiting on listen thread in UDP adapter destructor: " << ex.what() << std::endl;
+    }
 }
 
 template<>

@@ -1,27 +1,36 @@
 #ifndef RE_NODEMANAGER_H
 #define RE_NODEMANAGER_H
 
+#include "epmregistrarimpl.h"
+#include "epmregistry.h"
 #include "grpc_util/server.h"
-#include "nodemanagerconfig.h"
-#include <boost/process/child.hpp>
+#include "nodemanager_config/nodemanagerconfig.h"
+#include "nodemanagercontrolimpl.h"
 #include <memory>
-namespace re::node_manager {
+namespace sem::node_manager {
+
+auto register_node_manager(const NodeConfig& config, sem::types::SocketAddress control_endpoint)
+    -> void;
+
+auto deregister_node_manager(const NodeConfig& config) -> void;
 
 class NodeManager {
 public:
-    explicit NodeManager(NodeConfig config);
+    explicit NodeManager(NodeConfig config, epm_registry::EpmRegistry& epm_registry);
+    ~NodeManager();
     auto wait() -> void;
+    auto shutdown() -> void;
 
 private:
+    // Data member order matters as we initialise most data members in class' init list
     const NodeConfig node_config_;
-    std::optional<sem::types::SocketAddress> control_endpoint_;
+    epm_registry::EpmRegistry& epm_registry_;
 
-    struct EpmRegistration {
-        sem::types::Uuid request_uuid;
-        sem::types::Uuid epm_uuid;
-    };
+    std::shared_ptr<NodeManagerControlImpl> control_service_;
+
+    sem::grpc_util::Server server_;
 };
 
-} // namespace re::NodeManager
+} // namespace sem::node_manager
 
 #endif // RE_NODEMANAGER_H
