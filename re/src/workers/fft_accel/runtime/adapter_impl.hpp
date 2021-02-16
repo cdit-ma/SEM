@@ -28,7 +28,7 @@ namespace sem::fft_accel::runtime {
         Result<data::data_request_id> submit_fft_calculation(const std::vector<float>& data) final;
         Result<data::data_request_id> submit_fft_calculation_async(const std::vector<float>& data) final;
 
-        Result<std::vector<float>> wait_on_request_completion(data::data_request_id id, re::types::Timeout timeout) final;
+        Result<std::vector<float>> wait_on_request_completion(data::data_request_id id, sem::types::Timeout timeout) final;
 
         Result<void> receive_response_packet(data_packet data) final;
 
@@ -39,7 +39,7 @@ namespace sem::fft_accel::runtime {
         //using future_type = std::future<data::fft_packet_group<float>>;
         using future_type = std::future<std::vector<float>>;
 
-        std::shared_ptr<network::adapter> adapter_;
+        std::weak_ptr<network::adapter> network_adapter_;
 
         fft_request_map<float> pending_requests_;
         std::unordered_map<request_id, future_type> response_futures_;

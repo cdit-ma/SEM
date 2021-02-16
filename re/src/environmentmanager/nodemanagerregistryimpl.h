@@ -13,6 +13,7 @@ namespace sem::environment_manager {
 class NodeManagerRegistryImpl : public NodeManagerRegistry {
 public:
     auto add_node_manager(types::Uuid uuid, const NodeManagerInfo& info) -> void final;
+    // This can throw on attempt to remove nonexistent nodemanager
     auto remove_node_manager(types::Uuid nm_uuid) -> void final;
     [[nodiscard]] auto get_node_manager_info(types::Uuid nm_uuid) const -> NodeManagerInfo final;
 

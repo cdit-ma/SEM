@@ -7,7 +7,7 @@ add_library(node_manager_control_service STATIC
         ${GRPC_SRCS}
         )
 set_target_properties(node_manager_control_service PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_features(node_manager_control_service PRIVATE cxx_std_11)
+target_compile_features(node_manager_control_service PRIVATE cxx_std_17)
 
 # TODO: Investigate why this needs to be public for a successful build
 target_link_libraries(node_manager_control_service

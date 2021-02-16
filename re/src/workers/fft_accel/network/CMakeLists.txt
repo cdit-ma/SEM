@@ -21,7 +21,7 @@ target_include_directories(sem_fft_accel_network
 
 target_link_libraries(sem_fft_accel_network
         PUBLIC
-        re_types
+        sem_types
 )
 
 add_subdirectory(udp)
