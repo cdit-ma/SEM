@@ -9,7 +9,6 @@ target_sources(re_types
         ${CMAKE_CURRENT_SOURCE_DIR}/ipv4.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/socketaddress.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/timeout.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/result.hpp
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/uuid.h
         PRIVATE

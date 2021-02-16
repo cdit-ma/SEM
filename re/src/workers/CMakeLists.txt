@@ -4,7 +4,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/opencl")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/memory")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/dis")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tcp")
-add_subdirectory(fft_accel)
 
 include(CheckLanguage)
 check_language(CUDA)
