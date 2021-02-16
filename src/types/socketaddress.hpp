@@ -29,11 +29,6 @@ public:
 
     constexpr auto set_port(uint16_t new_port) -> void { port_ = new_port; }
 
-    static constexpr auto unspecified() -> SocketAddress
-    {
-        return SocketAddress(Ipv4::unspecified(), 0);
-    }
-
     [[nodiscard]] constexpr auto ip() const -> Ipv4 { return ip_addr_; }
 
     [[nodiscard]] constexpr auto port() const -> uint16_t { return port_; }

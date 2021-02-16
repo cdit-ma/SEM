@@ -19,9 +19,7 @@ public:
     virtual auto add_node_manager(types::Uuid, const NodeManagerInfo&) -> void = 0;
     virtual auto remove_node_manager(types::Uuid) -> void = 0;
     [[nodiscard]] virtual auto get_node_manager_info(types::Uuid) const -> NodeManagerInfo = 0;
-    virtual ~NodeManagerRegistry() = 0;
 };
-inline NodeManagerRegistry::~NodeManagerRegistry() = default;
 
 } // namespace sem::environment_manager
 #endif // SEM_NODEMANAGERREGISTRY_H

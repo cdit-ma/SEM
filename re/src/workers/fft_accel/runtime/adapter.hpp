@@ -48,7 +48,7 @@ public:
 
     virtual Result<void> register_result_callback(Callback callback) = 0;
 
-    virtual Result<std::vector<float>> wait_on_request_completion(data::data_request_id id, sem::types::Timeout timeout) = 0;
+    virtual Result<std::vector<float>> wait_on_request_completion(data::data_request_id id, re::types::Timeout timeout) = 0;
 
 
 };

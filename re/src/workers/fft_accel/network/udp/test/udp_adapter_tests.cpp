@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-using namespace sem::types;
+using namespace re::types;
 using namespace sem::fft_accel;
 using namespace sem::fft_accel::network;
 using namespace boost::asio;
@@ -24,7 +24,7 @@ using namespace std::chrono_literals;
 
 
 TEST(fft_accel_udp_adapter, nothrow_constructor) {
-    auto test_addr = sem::types::SocketAddress("123.234.123.234:12345");
+    auto test_addr = re::types::SocketAddress("123.234.123.234:12345");
     ASSERT_NO_THROW(udp_adapter<float> test_adapter(test_addr););
 }
 

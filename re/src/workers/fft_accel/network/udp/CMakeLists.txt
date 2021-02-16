@@ -24,7 +24,7 @@ target_include_directories(sem_fft_accel_udp
 target_link_libraries(sem_fft_accel_udp
         PUBLIC
         sem_fft_accel_network
-        sem_types
+        re_types
         Boost::boost
         Boost::system
         Boost::regex

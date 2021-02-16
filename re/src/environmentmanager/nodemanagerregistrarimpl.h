@@ -8,21 +8,23 @@
 #include "socketaddress.hpp"
 #include "uuid.h"
 namespace sem::environment_manager {
-namespace ServiceNamespace = sem::network::services::environment_manager;
 
-class NodeManagerRegistrarImpl final : public ServiceNamespace::NodeManagerRegistrar::Service {
+class NodeManagerRegistrarImpl final
+    : public network::services::node_manager_registration::NodeManagerRegistrar::Service {
 public:
     explicit NodeManagerRegistrarImpl(NodeManagerRegistryProvider& registry_provider);
     explicit NodeManagerRegistrarImpl(NodeManagerRegistry& registry);
     ~NodeManagerRegistrarImpl() final;
-    auto
-    RegisterNodeManager(grpc::ServerContext* context,
-                        const ServiceNamespace::RegistrationRequest* request,
-                        ServiceNamespace::RegistrationResponse* response) -> grpc::Status final;
-    auto
-    DeregisterNodeManager(grpc::ServerContext* context,
-                          const ServiceNamespace::DeregistrationRequest* request,
-                          ServiceNamespace::DeregistrationResponse* response) -> grpc::Status final;
+    auto RegisterNodeManager(
+        grpc::ServerContext* context,
+        const network::services::node_manager_registration::RegistrationRequest* request,
+        network::services::node_manager_registration::RegistrationReply* response)
+        -> grpc::Status final;
+    auto DeregisterNodeManager(
+        grpc::ServerContext* context,
+        const network::services::node_manager_registration::DeregistrationRequest* request,
+        network::services::node_manager_registration::DeregistrationReply* response)
+        -> grpc::Status final;
 
 private:
     NodeManagerRegistry& registry_;

@@ -3,10 +3,8 @@ target_sources(sem_grpc_util
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/grpc_util/grpc_util.h
         ${CMAKE_CURRENT_SOURCE_DIR}/grpc_util/server.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/grpc_util/serverlifetimemanager.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/grpc_util/serverlifetimemanagerimpl.h
         PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/grpc_util/serverlifetimemanagerimpl.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/grpc_util/grpc_util.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/grpc_util/server.cpp
         )
 

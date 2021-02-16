@@ -1,33 +1,3 @@
 syntax = "proto3";
 
-package sem.network.services.node_manager;
-
-service Control {
-    rpc NewEpm (NewEpmRequest) returns (NewEpmResponse);
-    rpc StopEpm (StopEpmRequest) returns (StopEpmResponse);
-}
-
-
-message NewEpmRequest {
-    string experiment_uuid = 1;
-
-    // MEDEA entity uuid
-    string container_uuid = 2;
-}
-
-message NewEpmResponse {
-    bool success = 1;
-    string error_message = 2;
-    string epm_uuid = 3;
-    string epm_control_endpoint = 4;
-    string epm_data_ip_address = 5;
-}
-
-message StopEpmRequest {
-    string epm_uuid = 1;
-}
-
-message StopEpmResponse {
-    bool success = 1;
-    string error_message = 2;
-}
+package sem.network.services.node_manager_registration;
