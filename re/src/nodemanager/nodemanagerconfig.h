@@ -4,9 +4,10 @@
 #include "ipv4.hpp"
 #include "socketaddress.hpp"
 #include "uuid.h"
+#include <future>
 #include <memory>
 
-namespace sem::node_manager {
+namespace re::node_manager {
 
 /// Node manager daemon configuration struct.
 /// Should be read from node manager configuration file.
@@ -27,12 +28,6 @@ struct NodeConfig {
     static auto SaveConfigFile(const NodeConfig& config) -> void;
     [[nodiscard]] static auto HandleArguments(int argc, char** argv) -> std::optional<NodeConfig>;
 
-    /// Finds EPM executable at path specified. Not using std::filesystem::path as some compilers
-    /// don't
-    ///  yet support it.
-    /// Throws if EPM executable is not found.
-    auto find_epm_executable() const -> std::string;
-
 private:
     [[nodiscard]] static auto ParseArguments(int argc, char** argv) -> std::optional<std::string>;
 };
@@ -52,6 +47,6 @@ inline auto operator<<(std::ostream& out, const NodeConfig& config) -> std::ostr
     return out;
 }
 
-} // namespace sem::node_manager
+} // namespace re::NodeManager
 
 #endif // RE_NODEMANAGERCONFIG_H

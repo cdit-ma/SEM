@@ -6,12 +6,14 @@
 #include <thread>
 #include <unordered_map>
 
-#include "../deploymentmanager.h"
+#include "deploymentmanager.h"
+#include "nodemanagerconfig.h"
 #include "epmcontrol.pb.h"
 #include "epmregistration.pb.h"
 #include "epmstdout.pb.h"
-#include "nodemanagerconfig.h"
 
+#include "publisher.hpp"
+#include "replier.hpp"
 #include "ipv4.hpp"
 #include "socketaddress.hpp"
 #include "uuid.h"
@@ -19,15 +21,35 @@
 namespace re::NodeManager {
 class ExperimentProcessManager {
 public:
-
+    struct ExperimentProcessManagerConfig {
+        sem::types::Uuid epm_uuid;
+        sem::types::Uuid experiment_uuid;
+        sem::types::Uuid creation_request_uuid;
+        sem::types::Uuid registration_entity_uuid;
+        sem::types::Ipv4 ip_address;
+        sem::types::SocketAddress qpid_broker_endpoint;
+        std::string lib_root_dir{};
+        std::string re_bin_path{};
+    };
     explicit ExperimentProcessManager(ExperimentProcessManagerConfig config);
     auto Start() -> void;
 
+    static auto HandleArguments(int argc, char** argv) -> ExperimentProcessManagerConfig;
 
 private:
+    using RegistrationRequest = network::protocol::epmregistration::Request;
+    using RegistrationReply = network::protocol::epmregistration::Reply;
+    using ControlRequest = network::protocol::epmcontrol::Request;
+    using ControlReply = network::protocol::epmcontrol::Reply;
+
+    using StdOutMessage = network::protocol::epmstdout::Message;
+
     ExperimentProcessManagerConfig epm_config_;
 
     std::vector<std::unique_ptr<DeploymentManager>> deployment_managers_;
+
+    /// Replier listening on topic "<experiment_id>_experiment_management"
+    network::Replier<ControlRequest, ControlReply> epm_control_replier_;
 
     auto BuildEpmControlTopic() -> std::string;
     auto BuildEpmRegistrationTopic() -> std::string;

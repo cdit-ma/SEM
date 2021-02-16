@@ -9,7 +9,7 @@ add_library(node_manager_registration_service
         )
 
 set_target_properties(node_manager_registration_service PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_features(node_manager_registration_service PRIVATE cxx_std_17)
+target_compile_features(node_manager_registration_service PRIVATE cxx_std_11)
 # TODO: Investigate why this needs to be public for a successful build
 target_link_libraries(node_manager_registration_service
         PUBLIC

@@ -1,8 +1,7 @@
 #Set our project names
 project(epm_stdout_protocol VERSION ${PROJECT_VERSION})
 
-
-CDIT_MA_GENERATE_PROTOBUF_CPP(PROTO_SRCS PROTO_HDRS epmstdout.proto)
+cdit_ma_generate_protobuf_cpp(PROTO_SRCS PROTO_HDRS epmstdout.proto)
 
 add_library(${PROJECT_NAME} STATIC "")
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_11)
@@ -27,7 +26,4 @@ if (MSVC)
 endif()
 
 # Link Libraries
-target_link_libraries(${PROJECT_NAME}
-        PUBLIC
-        protobuf::libprotobuf
-        )
+target_link_libraries(${PROJECT_NAME} PUBLIC protobuf::libprotobuf)

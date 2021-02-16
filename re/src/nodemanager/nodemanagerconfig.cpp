@@ -1,12 +1,12 @@
 #include "nodemanagerconfig.h"
 #include <boost/program_options.hpp>
-#include <boost/process.hpp>
 #include <fstream>
 #include <iostream>
 #include <optional>
-namespace sem::node_manager {
+namespace re::node_manager {
 
-auto NodeConfig::FromIstream(std::basic_istream<char>& file_contents) -> std::optional<NodeConfig>
+auto NodeConfig::FromIstream(std::basic_istream<char>& file_contents)
+    -> std::optional<NodeConfig>
 {
     namespace po = boost::program_options;
     po::options_description config_file_options("Config file options");
@@ -81,7 +81,8 @@ auto NodeConfig::SaveConfigFile(const NodeConfig& config) -> void
         throw std::runtime_error("Could not save nodemanager config file!");
     }
 }
-auto NodeConfig::ParseArguments(int argc, char** argv) -> std::optional<std::string>
+auto NodeConfig::ParseArguments(int argc, char** argv)
+    -> std::optional<std::string>
 {
     namespace po = boost::program_options;
     po::options_description command_line_options("Node manager options");
@@ -104,7 +105,8 @@ auto NodeConfig::ParseArguments(int argc, char** argv) -> std::optional<std::str
     }
     return config_file_path;
 }
-auto NodeConfig::HandleArguments(int argc, char** argv) -> std::optional<NodeConfig>
+auto NodeConfig::HandleArguments(int argc, char** argv)
+    -> std::optional<NodeConfig>
 {
     auto config_file_path = ParseArguments(argc, argv);
     if(config_file_path) {
@@ -115,14 +117,4 @@ auto NodeConfig::HandleArguments(int argc, char** argv) -> std::optional<NodeCon
     }
     return std::nullopt;
 }
-auto NodeConfig::find_epm_executable() const -> std::string
-{
-    namespace bp = boost::process;
-    auto epm_exe_path = bp::search_path("experiment_process_manager", {re_bin_path});
-    if(epm_exe_path.empty()) {
-        throw std::runtime_error("Experiment process manager executable not found in path: "
-                                 + re_bin_path);
-    }
-    return epm_exe_path.string();
 }
-} // namespace sem::node_manager

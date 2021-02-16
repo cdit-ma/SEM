@@ -19,7 +19,7 @@ test::udp_packet_loopback::udp_packet_loopback() :
 
     schedule_listen();
 
-    listen_thread_ = std::async(std::launch::async, [this]() {
+    listen_thread_ = std::async([this]() {
         try {
             io_service_.run();
         } catch (const std::exception &ex) {
@@ -29,14 +29,10 @@ test::udp_packet_loopback::udp_packet_loopback() :
 }
 
 test::udp_packet_loopback::~udp_packet_loopback() {
-    try {
-        udp_socket_.cancel();
-        io_work_guard_.reset();
-        io_service_.stop();
-        listen_thread_.wait();
-    } catch (const std::exception& ex) {
-        std::cerr << "exception thrown during UDP packet loopback destructor: " << ex.what() << std::endl;
-    }
+    udp_socket_.cancel();
+    io_work_guard_.reset();
+    io_service_.stop();
+    listen_thread_.wait();
 }
 
 uint16_t test::udp_packet_loopback::get_port() const {

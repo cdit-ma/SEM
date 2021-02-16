@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package sem.network.services.environment_manager;
+package sem.network.services.node_manager_registration;
 
 service NodeManagerRegistrar {
-    rpc RegisterNodeManager (RegistrationRequest) returns (RegistrationResponse);
-    rpc DeregisterNodeManager (DeregistrationRequest) returns (DeregistrationResponse);
+    rpc RegisterNodeManager (RegistrationRequest) returns (RegistrationReply);
+    rpc DeregisterNodeManager (DeregistrationRequest) returns (DeregistrationReply);
 }
 
 message RegistrationRequest {
@@ -21,16 +21,16 @@ message RegistrationRequest {
     string node_manager_control_endpoint = 6;
 }
 
-message RegistrationResponse {
+message RegistrationReply {
     bool success = 1;
-    string error_message = 2;
+    string message = 2;
 }
 
 message DeregistrationRequest {
     string uuid = 1;
 }
 
-message DeregistrationResponse {
+message DeregistrationReply {
     bool success = 1;
-    string error_message = 2;
+    string message = 2;
 }

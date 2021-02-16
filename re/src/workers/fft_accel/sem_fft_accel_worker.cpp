@@ -7,7 +7,6 @@
 #include <utility>
 #include "network/udp/udp_adapter.hpp"
 
-using namespace sem::types;
 using namespace sem::fft_accel;
 
 using namespace std::string_literals;
@@ -38,7 +37,7 @@ void sem::fft_accel::Worker::HandleConfigure() {
         throw std::runtime_error("No accelerator endpoint attribute exists when ");
     }
 
-    auto&& fae_addr = SocketAddress(endpoint->String());
+    auto&& fae_addr = re::types::SocketAddress(endpoint->String());
     network_adapter_ = std::make_shared<network::udp_adapter<float>>(fae_addr);
 
     runtime_adapter_->set_network_adapter(network_adapter_);
