@@ -364,8 +364,8 @@ void ContextMenu::update_menu(QMenu* menu)
                     return populate_dynamic_add_node_menu(menu);
                 case ACTION_KIND::ADD_EDGE:
                 case ACTION_KIND::REMOVE_EDGE:{
-                    auto edge_menu = add_edge_menu_hash.value(edge_kind, 0);
-                    if(edge_menu){
+                    auto edge_menu = add_edge_menu_hash.value(edge_kind, nullptr);
+                    if (edge_menu != nullptr) {
                         return populate_dynamic_add_edge_menu(edge_menu);
                     }
                     break;
@@ -507,7 +507,7 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, const QList<ViewItem*>&
         //Get the unique parent_items
         auto parent_items = view_controller->getViewItemParents(filtered_view_items);
 
-        //We should use a parent menu hiarachy, if we have more than 1 parent, and the user doesn't want flattened menus
+        //We should use a parent menu hierarchy, if we have more than 1 parent, and the user doesn't want flattened menus
         bool use_parent_menus = flatten_menu ? false : parent_items.size() > 1;
         if(!use_parent_menus){
             parent_items.clear();
@@ -1000,8 +1000,12 @@ void ContextMenu::setupMenus()
     
     for (auto edge_view_item : edge_kinds) {
         auto edge_kind = edge_view_item->getEdgeKind();
-        auto needs_add = edge_kind != EDGE_KIND::DEPLOYMENT;
-        
+
+        // SEM-566: To prevent entity IMPLs and INSTANCEs from being able to be disconnected from their DEFINITIONs,
+        // catch the EDGE_KIND::DEFINITION here and stop the corresponding "Connect" menu from being constructed
+        // This effectively removes the ability to disconnect from and connect to entity definitions
+        auto needs_add = (edge_kind != EDGE_KIND::DEPLOYMENT) && (edge_kind != EDGE_KIND::DEFINITION);
+
         if (needs_add) {
             //Construct an Add Edge Kind Menu
             auto add_edge_kind_menu = construct_viewitem_menu(edge_view_item, add_edge_menu);
