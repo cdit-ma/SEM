@@ -581,7 +581,7 @@ ExperimentRunData& ExperimentDataManager::getExperimentRunData(const QString& ex
     if (exp_data) {
         return exp_data->getExperimentRun(exp_run_id);
     }
-    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - The is no ExperimentData named " + exp_name.toStdString());
+    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - There is no ExperimentData named " + exp_name.toStdString());
 }
 
 /**
@@ -942,9 +942,14 @@ void ExperimentDataManager::showChartForSeries(const QPointer<const EventSeries>
 void ExperimentDataManager::showPulseForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
 {
     if (request_filters_.show_pulse) {
-        //getDataflowDialog().constructGraphicsItemsForExperimentRun(exp_run_data);
-        getDataflowDialog().constructPulseViewItemsForExperimentRun(exp_run_data);
-        emit showDataflowPanel();
+        try {
+            getDataflowDialog().constructPulseViewItemsForExperimentRun(exp_run_data);
+            emit showDataflowPanel();
+        } catch (const std::exception& ex) {
+            getDataflowDialog().clear();
+            toastNotification("Failed to construct graphics items in Pulse: " + QString::fromStdString(ex.what()),
+                              "wave", Notification::Severity::ERROR);
+        }
     }
 }
 

@@ -49,7 +49,7 @@ void DelegateAnchor::transferToAdopter(EdgeAdopter* adopter)
 void DelegateAnchor::retrieveFromAdopter()
 {
     if (active_adopter_ != nullptr) {
-        active_adopter_->returnEdges(this);
+        active_adopter_->returnEdges(*this);
         active_adopter_ = nullptr;
     }
     // Reconnect the signals to all attached EdgeConnectors
@@ -83,15 +83,13 @@ void DelegateAnchor::adoptEdges(EdgeAnchor* anchor, EdgeConnector* connector)
  * @brief DelegateAnchor::returnEdges
  * @param anchor
  */
-void DelegateAnchor::returnEdges(EdgeAnchor* anchor)
+void DelegateAnchor::returnEdges(EdgeAnchor& anchor)
 {
-    if (anchor != nullptr) {
-        const auto& anchor_connectors = attached_connectors_.values(anchor);
-        for (auto connector : anchor_connectors) {
-            disconnectEdgeConnector(connector);
-        }
-        attached_connectors_.remove(anchor);
+    const auto& anchor_connectors = attached_connectors_.values(&anchor);
+    for (auto connector : anchor_connectors) {
+        disconnectEdgeConnector(connector);
     }
+    attached_connectors_.remove(&anchor);
 }
 
 /**
@@ -128,7 +126,7 @@ void DelegateAnchor::connectEdgeConnector(EdgeConnector* connector)
 void DelegateAnchor::disconnectEdgeConnector(EdgeConnector* connector)
 {
     if (connector != nullptr) {
-        disconnect(this, nullptr, connector, nullptr);
+        disconnect(connector);
     }
 }
 
