@@ -364,8 +364,8 @@ void ContextMenu::update_menu(QMenu* menu)
                     return populate_dynamic_add_node_menu(menu);
                 case ACTION_KIND::ADD_EDGE:
                 case ACTION_KIND::REMOVE_EDGE:{
-                    auto edge_menu = add_edge_menu_hash.value(edge_kind, 0);
-                    if(edge_menu){
+                    auto edge_menu = add_edge_menu_hash.value(edge_kind, nullptr);
+                    if (edge_menu != nullptr) {
                         return populate_dynamic_add_edge_menu(edge_menu);
                     }
                     break;
@@ -507,7 +507,7 @@ void ContextMenu::construct_view_item_menus(QMenu* menu, const QList<ViewItem*>&
         //Get the unique parent_items
         auto parent_items = view_controller->getViewItemParents(filtered_view_items);
 
-        //We should use a parent menu hiarachy, if we have more than 1 parent, and the user doesn't want flattened menus
+        //We should use a parent menu hierarchy, if we have more than 1 parent, and the user doesn't want flattened menus
         bool use_parent_menus = flatten_menu ? false : parent_items.size() > 1;
         if(!use_parent_menus){
             parent_items.clear();
@@ -709,46 +709,54 @@ void ContextMenu::update_add_node_menu()
 {
     auto menus = {add_node_menu, dock_add_node_menu};
 
-    for(auto menu : menus){
-        if(menu_requires_update(menu)){
+    for (auto menu : menus) {
+        if (menu_requires_update(menu)) {
+
             ClearMenu(menu);
 
             auto filter_str = menu->property("filter").toString();
             auto adoptable_node_kinds = view_controller->getValidNodeKinds();
-            auto node_kinds = add_node_action_hash.uniqueKeys().toSet();
+
+            auto unique_node_kinds = add_node_action_hash.uniqueKeys();
+            auto node_kinds = QSet<NODE_KIND>(unique_node_kinds.begin(), unique_node_kinds.end());
 
             //Get rid of the kind we don't have a menu item for
             adoptable_node_kinds.intersect(node_kinds);
+
+            // SEM-529: Remove ComponentImpl from the adoptable_node_kinds list for the BehaviourDefinitions aspect
+            // so that it doesn't get added to the ADD context menu and the Parts dock
+            adoptable_node_kinds.remove(NODE_KIND::COMPONENT_IMPL);
 
             //Construct a set to store whats filtered.
             QList<NODE_KIND> filtered_node_kinds;
 
             auto filtered_view_items = view_controller->filterList(filter_str, view_controller->getNodeKindItems());
             std::sort(filtered_view_items.begin(), filtered_view_items.end(), ViewItem::SortByKind);
-            for(const auto& view_item : filtered_view_items){
+            for (const auto& view_item : filtered_view_items) {
                 auto node_item = qobject_cast<NodeViewItem*>(view_item);
                 filtered_node_kinds.append(node_item->getNodeKind());
             }
 
+            auto visible_node_kind_count = 0;
+
             //If there is no adoptable node kinds, add None so we get a "No Adoptable Entities" element showing
-            if(adoptable_node_kinds.isEmpty()){
+            if (adoptable_node_kinds.isEmpty()) {
                 adoptable_node_kinds.insert(NODE_KIND::NONE);
                 filtered_node_kinds.append(NODE_KIND::NONE);
-            }
-
-            auto visible_node_kind_count = 0;
-            for(const auto& node_kind : filtered_node_kinds){
-                if(adoptable_node_kinds.contains(node_kind)){
-                    auto action = add_node_action_hash.value(node_kind, nullptr);
-                    if(action){
-                        menu->addAction(action);
+            } else {
+                for (const auto &node_kind : filtered_node_kinds) {
+                    if (adoptable_node_kinds.contains(node_kind)) {
+                        auto action = add_node_action_hash.value(node_kind, nullptr);
+                        if (action) {
+                            menu->addAction(action);
+                        }
+                        visible_node_kind_count++;
                     }
-                    visible_node_kind_count++;
                 }
             }
             
             auto hidden_count = adoptable_node_kinds.size() - visible_node_kind_count;
-            if(hidden_count > 0){
+            if (hidden_count > 0) {
                 get_no_valid_items_action(menu, QString::number(hidden_count) + " Entities filtered");
             }
 
@@ -1000,8 +1008,12 @@ void ContextMenu::setupMenus()
     
     for (auto edge_view_item : edge_kinds) {
         auto edge_kind = edge_view_item->getEdgeKind();
-        auto needs_add = edge_kind != EDGE_KIND::DEPLOYMENT;
-        
+
+        // SEM-566: To prevent entity IMPLs and INSTANCEs from being able to be disconnected from their DEFINITIONs,
+        // catch the EDGE_KIND::DEFINITION here and stop the corresponding "Connect" menu from being constructed
+        // This effectively removes the ability to disconnect from and connect to entity definitions
+        auto needs_add = (edge_kind != EDGE_KIND::DEPLOYMENT) && (edge_kind != EDGE_KIND::DEFINITION);
+
         if (needs_add) {
             //Construct an Add Edge Kind Menu
             auto add_edge_kind_menu = construct_viewitem_menu(edge_view_item, add_edge_menu);

@@ -1404,7 +1404,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem* item)
                         stack_item->SetCellOrientation(0, 1, Qt::Vertical);
 
                         stack_item->SetRenderCellArea(0, 0, true);
-                        stack_item->SetRenderCellText(0, 0, true, "WORKFLOW");
+                        stack_item->SetRenderCellText(0, 0, true, "Workflow");
 
                         stack_item->SetRenderCellPrefixIcon(0, 0, true, "Icons", "arrowDownRightLong");
                         stack_item->SetRenderCellGapIcons(0, 0, true, "Icons", "arrowRightLong");
