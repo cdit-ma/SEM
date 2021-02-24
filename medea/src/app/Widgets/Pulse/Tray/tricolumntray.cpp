@@ -34,17 +34,19 @@ void TriColumnTray::addItem(QGraphicsWidget* widget)
 /**
  * @brief TriColumnTray::removeItem
  * @param widget
+ * @throws std::invalid_argument
  */
 void TriColumnTray::removeItem(QGraphicsWidget* widget)
 {
-    if (widget != nullptr) {
-        if (grid_layout_ != nullptr) {
-            prepareGeometryChange();
-            grid_layout_->removeItem(widget);
-            widget->setParentItem(nullptr);
-            // TODO: Find out what happens to the position of the remaining widgets in the layout
-            //  If they don't get adjusted automatically, ask if that will be a problem
-        }
+    if (widget == nullptr) {
+        throw std::invalid_argument("TriColumnTray::removeItem - Trying to remove a null QGraphicsWidget");
+    }
+    if (grid_layout_ != nullptr) {
+        prepareGeometryChange();
+        grid_layout_->removeItem(widget);
+        widget->setParentItem(nullptr);
+        // TODO: Find out what happens to the position of the remaining widgets in the layout
+        // TODO (Ask Jackson): If they don't get adjusted automatically, will that be a problem?
     }
 }
 

@@ -34,7 +34,7 @@ void FreeFormTray::addItem(QGraphicsWidget* widget)
     widget->setPos(stack_pos);
     widget->setParentItem(this);
     widget->setVisible(true);
-    contained_items_.append(widget);
+    contained_items_.push_back(widget);
 
     // When a child item's geometry has changed, update the tray's geometry and schedule a repaint
     connect(widget, &QGraphicsWidget::geometryChanged, [this]() {
@@ -46,13 +46,17 @@ void FreeFormTray::addItem(QGraphicsWidget* widget)
 /**
  * @brief FreeFormTray::removeItem
  * @param widget
+ * @throws std::invalid_argument
  */
 void FreeFormTray::removeItem(QGraphicsWidget* widget)
 {
-    if (widget != nullptr) {
+    if (widget == nullptr) {
+        throw std::invalid_argument("FreeFormTray::removeItem - Trying to remove a null QGraphicsWidget");
+    }
+    if (contained_items_.contains(widget)) {
         prepareGeometryChange();
         widget->setParentItem(nullptr);
-        disconnect(widget, nullptr, this, nullptr);
+        widget->disconnect(this);
         contained_items_.removeAll(widget);
     }
 }
