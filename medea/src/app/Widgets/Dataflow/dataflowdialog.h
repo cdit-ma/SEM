@@ -11,6 +11,11 @@
 #include "GraphicsItems/edgeitem.h"
 #include "PlaybackWidget/playbackcontrolswidget.h"
 
+#include "../Pulse/Entity/defaultentity.h"
+#include "../Pulse/Entity/portinstance.h"
+#include "../Pulse/EntityContainer/componentinstance.h"
+#include "../Pulse/EntityContainer/defaultentitycontainer.h"
+
 class DataflowDialog : public QFrame
 {
     Q_OBJECT
@@ -48,6 +53,13 @@ protected:
 
 private:
     void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);
+
+    static void checkPrecondition(QObject* data_obj, const QString& data_name);
+    static Pulse::View::DefaultEntityContainer& constructNodeItem(NodeData* node);
+    static Pulse::View::DefaultEntityContainer& constructContainerInstanceItem(ContainerInstanceData* container, Pulse::View::DefaultEntityContainer* parent);
+    static Pulse::View::ComponentInstance& constructComponentInstanceItem(ComponentInstanceData* comp_inst, Pulse::View::DefaultEntityContainer* parent);
+    static Pulse::View::PortInstance& constructPortInstanceItem(PortInstanceData* port_inst);
+    static Pulse::View::DefaultEntity& constructWorkerInstanceItem(WorkerInstanceData* worker_inst);
 
     void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*>& port_connections);
     void addItemToScene(QGraphicsItem* item);

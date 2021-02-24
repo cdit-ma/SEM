@@ -26,9 +26,3 @@ inline Entity::~Entity() = default;
 
 } // end Pulse::Model namespace
 #endif // PULSE_MODEL_ENTITY_H
-
-
-// Create Timer class that listens to Pulse's Time Progress bar in the view
-// send time signal to entities
-
-// Try composition of specific model classes  (ie. Pulse/Charts)
