@@ -88,6 +88,7 @@ auto main(int argc, char** argv) -> int
         epm_config = ExperimentProcessManagerConfig::ParseArguments(argc, argv);
 
         // START epm_control_service and server.
+        // TODO: Add experiment process manager (epm) as service here
         lifetime_manager.emplace();
         sem::grpc_util::LifetimeManagedServer server(*lifetime_manager, epm_config->control_ip_address,
                                                      {/*services*/});

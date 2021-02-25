@@ -3,6 +3,7 @@
 
 #include "sem_version.hpp"
 
+#include "environmentcontrol.h"
 #include "nodemanagerregistrarimpl.h"
 
 #include "grpc_util/server.h"
@@ -22,6 +23,7 @@ int main(int argc, char** argv)
 {
     std::string ip_address;
     uint16_t registration_port;
+    uint16_t control_port;
     std::string qpid_address;
     std::string tao_naming_service_address;
 
@@ -34,6 +36,9 @@ int main(int argc, char** argv)
     options.add_options()("registration_port,r",
                           boost::program_options::value<uint16_t>(&registration_port)->required(),
                           "Port number for deployment registration.");
+    options.add_options()("control_port,c",
+                          boost::program_options::value<uint16_t>(&control_port)->required(),
+                          "Port number for environment control.");
 
     options.add_options()("qpid_address,q",
                           boost::program_options::value<std::string>(&qpid_address),
@@ -71,9 +76,11 @@ int main(int argc, char** argv)
     std::unique_ptr<NodeManagerRegistry> nm_registry = std::make_unique<NodeManagerRegistryImpl>();
 
     auto nm_registrar = std::make_shared<NodeManagerRegistrarImpl>(*nm_registry);
+    auto environment_control = std::make_shared<EnvironmentControl>(*nm_registry);
 
     sem::grpc_util::Server environment_manager_server{
-        sem::types::SocketAddress{sem::types::Ipv4{ip_address}, registration_port}, {nm_registrar}};
+        sem::types::SocketAddress{sem::types::Ipv4{ip_address}, registration_port},
+        {nm_registrar, environment_control}};
 
     // TODO: Do ctrl-c handling right...
     environment_manager_server.wait();
