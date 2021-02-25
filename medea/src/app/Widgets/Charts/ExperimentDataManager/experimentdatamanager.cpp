@@ -402,8 +402,10 @@ void ExperimentDataManager::processExperimentRuns(MEDEA::ExperimentData* request
 void ExperimentDataManager::processExperimentState(ExperimentRunData* requester, const AggServerResponse::ExperimentState& exp_state)
 {
     if (requester != nullptr) {
+        qDebug() << "IF: processExperimentState - " << requester->experiment_name();
         requester->updateData(exp_state);
     } else {
+        qDebug() << "ELSE: processExperimentState - " << request_filters_.experiment_name;
         auto& exp_run_data = getExperimentRunData(request_filters_.experiment_name, request_filters_.experiment_run_id);
         exp_run_data.updateData(exp_state);
         showDataForExperimentRun(exp_run_data);
@@ -651,6 +653,8 @@ void ExperimentDataManager::stopTimerLoop(quint32 exp_run_id)
     if (exp_run_timers_.contains(exp_run_id)) {
         const auto& timer_id = exp_run_timers_.take(exp_run_id);
         killTimer(timer_id);
+        // Invalidate the live experiment id
+        live_exp_run_id_ = invalid_experiment_id;
     }
 }
 
@@ -673,9 +677,11 @@ void ExperimentDataManager::timerEvent(QTimerEvent* event)
             auto& exp_run_data = getExperimentRunData(live_exp_name_, exp_run_id);
             // When the experiment run has an end-time, kill its timer
             if (exp_run_data.end_time() != 0) {
+                qDebug() << "Timer EVENT - Experiment Finished!";
                 stopTimerLoop(exp_run_id);
-                live_exp_run_id_ = invalid_experiment_id;
+                //live_exp_run_id_ = invalid_experiment_id;
             } else {
+                qDebug() << "Timer EVENT - Re-request the ExperimentState";
                 requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, &exp_run_data);
             }
         } catch (const std::exception& ex) {
@@ -812,6 +818,11 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
         // NOTE: We no longer want to stop it in case the charts are still displaying the live experiment
         // TODO: Refactor timer work
         // Stop the previous timer if there is one
+        if (live_exp_run_id_ != invalid_experiment_id) {
+            qDebug() << "visualiseSelectedExperimentRun -  STOP live exp requests for: " << live_exp_run_id_;
+        } else {
+            qDebug() << "visualiseSelectedExperimentRun - NO live queries";
+        }
         stopTimerLoop(static_cast<quint32>(live_exp_run_id_));
 
         auto expRunID = static_cast<quint32>(experimentRun.experiment_run_id);
@@ -930,6 +941,7 @@ void ExperimentDataManager::showChartForSeries(const QPointer<const EventSeries>
     if (request_filters_.show_charts) {
         if (!series.isNull()) {
             timelineChartView().addChart(series, exp_run_data);
+            // SEM-659: This is likely the cause of the Charts panel popping out when having queried a LIVE experiment
             emit showChartsPanel();
         }
     }
