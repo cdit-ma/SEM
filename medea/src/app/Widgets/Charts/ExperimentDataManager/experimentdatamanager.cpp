@@ -943,6 +943,7 @@ void ExperimentDataManager::showPulseForExperimentRun(const MEDEA::ExperimentRun
 {
     if (request_filters_.show_pulse) {
         try {
+            //getDataflowDialog().constructGraphicsItemsForExperimentRun(exp_run_data);
             getDataflowDialog().constructPulseViewItemsForExperimentRun(exp_run_data);
             emit showDataflowPanel();
         } catch (const std::exception& ex) {
