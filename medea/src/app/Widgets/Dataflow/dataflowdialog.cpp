@@ -467,7 +467,6 @@ DefaultEntity& DataflowDialog::constructWorkerInstanceItem(WorkerInstanceData& w
 /**
  * @brief DataflowDialog::constructPortConnections
  * @param connections
- * @param port_instances
  * @throws std::invalid_argument
  */
 void DataflowDialog::constructPortConnections(const QList<PortConnectionData*>& connections)
@@ -476,11 +475,11 @@ void DataflowDialog::constructPortConnections(const QList<PortConnectionData*>& 
         checkNotNull(connection, "port connection data");
         auto src = port_instance_cache_.value(connection->getFromPortID(), nullptr);
         auto dst = port_instance_cache_.value(connection->getToPortID(), nullptr);
-        if (src && dst) {
-            checkNotNull(src->getOutputAnchor(), "source port instance's output anchor");
-            checkNotNull(dst->getInputAnchor(), "destination port instance's input anchor");
-            addItemToScene(new DefaultEdge(*src->getOutputAnchor(), *dst->getInputAnchor()));
-        }
+        checkNotNull(src, "source port instance");
+        checkNotNull(dst, "destination port instance");
+        checkNotNull(src->getOutputAnchor(), "source port instance's output anchor");
+        checkNotNull(dst->getInputAnchor(), "destination port instance's input anchor");
+        addItemToScene(new DefaultEdge(*src->getOutputAnchor(), *dst->getInputAnchor()));
     }
 }
 
