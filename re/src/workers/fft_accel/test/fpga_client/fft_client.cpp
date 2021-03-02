@@ -3,12 +3,12 @@
 //
 
 #include "boost/program_options.hpp"
+#include "boost/filesystem.hpp"
 
 #include "component.h"
 #include "print_logger.h"
 #include "sem_fft_accel_worker.hpp"
 
-#include <filesystem>
 #include <fstream>
 #include <bitset>
 #include <optional>
@@ -69,34 +69,39 @@ namespace sem::fft_accel::test {
     }
 
     namespace file {
+        namespace filesystem = boost::filesystem;
+
         struct fft_dataset {
-            std::filesystem::path real_data;
-            std::filesystem::path imaginary_data;
+            filesystem::path real_data;
+            filesystem::path imaginary_data;
         };
 
-        fft_dataset get_dataset_from_base_path(const std::filesystem::path &path) {
+        fft_dataset get_dataset_from_base_path(const filesystem::path &path) {
             fft_dataset fileset;
 
-            auto base_filename = path.filename();
+            auto real_filename = path.filename();
+            real_filename += "_r.txt";
+            auto imag_filename = path.filename();
+            imag_filename += "_i.txt";
 
             fileset.real_data = path;
-            fileset.real_data.replace_filename(base_filename.string().append("_r.txt"));
+            fileset.real_data.remove_filename() += real_filename;
 
             fileset.imaginary_data = path;
-            fileset.imaginary_data.replace_filename(base_filename.string().append("_i.txt"));
+            fileset.imaginary_data.remove_filename() += imag_filename;
 
             return fileset;
         }
 
-        std::vector<float> load_ascii_binary_fft_data(const std::filesystem::path &path) {
+        std::vector<float> load_ascii_binary_fft_data(const filesystem::path &path) {
 
             auto fileset = get_dataset_from_base_path(path);
 
-            std::ifstream real_component_stream(fileset.real_data);
+            std::ifstream real_component_stream(fileset.real_data.string());
             if (!real_component_stream) {
                 throw std::runtime_error("Failed to open file_stream for " + path.string());
             }
-            std::ifstream imaginary_component_stream(fileset.imaginary_data);
+            std::ifstream imaginary_component_stream(fileset.imaginary_data.string());
             if (!imaginary_component_stream) {
                 throw std::runtime_error("Failed to open file_stream for " + path.string());
             }
