@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
     try {
         auto calculated_result = calculate_worker_result(config, fft_input_data);
 
-        if (config.expected_result_path.has_value()) {
+        if (config.expected_result_path) {
             auto expected_result = file::load_ascii_binary_fft_data(config.expected_result_path.value());
 
             compare_and_print_mismatches(calculated_result, expected_result);
