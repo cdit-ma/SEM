@@ -1,5 +1,6 @@
 #include "cpuutilisationeventseries.h"
 #include <stdexcept>
+
 /**
  * @brief CPUUtilisationEventSeries::CPUUtilisationEventSeries
  * @param ID

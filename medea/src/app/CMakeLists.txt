@@ -154,6 +154,9 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/networkutilisationevent.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/gpucomputeutilisationevent.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/gpumemoryutilisationevent.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/gputemperatureevent.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/porteventseries.cpp
@@ -162,6 +165,9 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/networkutilisationeventseries.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/gpucomputeutilisationseries.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/gpumemoryutilisationseries.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/gputemperatureseries.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.cpp
@@ -327,6 +333,9 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/memoryutilisationevent.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/markerevent.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/networkutilisationevent.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/gpucomputeutilisationevent.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/gpumemoryutilisationevent.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Events/gputemperatureevent.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/eventseries.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/portlifecycleeventseries.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/porteventseries.h
@@ -335,6 +344,9 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/memoryutilisationeventseries.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/markereventseries.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/networkutilisationeventseries.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/gpucomputeutilisationseries.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/gpumemoryutilisationseries.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Series/gputemperatureseries.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/experimentdatamanager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/ExperimentDataManager/requestbuilder.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/experimentdata.h

@@ -10,7 +10,7 @@
 CPUUtilisationEvent::CPUUtilisationEvent(const QString& hostname,
                                          double utilisation,
                                          qint64 time,
-                                         QObject *parent)
+                                         QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::CPU_UTILISATION, time, parent),
       id_(hostname + QString::number(time)),
       hostname_(hostname),
