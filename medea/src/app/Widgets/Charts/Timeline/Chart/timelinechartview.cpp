@@ -73,6 +73,8 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
         throw std::invalid_argument("TimelineChartView::addChart - Series is null.");
     }
 
+    connect(series, &MEDEA::EventSeries::eventAdded, [this]{ update(); });
+
     // If a chart already exists for the series, simply replace the series within the chart
     auto chart = charts_.value(series->getID(), nullptr);
     if (chart) {
@@ -83,6 +85,8 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
         return;
     }
 
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, [this]{ update(); });
+
     const auto exp_run_id = exp_run_data.experiment_run_id();
     const auto exp_start_time = exp_run_data.start_time();
     const auto& series_id = series->getID();
@@ -90,9 +94,6 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
 
     experimentRunSeriesCount_[exp_run_id]++;
     setTimeRangeForExperimentRun(exp_run_id, exp_start_time, exp_run_data.last_updated_time());
-
-    connect(series, &MEDEA::EventSeries::eventAdded, [this]{ update(); });
-    connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, [this]{ update(); });
 
     auto exp_run_info = "Experiment name:\t" + exp_run_data.experiment_name() +
                         /*"\nJob number#:\t" + QString::number(exp_run_data.job_num()) +*/
@@ -227,19 +228,6 @@ void TimelineChartView::setTimeDisplayFormat(const TIME_DISPLAY_FORMAT format)
 void TimelineChartView::themeChanged()
 {
 	Theme* theme = Theme::theme();
-	QColor bgColor = theme->getAltBackgroundColor();
-	QColor handleColor = theme->getAltBackgroundColor();
-	QColor highlightColor = theme->getHighlightColor();
-	bgColor.setAlphaF(OPACITY);
-	handleColor.setAlphaF(1 - OPACITY);
-	highlightColor.setAlphaF(handleColor.alphaF());
-
-    auto sb_bgcolor = theme->getDisabledBackgroundColorHex();
-    if (theme->getTextColor() == theme->black()) {
-        sb_bgcolor = Theme::QColorToHex(theme->white());
-    } else {
-        sb_bgcolor = Theme::QColorToHex(theme->black());
-    }
 
     // The scrollbar stylesheet needs to be applied directly to the scrollbar
     // Otherwise, it will only apply the stylesheet on the first theme change
@@ -257,6 +245,7 @@ void TimelineChartView::themeChanged()
         QIcon buttonIcon;
         switch (kind) {
             case MEDEA::ChartDataKind::PORT_EVENT:
+                [[fallthrough]];
             case MEDEA::ChartDataKind::PORT_LIFECYCLE:
                 buttonIcon = theme->getIcon("ToggleIcons", "portLifecycleHover");
                 break;
@@ -267,6 +256,8 @@ void TimelineChartView::themeChanged()
                 buttonIcon = theme->getIcon("ToggleIcons", "utilisationHover");
                 break;
             case MEDEA::ChartDataKind::MEMORY_UTILISATION:
+                [[fallthrough]];
+            case MEDEA::ChartDataKind::GPU_MEMORY_UTILISATION:
                 buttonIcon = theme->getIcon("ToggleIcons", "memoryHover");
                 break;
             case MEDEA::ChartDataKind::MARKER:
@@ -274,6 +265,12 @@ void TimelineChartView::themeChanged()
                 break;
             case MEDEA::ChartDataKind::NETWORK_UTILISATION:
                 buttonIcon = theme->getIcon("ToggleIcons", "networkHover");
+                break;
+            case MEDEA::ChartDataKind::GPU_COMPUTE_UTILISATION:
+                buttonIcon = theme->getIcon("ToggleIcons", "gpuComputeHover");
+                break;
+            case MEDEA::ChartDataKind::GPU_TEMPERATURE:
+                buttonIcon = theme->getIcon("ToggleIcons", "gpuTemperatureHover");
                 break;
             default:
                 if (kind != no_data_kind_) {
@@ -407,7 +404,7 @@ void TimelineChartView::updateHoverDisplay()
             if (series.isNull()) {
                 continue;
             }
-            const auto &hovered_info = series->getHoveredDataString(hovered_range.first,
+            const auto& hovered_info = series->getHoveredDataString(hovered_range.first,
                                                                     hovered_range.second,
                                                                     HOVER_DISPLAY_ITEM_COUNT,
                                                                     getDateTimeDisplayFormat(kind));
@@ -430,7 +427,7 @@ void TimelineChartView::updateHoverDisplay()
         }
     }
 
-	// adjust the hover's size before calculating its position
+    // adjust the hover display's size before calculating its position
 	hoverDisplay_->adjustChildrenSize();
 
     auto globalPos = mapToGlobal(chartList_->pos());
@@ -652,6 +649,9 @@ const QString &TimelineChartView::getDateTimeDisplayFormat(const MEDEA::ChartDat
         case MEDEA::ChartDataKind::CPU_UTILISATION:
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
         case MEDEA::ChartDataKind::NETWORK_UTILISATION:
+        case MEDEA::ChartDataKind::GPU_COMPUTE_UTILISATION:
+        case MEDEA::ChartDataKind::GPU_MEMORY_UTILISATION:
+        case MEDEA::ChartDataKind::GPU_TEMPERATURE:
             return TIME_FORMAT;
         default:
             return DATE_TIME_FORMAT;

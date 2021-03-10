@@ -55,7 +55,10 @@ const QList<MEDEA::ChartDataKind>& MEDEA::Event::GetChartDataKinds()
                 ChartDataKind::MEMORY_UTILISATION,
                 ChartDataKind::MARKER,
                 ChartDataKind::PORT_EVENT,
-                ChartDataKind::NETWORK_UTILISATION
+                ChartDataKind::NETWORK_UTILISATION,
+                ChartDataKind::GPU_COMPUTE_UTILISATION,
+                ChartDataKind::GPU_MEMORY_UTILISATION,
+                ChartDataKind::GPU_TEMPERATURE
     };
     return kinds;
 }
@@ -96,6 +99,15 @@ const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
             static const QString networkStr = "NetworkUtilisation";
             return networkStr;
         }
+        case ChartDataKind::GPU_COMPUTE_UTILISATION:
+            static const QString gpuComputeStr = "GPUComputeUtilisation";
+            return gpuComputeStr;
+        case ChartDataKind::GPU_MEMORY_UTILISATION:
+            static const QString gpuMemoryStr = "GPUMemoryUtilisation";
+            return gpuMemoryStr;
+        case ChartDataKind::GPU_TEMPERATURE:
+            static const QString gpuTemperatureStr = "GPUTemperature";
+            return gpuTemperatureStr;
         default: {
             static const QString defaultStr = "Data";
             return defaultStr;
@@ -119,13 +131,23 @@ const QString& MEDEA::Event::GetChartDataKindStringSuffix(MEDEA::ChartDataKind k
             static const QString cpuSuffix = "_cpu";
             return cpuSuffix;
         }
-        case ChartDataKind::MEMORY_UTILISATION: {
+        case ChartDataKind::MEMORY_UTILISATION:
+            [[falltrhough]];
+        case ChartDataKind::GPU_MEMORY_UTILISATION: {
             static const QString memorySuffix = "_mem";
             return memorySuffix;
         }
         case ChartDataKind::NETWORK_UTILISATION: {
             static const QString networkSuffix = "_net";
             return networkSuffix;
+        }
+        case ChartDataKind::GPU_COMPUTE_UTILISATION: {
+            static const QString gpuComputeSuffix = "_compute";
+            return gpuComputeSuffix;
+        }
+        case ChartDataKind::GPU_TEMPERATURE: {
+            static const QString gpuTemperatureSuffix = "_temp";
+            return gpuTemperatureSuffix;
         }
         default: {
             static const QString defaultSuffix = "";

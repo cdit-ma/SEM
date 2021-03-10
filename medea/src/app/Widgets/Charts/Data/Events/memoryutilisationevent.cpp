@@ -47,10 +47,10 @@ const QString& MemoryUtilisationEvent::getHostname() const
 }
 
 /**
- * @brief MemoryUtilisationEvent::getUtilisation
+ * @brief MemoryUtilisationEvent::getValue
  * @return
  */
-double MemoryUtilisationEvent::getUtilisation() const
+double MemoryUtilisationEvent::getValue() const
 {
     return utilisation_;
 }
