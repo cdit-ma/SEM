@@ -26,7 +26,7 @@ void GPUMemoryUtilisationSeries::addEvent(MEDEA::Event* event)
         throw std::invalid_argument("GPUMemoryUtilisationSeries::addEvent - Invalid event kind.");
     }
     if (!contains(event)) {
-        auto utilisation = qobject_cast<GPUMemoryUtilisationEvent*>(event)->getUtilisation();
+        auto utilisation = qobject_cast<GPUMemoryUtilisationEvent *>(event)->getValue();
         if (utilisation < min_utilisation_) {
             min_utilisation_ = utilisation;
             emit minYValueChanged(utilisation);

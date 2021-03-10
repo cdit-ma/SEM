@@ -26,7 +26,7 @@ void GPUTemperatureSeries::addEvent(MEDEA::Event* event)
         throw std::invalid_argument("GPUTemperatureSeries::addEvent - Invalid event kind.");
     }
     if (!contains(event)) {
-        auto temperature = qobject_cast<GPUTemperatureEvent*>(event)->getTemperature();
+        auto temperature = qobject_cast<GPUTemperatureEvent *>(event)->getValue();
         if (temperature < min_temperature_) {
             min_temperature_ = temperature;
             emit minYValueChanged(temperature);

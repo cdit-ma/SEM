@@ -47,10 +47,10 @@ const QString& CPUUtilisationEvent::getHostname() const
 }
 
 /**
- * @brief CPUUtilisationEvent::getUtilisation
+ * @brief CPUUtilisationEvent::getValue
  * @return
  */
-double CPUUtilisationEvent::getUtilisation() const
+double CPUUtilisationEvent::getValue() const
 {
     return utilisation_;
 }

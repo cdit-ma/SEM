@@ -610,6 +610,9 @@ QSet<MEDEA::ChartDataKind> ViewController::getValidChartDataKindsForSelection()
                 validDataKinds.insert(MEDEA::ChartDataKind::CPU_UTILISATION);
                 validDataKinds.insert(MEDEA::ChartDataKind::MEMORY_UTILISATION);
                 validDataKinds.insert(MEDEA::ChartDataKind::NETWORK_UTILISATION);
+                validDataKinds.insert(MEDEA::ChartDataKind::GPU_COMPUTE_UTILISATION);
+                validDataKinds.insert(MEDEA::ChartDataKind::GPU_MEMORY_UTILISATION);
+                validDataKinds.insert(MEDEA::ChartDataKind::GPU_TEMPERATURE);
                 break;
             }
             default:
