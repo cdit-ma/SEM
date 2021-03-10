@@ -366,8 +366,8 @@ void ExperimentDataManager::processExperimentRuns(MEDEA::ExperimentData* request
 
     // This is the case where all the experiment runs for all experiments has been requested
     if (exp_name.isEmpty()) {
-        for (const auto &exp_run : exp_runs) {
-            const auto &exp_run_name = exp_run.experiment_name;
+        for (const auto& exp_run : exp_runs) {
+            const auto& exp_run_name = exp_run.experiment_name;
             if (exp_run_name.isEmpty()) {
                 throw MalformedProtoException("ExperimentDataManager::processExperimentRuns - Experiment run name cannot be empty");
             }
@@ -581,7 +581,7 @@ ExperimentRunData& ExperimentDataManager::getExperimentRunData(const QString& ex
     if (exp_data) {
         return exp_data->getExperimentRun(exp_run_id);
     }
-    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - The is no ExperimentData named " + exp_name.toStdString());
+    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - There is no ExperimentData named " + exp_name.toStdString());
 }
 
 /**
