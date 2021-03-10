@@ -389,6 +389,8 @@
         <file alias="star">Resources/Icons/star.png</file>
         <file alias="tag">Resources/Icons/tag.png</file>
         <file alias="terminal">Resources/Icons/terminal.png</file>
+        <file alias="tetrahedron">Resources/Icons/tetrahedron.png</file>
+        <file alias="thermostat">Resources/Icons/thermostat.png</file>
         <file alias="thumbDown">Resources/Icons/thumbDown.png</file>
         <file alias="thumbUp">Resources/Icons/thumbUp.png</file>
         <file alias="tick">Resources/Icons/tick.png</file>
