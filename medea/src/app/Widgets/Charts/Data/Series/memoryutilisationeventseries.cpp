@@ -22,7 +22,7 @@ void MemoryUtilisationEventSeries::addEvent(MEDEA::Event* event)
         throw std::invalid_argument("MemoryUtilisationEventSeries::addEvent - Invalid event kind.");
     }
     if (!contains(event)) {
-        auto utilisation = qobject_cast<MemoryUtilisationEvent*>(event)->getUtilisation();
+        auto utilisation = qobject_cast<MemoryUtilisationEvent *>(event)->getValue();
         if (utilisation < minUtilisation_) {
             minUtilisation_ = utilisation;
             emit minYValueChanged(utilisation);

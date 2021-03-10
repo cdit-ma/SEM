@@ -366,8 +366,8 @@ void ExperimentDataManager::processExperimentRuns(MEDEA::ExperimentData* request
 
     // This is the case where all the experiment runs for all experiments has been requested
     if (exp_name.isEmpty()) {
-        for (const auto &exp_run : exp_runs) {
-            const auto &exp_run_name = exp_run.experiment_name;
+        for (const auto& exp_run : exp_runs) {
+            const auto& exp_run_name = exp_run.experiment_name;
             if (exp_run_name.isEmpty()) {
                 throw MalformedProtoException("ExperimentDataManager::processExperimentRuns - Experiment run name cannot be empty");
             }

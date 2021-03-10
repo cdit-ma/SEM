@@ -24,7 +24,7 @@ public:
     [[nodiscard]] const QString& getGPUName() const;
     [[nodiscard]] const QString& getVendor() const;
 
-    [[nodiscard]] double getTemperature() const;
+    [[nodiscard]] double getValue() const;
 
 private:
     QString id_;
