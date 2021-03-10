@@ -64,10 +64,10 @@ const QString& GPUComputeUtilisationEvent::getVendor() const
 }
 
 /**
- * @brief GPUComputeUtilisationEvent::getUtilisation
+ * @brief GPUComputeUtilisationEvent::getValue
  * @return
  */
-double GPUComputeUtilisationEvent::getUtilisation() const
+double GPUComputeUtilisationEvent::getValue() const
 {
     return utilisation_;
 }

@@ -18,7 +18,7 @@ public:
     const QString& getID() const override;
     const QString& getHostname() const;
 
-    double getUtilisation() const;
+    double getValue() const;
 
 private:
     QString id_;

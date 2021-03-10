@@ -1,5 +1,6 @@
 #include "theme.h"
 #include "../modelcontroller/entityfactory.h"
+#include "../app/Widgets/Charts/Data/Events/event.h"
 
 #include <QDebug>
 #include <QDirIterator>
@@ -1242,13 +1243,19 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "Notification", "Icons", "bell", "Icons", "bell");
     setIconToggledImage("ToggleIcons", "Line", "Icons", "connect", "Icons", "connect");
     setIconToggledImage("ToggleIcons", "Bar", "Icons", "chart", "Icons", "chart");
-    setIconToggledImage("ToggleIcons", "PortLifecycle", "Icons", "plug", "Icons", "plug");
-    setIconToggledImage("ToggleIcons", "PortEvent", "Icons", "plug", "Icons", "plug");
-    setIconToggledImage("ToggleIcons", "Workload", "Icons", "spanner", "Icons", "spanner");
-    setIconToggledImage("ToggleIcons", "CPUUtilisation", "Icons", "cpu", "Icons", "cpu");
-    setIconToggledImage("ToggleIcons", "MemoryUtilisation", "Icons", "memoryCard", "Icons", "memoryCard");
-    setIconToggledImage("ToggleIcons", "Marker", "Icons", "bookmark", "Icons", "bookmark");
-    setIconToggledImage("ToggleIcons", "NetworkUtilisation", "Icons", "waveEmit", "Icons", "waveEmit");
+
+    using namespace MEDEA;
+    auto kind_str = [](ChartDataKind kind) { return Event::GetChartDataKindString(kind); };
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::PORT_LIFECYCLE), "Icons", "plug", "Icons", "plug");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::PORT_EVENT), "Icons", "plug", "Icons", "plug");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::WORKLOAD), "Icons", "spanner", "Icons", "spanner");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::CPU_UTILISATION), "Icons", "cpu", "Icons", "cpu");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::MEMORY_UTILISATION), "Icons", "memoryCard", "Icons", "memoryCard");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::MARKER), "Icons", "bookmark", "Icons", "bookmark");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::NETWORK_UTILISATION), "Icons", "waveEmit", "Icons", "waveEmit");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::GPU_COMPUTE_UTILISATION), "Icons", "tetrahedron", "Icons", "tetrahedron");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::GPU_MEMORY_UTILISATION), "Icons", "memoryCard", "Icons", "memoryCard");
+    setIconToggledImage("ToggleIcons", kind_str(ChartDataKind::GPU_TEMPERATURE), "Icons", "thermostat", "Icons", "thermostat");
 
     setIconToggledImage("ToggleIcons", "stateHover", "Icons", "circleHaloTwoTone", "Icons", "circleHaloTwoTone");
     setIconToggledImage("ToggleIcons", "notificationHover", "Icons", "bellTwoTone", "Icons", "bellTwoTone");
@@ -1259,6 +1266,8 @@ void Theme::setupToggledIcons()
     setIconToggledImage("ToggleIcons", "memoryHover", "Icons", "memoryCardTwoTone", "Icons", "memoryCardTwoTone");
     setIconToggledImage("ToggleIcons", "markerHover", "Icons", "bookmarkTwoTone", "Icons", "bookmarkTwoTone");
     setIconToggledImage("ToggleIcons", "networkHover", "Icons", "waveEmit", "Icons", "waveEmit");
+    setIconToggledImage("ToggleIcons", "gpuComputeHover", "Icons", "tetrahedron", "Icons", "tetrahedron");
+    setIconToggledImage("ToggleIcons", "gpuTemperatureHover", "Icons", "thermostat", "Icons", "thermostat");
 
     setIconToggledImage("ToggleIcons", "axisTimeToggle", "Icons", "clock", "Icons", "timeElapsed");
 }

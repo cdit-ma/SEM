@@ -64,10 +64,10 @@ const QString& GPUTemperatureEvent::getVendor() const
 }
 
 /**
- * @brief GPUTemperatureEvent::getTemperature
+ * @brief GPUTemperatureEvent::getValue
  * @return
  */
-double GPUTemperatureEvent::getTemperature() const
+double GPUTemperatureEvent::getValue() const
 {
     return temperature_;
 }
