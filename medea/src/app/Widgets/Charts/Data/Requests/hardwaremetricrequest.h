@@ -1,12 +1,12 @@
-#ifndef UTILISATIONREQUEST_H
-#define UTILISATIONREQUEST_H
+#ifndef HARDWAREMETRICREQUEST_H
+#define HARDWAREMETRICREQUEST_H
 
 #include "request.h"
 
-class UtilisationRequest : public Request {
+class HardwareMetricRequest : public Request {
 
 public:
-    explicit UtilisationRequest() = default;
+    explicit HardwareMetricRequest() = default;
 
     void setNodeIDs(const QVector<QString>& node_ids);
     void setNodeHostnames(const QVector<QString>& node_hostnames);
@@ -19,4 +19,4 @@ private:
     QVector<QString> nodeHostnames_;
 };
 
-#endif // UTILISATIONREQUEST_H
+#endif // HARDWAREMETRICREQUEST_H

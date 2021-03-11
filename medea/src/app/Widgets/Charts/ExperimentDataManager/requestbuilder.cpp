@@ -24,10 +24,10 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
             workloadRequest_ = std::make_unique<WorkloadRequest>();
             break;
         case MEDEA::ChartDataKind::CPU_UTILISATION:
-            cpuUtilisationRequest_ = std::make_unique<UtilisationRequest>();
+            cpuUtilisationRequest_ = std::make_unique<HardwareMetricRequest>();
             break;
         case MEDEA::ChartDataKind::MEMORY_UTILISATION:
-            memoryUtilisationRequest_ = std::make_unique<UtilisationRequest>();
+            memoryUtilisationRequest_ = std::make_unique<HardwareMetricRequest>();
             break;
         case MEDEA::ChartDataKind::MARKER:
             markerRequest_ = std::make_unique<MarkerRequest>();
@@ -36,7 +36,7 @@ void RequestBuilder::buildRequests(const QList<MEDEA::ChartDataKind> &requestKin
             portEventRequest_ = std::make_unique<PortEventRequest>();
             break;
         case MEDEA::ChartDataKind::NETWORK_UTILISATION:
-            networkUtilisationRequest_ = std::make_unique<UtilisationRequest>();
+            networkUtilisationRequest_ = std::make_unique<HardwareMetricRequest>();
             break;
         default:
 	        throw std::invalid_argument("RequestBuilder::buildRequests - Unknown chart data kind");
@@ -283,7 +283,7 @@ const WorkloadRequest& RequestBuilder::getWorkloadRequest() const
  * @throws std::invalid_argument
  * @return
  */
-const UtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
+const HardwareMetricRequest& RequestBuilder::getCPUUtilisationRequest() const
 {
     if (!cpuUtilisationRequest_) {
         throw std::invalid_argument("There is no built CPUUtilisationRequest");
@@ -296,7 +296,7 @@ const UtilisationRequest& RequestBuilder::getCPUUtilisationRequest() const
  * @throws std::invalid_argument
  * @return
  */
-const UtilisationRequest& RequestBuilder::getMemoryUtilisationRequest() const
+const HardwareMetricRequest& RequestBuilder::getMemoryUtilisationRequest() const
 {
     if (!memoryUtilisationRequest_) {
         throw std::invalid_argument("There is no built MemoryUtilisationRequest");
@@ -336,7 +336,7 @@ const PortEventRequest& RequestBuilder::getPortEventRequest() const
  * @throws std::invalid_argument
  * @return
  */
-const UtilisationRequest& RequestBuilder::getNetworkUtilisationRequest() const
+const HardwareMetricRequest& RequestBuilder::getNetworkUtilisationRequest() const
 {
     if (!networkUtilisationRequest_) {
         throw std::invalid_argument("No NetworkUtilisationRequest");
