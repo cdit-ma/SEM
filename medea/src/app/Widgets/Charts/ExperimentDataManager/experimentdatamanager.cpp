@@ -133,25 +133,11 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
                     requestNetworkUtilisationEvents(request, qobject_cast<NodeData*>(requester));
                 }
                 break;
-		    case ExperimentDataRequestType::GPUComputeUtilisationEvent:
+		    case ExperimentDataRequestType::GPUMetrics:
                 valid = request_param.canConvert<HardwareMetricRequest>();
                 if (valid) {
                     auto request = request_param.value<HardwareMetricRequest>();
-                    requestGPUComputeUtilisationEvents(request, qobject_cast<NodeData*>(requester));
-                }
-                break;
-            case ExperimentDataRequestType::GPUMemoryUtilisationEvent:
-                valid = request_param.canConvert<HardwareMetricRequest>();
-                if (valid) {
-                    auto request = request_param.value<HardwareMetricRequest>();
-                    requestGPUMemoryUtilisationEvents(request, qobject_cast<NodeData*>(requester));
-                }
-                break;
-            case ExperimentDataRequestType::GPUTemperatureEvent:
-                valid = request_param.canConvert<HardwareMetricRequest>();
-                if (valid) {
-                    auto request = request_param.value<HardwareMetricRequest>();
-                    requestGPUTemperatureEvents(request, qobject_cast<NodeData*>(requester));
+                    requestGPUMetrics(request, qobject_cast<NodeData*>(requester));
                 }
                 break;
 		}
@@ -361,6 +347,11 @@ void ExperimentDataManager::requestNetworkUtilisationEvents(const HardwareMetric
     futureWatcher->setFuture(future);
 }
 
+/**
+ * @brief ExperimentDataManager::requestGPUMetrics
+ * @param request
+ * @param requester
+ */
 void ExperimentDataManager::requestGPUMetrics(const HardwareMetricRequest& request, NodeData* requester)
 {
     const auto& future = aggregationProxy().RequestGPUMetrics(request);
@@ -372,70 +363,6 @@ void ExperimentDataManager::requestGPUMetrics(const HardwareMetricRequest& reque
             toastNotification("Failed to get gpu metrics - " + ex.toString(), "gpu", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get gpu metrics - " + QString::fromStdString(ex.what()), "gpu", Notification::Severity::ERROR);
-        }
-    });
-    futureWatcher->setFuture(future);
-}
-
-
-/**
- * @brief ExperimentDataManager::requestGPUComputeUtilisationEvents
- * @param request
- * @param requester
- */
-void ExperimentDataManager::requestGPUComputeUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester)
-{
-    const auto& future = aggregationProxy().RequestGPUComputeUtilisationEvents(request);
-    auto futureWatcher = new QFutureWatcher<QVector<GPUComputeUtilisationEvent*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QVector<GPUComputeUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
-        try {
-            processGPUComputeUtilisationEvents(requester, futureWatcher->result());
-        } catch (const RequestException& ex) {
-            toastNotification("Failed to get gpu compute utilisation events - " + ex.toString(), "tetrahedron", Notification::Severity::ERROR);
-        } catch (const std::exception& ex) {
-            toastNotification("Failed to get gpu compute utilisation events - " + QString::fromStdString(ex.what()), "tetrahedron", Notification::Severity::ERROR);
-        }
-    });
-    futureWatcher->setFuture(future);
-}
-
-/**
- * @brief ExperimentDataManager::requestGPUMemoryUtilisationEvents
- * @param request
- * @param requester
- */
-void ExperimentDataManager::requestGPUMemoryUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester)
-{
-    const auto& future = aggregationProxy().RequestGPUMemoryUtilisationEvents(request);
-    auto futureWatcher = new QFutureWatcher<QVector<GPUMemoryUtilisationEvent*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QVector<GPUMemoryUtilisationEvent*>>::finished, [this, futureWatcher, requester]() {
-        try {
-            processGPUMemoryUtilisationEvents(requester, futureWatcher->result());
-        } catch (const RequestException& ex) {
-            toastNotification("Failed to get gpu memory utilisation events - " + ex.toString(), "memoryCard", Notification::Severity::ERROR);
-        } catch (const std::exception& ex) {
-            toastNotification("Failed to get gpu memory utilisation events - " + QString::fromStdString(ex.what()), "memoryCard", Notification::Severity::ERROR);
-        }
-    });
-    futureWatcher->setFuture(future);
-}
-
-/**
- * @brief ExperimentDataManager::requestGPUTemperatureEvents
- * @param request
- * @param requester
- */
-void ExperimentDataManager::requestGPUTemperatureEvents(const HardwareMetricRequest& request, NodeData* requester)
-{
-    const auto& future = aggregationProxy().RequestGPUTemperatureEvents(request);
-    auto futureWatcher = new QFutureWatcher<QVector<GPUTemperatureEvent*>>(this);
-    connect(futureWatcher, &QFutureWatcher<QVector<GPUTemperatureEvent*>>::finished, [this, futureWatcher, requester]() {
-        try {
-            processGPUTemperatureEvents(requester, futureWatcher->result());
-        } catch (const RequestException& ex) {
-            toastNotification("Failed to get gpu temperature events - " + ex.toString(), "thermostat", Notification::Severity::ERROR);
-        } catch (const std::exception& ex) {
-            toastNotification("Failed to get gpu temperature events - " + QString::fromStdString(ex.what()), "thermostat", Notification::Severity::ERROR);
         }
     });
     futureWatcher->setFuture(future);
@@ -647,6 +574,11 @@ void ExperimentDataManager::processNetworkUtilisationEvents(NodeData* requester,
     }
 }
 
+/**
+ * @brief ExperimentDataManager::processGPUMetrics
+ * @param requester
+ * @param samples
+ */
 void ExperimentDataManager::processGPUMetrics(NodeData* requester, const QVector<AggregationProxy::GPUMetricSample>& samples)
 {
     if (requester != nullptr) {
@@ -657,47 +589,6 @@ void ExperimentDataManager::processGPUMetrics(NodeData* requester, const QVector
         }
     }
 }
-
-
-
-/**
- * @brief ExperimentDataManager::processGPUComputeUtilisationEvents
- * @param requester
- * @param events
- */
-void ExperimentDataManager::processGPUComputeUtilisationEvents(NodeData* requester, const QVector<GPUComputeUtilisationEvent*>& events)
-{
-    if (requester != nullptr) {
-        requester->addGPUComputeUtilisationEvents(events);
-    }
-}
-
-
-/**
- * @brief ExperimentDataManager::processGPUMemoryUtilisationEvents
- * @param requester
- * @param events
- */
-void ExperimentDataManager::processGPUMemoryUtilisationEvents(NodeData* requester, const QVector<GPUMemoryUtilisationEvent*>& events)
-{
-    if (requester != nullptr) {
-        requester->addGPUMemoryUtilisationEvents(events);
-    }
-}
-
-
-/**
- * @brief ExperimentDataManager::processGPUTemperatureEvents
- * @param requester
- * @param events
- */
-void ExperimentDataManager::processGPUTemperatureEvents(NodeData* requester, const QVector<GPUTemperatureEvent*>& events)
-{
-    if (requester != nullptr) {
-        requester->addGPUTemperatureEvents(events);
-    }
-}
-
 
 /**
  * @brief ExperimentDataManager::constructExperimentData
@@ -911,9 +802,7 @@ void ExperimentDataManager::requestNodeEvents(NodeData& node)
     requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, QVariant::fromValue(node.getCPUUtilisationRequest()), &node);
     requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, QVariant::fromValue(node.getMemoryUtilisationRequest()), &node);
     requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, QVariant::fromValue(node.getNetworkUtilisationRequest()), &node);
-    requestExperimentData(ExperimentDataRequestType::GPUComputeUtilisationEvent, QVariant::fromValue(node.getGPUComputeUtilisationRequest()), &node);
-    requestExperimentData(ExperimentDataRequestType::GPUMemoryUtilisationEvent, QVariant::fromValue(node.getGPUMemoryUtilisationRequest()), &node);
-    requestExperimentData(ExperimentDataRequestType::GPUTemperatureEvent, QVariant::fromValue(node.getGPUTemperatureRequest()), &node);
+    requestExperimentData(ExperimentDataRequestType::GPUMetrics, QVariant::fromValue(node.getGPUMetricsRequest()), &node);
 }
 
 /**
