@@ -88,7 +88,7 @@ QFuture< QVector<WorkloadEvent*> > AggregationProxy::RequestWorkloadEvents(const
  * @param request
  * @return
  */
-QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const UtilisationRequest& request) const
+QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisationEvents(const HardwareMetricRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetCPUUtilisationEvents, request);
 }
@@ -99,7 +99,7 @@ QFuture< QVector<CPUUtilisationEvent*> > AggregationProxy::RequestCPUUtilisation
  * @param request
  * @return
  */
-QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const UtilisationRequest& request) const
+QFuture< QVector<MemoryUtilisationEvent*> > AggregationProxy::RequestMemoryUtilisationEvents(const HardwareMetricRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetMemoryUtilisationEvents, request);
 }
@@ -132,9 +132,53 @@ QFuture<QVector<PortEvent*> > AggregationProxy::RequestPortEvents(const PortEven
  * @param request
  * @return
  */
-QFuture<QVector<NetworkUtilisationEvent*> > AggregationProxy::RequestNetworkUtilisationEvents(const UtilisationRequest& request) const
+QFuture<QVector<NetworkUtilisationEvent*> > AggregationProxy::RequestNetworkUtilisationEvents(const HardwareMetricRequest& request) const
 {
     return QtConcurrent::run(this, &AggregationProxy::GetNetworkUtilisationEvents, request);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestGPUMetrics
+ * @param request
+ * @return
+ */
+QFuture<QVector<AggregationProxy::GPUMetricSample>> AggregationProxy::RequestGPUMetrics(const HardwareMetricRequest& request) const
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetGPUMetrics, request);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestGPUComputeUtilisationEvents
+ * @param request
+ * @return
+ */
+QFuture<QVector<GPUComputeUtilisationEvent*>> AggregationProxy::RequestGPUComputeUtilisationEvents(const HardwareMetricRequest& request) const
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetGPUComputeUtilisationEvents, request);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestGPUMemoryUtilisationEvents
+ * @param request
+ * @return
+ */
+QFuture<QVector<GPUMemoryUtilisationEvent*>> AggregationProxy::RequestGPUMemoryUtilisationEvents(const HardwareMetricRequest& request) const
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetGPUMemoryUtilisationEvents, request);
+}
+
+
+/**
+ * @brief AggregationProxy::RequestGPUTemperatureEvents
+ * @param request
+ * @return
+ */
+QFuture<QVector<GPUTemperatureEvent*>> AggregationProxy::RequestGPUTemperatureEvents(const HardwareMetricRequest& request) const
+{
+    return QtConcurrent::run(this, &AggregationProxy::GetGPUTemperatureEvents, request);
 }
 
 
@@ -369,7 +413,7 @@ QVector<WorkloadEvent*> AggregationProxy::GetWorkloadEvents(const WorkloadReques
  * @throws RequestException
  * @return
  */
-QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const UtilisationRequest &request) const
+QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const HardwareMetricRequest &request) const
 {
     CheckRequester();
 
@@ -409,7 +453,7 @@ QVector<CPUUtilisationEvent*> AggregationProxy::GetCPUUtilisationEvents(const Ut
  * @throws RequestException
  * @return
  */
-QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const UtilisationRequest &request) const
+QVector<MemoryUtilisationEvent*> AggregationProxy::GetMemoryUtilisationEvents(const HardwareMetricRequest &request) const
 {
     CheckRequester();
 
@@ -548,7 +592,7 @@ QVector<PortEvent*> AggregationProxy::GetPortEvents(const PortEventRequest& requ
  * @param request
  * @return
  */
-QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(const UtilisationRequest& request) const
+QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(const HardwareMetricRequest& request) const
 {
     CheckRequester();
 
@@ -585,6 +629,67 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
         }
         
         return events;
+
+    } catch (const std::exception& ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+QVector<AggregationProxy::GPUMetricSample> AggregationProxy::GetGPUMetrics(const HardwareMetricRequest& request) const
+{
+    CheckRequester();
+
+    try {
+
+    } catch (const std::exception& ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+/**
+ * AggregationProxy::GetGPUComputeUtilisationEvents
+ * @param request
+ * @return
+ */
+QVector<GPUComputeUtilisationEvent*> AggregationProxy::GetGPUComputeUtilisationEvents(const HardwareMetricRequest& request) const
+{
+    CheckRequester();
+
+    try {
+
+    } catch (const std::exception& ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+
+/**
+ * AggregationProxy::GetGPUMemoryUtilisationEvents
+ * @param request
+ * @return
+ */
+QVector<GPUMemoryUtilisationEvent*> AggregationProxy::GetGPUMemoryUtilisationEvents(const HardwareMetricRequest& request) const
+{
+    CheckRequester();
+
+    try {
+
+    } catch (const std::exception& ex) {
+        throw RequestException(ex.what());
+    }
+}
+
+
+/**
+ * AggregationProxy::GetGPUTemperatureEvents
+ * @param request
+ * @return
+ */
+QVector<GPUTemperatureEvent*> AggregationProxy::GetGPUTemperatureEvents(const HardwareMetricRequest& request) const
+{
+    CheckRequester();
+
+    try {
 
     } catch (const std::exception& ex) {
         throw RequestException(ex.what());

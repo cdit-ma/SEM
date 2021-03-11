@@ -50,6 +50,12 @@ public:
     QList<QPointer<const MEDEA::EventSeries>> getMemoryUtilisationSeries(const QStringList& hostnames) const;
     QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries(const QString& hostname = "") const;
     QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries(const QStringList& hostnames) const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUComputeUtilisationSeries(const QString& hostname = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUComputeUtilisationSeries(const QStringList& hostnames) const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUMemoryUtilisationSeries(const QString& hostname = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUMemoryUtilisationSeries(const QStringList& hostnames) const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUTemperatureSeries(const QString& hostname = "") const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUTemperatureSeries(const QStringList& hostnames) const;
 
     QList<QPointer<const MEDEA::EventSeries>> getMarkerEventSeries(const QString& marker_name = "") const;
 

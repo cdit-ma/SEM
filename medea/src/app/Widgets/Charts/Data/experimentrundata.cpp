@@ -303,6 +303,99 @@ QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getNetworkUt
 }
 
 /**
+ * @brief MEDEA::ExperimentRunData::getGPUComputeUtilisationSeries
+ * @param hostname
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getGPUComputeUtilisationSeries(const QString& hostname) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData(hostname)) {
+        series.append(node_data->getGPUComputeUtilisationSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getGPUComputeUtilisationSeries
+ * @param hostnames
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getGPUComputeUtilisationSeries(const QStringList& hostnames) const
+{
+    if (hostnames.isEmpty()) {
+        return getGPUComputeUtilisationSeries();
+    }
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& hostname : hostnames) {
+        series.append(getGPUComputeUtilisationSeries(hostname));
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getGPUMemoryUtilisationSeries
+ * @param hostname
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getGPUMemoryUtilisationSeries(const QString& hostname) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData(hostname)) {
+        series.append(node_data->getGPUMemoryUtilisationSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getGPUMemoryUtilisationSeries
+ * @param hostnames
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getGPUMemoryUtilisationSeries(const QStringList& hostnames) const
+{
+    if (hostnames.isEmpty()) {
+        return getGPUMemoryUtilisationSeries();
+    }
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& hostname : hostnames) {
+        series.append(getGPUMemoryUtilisationSeries(hostname));
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getGPUTemperatureSeries
+ * @param hostname
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getGPUTemperatureSeries(const QString& hostname) const
+{
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& node_data : getNodeData(hostname)) {
+        series.append(node_data->getGPUTemperatureSeries());
+    }
+    return series;
+}
+
+/**
+ * @brief MEDEA::ExperimentRunData::getGPUTemperatureSeries
+ * @param hostnames
+ * @return
+ */
+QList<QPointer<const MEDEA::EventSeries>> MEDEA::ExperimentRunData::getGPUTemperatureSeries(const QStringList& hostnames) const
+{
+    if (hostnames.isEmpty()) {
+        return getGPUTemperatureSeries();
+    }
+    QList<QPointer<const MEDEA::EventSeries>> series;
+    for (const auto& hostname : hostnames) {
+        series.append(getGPUTemperatureSeries(hostname));
+    }
+    return series;
+}
+
+/**
  * @brief MEDEA::ExperimentRunData::getMarkerEventSeries
  * @param marker_name
  * @return

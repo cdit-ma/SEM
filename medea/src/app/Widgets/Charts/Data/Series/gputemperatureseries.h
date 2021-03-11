@@ -9,7 +9,7 @@
 #include "eventseries.h"
 #include "../Events/gputemperatureevent.h"
 
-class GPUTemperatureSeries : MEDEA::EventSeries
+class GPUTemperatureSeries : public MEDEA::EventSeries
 {
 Q_OBJECT
 
