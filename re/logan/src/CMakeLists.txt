@@ -14,3 +14,4 @@ if (BUILD_AGGREGATIONSERVER)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/aggregationserver")
 endif (BUILD_AGGREGATIONSERVER)
 
+add_subdirectory(netdata)
