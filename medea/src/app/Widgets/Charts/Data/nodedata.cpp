@@ -186,30 +186,12 @@ const HardwareMetricRequest& NodeData::getNetworkUtilisationRequest() const
 }
 
 /**
- * @brief NodeData::getGPUComputeUtilisationRequest
+ * @brief NodeData::getGPUMetricsRequest
  * @return
  */
-const HardwareMetricRequest& NodeData::getGPUComputeUtilisationRequest() const
+const HardwareMetricRequest& NodeData::getGPUMetricsRequest() const
 {
-    return gpu_compute_utilisation_request_;
-}
-
-/**
- * @brief NodeData::getGPUMemoryUtilisationRequest
- * @return
- */
-const HardwareMetricRequest& NodeData::getGPUMemoryUtilisationRequest() const
-{
-    return gpu_memory_utilisation_request_;
-}
-
-/**
- * @brief NodeData::getGPUTemperatureRequest
- * @return
- */
-const HardwareMetricRequest& NodeData::getGPUTemperatureRequest() const
-{
-    return gpu_temperature_request_;
+    return gpu_metrics_request_;
 }
 
 /**
@@ -290,11 +272,20 @@ QList<QPointer<const MEDEA::EventSeries>> NodeData::getNetworkUtilisationSeries(
     return series_list;
 }
 
+/**
+ * @brief NodeData::addGPUComputeUtilisationEvents
+ * @param events
+ */
 void NodeData::addGPUComputeUtilisationEvents(const QVector<GPUComputeUtilisationEvent*>& events)
 {
     gpu_compute_utilisation_series_->addEvents(events);
 }
 
+/**
+ * @brief NodeData::getGPUComputeUtilisationSeries
+ * @throws std::runtime_error
+ * @return
+ */
 QPointer<const MEDEA::EventSeries> NodeData::getGPUComputeUtilisationSeries() const
 {
     if (gpu_compute_utilisation_series_ == nullptr) {
@@ -303,11 +294,20 @@ QPointer<const MEDEA::EventSeries> NodeData::getGPUComputeUtilisationSeries() co
     return gpu_compute_utilisation_series_;
 }
 
+/**
+ * @brief NodeData::addGPUMemoryUtilisationEvents
+ * @param events
+ */
 void NodeData::addGPUMemoryUtilisationEvents(const QVector<GPUMemoryUtilisationEvent*>& events)
 {
     gpu_memory_utilisation_series_->addEvents(events);
 }
 
+/**
+ * @brief NodeData::getGPUMemoryUtilisationSeries
+ * @throws std::runtime_error
+ * @return
+ */
 QPointer<const MEDEA::EventSeries> NodeData::getGPUMemoryUtilisationSeries() const
 {
     if (gpu_memory_utilisation_series_ == nullptr) {
@@ -316,11 +316,20 @@ QPointer<const MEDEA::EventSeries> NodeData::getGPUMemoryUtilisationSeries() con
     return gpu_memory_utilisation_series_;
 }
 
+/**
+ * @brief NodeData::addGPUTemperatureEvents
+ * @param events
+ */
 void NodeData::addGPUTemperatureEvents(const QVector<GPUTemperatureEvent*>& events)
 {
     gpu_temperature_series_->addEvents(events);
 }
 
+/**
+ * @brief NodeData::getGPUTemperatureSeries
+ * @throws std::runtime_error
+ * @return
+ */
 QPointer<const MEDEA::EventSeries> NodeData::getGPUTemperatureSeries() const
 {
     if (gpu_temperature_series_ == nullptr) {
@@ -355,8 +364,7 @@ void NodeData::updateData(const AggServerResponse::Node& node, qint64 new_last_u
 /**
  * @brief NodeData::setupRequests
  */
-void NodeData::setupRequests()
-{
+void NodeData::setupRequests() {
     cpu_utilisation_request_.setExperimentRunID(experiment_run_id_);
     cpu_utilisation_request_.setNodeHostnames({hostname_});
 
@@ -366,14 +374,8 @@ void NodeData::setupRequests()
     network_utilisation_request_.setExperimentRunID(experiment_run_id_);
     network_utilisation_request_.setNodeHostnames({hostname_});
 
-    gpu_compute_utilisation_request_.setExperimentRunID(experiment_run_id_);
-    gpu_compute_utilisation_request_.setNodeHostnames({hostname_});
-
-    gpu_memory_utilisation_request_.setExperimentRunID(experiment_run_id_);
-    gpu_memory_utilisation_request_.setNodeHostnames({hostname_});
-
-    gpu_temperature_request_.setExperimentRunID(experiment_run_id_);
-    gpu_temperature_request_.setNodeHostnames({hostname_});
+    gpu_metrics_request_.setExperimentRunID(experiment_run_id_);
+    gpu_metrics_request_.setNodeHostnames({hostname_});
 }
 
 /**
