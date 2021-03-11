@@ -96,9 +96,6 @@ public:
     QFuture<QVector<PortEvent*>> RequestPortEvents(const PortEventRequest& request) const;
     QFuture<QVector<NetworkUtilisationEvent*>> RequestNetworkUtilisationEvents(const HardwareMetricRequest& request) const;
     QFuture<QVector<GPUMetricSample>> RequestGPUMetrics(const HardwareMetricRequest& request) const;
-    QFuture<QVector<GPUComputeUtilisationEvent*>> RequestGPUComputeUtilisationEvents(const HardwareMetricRequest& request) const;
-    QFuture<QVector<GPUMemoryUtilisationEvent*>> RequestGPUMemoryUtilisationEvents(const HardwareMetricRequest& request) const;
-    QFuture<QVector<GPUTemperatureEvent*>> RequestGPUTemperatureEvents(const HardwareMetricRequest& request) const;
 
 signals:
     void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity) const;
@@ -121,9 +118,6 @@ private:
     QVector<PortEvent*> GetPortEvents(const PortEventRequest& request) const;
     QVector<NetworkUtilisationEvent*> GetNetworkUtilisationEvents(const HardwareMetricRequest& request) const;
     QVector<GPUMetricSample> GetGPUMetrics(const HardwareMetricRequest& request) const;
-    QVector<GPUComputeUtilisationEvent*> GetGPUComputeUtilisationEvents(const HardwareMetricRequest& request) const;
-    QVector<GPUMemoryUtilisationEvent*> GetGPUMemoryUtilisationEvents(const HardwareMetricRequest& request) const;
-    QVector<GPUTemperatureEvent*> GetGPUTemperatureEvents(const HardwareMetricRequest& request) const;
 
     QVector<AggServerResponse::ExperimentRun> ConstructExperimentRuns(const AggServer::Experiment& experiment) const;
 
