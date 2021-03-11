@@ -42,9 +42,7 @@ public:
     const HardwareMetricRequest& getCPUUtilisationRequest() const;
     const HardwareMetricRequest& getMemoryUtilisationRequest() const;
     const HardwareMetricRequest& getNetworkUtilisationRequest() const;
-    const HardwareMetricRequest& getGPUComputeUtilisationRequest() const;
-    const HardwareMetricRequest& getGPUMemoryUtilisationRequest() const;
-    const HardwareMetricRequest& getGPUTemperatureRequest() const;
+    const HardwareMetricRequest& getGPUMetricsRequest() const;
 
     void addCPUUtilisationEvents(const QVector<CPUUtilisationEvent*>& events);
     QPointer<const MEDEA::EventSeries> getCPUUtilisationSeries() const;
@@ -86,9 +84,7 @@ private:
     HardwareMetricRequest cpu_utilisation_request_;
     HardwareMetricRequest memory_utilisation_request_;
     HardwareMetricRequest network_utilisation_request_;
-    HardwareMetricRequest gpu_compute_utilisation_request_;
-    HardwareMetricRequest gpu_memory_utilisation_request_;
-    HardwareMetricRequest gpu_temperature_request_;
+    HardwareMetricRequest gpu_metrics_request_;
 
     CPUUtilisationEventSeries* cpu_utilisation_series_ = nullptr;
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;
