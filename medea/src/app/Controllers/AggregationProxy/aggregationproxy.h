@@ -20,6 +20,9 @@
 #include "../../Widgets/Charts/Data/Events/markerevent.h"
 #include "../../Widgets/Charts/Data/Events/portevent.h"
 #include "../../Widgets/Charts/Data/Events/networkutilisationevent.h"
+#include "../../Widgets/Charts/Data/Events/gpucomputeutilisationevent.h"
+#include "../../Widgets/Charts/Data/Events/gpumemoryutilisationevent.h"
+#include "../../Widgets/Charts/Data/Events/gputemperatureevent.h"
 #include "../../Widgets/Charts/ExperimentDataManager/requestbuilder.h"
 
 class NoRequesterException : public QException {
@@ -27,7 +30,7 @@ public:
     NoRequesterException() = default;
     explicit NoRequesterException(QString error)
             : error_(std::move(error.trimmed())) {}
-// TODO: We should make sure we pass the info string to the base std:exception class so that exception::what() works as expected
+    // TODO: We should make sure we pass the info string to the base std:exception class so that exception::what() works as expected
     QString toString() const{
         return error_;
     }
@@ -65,7 +68,10 @@ private:
     QString error_;
 };
 
-
+/**
+ * @brief This class receives the data requests (queries) from the ExperimentManager, gets the response from the
+ * AggServer::Requester, and then sends the converted data back to the ExperimentManager
+ */
 class AggregationProxy : public QObject
 {
     Q_OBJECT
@@ -73,16 +79,26 @@ class AggregationProxy : public QObject
 public:
     static AggregationProxy& singleton();
 
+    struct GPUMetricSample {
+        GPUComputeUtilisationEvent* compute_utilisation = nullptr;
+        GPUMemoryUtilisationEvent* memory_utilisation = nullptr;
+        GPUTemperatureEvent* temperature = nullptr;
+    };
+
     QFuture<QVector<AggServerResponse::ExperimentRun>> RequestExperimentRuns(const QString& experiment_name) const;
     QFuture<AggServerResponse::ExperimentState> RequestExperimentState(quint32 experiment_run_id) const;
 
     QFuture<QVector<PortLifecycleEvent*>> RequestPortLifecycleEvents(const PortLifecycleRequest &request) const;
     QFuture<QVector<WorkloadEvent*>> RequestWorkloadEvents(const WorkloadRequest& request) const;
-    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const UtilisationRequest& request) const;
-    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const UtilisationRequest& request) const;
+    QFuture<QVector<CPUUtilisationEvent*>> RequestCPUUtilisationEvents(const HardwareMetricRequest& request) const;
+    QFuture<QVector<MemoryUtilisationEvent*>> RequestMemoryUtilisationEvents(const HardwareMetricRequest& request) const;
     QFuture<QVector<MarkerEvent*>> RequestMarkerEvents(const MarkerRequest& request) const;
     QFuture<QVector<PortEvent*>> RequestPortEvents(const PortEventRequest& request) const;
-    QFuture<QVector<NetworkUtilisationEvent*>> RequestNetworkUtilisationEvents(const UtilisationRequest& request) const;
+    QFuture<QVector<NetworkUtilisationEvent*>> RequestNetworkUtilisationEvents(const HardwareMetricRequest& request) const;
+    QFuture<QVector<GPUMetricSample>> RequestGPUMetrics(const HardwareMetricRequest& request) const;
+    QFuture<QVector<GPUComputeUtilisationEvent*>> RequestGPUComputeUtilisationEvents(const HardwareMetricRequest& request) const;
+    QFuture<QVector<GPUMemoryUtilisationEvent*>> RequestGPUMemoryUtilisationEvents(const HardwareMetricRequest& request) const;
+    QFuture<QVector<GPUTemperatureEvent*>> RequestGPUTemperatureEvents(const HardwareMetricRequest& request) const;
 
 signals:
     void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity) const;
@@ -98,12 +114,16 @@ private:
 
     QVector<PortLifecycleEvent*> GetPortLifecycleEvents(const PortLifecycleRequest& request) const;
     QVector<WorkloadEvent*> GetWorkloadEvents(const WorkloadRequest& request) const;
-    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const UtilisationRequest& request) const;
-    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const UtilisationRequest& request) const;
+    QVector<CPUUtilisationEvent*> GetCPUUtilisationEvents(const HardwareMetricRequest& request) const;
+    QVector<MemoryUtilisationEvent*> GetMemoryUtilisationEvents(const HardwareMetricRequest& request) const;
     // TODO: Consider grouping the Marker events here (by name_set or id_set)
     QVector<MarkerEvent*> GetMarkerEvents(const MarkerRequest& request) const;
     QVector<PortEvent*> GetPortEvents(const PortEventRequest& request) const;
-    QVector<NetworkUtilisationEvent*> GetNetworkUtilisationEvents(const UtilisationRequest& request) const;
+    QVector<NetworkUtilisationEvent*> GetNetworkUtilisationEvents(const HardwareMetricRequest& request) const;
+    QVector<GPUMetricSample> GetGPUMetrics(const HardwareMetricRequest& request) const;
+    QVector<GPUComputeUtilisationEvent*> GetGPUComputeUtilisationEvents(const HardwareMetricRequest& request) const;
+    QVector<GPUMemoryUtilisationEvent*> GetGPUMemoryUtilisationEvents(const HardwareMetricRequest& request) const;
+    QVector<GPUTemperatureEvent*> GetGPUTemperatureEvents(const HardwareMetricRequest& request) const;
 
     QVector<AggServerResponse::ExperimentRun> ConstructExperimentRuns(const AggServer::Experiment& experiment) const;
 

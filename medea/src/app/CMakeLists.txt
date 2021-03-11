@@ -141,7 +141,7 @@ set(SOURCE
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/markersetdata.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/hardwaremetricrequest.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/portlifecyclerequest.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/porteventrequest.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/workloadrequest.cpp
@@ -323,7 +323,7 @@ SET(HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/markersetdata.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/request.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/eventrequest.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/utilisationrequest.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/hardwaremetricrequest.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/portlifecyclerequest.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/porteventrequest.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Widgets/Charts/Data/Requests/workloadrequest.h
