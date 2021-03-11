@@ -28,6 +28,7 @@ target_sources(re_environment_manager PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistryimpl.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistrarimpl.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontrol.cpp
 
 
         # Headers
@@ -53,12 +54,14 @@ target_sources(re_environment_manager PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistry.h
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistryimpl.h
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistrarimpl.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontrol.h
         )
 
 # Link Libraries
 target_link_libraries(re_environment_manager
         PRIVATE
         node_manager_registration_service
+        environment_control_service
 #        node_manager_control_service
         sem_grpc_util
         sem_version

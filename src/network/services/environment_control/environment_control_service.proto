@@ -1,0 +1,43 @@
+syntax = "proto3";
+package sem.network.services.environment_manager;
+
+message AddExperimentRequest {
+    string experiment_name = 1;
+    string experiment_manifest = 2;
+    // endpoint of form ip_addr:port
+    string listener_endpoint = 3;
+};
+
+message AddExperimentResponse {
+    bool success = 1;
+}
+
+message ListExperimentsRequest {
+
+};
+
+message ListExperimentsResponse {
+    bool success = 1;
+};
+
+message ShutdownExperimentRequest {
+    string experiment_uuid = 1;
+};
+
+message ShutdownExperimentResponse {
+    bool success = 1;
+};
+
+message InspectExperimentRequest {
+    string experiment_uuid = 1;
+};
+
+message InspectExperimentResponse {
+};
+
+service EnvironmentControl {
+    rpc AddExperiment (AddExperimentRequest) returns (AddExperimentResponse);
+    rpc ListExperiments (ListExperimentsRequest) returns (ListExperimentsResponse);
+    rpc ShutdownExperiment (ShutdownExperimentRequest) returns (ShutdownExperimentResponse);
+    rpc InspectExperiment (InspectExperimentRequest) returns (InspectExperimentResponse);
+}

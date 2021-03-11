@@ -29,8 +29,6 @@ private:
 
     std::vector<std::unique_ptr<DeploymentManager>> deployment_managers_;
 
-    auto BuildEpmControlTopic() -> std::string;
-    auto BuildEpmRegistrationTopic() -> std::string;
     auto RegisterWithNodeManager(const sem::types::Uuid& request_id) -> void;
     auto HandleEpmControl(const ControlRequest& request) -> ControlReply;
 
@@ -42,7 +40,6 @@ private:
     std::streambuf* original_std_out_stream_pointer_;
     std::future<void> std_out_sender_future_;
     std::atomic_bool stop_std_out_capture_ = false;
-    std::string BuildEpmStdOutTopic();
     void StopStdOutCapture();
     void PushStdOutMessage(network::Publisher<StdOutMessage>& publisher);
     static auto GetErrorReply(const std::string& error_message) -> ControlReply;
