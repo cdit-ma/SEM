@@ -162,7 +162,7 @@ QList<QPointer<const MEDEA::EventSeries>> NodeData::getWorkloadEventSeries(const
  * @brief NodeData::getCPUUtilisationRequest
  * @return
  */
-const UtilisationRequest& NodeData::getCPUUtilisationRequest() const
+const HardwareMetricRequest& NodeData::getCPUUtilisationRequest() const
 {
     return cpu_utilisation_request_;
 }
@@ -171,7 +171,7 @@ const UtilisationRequest& NodeData::getCPUUtilisationRequest() const
  * @brief NodeData::getMemoryUtilisationRequest
  * @return
  */
-const UtilisationRequest& NodeData::getMemoryUtilisationRequest() const
+const HardwareMetricRequest& NodeData::getMemoryUtilisationRequest() const
 {
     return memory_utilisation_request_;
 }
@@ -180,9 +180,36 @@ const UtilisationRequest& NodeData::getMemoryUtilisationRequest() const
  * @brief NodeData::getNetworkUtilisationRequest
  * @return
  */
-const UtilisationRequest& NodeData::getNetworkUtilisationRequest() const
+const HardwareMetricRequest& NodeData::getNetworkUtilisationRequest() const
 {
     return network_utilisation_request_;
+}
+
+/**
+ * @brief NodeData::getGPUComputeUtilisationRequest
+ * @return
+ */
+const HardwareMetricRequest& NodeData::getGPUComputeUtilisationRequest() const
+{
+    return gpu_compute_utilisation_request_;
+}
+
+/**
+ * @brief NodeData::getGPUMemoryUtilisationRequest
+ * @return
+ */
+const HardwareMetricRequest& NodeData::getGPUMemoryUtilisationRequest() const
+{
+    return gpu_memory_utilisation_request_;
+}
+
+/**
+ * @brief NodeData::getGPUTemperatureRequest
+ * @return
+ */
+const HardwareMetricRequest& NodeData::getGPUTemperatureRequest() const
+{
+    return gpu_temperature_request_;
 }
 
 /**
@@ -263,6 +290,45 @@ QList<QPointer<const MEDEA::EventSeries>> NodeData::getNetworkUtilisationSeries(
     return series_list;
 }
 
+void NodeData::addGPUComputeUtilisationEvents(const QVector<GPUComputeUtilisationEvent*>& events)
+{
+    gpu_compute_utilisation_series_->addEvents(events);
+}
+
+QPointer<const MEDEA::EventSeries> NodeData::getGPUComputeUtilisationSeries() const
+{
+    if (gpu_compute_utilisation_series_ == nullptr) {
+        throw std::runtime_error("NodeData::getGPUComputeUtilisationSeries - GPU compute utilisation series is null");
+    }
+    return gpu_compute_utilisation_series_;
+}
+
+void NodeData::addGPUMemoryUtilisationEvents(const QVector<GPUMemoryUtilisationEvent*>& events)
+{
+    gpu_memory_utilisation_series_->addEvents(events);
+}
+
+QPointer<const MEDEA::EventSeries> NodeData::getGPUMemoryUtilisationSeries() const
+{
+    if (gpu_memory_utilisation_series_ == nullptr) {
+        throw std::runtime_error("NodeData::getGPUMemoryUtilisationSeries - GPU memory utilisation series is null");
+    }
+    return gpu_memory_utilisation_series_;
+}
+
+void NodeData::addGPUTemperatureEvents(const QVector<GPUTemperatureEvent*>& events)
+{
+    gpu_temperature_series_->addEvents(events);
+}
+
+QPointer<const MEDEA::EventSeries> NodeData::getGPUTemperatureSeries() const
+{
+    if (gpu_temperature_series_ == nullptr) {
+        throw std::runtime_error("NodeData::getGPUTemperatureSeries - GPU temperature series is null");
+    }
+    return gpu_temperature_series_;
+}
+
 /**
  * @brief NodeData::updateData
  * This is called when the ExperimentRunData's last updated time has changed
@@ -299,6 +365,15 @@ void NodeData::setupRequests()
 
     network_utilisation_request_.setExperimentRunID(experiment_run_id_);
     network_utilisation_request_.setNodeHostnames({hostname_});
+
+    gpu_compute_utilisation_request_.setExperimentRunID(experiment_run_id_);
+    gpu_compute_utilisation_request_.setNodeHostnames({hostname_});
+
+    gpu_memory_utilisation_request_.setExperimentRunID(experiment_run_id_);
+    gpu_memory_utilisation_request_.setNodeHostnames({hostname_});
+
+    gpu_temperature_request_.setExperimentRunID(experiment_run_id_);
+    gpu_temperature_request_.setNodeHostnames({hostname_});
 }
 
 /**
@@ -328,4 +403,17 @@ void NodeData::setupSeries(const QVector<AggServerResponse::NetworkInterface>& i
         series->setParent(this);
         network_utilisation_series_.insert(mac_addr, series);
     }
+
+    // TODO: Include GPU name/vendor
+    gpu_compute_utilisation_series_ = new GPUComputeUtilisationSeries(node_id + Event::GetChartDataKindString(ChartDataKind::GPU_COMPUTE_UTILISATION));
+    gpu_compute_utilisation_series_->setLabel(label);
+    gpu_compute_utilisation_series_->setParent(this);
+
+    gpu_memory_utilisation_series_ = new GPUMemoryUtilisationSeries(node_id + Event::GetChartDataKindString(ChartDataKind::GPU_MEMORY_UTILISATION));
+    gpu_memory_utilisation_series_->setLabel(label);
+    gpu_memory_utilisation_series_->setParent(this);
+
+    gpu_temperature_series_ = new GPUTemperatureSeries(node_id + Event::GetChartDataKindString(ChartDataKind::GPU_TEMPERATURE));
+    gpu_temperature_series_->setLabel(label);
+    gpu_temperature_series_->setParent(this);
 }

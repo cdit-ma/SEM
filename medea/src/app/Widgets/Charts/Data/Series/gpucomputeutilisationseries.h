@@ -9,7 +9,7 @@
 #include "eventseries.h"
 #include "../Events/gpucomputeutilisationevent.h"
 
-class GPUComputeUtilisationSeries : MEDEA::EventSeries
+class GPUComputeUtilisationSeries : public MEDEA::EventSeries
 {
     Q_OBJECT
 

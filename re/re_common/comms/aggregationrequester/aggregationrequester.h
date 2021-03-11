@@ -27,6 +27,10 @@ public:
     std::unique_ptr<AggServer::MarkerResponse> GetMarkers(const AggServer::MarkerRequest& request);
     std::unique_ptr<AggServer::PortEventResponse> GetPortEvents(const AggServer::PortEventRequest& request);
     std::unique_ptr<AggServer::NetworkUtilisationResponse> GetNetworkUtilisation(const AggServer::NetworkUtilisationRequest& request);
+    // TODO - Add GPU requests/responses here once they're available
+    //std::unique_ptr<AggServer::NetworkUtilisationResponse> GetNetworkUtilisation(const AggServer::NetworkUtilisationRequest& request);
+    //std::unique_ptr<AggServer::NetworkUtilisationResponse> GetNetworkUtilisation(const AggServer::NetworkUtilisationRequest& request);
+    //std::unique_ptr<AggServer::NetworkUtilisationResponse> GetNetworkUtilisation(const AggServer::NetworkUtilisationRequest& request);
 
 private:
     zmq::ProtoRequester requester_;
