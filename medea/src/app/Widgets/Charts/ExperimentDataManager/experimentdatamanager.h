@@ -26,9 +26,7 @@ enum class ExperimentDataRequestType
     MarkerEvent,
     PortEvent,
     NetworkUtilisationEvent,
-    GPUComputeUtilisationEvent,
-    GPUMemoryUtilisationEvent,
-    GPUTemperatureEvent
+    GPUMetrics
 };
 
 class ExperimentDataManager : public QObject
@@ -128,9 +126,6 @@ private:
     void requestPortEvents(const PortEventRequest& request, PortInstanceData* requester);
     void requestNetworkUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester);
     void requestGPUMetrics(const HardwareMetricRequest& request, NodeData* requester);
-    void requestGPUComputeUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester);
-    void requestGPUMemoryUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester);
-    void requestGPUTemperatureEvents(const HardwareMetricRequest& request, NodeData* requester);
 
     void processExperimentRuns(MEDEA::ExperimentData* requester, const QString& exp_name, const QVector<AggServerResponse::ExperimentRun>& exp_runs);
     void processExperimentState(MEDEA::ExperimentRunData* requester, const AggServerResponse::ExperimentState& exp_state);
@@ -142,9 +137,6 @@ private:
     void processMemoryUtilisationEvents(NodeData* requester, const QVector<MemoryUtilisationEvent*>& events);
     void processNetworkUtilisationEvents(NodeData* requester, const QVector<NetworkUtilisationEvent*>& events);
     void processGPUMetrics(NodeData* requester, const QVector<AggregationProxy::GPUMetricSample>& samples);
-    void processGPUComputeUtilisationEvents(NodeData* requester, const QVector<GPUComputeUtilisationEvent*>& events);
-    void processGPUMemoryUtilisationEvents(NodeData* requester, const QVector<GPUMemoryUtilisationEvent*>& events);
-    void processGPUTemperatureEvents(NodeData* requester, const QVector<GPUTemperatureEvent*>& events);
 
     MEDEA::ExperimentData* constructExperimentData(const QString& exp_name);
     MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
