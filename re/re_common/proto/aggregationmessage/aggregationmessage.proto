@@ -103,7 +103,7 @@ message GPUMetricRequest {
     uint32 experiment_run_id = 3;
     repeated string node_hostnames = 4;
 }
-message GPUUtilisationResponse {
+message GPUMetricResponse {
     repeated NodeGPUMetrics node_gpu_metrics = 1;
 }
 
@@ -217,8 +217,8 @@ message GPUDeviceMetrics {
 message GPUMetricSample {
     google.protobuf.Timestamp time = 1;
     double gpu_utilisation = 2;
-    int64 mem_utilisation = 3;
-    double temperature = 4;
+    int64 mem_utilisation_MiB = 3;
+    double temperature_celsius = 4;
 }
 
 message MarkerNameSet {
