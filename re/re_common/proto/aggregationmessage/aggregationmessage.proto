@@ -97,6 +97,15 @@ message NetworkUtilisationResponse {
     repeated NodeNetworkEvents node_network_events = 1;
 }
 
+message GPUMetricRequest {
+    repeated google.protobuf.Timestamp time_interval = 1;
+    repeated string node_ids = 2;
+    uint32 experiment_run_id = 3;
+    repeated string node_hostnames = 4;
+}
+message GPUMetricResponse {
+    repeated NodeGPUMetrics node_gpu_metrics = 1;
+}
 
 message MarkerRequest {
     repeated google.protobuf.Timestamp time_interval = 1;
@@ -195,6 +204,21 @@ message NetworkUtilisationEvent {
     int64 bytes_sent = 3;
     int64 bytes_received = 4;
     google.protobuf.Timestamp time = 5;
+}
+
+message NodeGPUMetrics {
+    Node node_info = 1;
+    repeated GPUDeviceMetrics per_device_metrics = 2;
+}
+message GPUDeviceMetrics {
+    int32 gpu_device_index = 1;
+    repeated GPUMetricSample samples = 2;
+}
+message GPUMetricSample {
+    google.protobuf.Timestamp time = 1;
+    double gpu_utilisation = 2;
+    int64 mem_utilisation_MiB = 3;
+    double temperature_celsius = 4;
 }
 
 message MarkerNameSet {
@@ -297,12 +321,19 @@ message NetworkInterface {
     int64 speed = 7;
 }
 
+message GPUDevice {
+    string name = 1;
+    string vendor = 2;
+    int32 gpu_device_index = 3; // Should be unique per node
+}
+
 message Node {
     string hostname = 1;
     string ip = 2;
     //string graphml_id = 3;
     repeated Container containers = 4;
     repeated NetworkInterface interfaces = 5;
+    repeated GPUDevice gpus = 6;
 }
 
 message PortConnection {
