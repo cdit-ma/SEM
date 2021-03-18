@@ -80,7 +80,7 @@ private:
     QString hostname_;
     QString ip_;
 
-    QHash<QString, ContainerInstanceData*> container_inst_data_hash_;
+    QHash<QString, ContainerInstanceData *> container_inst_data_hash_;
 
     HardwareMetricRequest cpu_utilisation_request_;
     HardwareMetricRequest memory_utilisation_request_;

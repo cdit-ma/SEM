@@ -783,7 +783,7 @@ void Chart::paintSingleLineSeries(QPainter& painter,
             continue;
         }
 
-        // Calculate the bins' average event_val
+        // Calculate the bins's average event_val
         auto event_val = 0.0;
         for (const auto& event : bins[i]) {
             const auto& converted_event = convertEvent<DerivedEvent>(event);
