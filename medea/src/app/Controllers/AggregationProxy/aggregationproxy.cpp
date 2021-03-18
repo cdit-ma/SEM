@@ -602,17 +602,6 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
     }
 }
 
-QVector<AggregationProxy::GPUMetricSample> AggregationProxy::GetGPUMetrics(const HardwareMetricRequest& request) const
-{
-    CheckRequester();
-
-    try {
-
-    } catch (const std::exception& ex) {
-        throw RequestException(ex.what());
-    }
-}
-
 
 /**
  * @brief AggregationProxy::GetGPUMetrics
