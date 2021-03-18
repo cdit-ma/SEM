@@ -19,7 +19,7 @@ NodeData::NodeData(quint32 exp_run_id, const AggServerResponse::Node& node, QObj
     }
 
     setupRequests();
-    setupSeries(node.interfaces);
+    setupSeries(node.interfaces, node.gpus);
 
     connect(this, &NodeData::requestData, ExperimentDataManager::manager(), &ExperimentDataManager::requestNodeEvents);
     emit requestData(*this);
@@ -278,7 +278,14 @@ QList<QPointer<const MEDEA::EventSeries>> NodeData::getNetworkUtilisationSeries(
  */
 void NodeData::addGPUComputeUtilisationEvents(const QVector<GPUComputeUtilisationEvent*>& events)
 {
-    gpu_compute_utilisation_series_->addEvents(events);
+    for (const auto& event : events) {
+        const auto& device_index = event->getDeviceIndex();
+        auto series = gpu_compute_utilisation_series_.value(device_index, nullptr);
+        if (series == nullptr) {
+            throw std::runtime_error("NodeData::addGPUComputeUtilisationEvents - There is no series for the gpu device");
+        }
+        series->addEvent(event);
+    }
 }
 
 /**
@@ -286,12 +293,16 @@ void NodeData::addGPUComputeUtilisationEvents(const QVector<GPUComputeUtilisatio
  * @throws std::runtime_error
  * @return
  */
-QPointer<const MEDEA::EventSeries> NodeData::getGPUComputeUtilisationSeries() const
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getGPUComputeUtilisationSeries() const
 {
-    if (gpu_compute_utilisation_series_ == nullptr) {
-        throw std::runtime_error("NodeData::getGPUComputeUtilisationSeries - GPU compute utilisation series is null");
+    QList<QPointer<const MEDEA::EventSeries>> series_list;
+    for (auto series : gpu_compute_utilisation_series_.values()) {
+        if (series == nullptr) {
+            throw std::runtime_error("NodeData::getGPUComputeUtilisationSeries - GPU compute utilisation series is null");
+        }
+        series_list.append(series);
     }
-    return gpu_compute_utilisation_series_;
+    return series_list;
 }
 
 /**
@@ -300,7 +311,14 @@ QPointer<const MEDEA::EventSeries> NodeData::getGPUComputeUtilisationSeries() co
  */
 void NodeData::addGPUMemoryUtilisationEvents(const QVector<GPUMemoryUtilisationEvent*>& events)
 {
-    gpu_memory_utilisation_series_->addEvents(events);
+    for (const auto& event : events) {
+        const auto& device_index = event->getDeviceIndex();
+        auto series = gpu_memory_utilisation_series_.value(device_index, nullptr);
+        if (series == nullptr) {
+            throw std::runtime_error("NodeData::addGPUMemoryUtilisationEvents - There is no series for the gpu device");
+        }
+        series->addEvent(event);
+    }
 }
 
 /**
@@ -308,12 +326,16 @@ void NodeData::addGPUMemoryUtilisationEvents(const QVector<GPUMemoryUtilisationE
  * @throws std::runtime_error
  * @return
  */
-QPointer<const MEDEA::EventSeries> NodeData::getGPUMemoryUtilisationSeries() const
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getGPUMemoryUtilisationSeries() const
 {
-    if (gpu_memory_utilisation_series_ == nullptr) {
-        throw std::runtime_error("NodeData::getGPUMemoryUtilisationSeries - GPU memory utilisation series is null");
+    QList<QPointer<const MEDEA::EventSeries>> series_list;
+    for (auto series : gpu_memory_utilisation_series_.values()) {
+        if (series == nullptr) {
+            throw std::runtime_error("NodeData::getGPUMemoryUtilisationSeries - GPU memory utilisation series is null");
+        }
+        series_list.append(series);
     }
-    return gpu_memory_utilisation_series_;
+    return series_list;
 }
 
 /**
@@ -322,7 +344,14 @@ QPointer<const MEDEA::EventSeries> NodeData::getGPUMemoryUtilisationSeries() con
  */
 void NodeData::addGPUTemperatureEvents(const QVector<GPUTemperatureEvent*>& events)
 {
-    gpu_temperature_series_->addEvents(events);
+    for (const auto& event : events) {
+        const auto& device_index = event->getDeviceIndex();
+        auto series = gpu_temperature_series_.value(device_index, nullptr);
+        if (series == nullptr) {
+            throw std::runtime_error("NodeData::addGPUTemperatureEvents - There is no series for the gpu device");
+        }
+        series->addEvent(event);
+    }
 }
 
 /**
@@ -330,12 +359,16 @@ void NodeData::addGPUTemperatureEvents(const QVector<GPUTemperatureEvent*>& even
  * @throws std::runtime_error
  * @return
  */
-QPointer<const MEDEA::EventSeries> NodeData::getGPUTemperatureSeries() const
+QList<QPointer<const MEDEA::EventSeries>> NodeData::getGPUTemperatureSeries() const
 {
-    if (gpu_temperature_series_ == nullptr) {
-        throw std::runtime_error("NodeData::getGPUTemperatureSeries - GPU temperature series is null");
+    QList<QPointer<const MEDEA::EventSeries>> series_list;
+    for (auto series : gpu_temperature_series_.values()) {
+        if (series == nullptr) {
+            throw std::runtime_error("NodeData::getGPUTemperatureSeries - GPU temperature series is null");
+        }
+        series_list.append(series);
     }
-    return gpu_temperature_series_;
+    return series_list;
 }
 
 /**
@@ -364,7 +397,8 @@ void NodeData::updateData(const AggServerResponse::Node& node, qint64 new_last_u
 /**
  * @brief NodeData::setupRequests
  */
-void NodeData::setupRequests() {
+void NodeData::setupRequests()
+{
     cpu_utilisation_request_.setExperimentRunID(experiment_run_id_);
     cpu_utilisation_request_.setNodeHostnames({hostname_});
 
@@ -381,41 +415,53 @@ void NodeData::setupRequests() {
 /**
  * @brief NodeData::setupSeries
  * @param interfaces
+ * @param gpu_devices
  */
-void NodeData::setupSeries(const QVector<AggServerResponse::NetworkInterface>& interfaces)
+void NodeData::setupSeries(const QVector<AggServerResponse::NetworkInterface>& interfaces,
+                           const QVector<AggServerResponse::GPUDevice>& gpu_devices)
 {
     using namespace MEDEA;
-    auto&& exp_run_id_str = QString::number(experiment_run_id_);
-    auto&& node_id = hostname_ + exp_run_id_str;
-    auto&& label = "[" + exp_run_id_str + "] " + hostname_;
+    const auto exp_run_id_str = QString::number(experiment_run_id_);
+    const auto node_id = hostname_ + exp_run_id_str;
+    const auto default_label = "[" + exp_run_id_str + "] " + hostname_;
 
     cpu_utilisation_series_ = new CPUUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::CPU_UTILISATION));
-    cpu_utilisation_series_->setLabel(label);
+    cpu_utilisation_series_->setLabel(default_label);
     cpu_utilisation_series_->setParent(this);
 
     memory_utilisation_series_ = new MemoryUtilisationEventSeries(node_id + Event::GetChartDataKindString(ChartDataKind::MEMORY_UTILISATION));
-    memory_utilisation_series_->setLabel(label);
+    memory_utilisation_series_->setLabel(default_label);
     memory_utilisation_series_->setParent(this);
 
     for (const auto& network_interface : interfaces) {
         const auto& mac_addr = network_interface.mac_address;
-        auto&& series_id = hostname_ + mac_addr;
-        auto series = new NetworkUtilisationEventSeries(series_id + exp_run_id_str);
-        series->setLabel(label + "_" + network_interface.name);
+        //auto&& series_id = hostname_ + mac_addr;
+        //auto series = new NetworkUtilisationEventSeries(series_id + exp_run_id_str);
+        auto series = new NetworkUtilisationEventSeries(node_id + mac_addr);
+        series->setLabel(default_label + "_" + network_interface.name);
         series->setParent(this);
         network_utilisation_series_.insert(mac_addr, series);
     }
 
-    // TODO: Include GPU name/vendor
-    gpu_compute_utilisation_series_ = new GPUComputeUtilisationSeries(node_id + Event::GetChartDataKindString(ChartDataKind::GPU_COMPUTE_UTILISATION));
-    gpu_compute_utilisation_series_->setLabel(label);
-    gpu_compute_utilisation_series_->setParent(this);
+    for (const auto& gpu : gpu_devices) {
+        const auto& device_index = gpu.gpu_device_index;
+        auto device_index_str = QString::number(device_index);
+        auto&& series_id = node_id + device_index_str;
 
-    gpu_memory_utilisation_series_ = new GPUMemoryUtilisationSeries(node_id + Event::GetChartDataKindString(ChartDataKind::GPU_MEMORY_UTILISATION));
-    gpu_memory_utilisation_series_->setLabel(label);
-    gpu_memory_utilisation_series_->setParent(this);
+        auto comp_util_series = new GPUComputeUtilisationSeries(series_id + Event::GetChartDataKindString(ChartDataKind::GPU_COMPUTE_UTILISATION));
+        comp_util_series->setLabel(default_label + "_" + device_index_str);
+        comp_util_series->setParent(this);
 
-    gpu_temperature_series_ = new GPUTemperatureSeries(node_id + Event::GetChartDataKindString(ChartDataKind::GPU_TEMPERATURE));
-    gpu_temperature_series_->setLabel(label);
-    gpu_temperature_series_->setParent(this);
+        auto mem_util_series = new GPUMemoryUtilisationSeries(series_id + Event::GetChartDataKindString(ChartDataKind::GPU_MEMORY_UTILISATION));
+        mem_util_series->setLabel(default_label + "_" + device_index_str);
+        mem_util_series->setParent(this);
+
+        auto temp_series = new GPUTemperatureSeries(series_id + Event::GetChartDataKindString(ChartDataKind::GPU_TEMPERATURE));
+        temp_series->setLabel(default_label + "_" + device_index_str);
+        temp_series->setParent(this);
+
+        gpu_compute_utilisation_series_.insert(device_index, comp_util_series);
+        gpu_memory_utilisation_series_.insert(device_index, mem_util_series);
+        gpu_temperature_series_.insert(device_index, temp_series);
+    }
 }
