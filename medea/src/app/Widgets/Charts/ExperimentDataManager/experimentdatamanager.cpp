@@ -949,6 +949,15 @@ void ExperimentDataManager::showChartsForExperimentRun(const MEDEA::ExperimentRu
     if (selected_data_kinds.contains(ChartDataKind::NETWORK_UTILISATION)) {
         series_to_show += exp_run_data.getNetworkUtilisationSeries(node_hostnames);
     }
+    if (selected_data_kinds.contains(ChartDataKind::GPU_COMPUTE_UTILISATION)) {
+        series_to_show += exp_run_data.getGPUComputeUtilisationSeries(node_hostnames);
+    }
+    if (selected_data_kinds.contains(ChartDataKind::GPU_MEMORY_UTILISATION)) {
+        series_to_show += exp_run_data.getGPUMemoryUtilisationSeries(node_hostnames);
+    }
+    if (selected_data_kinds.contains(ChartDataKind::GPU_TEMPERATURE)) {
+        series_to_show += exp_run_data.getGPUTemperatureSeries(node_hostnames);
+    }
     if (selected_data_kinds.contains(ChartDataKind::MARKER)) {
         // Request all Marker events for the exp_run_data - Marker events can't be filtered by view items at the moment
         // NOTE: MarkerSetData/MarkerEventSeries are constructed/updated upon receiving Marker events

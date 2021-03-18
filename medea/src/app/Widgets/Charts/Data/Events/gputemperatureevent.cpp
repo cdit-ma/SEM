@@ -6,21 +6,21 @@
 
 /**
  * @brief GPUTemperatureEvent::GPUTemperatureEvent
- * @param gpu_name
- * @param vendor
+ * @param hostname
+ * @param device_index
  * @param temperature
  * @param time
  * @param parent
  */
-GPUTemperatureEvent::GPUTemperatureEvent(const QString& gpu_name,
-                                         const QString& vendor,
+GPUTemperatureEvent::GPUTemperatureEvent(const QString& hostname,
+                                         qint32 device_index,
                                          double temperature,
                                          qint64 time,
                                          QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::GPU_TEMPERATURE, time, parent),
-      id_(gpu_name + QString::number(time)),
-      gpu_name_(gpu_name),
-      vendor_(vendor),
+      id_(hostname + QString::number(device_index) + QString::number(time)),
+      hostname_(hostname),
+      device_index_(device_index),
       temperature_(temperature) {}
 
 /**
@@ -30,8 +30,7 @@ GPUTemperatureEvent::GPUTemperatureEvent(const QString& gpu_name,
  */
 QString GPUTemperatureEvent::toString(const QString& dateTimeFormat) const
 {
-    return "Name: " + gpu_name_ + "\n" +
-           "Vendor: " + vendor_ + "\n" +
+    return "Hostname: " + hostname_ + "\n" +
            "Temperature: " + temperature_ + "°C\n" +
            "At " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
@@ -46,21 +45,21 @@ const QString& GPUTemperatureEvent::getID() const
 }
 
 /**
- * @brief GPUTemperatureEvent::getGPUName
+ * @brief GPUTemperatureEvent::getHostname
  * @return
  */
-const QString& GPUTemperatureEvent::getGPUName() const
+const QString& GPUTemperatureEvent::getHostname() const
 {
-    return gpu_name_;
+    return hostname_;
 }
 
 /**
- * @brief GPUTemperatureEvent::getVendor
+ * @brief GPUTemperatureEvent::getDeviceIndex
  * @return
  */
-const QString& GPUTemperatureEvent::getVendor() const
+qint32 GPUTemperatureEvent::getDeviceIndex() const
 {
-    return vendor_;
+    return device_index_;
 }
 
 /**

@@ -168,4 +168,25 @@ std::unique_ptr<AggServer::NetworkUtilisationResponse> AggServer::Requester::Get
         throw std::invalid_argument(ex.what());
     }catch(const zmq::TimeoutException& ex){
         throw std::runtime_error(ex.what());
-    }}
+    }
+}
+
+
+/**
+ * @brief AggServer::Requester::GetGPUMetric
+ * @param request
+ * @return
+ */
+std::unique_ptr<AggServer::GPUMetricResponse> AggServer::Requester::GetGPUMetric(const AggServer::GPUMetricRequest& request)
+{
+    auto reply = requester_.SendRequest<GPUMetricRequest, GPUMetricResponse>("GetGPUMetric", request, 5000);
+    try{
+        return reply.get();
+    }catch(const zmq::RMIException& ex){
+        throw std::invalid_argument(ex.what());
+    }catch(const zmq::TimeoutException& ex){
+        throw std::runtime_error(ex.what());
+    }
+}
+
+
