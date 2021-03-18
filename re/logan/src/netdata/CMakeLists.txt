@@ -7,8 +7,10 @@ target_sources(sem_netdata_adapter
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/tcp_receiver.h
         ${CMAKE_CURRENT_SOURCE_DIR}/chart_listener.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/data_stream.hpp
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/json_info.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tcp_stream_listener.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tcp_receiver.cpp
         )
 
@@ -24,3 +26,7 @@ target_link_libraries(sem_netdata_adapter
         Boost::regex
         Boost::dynamic_linking
         )
+
+if (BUILD_TEST)
+    add_subdirectory(test)
+endif()

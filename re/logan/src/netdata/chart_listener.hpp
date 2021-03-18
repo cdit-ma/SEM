@@ -8,12 +8,11 @@
 namespace sem::logging::netdata {
 
     class chart_listener {
+    public:
         virtual ~chart_listener() = 0;
-
-
     };
 
-    chart_listener::~chart_listener() = default;
+    inline chart_listener::~chart_listener() = default;
 }
 
 #endif //SEM_NETDATA_CHART_LISTENER_HPP
