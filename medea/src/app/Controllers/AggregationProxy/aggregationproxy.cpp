@@ -602,11 +602,45 @@ QVector<NetworkUtilisationEvent*> AggregationProxy::GetNetworkUtilisationEvents(
     }
 }
 
+
+/**
+ * @brief AggregationProxy::GetGPUMetrics
+ * @param request
+ * @return
+ */
 QVector<AggregationProxy::GPUMetricSample> AggregationProxy::GetGPUMetrics(const HardwareMetricRequest& request) const
 {
     CheckRequester();
 
     try {
+        QVector<AggregationProxy::GPUMetricSample> samples;
+        AggServer::GPUMetricRequest agg_request;
+        agg_request.set_experiment_run_id(request.experiment_run_id());
+
+        for (const auto& id : request.node_ids()) {
+            agg_request.add_node_ids(id.toStdString());
+        }
+        for (const auto& name : request.node_hostnames()) {
+            agg_request.add_node_hostnames(name.toStdString());
+        }
+
+        const auto& results = requester_->GetGPUMetric(agg_request);
+        for (const auto& node : results->node_gpu_metrics()) {
+            const auto& hostname = ConstructQString(node.node_info().hostname());
+            for (const auto& metrics : node.per_device_metrics()) {
+                const auto& device_index = metrics.gpu_device_index();
+                for (const auto& s : metrics.samples()) {
+                    const auto& time_ms = ConstructQDateTime(s.time()).toMSecsSinceEpoch();
+                    AggregationProxy::GPUMetricSample sample;
+                    sample.compute_utilisation = new GPUComputeUtilisationEvent(hostname, device_index, s.gpu_utilisation(), time_ms);
+                    sample.memory_utilisation = new GPUMemoryUtilisationEvent(hostname, device_index, s.mem_utilisation_mib(), time_ms);
+                    sample.temperature = new GPUTemperatureEvent(hostname, device_index, s.temperature_celsius(), time_ms);
+                    samples.append(sample);
+                }
+            }
+        }
+
+        return samples;
 
     } catch (const std::exception& ex) {
         throw RequestException(ex.what());
