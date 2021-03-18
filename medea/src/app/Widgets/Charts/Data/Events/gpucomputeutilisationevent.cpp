@@ -6,21 +6,21 @@
 
 /**
  * @brief GPUComputeUtilisationEvent::
- * @param gpu_name
- * @param vendor
+ * @param hostname
+ * @param device_index
  * @param utilisation
  * @param time
  * @param parent
  */
-GPUComputeUtilisationEvent::GPUComputeUtilisationEvent(const QString& gpu_name,
-                                                       const QString& vendor,
+GPUComputeUtilisationEvent::GPUComputeUtilisationEvent(const QString& hostname,
+                                                       qint32 device_index,
                                                        double utilisation,
                                                        qint64 time,
                                                        QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::GPU_COMPUTE_UTILISATION, time, parent),
-      id_(gpu_name + QString::number(time)),
-      gpu_name_(gpu_name),
-      vendor_(vendor),
+      id_(hostname + QString::number(device_index) + QString::number(time)),
+      hostname_(hostname),
+      device_index_(device_index),
       utilisation_(utilisation) {}
 
 /**
@@ -30,8 +30,7 @@ GPUComputeUtilisationEvent::GPUComputeUtilisationEvent(const QString& gpu_name,
  */
 QString GPUComputeUtilisationEvent::toString(const QString &dateTimeFormat) const
 {
-    return "Name: " + gpu_name_ + "\n" +
-           "Vendor: " + vendor_ + "\n" +
+    return "Hostname: " + hostname_ + "\n" +
            "Utilisation: " + QString::number(utilisation_ * 100) + "%\n" +
            "At " + getDateTimeString(dateTimeFormat) + "\n\n";
 }
@@ -46,21 +45,21 @@ const QString& GPUComputeUtilisationEvent::getID() const
 }
 
 /**
- * @brief GPUComputeUtilisationEvent::getGPUName
+ * @brief GPUComputeUtilisationEvent::getHostname
  * @return
  */
-const QString& GPUComputeUtilisationEvent::getGPUName() const
+const QString& GPUComputeUtilisationEvent::getHostname() const
 {
-    return gpu_name_;
+    return hostname_;
 }
 
 /**
- * @brief GPUComputeUtilisationEvent::getVendor
+ * @brief GPUComputeUtilisationEvent::getDeviceIndex
  * @return
  */
-const QString& GPUComputeUtilisationEvent::getVendor() const
+qint32 GPUComputeUtilisationEvent::getDeviceIndex() const
 {
-    return vendor_;
+    return device_index_;
 }
 
 /**

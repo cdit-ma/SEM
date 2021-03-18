@@ -54,13 +54,13 @@ public:
     QList<QPointer<const MEDEA::EventSeries>> getNetworkUtilisationSeries() const;
 
     void addGPUComputeUtilisationEvents(const QVector<GPUComputeUtilisationEvent *> &events);
-    QPointer<const MEDEA::EventSeries> getGPUComputeUtilisationSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUComputeUtilisationSeries() const;
 
     void addGPUMemoryUtilisationEvents(const QVector<GPUMemoryUtilisationEvent *> &events);
-    QPointer<const MEDEA::EventSeries> getGPUMemoryUtilisationSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUMemoryUtilisationSeries() const;
 
     void addGPUTemperatureEvents(const QVector<GPUTemperatureEvent *> &events);
-    QPointer<const MEDEA::EventSeries> getGPUTemperatureSeries() const;
+    QList<QPointer<const MEDEA::EventSeries>> getGPUTemperatureSeries() const;
 
     void updateData(const AggServerResponse::Node& node, qint64 new_last_updated_time);
 
@@ -71,7 +71,8 @@ private:
     void addContainerInstanceData(const AggServerResponse::Container& container);
 
     void setupRequests();
-    void setupSeries(const QVector<AggServerResponse::NetworkInterface>& interfaces);
+    void setupSeries(const QVector<AggServerResponse::NetworkInterface>& interfaces,
+                     const QVector<AggServerResponse::GPUDevice>& gpu_devices);
 
     quint32 experiment_run_id_;
     qint64 last_updated_time_;
@@ -79,7 +80,7 @@ private:
     QString hostname_;
     QString ip_;
 
-    QHash<QString, ContainerInstanceData *> container_inst_data_hash_;
+    QHash<QString, ContainerInstanceData*> container_inst_data_hash_;
 
     HardwareMetricRequest cpu_utilisation_request_;
     HardwareMetricRequest memory_utilisation_request_;
@@ -89,9 +90,10 @@ private:
     CPUUtilisationEventSeries* cpu_utilisation_series_ = nullptr;
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;
     QHash<QString, NetworkUtilisationEventSeries*> network_utilisation_series_;
-    GPUComputeUtilisationSeries* gpu_compute_utilisation_series_ = nullptr;
-    GPUMemoryUtilisationSeries* gpu_memory_utilisation_series_ = nullptr;
-    GPUTemperatureSeries* gpu_temperature_series_ = nullptr;
+
+    QHash<qint32, GPUComputeUtilisationSeries*> gpu_compute_utilisation_series_;
+    QHash<qint32, GPUMemoryUtilisationSeries*> gpu_memory_utilisation_series_;
+    QHash<qint32, GPUTemperatureSeries*> gpu_temperature_series_;
 };
 
 #endif // NODEDATA_H

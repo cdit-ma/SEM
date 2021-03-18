@@ -12,8 +12,8 @@ class GPUComputeUtilisationEvent : public MEDEA::Event
     Q_OBJECT
 
 public:
-    explicit GPUComputeUtilisationEvent(const QString& gpu_name,
-                                        const QString& vendor,
+    explicit GPUComputeUtilisationEvent(const QString& hostname,
+                                        qint32 device_index,
                                         double utilisation,
                                         qint64 time,
                                         QObject* parent = nullptr);
@@ -21,16 +21,16 @@ public:
     [[nodiscard]] QString toString(const QString& dateTimeFormat) const override;
 
     [[nodiscard]] const QString& getID() const override;
-    [[nodiscard]] const QString& getGPUName() const;
-    [[nodiscard]] const QString& getVendor() const;
+    [[nodiscard]] const QString& getHostname() const;
 
+    [[nodiscard]] qint32 getDeviceIndex() const;
     [[nodiscard]] double getValue() const;
 
 private:
     QString id_;
-    QString gpu_name_;
-    QString vendor_;
+    QString hostname_;
 
+    qint32 device_index_;
     double utilisation_;
 };
 
