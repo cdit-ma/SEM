@@ -7,6 +7,7 @@
 #include <string>
 
 using namespace sem;
+using namespace sem::fft_accel;
 using namespace sem::fft_accel::runtime;
 using namespace sem::fft_accel::data;
 
