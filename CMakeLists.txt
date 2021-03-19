@@ -14,17 +14,17 @@ if (CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_PROGRAM}")
 endif ()
 
-if (MSVC)
-    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
-    set(CMAKE_C_COMPILER_LAUNCHER sccache)
-    # Remove instances of Zi in MSVC invocation flags to let sccache work
-    #  (sscache currently runs into errors due to .pdb files being created for the whole
-    #  directory, meaning that multiple processes lock each other out from file accesses)
-    string(REGEX REPLACE "/Z[iI7]" ""
-            CMAKE_CXX_FLAGS_RELEASE
-            "${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Z7")
-endif (MSVC)
+#if (MSVC)
+#    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+#    set(CMAKE_C_COMPILER_LAUNCHER sccache)
+#    # Remove instances of Zi in MSVC invocation flags to let sccache work
+#    #  (sscache currently runs into errors due to .pdb files being created for the whole
+#    #  directory, meaning that multiple processes lock each other out from file accesses)
+#    string(REGEX REPLACE "/Z[iI7]" ""
+#            CMAKE_CXX_FLAGS_RELEASE
+#            "${CMAKE_CXX_FLAGS_RELEASE}")
+#    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Z7")
+#endif (MSVC)
 
 
 # Enforce AT LEAST c++11. This project requires c++17 in most places aside from some dependencies (protobuf).
