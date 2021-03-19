@@ -20,7 +20,7 @@ fft_data_packet<float>::fft_data_packet(SerializedPacket &serialized_data) :
     memcpy(&(*fft_data_.begin()), &(*data_span.begin()), data_span.size());
 
     for (auto& sample_value : fft_data_) {
-        boost::endian::big_to_native_inplace(sample_value);
+        boost::endian::big_to_native_inplace(reinterpret_cast<uint32_t&>(sample_value));
     }
 }
 

@@ -131,7 +131,7 @@ namespace sem::fft_accel::data {
         memcpy(&(*(data_.begin() + 6)), &(*native_packet.payload_data().begin()), payload_byte_length);
 
         // Note: the &(*(iterator)) syntax is needed for MSVC compatibility
-        auto float_view = reinterpret_cast<std::array<float, NumElements>*>(&(*(data_.begin() + 6)));
+        auto float_view = reinterpret_cast<std::array<uint32_t, NumElements>*>(&(*(data_.begin() + 6)));
         for (auto& sample_value : *float_view) {
             boost::endian::native_to_big_inplace(sample_value);
         }
