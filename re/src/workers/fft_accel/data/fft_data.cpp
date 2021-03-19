@@ -4,6 +4,8 @@
 
 #include "fft_data.hpp"
 
+#include <algorithm>
+
 using namespace sem::fft_accel::data;
 
 template<>
@@ -16,6 +18,10 @@ fft_data_packet<float>::fft_data_packet(SerializedPacket &serialized_data) :
     auto data_span = bytes.subspan(SerializedPacket::header_byte_length);
     fft_data_.resize(data_span.size() / sizeof(float));
     memcpy(&(*fft_data_.begin()), &(*data_span.begin()), data_span.size());
+
+    for (auto& sample_value : fft_data_) {
+        boost::endian::big_to_native_inplace(sample_value);
+    }
 }
 
 template<>

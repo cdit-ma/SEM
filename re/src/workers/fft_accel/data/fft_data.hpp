@@ -13,6 +13,7 @@
 #include "packet_headers.hpp"
 
 #include <iostream>
+#include "boost/endian/conversion.hpp"
 
 namespace sem::fft_accel::data {
 
@@ -123,10 +124,17 @@ namespace sem::fft_accel::data {
         data_.at(2) = static_cast<std::byte>(native_packet.request_id());
         // 3rd byte currently unused, formerly used for CSR
         // TODO: Thoroughly investigate endianness of remaining fields to be serialized
-        data_.at(4) = static_cast<std::byte>(native_packet.payload_data().size());
+        uint16_t size_as_big_endian = boost::endian::native_to_big(native_packet.payload_data().size());
+        reinterpret_cast<uint16_t&>(data_.at(4)) = size_as_big_endian;
 
         constexpr auto payload_byte_length = NumElements * sizeof(SampleType);
         memcpy(&(*(data_.begin() + 6)), &(*native_packet.payload_data().begin()), payload_byte_length);
+
+        // Note: the &(*(iterator)) syntax is needed for MSVC compatibility
+        auto float_view = reinterpret_cast<std::array<float, NumElements>*>(&(*(data_.begin() + 6)));
+        for (auto& sample_value : *float_view) {
+            boost::endian::native_to_big_inplace(sample_value);
+        }
     }
 
     template<typename SampleType, size_t NumElements>
