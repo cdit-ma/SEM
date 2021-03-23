@@ -128,10 +128,10 @@ void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::Experi
 
     for (const auto& node : exp_run_data.getNodeData()) {
         checkNotNull(node, "node data");
-        auto& node_item = constructNodeItem(*node);
+        auto node_item = constructNodeItem(*node);
         auto stack_gap = Defaults::primary_icon_size.height() * node_count++;
-        node_item.setPos(node_item.pos() + QPointF(stack_gap, stack_gap));
-        addItemToScene(&node_item);
+        node_item->setPos(node_item->pos() + QPointF(stack_gap, stack_gap));
+        addItemToScene(node_item);
     }
 
     // Construct the edges
@@ -380,15 +380,15 @@ void DataflowDialog::checkNotNull(QObject* data_obj, const QString& data_name)
  * @throws std::invalid_argument
  * @return
  */
-DefaultEntityContainer& DataflowDialog::constructNodeItem(NodeData& node)
+DefaultEntityContainer* DataflowDialog::constructNodeItem(NodeData& node)
 {
     auto node_item = new DefaultEntityContainer(node.getHostname(), "EntityIcons", "HardwareNode",
                                                 node.getIP(), "Icons", "ethernet");
     for (const auto& container : node.getContainerInstanceData()) {
         checkNotNull(container, "container data");
-        node_item->add(&constructContainerInstanceItem(*container, node_item));
+        node_item->add(constructContainerInstanceItem(*container, node_item));
     }
-    return *node_item;
+    return node_item;
 }
 
 /**
@@ -398,7 +398,7 @@ DefaultEntityContainer& DataflowDialog::constructNodeItem(NodeData& node)
  * @throws std::invalid_argument
  * @return
  */
-DefaultEntityContainer& DataflowDialog::constructContainerInstanceItem(ContainerInstanceData& container, Pulse::View::DefaultEntityContainer* parent)
+DefaultEntityContainer* DataflowDialog::constructContainerInstanceItem(ContainerInstanceData& container, Pulse::View::DefaultEntityContainer* parent)
 {
     auto type = "Generic OS Process";
     auto icon_name = "servers";
@@ -411,9 +411,9 @@ DefaultEntityContainer& DataflowDialog::constructContainerInstanceItem(Container
                                                      parent);
     for (const auto& comp_inst : container.getComponentInstanceData()) {
         checkNotNull(comp_inst, "component instance data");
-        container_item->add(&constructComponentInstanceItem(*comp_inst, container_item));
+        container_item->add(constructComponentInstanceItem(*comp_inst, container_item));
     }
-    return *container_item;
+    return container_item;
 }
 
 /**
@@ -423,24 +423,24 @@ DefaultEntityContainer& DataflowDialog::constructContainerInstanceItem(Container
  * @throws std::invalid_argument
  * @return
  */
-ComponentInstance& DataflowDialog::constructComponentInstanceItem(ComponentInstanceData& comp_inst, Pulse::View::DefaultEntityContainer* parent)
+ComponentInstance* DataflowDialog::constructComponentInstanceItem(ComponentInstanceData& comp_inst, Pulse::View::DefaultEntityContainer* parent)
 {
     auto comp_inst_item = new ComponentInstance(comp_inst.getName(), comp_inst.getType(), parent);
     QHash<QString, PortInstance*> port_instances;
     for (const auto& port : comp_inst.getPortInstanceData()) {
         checkNotNull(port, "port instance data");
-        auto& port_item = constructPortInstanceItem(*port);
-        port_instance_cache_.insert(port->getGraphmlID(), &port_item);
-        comp_inst_item->add(&port_item);
+        auto port_item = constructPortInstanceItem(*port);
+        port_instance_cache_.insert(port->getGraphmlID(), port_item);
+        comp_inst_item->add(port_item);
     }
     for (const auto& worker : comp_inst.getWorkerInstanceData()) {
         checkNotNull(worker, "worker instance data");
-        auto& worker_item = constructWorkerInstanceItem(*worker);
+        auto worker_item = constructWorkerInstanceItem(*worker);
         auto icon_size = Defaults::primary_icon_size * 0.75;
-        worker_item.setPrimaryIconSize(icon_size.width(), icon_size.height());
-        comp_inst_item->add(&worker_item);
+        worker_item->setPrimaryIconSize(icon_size.width(), icon_size.height());
+        comp_inst_item->add(worker_item);
     }
-    return *comp_inst_item;
+    return comp_inst_item;
 }
 
 /**
@@ -448,9 +448,9 @@ ComponentInstance& DataflowDialog::constructComponentInstanceItem(ComponentInsta
  * @param port_inst
  * @return
  */
-PortInstance& DataflowDialog::constructPortInstanceItem(PortInstanceData& port_inst)
+PortInstance* DataflowDialog::constructPortInstanceItem(PortInstanceData& port_inst)
 {
-    return *(new PortInstance(port_inst.getName(), port_inst.getKind()));
+    return new PortInstance(port_inst.getName(), port_inst.getKind());
 }
 
 /**
@@ -458,10 +458,10 @@ PortInstance& DataflowDialog::constructPortInstanceItem(PortInstanceData& port_i
  * @param worker_inst
  * @return
  */
-DefaultEntity& DataflowDialog::constructWorkerInstanceItem(WorkerInstanceData& worker_inst)
+DefaultEntity* DataflowDialog::constructWorkerInstanceItem(WorkerInstanceData& worker_inst)
 {
-    return *(new DefaultEntity(worker_inst.getName(), "Icons", "spanner",
-                               worker_inst.getType(), "Icons", "code"));
+    return new DefaultEntity(worker_inst.getName(), "Icons", "spanner",
+                             worker_inst.getType(), "Icons", "code");
 }
 
 /**

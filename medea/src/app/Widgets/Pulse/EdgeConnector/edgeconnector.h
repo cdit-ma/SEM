@@ -40,6 +40,7 @@ private:
     explicit EdgeConnector(QGraphicsItem* parent = nullptr);
     void setNaturalAnchor(NaturalAnchor* anchor);
 
+    NaturalAnchor* natural_anchor_ = nullptr;
     QColor color_;
 
     QList<Edge*> connected_edges_;
