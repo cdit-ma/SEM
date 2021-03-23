@@ -14,9 +14,7 @@ namespace Pulse::View {
 class Entity {
 public:
     virtual ~Entity() = 0;
-
-    // TODO: Create an interface for Pulse::Model that sends signals when the model has changed
-    //  Then use that here instead of a QObject
+    
     virtual void connectModelData(QPointer<Pulse::Model::Entity> model_data) = 0;
     virtual void onModelDeleted() = 0;
 

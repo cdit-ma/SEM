@@ -3,6 +3,9 @@
 //
 
 #include "tricolumntray.h"
+#include "../pulseviewutils.h"
+#include "../pulseviewdefaults.h"
+#include "../pulseviewutils.h"
 #include "../pulseviewdefaults.h"
 
 #include <stdexcept>
@@ -20,26 +23,31 @@ TriColumnTray::TriColumnTray(QGraphicsItem* parent)
     : QGraphicsWidget(parent) {}
 
 /**
- * @brief TriColumnTray::isEmpty
- * @return
- */
-bool TriColumnTray::isEmpty() const
-{
-    for (const auto child : childItems()) {
-        if (child->isWidget()) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
  * @brief TriColumnTray::addItem
  * @param widget
  */
 void TriColumnTray::addItem(QGraphicsWidget* widget)
 {
     addCenter(widget);
+}
+
+/**
+ * @brief TriColumnTray::removeItem
+ * @param widget
+ * @throws std::invalid_argument
+ */
+void TriColumnTray::removeItem(QGraphicsWidget* widget)
+{
+    if (widget == nullptr) {
+        throw std::invalid_argument("TriColumnTray::removeItem - Trying to remove a null QGraphicsWidget");
+    }
+    if (grid_layout_ != nullptr) {
+        prepareGeometryChange();
+        grid_layout_->removeItem(widget);
+        widget->setParentItem(nullptr);
+        // TODO: Find out what happens to the position of the remaining widgets in the layout
+        // TODO (Ask Jackson): If they don't get adjusted automatically, will that be a problem?
+    }
 }
 
 /**
@@ -70,12 +78,26 @@ void TriColumnTray::addCenter(QGraphicsWidget* widget)
 }
 
 /**
+ * @brief TriColumnTray::isEmpty
+ * @return
+ */
+bool TriColumnTray::isEmpty() const
+{
+    for (const auto child : childItems()) {
+        if (child->isWidget()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * @brief TriColumnTray::boundingRect
  * @return
  */
 QRectF TriColumnTray::boundingRect() const
 {
-    return {QPointF(0,0), getVisibleItemsRect().bottomRight()};
+    return {QPointF(0,0), Utils::getVisibleChildrenRect(this).bottomRight()};
 }
 
 /**
@@ -85,24 +107,7 @@ QRectF TriColumnTray::boundingRect() const
 void TriColumnTray::setGeometry(const QRectF& geom)
 {
     prepareGeometryChange();
-    QRectF adjusted_rect(geom.topLeft(), boundingRect().size());
-    QGraphicsWidget::setGeometry(adjusted_rect);
-}
-
-/**
- * @brief TriColumnTray::getVisibleItemsRect
- * @return
- */
-QRectF TriColumnTray::getVisibleItemsRect() const
-{
-    QRectF visible_rect;
-    for (const auto& child_item : childItems()) {
-        if (child_item->isVisible()) {
-            auto&& child_geom = QRectF(child_item->pos(), child_item->boundingRect().size());
-            visible_rect = visible_rect.united(child_geom);
-        }
-    }
-    return visible_rect;
+    QGraphicsWidget::setGeometry(QRectF(geom.topLeft(), boundingRect().size()));
 }
 
 /**

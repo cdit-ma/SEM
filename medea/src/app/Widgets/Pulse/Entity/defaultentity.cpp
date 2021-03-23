@@ -39,14 +39,15 @@ DefaultEntity::DefaultEntity(const QString& label,
 /**
  * @brief DefaultEntity::connectModelData
  * @param model_data
+ * @throws std::invalid_argument
  */
 void DefaultEntity::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 {
     if (model_data.isNull()) {
-        throw std::invalid_argument("DefaultEntity - The model data is null");
+        throw std::invalid_argument("DefaultEntity::connectModelData - The model data is null");
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &DefaultEntity::onModelDeleted);
-    connect(model_data, &Pulse::Model::Entity::labelChanged, name_plate_, &NamePlate::changeLabel);
+    connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);
     connect(model_data, &Pulse::Model::Entity::iconChanged, name_plate_, &NamePlate::changeIcon);
 }
 

@@ -581,7 +581,7 @@ ExperimentRunData& ExperimentDataManager::getExperimentRunData(const QString& ex
     if (exp_data) {
         return exp_data->getExperimentRun(exp_run_id);
     }
-    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - The is no ExperimentData named " + exp_name.toStdString());
+    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - There is no ExperimentData named " + exp_name.toStdString());
 }
 
 /**
@@ -1007,6 +1007,11 @@ QString getPath(ViewItem* item)
     return "";
 }
 
+/**
+ * @brief ExperimentDataManager::setupRequestFilters
+ * @param view_items
+ * @param data_kinds
+ */
 void ExperimentDataManager::setupRequestFilters(const QVector<ViewItem*>& view_items, const QList<MEDEA::ChartDataKind>& data_kinds)
 {
     if (view_items.isEmpty()) {

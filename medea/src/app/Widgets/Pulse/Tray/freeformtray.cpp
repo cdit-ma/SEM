@@ -3,6 +3,9 @@
 //
 
 #include "freeformtray.h"
+#include "../pulseviewutils.h"
+#include "../pulseviewdefaults.h"
+#include "../pulseviewutils.h"
 #include "../pulseviewdefaults.h"
 
 #include <stdexcept>
@@ -41,6 +44,24 @@ void FreeFormTray::addItem(QGraphicsWidget* widget)
 }
 
 /**
+ * @brief FreeFormTray::removeItem
+ * @param widget
+ * @throws std::invalid_argument
+ */
+void FreeFormTray::removeItem(QGraphicsWidget* widget)
+{
+    if (widget == nullptr) {
+        throw std::invalid_argument("FreeFormTray::removeItem - Trying to remove a null QGraphicsWidget");
+    }
+    if (contained_items_.contains(widget)) {
+        prepareGeometryChange();
+        widget->setParentItem(nullptr);
+        widget->disconnect(this);
+        contained_items_.removeAll(widget);
+    }
+}
+
+/**
  * @brief FreeFormTray::isEmpty
  * @return
  */
@@ -55,7 +76,7 @@ bool FreeFormTray::isEmpty() const
  */
 QRectF FreeFormTray::boundingRect() const
 {
-    return {QPointF(0,0), getVisibleItemsRect().bottomRight()};
+    return {QPointF(0,0), Utils::getVisibleChildrenRect(this).bottomRight()};
 }
 
 /**
@@ -66,8 +87,7 @@ void FreeFormTray::setGeometry(const QRectF& geom)
 {
     // Force this item's geometry to have the same size as the bounding rect
     prepareGeometryChange();
-    QRectF adjusted_rect(geom.topLeft(), boundingRect().size());
-    QGraphicsWidget::setGeometry(adjusted_rect);
+    QGraphicsWidget::setGeometry(QRectF(geom.topLeft(), boundingRect().size()));
 }
 
 /**
@@ -77,24 +97,7 @@ void FreeFormTray::setGeometry(const QRectF& geom)
 QPointF FreeFormTray::getNextStackPos() const
 {
     const int content_count = contained_items_.size();
-    QPointF offset(stack_gap_ * content_count, stack_gap_ * content_count);
-    return offset;
-}
-
-/**
- * @brief FreeFormTray::getVisibleItemsRect
- * @return
- */
-QRectF FreeFormTray::getVisibleItemsRect() const
-{
-    QRectF visible_rect;
-    for (const auto& child_item : childItems()) {
-        if (child_item->isVisible()) {
-            auto&& child_geom = QRectF(child_item->pos(), child_item->boundingRect().size());
-            visible_rect = visible_rect.united(child_geom);
-        }
-    }
-    return visible_rect;
+    return {stack_gap_ * content_count, stack_gap_ * content_count};
 }
 
 /**
@@ -108,7 +111,7 @@ void FreeFormTray::checkPreConditions(QGraphicsWidget* widget) const
     if (widget == nullptr) {
         throw std::invalid_argument("FreeFormTray - Trying to add a null item");
     }
-    if (childItems().contains(widget)) {
+    if (contained_items_.contains(widget)) {
         throw std::logic_error("FreeFormTray - Trying to add an item that already exists");
     }
 }
