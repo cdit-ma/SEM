@@ -942,10 +942,10 @@ void ExperimentDataManager::showChartForSeries(const QPointer<const EventSeries>
 void ExperimentDataManager::showPulseForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
 {
     if (request_filters_.show_pulse) {
-        //getDataflowDialog().constructGraphicsItemsForExperimentRun(exp_run_data);
+        getDataflowDialog().constructGraphicsItemsForExperimentRun(exp_run_data);
         // NOTE: Commenting out the new feature until it is complete
         // TODO: Create a setting to flag/unflag this new feature at runtime
-        getDataflowDialog().constructPulseViewItemsForExperimentRun(exp_run_data);
+        //getDataflowDialog().constructPulseViewItemsForExperimentRun(exp_run_data);
         emit showDataflowPanel();
     }
 }
