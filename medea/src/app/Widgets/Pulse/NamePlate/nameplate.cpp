@@ -63,13 +63,17 @@ void NamePlate::changeIcon(const QString& icon_path, const QString& icon_name)
 /**
  * @brief NamePlate::changeName
  * @param name
+ * @throws std::runtime_error
  */
 void NamePlate::changeName(const QString& name)
 {
+    throw std::runtime_error("Renaming of Pulse entities/containers have not yet been implemented");
+    /*
     prepareGeometryChange();
     primary_text_item_->setPlainText(name);
     primary_text_item_->updateGeometry();
     updateGeometry();
+     */
 }
 
 /**

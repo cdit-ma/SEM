@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include <QPainter>
+#include <QTimer>
 
 using namespace Pulse::View;
 
@@ -39,7 +40,7 @@ DefaultEdge::DefaultEdge(EdgeConnector& src_connector, EdgeConnector& dst_connec
 {
     src_connector_ = &src_connector;
     src_connector_->connectEdge(this);
-    connect(src_connector_, &EdgeConnector::destroyed, this, &DefaultEdge::deleteLater);
+    connect(src_connector_, &EdgeConnector::destroyed, this, &DefaultEdge::endPointDestroyed);
     connect(src_connector_, &EdgeConnector::positionChanged, this, &DefaultEdge::endPointPositionChanged);
     connect(src_connector_, &EdgeConnector::visibilityChanged, this, &DefaultEdge::endPointVisibilityChanged);
     connect(src_connector_, &EdgeConnector::parentChanged, [this]() {
@@ -48,20 +49,20 @@ DefaultEdge::DefaultEdge(EdgeConnector& src_connector, EdgeConnector& dst_connec
 
     dst_connector_ = &dst_connector;
     dst_connector_->connectEdge(this);
-    connect(dst_connector_, &EdgeConnector::destroyed, this, &DefaultEdge::deleteLater);
+    connect(dst_connector_, &EdgeConnector::destroyed, this, &DefaultEdge::endPointDestroyed);
     connect(dst_connector_, &EdgeConnector::positionChanged, this, &DefaultEdge::endPointPositionChanged);
     connect(dst_connector_, &EdgeConnector::visibilityChanged, this, &DefaultEdge::endPointVisibilityChanged);
     connect(dst_connector_, &EdgeConnector::parentChanged, [this]() {
         onDestinationParentChanged(dst_connector_->isConnectedToNaturalAnchor());
     });
 
-    connect(Theme::theme(), &Theme::theme_Changed, this, &DefaultEdge::themeChanged);
-
     // Setup pens
-    auto theme = Theme::theme();
-    line_pen_ = QPen(theme->getTextColor(), pen_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-    src_point_pen_ = QPen(theme->getTextColor(ColorRole::SELECTED), point_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-    dst_point_pen_ = QPen(theme->getTextColor(ColorRole::SELECTED), point_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    src_point_pen_ = QPen(Qt::black, point_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    dst_point_pen_ = QPen(Qt::black, point_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    line_pen_ = QPen(Qt::black, pen_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &DefaultEdge::themeChanged);
+    themeChanged();
 }
 
 /**
@@ -84,6 +85,45 @@ QRectF DefaultEdge::boundingRect() const
 }
 
 /**
+ * @brief DefaultEdge::flash
+ * @param from_time
+ * @param flash_duration
+ */
+void DefaultEdge::flash(qint64 from_time, qint64 flash_duration)
+{
+    if (flash_duration <= 0) {
+        return;
+    }
+
+    // Switch pen color
+    line_pen_.setColor(highlight_color_);
+    update();
+
+    // This function can be called multiple times by multiple callers
+    // Due to this, the flash end time needs to be stored and updated to avoid the flash being stopped prematurely
+    auto&& end_time = from_time + flash_duration;
+    flash_end_time_ = qMax(end_time, flash_end_time_);
+
+    QTimer::singleShot(flash_duration, this, [this, end_time]() {
+        unflash(end_time);
+    });
+}
+
+/**
+ * @brief DefaultEdge::unflash
+ * @param end_time
+ */
+void DefaultEdge::unflash(qint64 end_time)
+{
+    // Reset the pen color when we've reached the flash end time
+    if (flash_end_time_ == end_time) {
+        line_pen_.setColor(default_color_);
+        flash_end_time_ = 0;
+        update();
+    }
+}
+
+/**
  * @brief DefaultEdge::endPointPositionChanged
  */
 void DefaultEdge::endPointPositionChanged()
@@ -98,6 +138,14 @@ void DefaultEdge::endPointVisibilityChanged()
 {
     // Check that both of the src and dst is visible; if not, hide the edge
     setVisible(getSourceConnector().isVisible() && getDestinationConnector().isVisible());
+}
+
+/**
+ * @brief DefaultEdge::endPointDestroyed
+ */
+void DefaultEdge::endPointDestroyed()
+{
+    deleteLater();
 }
 
 /**
@@ -134,14 +182,23 @@ void DefaultEdge::onDestinationParentChanged(bool natural_parent)
 void DefaultEdge::themeChanged()
 {
     auto theme = Theme::theme();
-    line_pen_.setColor(theme->getTextColor());
+    default_color_ = theme->getTextColor();
+    highlight_color_ = theme->getHighlightColor();
     default_point_color_ = theme->getTextColor(ColorRole::SELECTED);
+
+    if (flash_end_time_ > 0) {
+        line_pen_.setColor(highlight_color_);
+    } else {
+        line_pen_.setColor(default_color_);
+    }
+
     if (src_point_pen_.color() != src_color) {
         src_point_pen_.setColor(default_point_color_);
     }
     if (dst_point_pen_.color() != dst_color) {
         dst_point_pen_.setColor(default_point_color_);
     }
+
     update();
 }
 

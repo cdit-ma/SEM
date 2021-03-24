@@ -24,9 +24,19 @@ EdgeConnector::EdgeConnector(QGraphicsItem* parent)
         emit visibilityChanged(isVisible());
     });
 
-    color_ = Theme::theme()->getTextColor();
-    connect(Theme::theme(), &Theme::theme_Changed, [this]() {
-        color_ = Theme::theme()->getTextColor();
+    Theme* theme = Theme::theme();
+    default_color_ = theme->getTextColor();
+    highlight_color_ = theme->getHighlightColor();
+    active_color_ = default_color_;
+
+    connect(theme, &Theme::theme_Changed, [this, theme]() {
+        default_color_ = theme->getTextColor();
+        highlight_color_ = theme->getHighlightColor();
+        if (flashing_) {
+            active_color_ = highlight_color_;
+        } else {
+            active_color_ = default_color_;
+        }
         update();
     });
 
@@ -58,7 +68,7 @@ void EdgeConnector::connectEdge(Edge* edge)
 void EdgeConnector::disconnectEdge(Edge* edge)
 {
     if (edge == nullptr) {
-        throw std::invalid_argument("EdgeConnector::disconnectEdge");
+        throw std::invalid_argument("EdgeConnector::disconnectEdge - The edge is null");
     }
     connected_edges_.removeAll(edge);
     if (connected_edges_.isEmpty()) {
@@ -101,7 +111,7 @@ void EdgeConnector::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
     Q_UNUSED(widget);
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(color_);
+    painter->setBrush(active_color_);
     painter->drawEllipse(boundingRect());
 }
 
@@ -113,4 +123,26 @@ QRectF EdgeConnector::boundingRect() const
 {
     auto half_size = size / 2.0;
     return QRectF(-half_size, -half_size, size, size);
+}
+
+/**
+ * @brief EdgeConnector::flashPortLifecycle
+ */
+void EdgeConnector::flashPortLifecycle()
+{
+    flashing_ = true;
+    if (!isConnectedToNaturalAnchor()) {
+        active_color_ = highlight_color_;
+        update();
+    }
+}
+
+/**
+ * @brief EdgeConnector::unflashPortLifecycle
+ */
+void EdgeConnector::unflashPortLifecycle()
+{
+    flashing_ = false;
+    active_color_ = default_color_;
+    update();
 }
