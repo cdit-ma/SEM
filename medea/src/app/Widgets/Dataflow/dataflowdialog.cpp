@@ -2,7 +2,6 @@
 #include "dataflowgraphicsview.h"
 
 #include "../DockWidgets/basedockwidget.h"
-#include "../../theme.h"
 
 #include "EntityItems/nodegraphicsitem.h"
 #include "EntityItems/workerinstancegraphicsitem.h"
@@ -121,11 +120,26 @@ void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::Experi
     // Clear previous states and items
     clear();
 
-    using namespace Pulse::View;
+    // This sets the experiment info displays on the title bar of the panel
+    setExperimentInfo(exp_run_data.experiment_name(), exp_run_data.experiment_run_id());
+    setPlaybackTimeRange(exp_run_data.start_time(), exp_run_data.end_time());
+    playback_controls_.setControlsEnabled(true);
+
+    // Connect the experiment run's signals
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, this, &DataflowDialog::playbackEndTimeChanged);
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::experimentRunFinished, this, &DataflowDialog::turnOffLiveStatus);
+
+    live_mode_ = exp_run_data.end_time() == 0;
+    if (live_mode_) {
+        // Set the last updated time as the initial playback end time if the experiment is live
+        playbackEndTimeChanged(exp_run_data.last_updated_time());
+        emit updateLiveStatus(live_mode_);
+    }
 
     QHash<QString, PortInstance*> port_instances;
     int node_count = 0;
 
+    // Construct the graphics items and add them to the graphics scene
     for (const auto& node : exp_run_data.getNodeData()) {
         checkNotNull(node, "node data");
         auto node_item = constructNodeItem(*node);
@@ -333,7 +347,7 @@ void DataflowDialog::resetPlayback()
  */
 void DataflowDialog::timerEvent(QTimerEvent* event)
 {
-    // We only care about the playback timer
+    // This slot listens to all the timers that have been started for this object; we only care about our playback timer
     if (event->timerId() != timer_id_) {
         return;
     }
