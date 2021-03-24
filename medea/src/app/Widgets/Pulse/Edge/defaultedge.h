@@ -29,9 +29,14 @@ public:
     [[nodiscard]] QRectF boundingRect() const override;
 
 public slots:
+    void flash(qint64 from_time, qint64 flash_duration);
+    void unflash(qint64 end_time);
+
     void endPointPositionChanged() override;
     void endPointVisibilityChanged() override;
+    void endPointDestroyed() override;
 
+private slots:
     void onSourceParentChanged(bool natural_parent);
     void onDestinationParentChanged(bool natural_parent);
 
@@ -53,10 +58,16 @@ private:
     QPen line_pen_;
     QPen src_point_pen_;
     QPen dst_point_pen_;
+
+    QColor default_color_;
+    QColor highlight_color_;
     QColor default_point_color_;
 
     QPainterPath edge_path_;
     re::types::Uuid id_;
+
+    // This is used to prevent the flash from being stopped/reset prematurely due to previous flash timers ending
+    qint64 flash_end_time_ = 0;
 };
 
 } // end Pulse::View namespace

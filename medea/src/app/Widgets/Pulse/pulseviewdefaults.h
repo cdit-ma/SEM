@@ -9,6 +9,8 @@
 
 namespace Pulse::View::Defaults {
 
+constexpr int flash_duration_ms = 200;
+
 constexpr qreal pen_width = 2.0;
 
 constexpr int layout_margin = 5;

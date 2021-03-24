@@ -74,7 +74,6 @@ void ComponentInstance::connectModelData(QPointer<Pulse::Model::Entity> model_da
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &ComponentInstance::onModelDeleted);
     connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);
-    connect(model_data, &Pulse::Model::Entity::iconChanged, name_plate_, &NamePlate::changeIcon);
 }
 
 /**
