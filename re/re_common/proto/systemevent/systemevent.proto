@@ -118,3 +118,31 @@ message InfoEvent{
 	repeated FileSystemInfo file_system_info = 14;
 	repeated InterfaceInfo interface_info = 15;
 }
+
+message GPUDescriptor {
+	uint32 index = 1;
+	string name = 2;
+	string vendor = 3;
+
+	double gpu_frequency_hz = 4;
+	uint64 gpu_memory_MiB = 5;
+}
+
+message DeviceInfo {
+	string hostname = 1;
+	google.protobuf.Timestamp timestamp = 2;
+	repeated GPUDescriptor gpus = 3;
+}
+
+message GPUMetricSample {
+	string device_name = 1;
+	google.protobuf.Timestamp timestamp = 2;
+	double processor_utilisation_perc = 3;
+	uint64 memory_utilisation_MiB = 4;
+	double temperature_cel = 5;
+}
+
+message DeviceMetricSamples {
+	string hostname = 1;
+	repeated GPUMetricSample gpu_samples = 2;
+}

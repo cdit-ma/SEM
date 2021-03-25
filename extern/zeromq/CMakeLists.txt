@@ -16,13 +16,11 @@ endif ()
 
 # cppzmq
 message(STATUS "Fetching cppzmq")
-message(WARNING "Pulling cppzmq based on commit hash. Consider pinning to version/tag once cppzmq release version > 4.6.0")
 set(CPPZMQ_BUILD_TESTS OFF CACHE BOOL "")
 cmake_policy(SET CMP0077 NEW)
 FetchContent_Declare(cppzmq
         GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
-        # TODO: Point at a release tag, this is currently pointing at master as of 2020-08-28
-        GIT_TAG master
+        GIT_TAG v4.7.1
         )
 if (NOT cppzmq_POPULATE)
     FetchContent_Populate(cppzmq)
