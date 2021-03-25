@@ -35,17 +35,7 @@ namespace sem::logging::netdata {
                 std::cerr << "unable to parse nvidia_smi using JSON stream:\n" << parse_status.ToString() << std::endl;
             }
 
-            auto type = chart->chart_type();
-
-            try {
-                for (const auto &listener : listeners_.at(type)) {
-                    if (auto locked_ref = listener.lock()) {
-                        locked_ref->receive_chart_data(chart);
-                    }
-                }
-            } catch (const std::exception& ex) {
-
-            }
+            notify_listeners(chart);
         }
 
         /**
@@ -60,6 +50,28 @@ namespace sem::logging::netdata {
     private:
         std::unordered_map<protobuf::chart::chart_type_enum, std::vector<std::weak_ptr<chart_listener>>> listeners_;
 
+        void notify_listeners(const std::shared_ptr<protobuf::chart>& chart) {
+            auto type = chart->chart_type();
+
+            const auto& listeners_iterator = listeners_.find(type);
+            if (listeners_iterator == listeners_.end()) {
+                // There are no listeners for the parsed chart type, we can break early
+                return;
+            }
+            auto& type_listeners = listeners_iterator->second;
+
+            for (const auto &listener : type_listeners) {
+                try {
+                    if (auto locked_ref = listener.lock()) {
+                        locked_ref->receive_chart_data(chart);
+                    }
+                } catch (const std::exception &ex) {
+                    std::cerr << "An exception was thrown when passing chart data to a chart_listener:\n"
+                              << ex.what() << std::endl;
+                }
+            }
+
+        }
     };
 }
 
