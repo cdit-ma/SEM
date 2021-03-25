@@ -11,6 +11,11 @@ namespace sem::logging::netdata {
     public:
         virtual ~tcp_stream_listener() = 0;
 
+        /**
+         * Classes implementing this interface should override this function to process newly received
+         * lines from the TCP streams they are registered with.
+         * @param tcp_stream_line
+         */
         virtual void receive_line(std::string tcp_stream_line) = 0;
     };
 

@@ -11,20 +11,32 @@
 
 #include "boost/asio.hpp"
 
-#include "json_info.hpp"
 #include "tcp_stream_listener.hpp"
 #include "data_stream.hpp"
 
 
 namespace sem::logging::netdata {
 
-    class tcp_receiver : public std::enable_shared_from_this<tcp_receiver> {
+    class tcp_receiver {
     public:
+        /**
+         * Begin listening for incoming TCP streams on the provided port
+         * @param port
+         */
         explicit tcp_receiver(uint16_t port);
         ~tcp_receiver();
 
+        /**
+         * Register that the provided listener should be notified of new lines received by a
+         * tcp stream
+         * @param listener
+         */
         void register_stream_listener(const std::weak_ptr<tcp_stream_listener> &listener);
 
+        /**
+         * Blocks until the server stops running (ie when the internal service thread handling network
+         * driver operations has finished)
+         */
         void wait();
 
     private:

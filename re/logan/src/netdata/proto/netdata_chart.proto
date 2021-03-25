@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package sem.logging.netdata.protobuf;
+
+message chart {
+  string prefix = 1;
+  string hostname = 2;
+  map<string, string> labels = 3;
+  string chart_id = 4;
+  string chart_name = 5;
+  string chart_family = 6;
+  string chart_context = 7;
+  chart_type_enum chart_type = 8;
+  string units = 9;
+  string id = 10;
+  string name = 11;
+  int64 value = 12;
+  uint64 timestamp = 13;
+
+  enum chart_type_enum {
+      netdata = 0;
+      system = 1;
+      disk = 2;
+      disk_ops = 3;
+      disk_mops = 4;
+      disk_iotime = 5;
+      disk_backlog = 6;
+      disk_util = 7;
+      disk_space = 8;
+      disk_inodes = 9;
+      disk_await = 10;
+      disk_avgsz = 11;
+      disk_svctm = 12;
+      disk_qops = 13;
+      postfix_local = 14;
+      apps = 15;
+      users = 16;
+      groups = 17;
+      cpu = 18;
+      mem = 19;
+      net_packets = 20;
+      net = 21;
+      ip = 22;
+      ipv4 = 23;
+      ipv6 = 24;
+      nvidia_smi = 25;
+  }
+}

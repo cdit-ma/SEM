@@ -30,6 +30,17 @@ namespace sem::logging::netdata {
             listen_thread_.join();
         }
 
+        void register_listener(std::weak_ptr<tcp_stream_listener> listener) {
+            listeners_.push_back(std::move(listener));
+        }
+
+    private:
+        std::unique_ptr<tcp_socket> socket_;
+        std::thread listen_thread_;
+
+        std::vector<std::weak_ptr<tcp_stream_listener>> listeners_;
+
+
         void listen_loop() {
             while (socket_->good()) {
                 std::string new_line;
@@ -49,16 +60,6 @@ namespace sem::logging::netdata {
                 }
             }
         }
-
-        void register_listener(std::weak_ptr<tcp_stream_listener> listener) {
-            listeners_.push_back(std::move(listener));
-        }
-
-    private:
-        std::unique_ptr<tcp_socket> socket_;
-        std::thread listen_thread_;
-
-        std::vector<std::weak_ptr<tcp_stream_listener>> listeners_;
     };
 
 }
