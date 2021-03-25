@@ -77,7 +77,7 @@ namespace sem::fft_accel::data {
 
             data::vector_range<SampleType> data_segment{fft_data, segment_start, segment_end};
 
-            packets_.emplace_back(data_segment, request_id, cur_index);
+            packets_.emplace_back(data_segment, request_id, cur_index, fft_data.size()/2);
         }
     }
 
