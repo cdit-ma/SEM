@@ -8,6 +8,8 @@
 
 #include "netdata/device_sample_aggregator.hpp"
 
+using namespace std::chrono_literals;
+
 namespace sem::logging::netdata::test {
 
     /**
@@ -42,7 +44,7 @@ int main(int argc, char** argv) {
             if (metrics) {
                 std::cout << metrics->DebugString() << std::endl;
             }
-            sleep(1);
+            std::this_thread::sleep_for(1s);
         }
     });
 
