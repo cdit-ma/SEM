@@ -32,12 +32,6 @@ public slots:
     void flash(qint64 from_time, qint64 flash_duration);
     void unflash(qint64 end_time);
 
-    void flashSource();
-    void unflashSource();
-
-    void flashDestination();
-    void unflashDestination();
-
     void endPointPositionChanged() override;
     void endPointVisibilityChanged() override;
     void endPointDestroyed() override;
