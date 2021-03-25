@@ -46,10 +46,7 @@ private:
 
     NaturalAnchor* natural_anchor_ = nullptr;
 
-    QColor default_color_;
-    QColor highlight_color_;
-    QColor active_color_;
-
+    QColor ellipse_color_;
     bool flashing_ = false;
 
     QList<Edge*> connected_edges_;
