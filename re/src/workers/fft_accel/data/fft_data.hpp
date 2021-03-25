@@ -69,9 +69,9 @@ namespace sem::fft_accel::data {
         using SerializedPacket = serialized_fft_data<SampleType, max_elements>;
 
         fft_data_packet(const data::vector_range<SampleType> &data_range, uint8_t request_id,
-                        uint8_t sequence_num) :
+                        uint8_t sequence_num, uint16_t fft_request_size) :
                 fft_data_(data_range.begin(), data_range.end()),
-                header_data_(request_id, sequence_num, max_elements){
+                header_data_(request_id, sequence_num, fft_request_size){
             if (fft_data_.size() > max_elements) {
                 throw std::invalid_argument("Attempting to create fft_data_packet from vector that is too large");
             }

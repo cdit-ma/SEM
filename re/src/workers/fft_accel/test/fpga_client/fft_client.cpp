@@ -19,6 +19,7 @@ namespace sem::fft_accel::test {
         std::string fae_endpoint;
         std::string input_data_path;
         boost::optional<std::string> expected_result_path;
+        uint num_repeats
     };
 
     namespace cmd {
@@ -38,7 +39,9 @@ namespace sem::fft_accel::test {
                     ("input_data,i", prog_opts::value(&data.input_data_path)->required(),
                      "Specify the base filepath for the input fft data ('_r.txt' and '_i.txt' will be appended)")
                     ("expected_result,x", prog_opts::value(&data.expected_result_path),
-                     "Specify the base filepath for the expected fft result ('_r.txt' and '_i.txt' will be appended)");
+                     "Specify the base filepath for the expected fft result ('_r.txt' and '_i.txt' will be appended)")
+                    ("num_repetitions,n", prog_opts::value(&data.num_repeats)->default_value(1),
+                     "Specify the number of FFT calculation requests that should be made of using the supplied data");
 
             prog_opts::options_description cmd_options;
             cmd_options.add(generic).add(config);
@@ -187,13 +190,18 @@ int main(int argc, char **argv) {
 
     auto fft_input_data = file::load_ascii_binary_fft_data(config.input_data_path);
 
+
+    if (config.expected_result_path) {
+        auto expected_result = file::load_ascii_binary_fft_data(config.expected_result_path.value());
+    }
+
     try {
-        auto calculated_result = calculate_worker_result(config, fft_input_data);
+        for (int repetition_count = 0; repetition_count < config.num_repeats; repetition_count++) {}
+            auto calculated_result = calculate_worker_result(config, fft_input_data);
 
-        if (config.expected_result_path) {
-            auto expected_result = file::load_ascii_binary_fft_data(config.expected_result_path.value());
-
-            compare_and_print_mismatches(calculated_result, expected_result);
+            if (config.expected_result_path) {
+                compare_and_print_mismatches(calculated_result, expected_result);
+            }
         }
 
     } catch (const std::exception &ex) {
