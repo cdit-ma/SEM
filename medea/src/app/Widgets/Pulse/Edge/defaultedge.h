@@ -32,6 +32,12 @@ public slots:
     void flash(qint64 from_time, qint64 flash_duration);
     void unflash(qint64 end_time);
 
+    void flashSource();
+    void unflashSource();
+
+    void flashDestination();
+    void unflashDestination();
+
     void endPointPositionChanged() override;
     void endPointVisibilityChanged() override;
     void endPointDestroyed() override;
@@ -61,7 +67,10 @@ private:
 
     QColor default_color_;
     QColor highlight_color_;
+
     QColor default_point_color_;
+    QColor active_src_point_color_;
+    QColor active_dst_point_color_;
 
     QPainterPath edge_path_;
     re::types::Uuid id_;

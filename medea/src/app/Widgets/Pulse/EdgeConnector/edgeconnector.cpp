@@ -11,7 +11,7 @@
 
 using namespace Pulse::View;
 
-const qreal size = 10;
+const qreal default_size = 10;
 
 /**
  * @brief EdgeConnector::EdgeConnector
@@ -25,18 +25,10 @@ EdgeConnector::EdgeConnector(QGraphicsItem* parent)
     });
 
     Theme* theme = Theme::theme();
-    default_color_ = theme->getTextColor();
-    highlight_color_ = theme->getHighlightColor();
-    active_color_ = default_color_;
+    ellipse_color_ = theme->getTextColor();
 
     connect(theme, &Theme::theme_Changed, [this, theme]() {
-        default_color_ = theme->getTextColor();
-        highlight_color_ = theme->getHighlightColor();
-        if (flashing_) {
-            active_color_ = highlight_color_;
-        } else {
-            active_color_ = default_color_;
-        }
+        ellipse_color_ = theme->getTextColor();
         update();
     });
 
@@ -111,7 +103,7 @@ void EdgeConnector::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
     Q_UNUSED(widget);
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(active_color_);
+    painter->setBrush(ellipse_color_);
     painter->drawEllipse(boundingRect());
 }
 
@@ -121,6 +113,10 @@ void EdgeConnector::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
  */
 QRectF EdgeConnector::boundingRect() const
 {
+    auto size = default_size;
+    if (flashing_ && !isConnectedToNaturalAnchor()) {
+        size += 2;
+    }
     auto half_size = size / 2.0;
     return QRectF(-half_size, -half_size, size, size);
 }
@@ -131,10 +127,8 @@ QRectF EdgeConnector::boundingRect() const
 void EdgeConnector::flashPortLifecycle()
 {
     flashing_ = true;
-    if (!isConnectedToNaturalAnchor()) {
-        active_color_ = highlight_color_;
-        update();
-    }
+    prepareGeometryChange();
+    update();
 }
 
 /**
@@ -143,6 +137,6 @@ void EdgeConnector::flashPortLifecycle()
 void EdgeConnector::unflashPortLifecycle()
 {
     flashing_ = false;
-    active_color_ = default_color_;
+    prepareGeometryChange();
     update();
 }
