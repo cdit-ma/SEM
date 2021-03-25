@@ -1,5 +1,5 @@
 
-find_package(Boost REQUIRED COMPONENTS system regex)
+find_package(Boost REQUIRED COMPONENTS system regex date_time)
 
 find_package(protobuf)
 
@@ -34,6 +34,7 @@ target_link_libraries(sem_netdata_adapter
         Boost::boost
         Boost::system
         Boost::regex
+        Boost::date_time
         Boost::dynamic_linking
         protobuf::libprotobuf
         sem_netdata_proto
