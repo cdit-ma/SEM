@@ -19,7 +19,7 @@ namespace sem::fft_accel::test {
         std::string fae_endpoint;
         std::string input_data_path;
         boost::optional<std::string> expected_result_path;
-        uint num_repeats
+        uint32_t num_repeats{1};
     };
 
     namespace cmd {
@@ -156,7 +156,10 @@ namespace sem::fft_accel::test {
             throw std::runtime_error("Client component failed to configure");
         }
 
-        return fft_client->calculate_fft(input_data);
+        auto&& result = fft_client->calculate_fft(input_data);
+
+        fft_client->Terminate();
+        return result;
     }
 
     bool compare_and_print_mismatches(std::vector<float> actual, std::vector<float> expected) {
@@ -191,12 +194,13 @@ int main(int argc, char **argv) {
     auto fft_input_data = file::load_ascii_binary_fft_data(config.input_data_path);
 
 
+    std::vector<float> expected_result;
     if (config.expected_result_path) {
-        auto expected_result = file::load_ascii_binary_fft_data(config.expected_result_path.value());
+        expected_result = file::load_ascii_binary_fft_data(config.expected_result_path.value());
     }
 
     try {
-        for (int repetition_count = 0; repetition_count < config.num_repeats; repetition_count++) {}
+        for (int repetition_count = 0; repetition_count < config.num_repeats; repetition_count++) {
             auto calculated_result = calculate_worker_result(config, fft_input_data);
 
             if (config.expected_result_path) {
