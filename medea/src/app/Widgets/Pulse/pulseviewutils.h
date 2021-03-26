@@ -76,27 +76,6 @@ static int getDepth(const QGraphicsWidget* widget)
 }
 
 /**
- * @brief Pulse::View::Utils::getTrayColor
- * @param widget
- * @param default_color
- * @param dark_theme
- * @throws std::invalid_argument
- * @return
- */
-static QColor getTrayColor(const QGraphicsWidget* widget, const QColor& default_color, bool dark_theme)
-{
-    if (widget == nullptr) {
-        throw std::invalid_argument("Pulse::View::Utils::getTrayColor - The graphics item is null");
-    }
-    int level = getDepth(widget) + 1;
-    if (dark_theme) {
-        return default_color.lighter(100 + 20 * level);
-    } else {
-        return default_color.lighter(100 + 5 * level);
-    }
-}
-
-/**
  * @brief Pulse::View::Utils::getVisibleChildrenRect
  * @param widget
  * @throws std::invalid_argument

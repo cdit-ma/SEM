@@ -20,7 +20,7 @@ public:
     virtual ~EdgeAdopter() = 0;
 
     virtual void adoptEdges(EdgeAnchor* anchor, EdgeConnector* connector) = 0;
-    virtual void returnEdges(EdgeAnchor& anchor) = 0;
+    virtual void returnEdges(EdgeAnchor* anchor) = 0;
 };
 
 inline EdgeAdopter::~EdgeAdopter() = default;

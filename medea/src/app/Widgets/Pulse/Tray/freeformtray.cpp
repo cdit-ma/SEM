@@ -5,8 +5,6 @@
 #include "freeformtray.h"
 #include "../pulseviewutils.h"
 #include "../pulseviewdefaults.h"
-#include "../pulseviewutils.h"
-#include "../pulseviewdefaults.h"
 
 #include <stdexcept>
 
@@ -34,7 +32,7 @@ void FreeFormTray::addItem(QGraphicsWidget* widget)
     widget->setPos(stack_pos);
     widget->setParentItem(this);
     widget->setVisible(true);
-    contained_items_.push_back(widget);
+    contained_items_.append(widget);
 
     // When a child item's geometry has changed, update the tray's geometry and schedule a repaint
     connect(widget, &QGraphicsWidget::geometryChanged, [this]() {
@@ -46,17 +44,13 @@ void FreeFormTray::addItem(QGraphicsWidget* widget)
 /**
  * @brief FreeFormTray::removeItem
  * @param widget
- * @throws std::invalid_argument
  */
 void FreeFormTray::removeItem(QGraphicsWidget* widget)
 {
-    if (widget == nullptr) {
-        throw std::invalid_argument("FreeFormTray::removeItem - Trying to remove a null QGraphicsWidget");
-    }
-    if (contained_items_.contains(widget)) {
+    if (widget != nullptr) {
         prepareGeometryChange();
         widget->setParentItem(nullptr);
-        widget->disconnect(this);
+        disconnect(widget, nullptr, this, nullptr);
         contained_items_.removeAll(widget);
     }
 }
