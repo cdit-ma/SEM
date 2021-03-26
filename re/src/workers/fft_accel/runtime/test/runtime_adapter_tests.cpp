@@ -143,7 +143,8 @@ AssertionResult map_can_construct_then_receive(size_t num_packets) {
         response_packets.emplace_back(
                 data::vector_range{data::test::generate_random_fft_data(packet_type::max_elements)},
                 constructed_request_id,
-                sequence_num);
+                sequence_num,
+                input_data.size()/2);
     }
 
     // Send responses for all packets apart from the last, expecting no error, but result should contain nullopt (request not yet fulfilled)
