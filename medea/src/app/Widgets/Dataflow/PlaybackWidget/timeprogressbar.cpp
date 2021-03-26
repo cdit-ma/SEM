@@ -165,43 +165,41 @@ QString TimeProgressBar::getDurationString(qint64 duration_ms) const
 {
     qreal hours = duration_ms / 3.6e6;
     qreal mins = duration_ms / 6e4;
-    qreal secs = duration_ms / 1e3;
-    qreal msecs = duration_ms;
 
     QString time_str;
 
     // Hours
     if (hours >= 1) {
-        auto h = static_cast<int>(hours);
+        int h = static_cast<int>(hours);
         time_str = QString::number(h);
         mins = (hours - h) * 60;
     }
 
     // Minutes
-    auto m = static_cast<int>(mins);
-    auto&& m_str = QString::number(m);
+    int m = static_cast<int>(mins);
+    auto m_str = QString::number(m);
     leftPad(m_str, 2, '0');
     if (!time_str.isEmpty()) {
         time_str += ":" + m_str;
     } else {
         time_str = m_str;
     }
-    secs = (mins - m) * 60;
 
     // Seconds
-    auto s = static_cast<int>(secs);
-    auto&& s_str = QString::number(s);
+    qreal secs = (mins - m) * 60;
+    int s = static_cast<int>(secs);
+    auto s_str = QString::number(s);
     leftPad(s_str, 2, '0');
     if (!time_str.isEmpty()) {
         time_str += ":" + s_str;
     } else {
         time_str = s_str;
     }
-    msecs = (secs - s) * 1000;
 
     // Milliseconds
-    auto&& ms = static_cast<int>(msecs);
-    auto&& ms_str = QString::number(ms);
+    qreal msecs = (secs - s) * 1000;
+    int ms = static_cast<int>(msecs);
+    auto ms_str = QString::number(ms);
     leftPad(ms_str, 3, '0');
     time_str += "." + ms_str;
 
