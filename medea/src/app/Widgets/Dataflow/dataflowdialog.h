@@ -8,8 +8,13 @@
 #include "../Charts/Data/experimentrundata.h"
 #include "EntityItems/componentinstancegraphicsitem.h"
 #include "EntityItems/portinstancegraphicsitem.h"
-#include "GraphicsItems/edgeitem.h"
 #include "PlaybackWidget/playbackcontrolswidget.h"
+
+#include "../Pulse/Entity/defaultentity.h"
+#include "../Pulse/Entity/portinstance.h"
+#include "../Pulse/EntityContainer/componentinstance.h"
+#include "../Pulse/EntityContainer/defaultentitycontainer.h"
+#include "../Pulse/Edge/defaultedge.h"
 
 class DataflowDialog : public QFrame
 {
@@ -49,6 +54,15 @@ protected:
 private:
     void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);
 
+    static void checkNotNull(QObject* data_obj, const QString& data_name);
+    static Pulse::View::PortInstance* constructPortInstanceItem(PortInstanceData& port_inst);
+    static Pulse::View::DefaultEntity* constructWorkerInstanceItem(WorkerInstanceData& worker_inst);
+
+    void constructPortConnections(const QList<PortConnectionData*>& connections);
+    Pulse::View::DefaultEntityContainer* constructNodeItem(NodeData& node);
+    Pulse::View::DefaultEntityContainer* constructContainerInstanceItem(ContainerInstanceData& container, Pulse::View::DefaultEntityContainer* parent);
+    Pulse::View::ComponentInstance* constructComponentInstanceItem(ComponentInstanceData& comp_inst, Pulse::View::DefaultEntityContainer* parent);
+
     void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*>& port_connections);
     void addItemToScene(QGraphicsItem* item);
 
@@ -62,6 +76,7 @@ private:
     PlaybackControlsWidget playback_controls_;
 
     QHash<QString, PortInstanceGraphicsItem*> port_items_;
+    QHash<QString, Pulse::View::PortInstance*> port_instance_cache_;
 
     qint64 exp_run_start_time_ = 0;
     qint64 exp_run_end_time_ = 0;

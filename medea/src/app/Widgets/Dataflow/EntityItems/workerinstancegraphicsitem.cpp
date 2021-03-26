@@ -150,7 +150,7 @@ void WorkerInstanceGraphicsItem::setupLayout()
     label_text_item_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     label_text_item_->setTextAlignment(Qt::AlignBottom);
 
-    metadata_text_item_ = new TextGraphicsItem("WorkerDefinitionName", this);
+    metadata_text_item_ = new TextGraphicsItem(getType(), this);
     metadata_text_item_->setFont(QFont("Verdana", 8));
     metadata_text_item_->setTextAlignment(Qt::AlignTop);
 

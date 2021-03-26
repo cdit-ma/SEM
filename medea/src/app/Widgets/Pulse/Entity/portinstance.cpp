@@ -3,7 +3,7 @@
 //
 
 #include "portinstance.h"
-#include "../../../theme.h"
+#include "../pulseviewutils.h"
 
 #include <QPainter>
 
@@ -15,45 +15,39 @@ using namespace Pulse::View;
  * @param kind
  * @param meta_label
  * @param parent
+ * @throws std::invalid_argument
  */
 PortInstance::PortInstance(const QString& label,
                            const AggServerResponse::Port::Kind kind,
                            const QString& meta_label,
                            QGraphicsItem* parent)
     : QGraphicsWidget(parent),
+      name_plate_(new NamePlate(label, "Icons", Utils::getPortIconName(kind),
+                                meta_label, "Icons", "envelopeTwoTone",this)),
       kind_(kind)
 {
-    auto icon_name = "";
     auto icon_pos = NamePlate::IconPos::Left;
-
     switch (kind) {
         case AggServerResponse::Port::Kind::PERIODIC:
-            icon_name = "clockCycle";
-            break;
-        case AggServerResponse::Port::Kind::PUBLISHER:
-            icon_name = "arrowRightLong";
-            icon_pos = NamePlate::IconPos::Right;
+            ellipse_color_ = Defaults::input_port_color;
             break;
         case AggServerResponse::Port::Kind::SUBSCRIBER:
-            icon_name = "arrowIntoBox";
-            break;
-        case AggServerResponse::Port::Kind::REQUESTER:
-            icon_name = "arrowTopRight";
-            icon_pos = NamePlate::IconPos::Right;
-            break;
+            [[fallthrough]];
         case AggServerResponse::Port::Kind::REPLIER:
-            icon_name = "arrowBottomRight";
+            input_anchor_ = new NaturalAnchor(this);
+            ellipse_color_ = Defaults::input_port_color;
+            break;
+        case AggServerResponse::Port::Kind::PUBLISHER:
+            [[fallthrough]];
+        case AggServerResponse::Port::Kind::REQUESTER:
+            icon_pos = NamePlate::IconPos::Right;
+            output_anchor_ = new NaturalAnchor(this);
+            ellipse_color_ = Defaults::output_port_color;
             break;
         case AggServerResponse::Port::Kind::NO_KIND:
             throw std::invalid_argument("PortInstanceGraphicsItem::PortInstanceGraphicsItem - Port kind is unknown");
     }
 
-    ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::ERROR);
-    if (icon_pos == NamePlate::IconPos::Right) {
-        ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::SUCCESS);
-    }
-
-    name_plate_ = new NamePlate(label, "Icons", icon_name, "Message", "Icons", "envelopeTwoTone", this);
     name_plate_->setIconPos(icon_pos);
     name_plate_->setPrimarySpacing(Defaults::layout_padding);
 
@@ -64,29 +58,40 @@ PortInstance::PortInstance(const QString& label,
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addItem(name_plate_);
 
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    const auto& icon_geom = name_plate_->getIconGeometry();
+    if (input_anchor_ != nullptr) {
+        input_anchor_->setPos(icon_geom.left(), icon_geom.center().y());
+    }
+    if (output_anchor_ != nullptr) {
+        output_anchor_->setPos(icon_geom.right(), icon_geom.center().y());
+    }
 
-    // Connect the theme to update the ellipse color
-    connect(Theme::theme(), &Theme::theme_Changed, [icon_pos, this]() {
-        ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::ERROR);
-        if (icon_pos == NamePlate::IconPos::Right) {
-            ellipse_color_ = Theme::theme()->getSeverityColor(Notification::Severity::SUCCESS);
+    auto connect_anchor = [this, icon_pos] (NaturalAnchor* anchor) {
+        if (anchor != nullptr) {
+            connect(this, &PortInstance::geometryChanged, [this, anchor, icon_pos]() {
+                const auto& icon_geom = name_plate_->getIconGeometry();
+                auto x = (icon_pos == NamePlate::Left) ? icon_geom.left() : icon_geom.right();
+                if (isVisible()) { anchor->triggerPositionChange(x, icon_geom.center().y()); }
+            });
         }
-        update();
-    });
+    };
+
+    connect_anchor(input_anchor_);
+    connect_anchor(output_anchor_);
 }
 
 /**
  * @brief PortInstance::connectModelData
  * @param model_data
+ * @throws std::invalid_argument
  */
 void PortInstance::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 {
     if (model_data.isNull()) {
-        throw std::invalid_argument("DefaultEntity - The model data is null");
+        throw std::invalid_argument("PortInstance::connectModelData - The model data is null");
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &PortInstance::onModelDeleted);
-    connect(model_data, &Pulse::Model::Entity::labelChanged, name_plate_, &NamePlate::changeLabel);
+    connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);
     connect(model_data, &Pulse::Model::Entity::iconChanged, name_plate_, &NamePlate::changeIcon);
 }
 
@@ -96,6 +101,21 @@ void PortInstance::connectModelData(QPointer<Pulse::Model::Entity> model_data)
 void PortInstance::onModelDeleted()
 {
     deleteLater();
+}
+
+/**
+ * @brief PortInstance::getInputAnchor
+ * @return
+ */
+NaturalAnchor* PortInstance::getInputAnchor()
+{
+    return input_anchor_;
+}
+
+
+NaturalAnchor* PortInstance::getOutputAnchor()
+{
+    return output_anchor_;
 }
 
 /**

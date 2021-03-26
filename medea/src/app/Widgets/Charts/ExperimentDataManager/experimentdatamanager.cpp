@@ -581,7 +581,7 @@ ExperimentRunData& ExperimentDataManager::getExperimentRunData(const QString& ex
     if (exp_data) {
         return exp_data->getExperimentRun(exp_run_id);
     }
-    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - The is no ExperimentData named " + exp_name.toStdString());
+    throw std::invalid_argument("ExperimentDataManager::getExperimentRunData - There is no ExperimentData named " + exp_name.toStdString());
 }
 
 /**
@@ -942,8 +942,10 @@ void ExperimentDataManager::showChartForSeries(const QPointer<const EventSeries>
 void ExperimentDataManager::showPulseForExperimentRun(const MEDEA::ExperimentRunData& exp_run_data)
 {
     if (request_filters_.show_pulse) {
-        //getDataflowDialog().constructGraphicsItemsForExperimentRun(exp_run_data);
-        getDataflowDialog().constructPulseViewItemsForExperimentRun(exp_run_data);
+        getDataflowDialog().constructGraphicsItemsForExperimentRun(exp_run_data);
+        // NOTE: Commenting out the new feature until it is complete
+        // TODO: Create a setting to flag/unflag this new feature at runtime
+        //getDataflowDialog().constructPulseViewItemsForExperimentRun(exp_run_data);
         emit showDataflowPanel();
     }
 }
@@ -1005,6 +1007,11 @@ QString getPath(ViewItem* item)
     return "";
 }
 
+/**
+ * @brief ExperimentDataManager::setupRequestFilters
+ * @param view_items
+ * @param data_kinds
+ */
 void ExperimentDataManager::setupRequestFilters(const QVector<ViewItem*>& view_items, const QList<MEDEA::ChartDataKind>& data_kinds)
 {
     if (view_items.isEmpty()) {

@@ -16,8 +16,10 @@ public:
     virtual ~Entity() = 0;
 
 signals:
-    void labelChanged(const QString& label);
+    void nameChanged(const QString& name);
     void iconChanged(const QString& icon_path, const QString& icon_name);
+
+    // send a signal to flash/unflash entities at given time from Timer class
 };
 
 inline Entity::~Entity() = default;

@@ -30,15 +30,13 @@ public:
     ~NamePlate() override = default;
 
     void changeIcon(const QString& icon_path, const QString& icon_name) override;
-    void changeLabel(const QString& label) override;
+    void changeName(const QString& name) override;
 
     void setIconPos(IconPos pos);
     [[nodiscard]] QRectF getIconGeometry() const;
 
     void setPrimarySpacing(int spacing);
     void setPrimaryIconSize(int width, int height);
-
-    static QPixmap scaledPixmap(const QString& path, const QString& name, const QSize& size);
 
 private:
     void themeChanged();
@@ -53,10 +51,10 @@ private:
     PixmapItem* secondary_pixmap_item_ = nullptr;
     QPair<QString, QString> secondary_icon_;
 
+    IconPos current_icon_pos_ = IconPos::Left;
+
     QGraphicsLinearLayout* main_layout_ = nullptr;
     QGraphicsLinearLayout* info_layout_ = nullptr;
-
-    IconPos current_icon_pos_ = IconPos::Left;
 };
 
 } // end Pulse::View namespace
