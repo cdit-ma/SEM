@@ -105,19 +105,18 @@ TEST(chart_json_parser, doesnt_send_chart_to_listener_registered_with_different_
 
 TEST(chart_json_parser, can_send_chart_to_multiple_listeners) {
     chart_json_parser test_parser;
-    auto mock_listeners = std::vector
-            {{
-                     std::make_shared<test::mock_chart_listener>(),
-                     std::make_shared<test::mock_chart_listener>(),
-             }};
+    std::vector<std::shared_ptr<test::mock_chart_listener>> mock_listeners;
+    for (size_t num_listeners = 0; num_listeners < 2; num_listeners++) {
+        mock_listeners.push_back(std::make_shared<test::mock_chart_listener>());
+    };
 
-    for (auto &mock_listener : mock_listeners) {
+    for (const auto &mock_listener : mock_listeners) {
         EXPECT_CALL(*mock_listener, receive_chart_data(
                 Truly(&test::is_netdata_chart_type<protobuf::chart::nvidia_smi>)
         ));
     }
 
-    for (auto &mock_listener : mock_listeners) {
+    for (const auto &mock_listener : mock_listeners) {
         ASSERT_NO_THROW(
                 test_parser.register_listener(mock_listener, protobuf::chart::nvidia_smi)
         );
@@ -130,11 +129,10 @@ TEST(chart_json_parser, can_send_chart_to_multiple_listeners) {
 
 TEST(chart_json_parser, can_send_to_multiple_listeners_if_one_throws) {
     chart_json_parser test_parser;
-    auto mock_listeners = std::vector
-            {{
-                     std::make_shared<test::mock_chart_listener>(),
-                     std::make_shared<test::mock_chart_listener>(),
-             }};
+    std::vector<std::shared_ptr<test::mock_chart_listener>> mock_listeners;
+    for (size_t num_listeners = 0; num_listeners < 2; num_listeners++) {
+        mock_listeners.push_back(std::make_shared<test::mock_chart_listener>());
+    };
 
     // Simulate the situation in which one of the callbacks will throw an exception
     EXPECT_CALL(*mock_listeners[0], receive_chart_data(
@@ -146,7 +144,7 @@ TEST(chart_json_parser, can_send_to_multiple_listeners_if_one_throws) {
             Truly(&test::is_netdata_chart_type<protobuf::chart::nvidia_smi>)
     ));
 
-    for (auto &mock_listener : mock_listeners) {
+    for (const auto &mock_listener : mock_listeners) {
         ASSERT_NO_THROW(test_parser.register_listener(mock_listener, protobuf::chart::nvidia_smi));
     }
 
