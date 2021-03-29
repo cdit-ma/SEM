@@ -240,7 +240,6 @@ void NodeData::addNetworkUtilisationEvents(const QVector<NetworkUtilisationEvent
         const auto& mac_addr = event->getInterfaceMacAddress();
         auto series = network_utilisation_series_.value(mac_addr, nullptr);
         if (series == nullptr) {
-            qDebug() << "--- No series for: " << mac_addr;
             throw std::runtime_error("NodeData::addNetworkUtilisationEvents - There is no series for the provided interface mac address");
         }
         series->addEvent(event);

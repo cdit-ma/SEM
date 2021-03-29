@@ -228,8 +228,6 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
             toastNotification("Failed to get workload events - " + ex.toString(), "spanner", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get workload events - " + QString::fromStdString(ex.what()), "spanner", Notification::Severity::ERROR);
-            // TODO: Ask Jackson why this causes a crash
-            //throw;
         }
     });
     futureWatcher->setFuture(future);
@@ -402,10 +400,8 @@ void ExperimentDataManager::processExperimentRuns(MEDEA::ExperimentData* request
 void ExperimentDataManager::processExperimentState(ExperimentRunData* requester, const AggServerResponse::ExperimentState& exp_state)
 {
     if (requester != nullptr) {
-        qDebug() << "IF: processExperimentState - " << requester->experiment_name();
         requester->updateData(exp_state);
     } else {
-        qDebug() << "ELSE: processExperimentState - " << request_filters_.experiment_name;
         auto& exp_run_data = getExperimentRunData(request_filters_.experiment_name, request_filters_.experiment_run_id);
         exp_run_data.updateData(exp_state);
         showDataForExperimentRun(exp_run_data);
@@ -638,9 +634,9 @@ DataflowDialog& ExperimentDataManager::getDataflowDialog()
  */
 void ExperimentDataManager::startTimerLoop(quint32 exp_run_id)
 {
-    if (!exp_run_timers_.contains(exp_run_id)) {
+    if (!live_exp_run_timers_.contains(exp_run_id)) {
         auto timer_id = startTimer(default_playback_interval_ms);
-        exp_run_timers_.insert(exp_run_id, timer_id);
+        live_exp_run_timers_.insert(exp_run_id, timer_id);
     }
 }
 
@@ -650,11 +646,12 @@ void ExperimentDataManager::startTimerLoop(quint32 exp_run_id)
  */
 void ExperimentDataManager::stopTimerLoop(quint32 exp_run_id)
 {
-    if (exp_run_timers_.contains(exp_run_id)) {
-        const auto& timer_id = exp_run_timers_.take(exp_run_id);
+    if (live_exp_run_timers_.contains(exp_run_id)) {
+        const auto& timer_id = live_exp_run_timers_.take(exp_run_id);
         killTimer(timer_id);
-        // Invalidate the live experiment id
+        // Invalidate the live experiment id and name
         live_exp_run_id_ = invalid_experiment_id;
+        live_exp_name_.clear();
     }
 }
 
@@ -677,34 +674,14 @@ void ExperimentDataManager::timerEvent(QTimerEvent* event)
             auto& exp_run_data = getExperimentRunData(live_exp_name_, exp_run_id);
             // When the experiment run has an end-time, kill its timer
             if (exp_run_data.end_time() != 0) {
-                qDebug() << "Timer EVENT - Experiment Finished!";
                 stopTimerLoop(exp_run_id);
-                //live_exp_run_id_ = invalid_experiment_id;
             } else {
-                qDebug() << "Timer EVENT - Re-request the ExperimentState";
                 requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, &exp_run_data);
             }
         } catch (const std::exception& ex) {
             throw std::invalid_argument(ex.what());
         }
     }
-
-    // TODO: Use the code below when we allow multiple Pulse windows
-    // Request the displayed experiment run(s)' state every tick interval
-    /*for (const auto& exp_run_id : exp_run_timers_.keys()) {
-        const auto& exp_data = getExperimentData(exp_run_id);
-        if (exp_data) {
-            const auto& exp_run_data = exp_data->getExperimentRun(exp_run_id);
-            // When the experiment run has an end-time, kill its timer
-            if (exp_run_data.end_time() != 0) {
-                stopTimerLoop(exp_run_id);
-            } else {
-                requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, exp_data);
-            }
-        } else {
-            throw std::invalid_argument("ExperimentDataManager::timerEvent - There is no experiment data for the current experiment run");
-        }
-    }*/
 }
 
 /**
@@ -788,12 +765,12 @@ void ExperimentDataManager::clear()
     request_filters_.clear();
 
     // Kill any existing timers
-    for (const auto& exp_run_id : exp_run_timers_.keys()) {
+    for (const auto& exp_run_id : live_exp_run_timers_.keys()) {
         stopTimerLoop(exp_run_id);
     }
 
     experiment_data_hash_.clear();
-    exp_run_timers_.clear();
+    live_exp_run_timers_.clear();
     live_exp_name_.clear();
     live_exp_run_id_ = invalid_experiment_id;
 }
@@ -818,11 +795,6 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
         // NOTE: We no longer want to stop it in case the charts are still displaying the live experiment
         // TODO: Refactor timer work
         // Stop the previous timer if there is one
-        if (live_exp_run_id_ != invalid_experiment_id) {
-            qDebug() << "visualiseSelectedExperimentRun -  STOP live exp requests for: " << live_exp_run_id_;
-        } else {
-            qDebug() << "visualiseSelectedExperimentRun - NO live queries";
-        }
         stopTimerLoop(static_cast<quint32>(live_exp_run_id_));
 
         auto expRunID = static_cast<quint32>(experimentRun.experiment_run_id);
@@ -830,12 +802,13 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
             live_exp_name_ = experimentRun.experiment_name;
             live_exp_run_id_ = experimentRun.experiment_run_id;
             startTimerLoop(expRunID);
-        } else {
-            live_exp_name_.clear();
-            live_exp_run_id_ = invalid_experiment_id;
         }
 
         requestExperimentData(ExperimentDataRequestType::ExperimentState, expRunID);
+
+        if (charts) {
+            emit showChartsPanel();
+        }
     }
 }
 
@@ -941,8 +914,6 @@ void ExperimentDataManager::showChartForSeries(const QPointer<const EventSeries>
     if (request_filters_.show_charts) {
         if (!series.isNull()) {
             timelineChartView().addChart(series, exp_run_data);
-            // SEM-659: This is likely the cause of the Charts panel popping out when having queried a LIVE experiment
-            emit showChartsPanel();
         }
     }
 }
