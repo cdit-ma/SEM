@@ -1,3 +1,4 @@
+LIST(APPEND Protobuf_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
 CDIT_MA_GENERATE_GRPC_CPP(GRPC_SRCS GRPC_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/environment_control_service.proto)
 
 # Code generated at build time, that has the GENERATED cmake property, MUST!!!!!
@@ -13,6 +14,7 @@ target_compile_features(environment_control_service PRIVATE cxx_std_17)
 target_link_libraries(environment_control_service
         PUBLIC
         grpc++
+        re_common_proto_control
         )
 target_include_directories(environment_control_service
         PUBLIC

@@ -1,7 +1,3 @@
-project("re"
-        VERSION ${PROJECT_VERSION}
-        LANGUAGES CXX)
-
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 if (APPLE)

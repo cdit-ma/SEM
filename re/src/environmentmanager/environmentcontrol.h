@@ -15,7 +15,10 @@ public:
     explicit EnvironmentControl(NodeManagerRegistry& node_manager_registry);
     auto AddExperiment(grpc::ServerContext* context,
                        const ServiceNamespace::AddExperimentRequest* request,
-                       ServiceNamespace::AddExperimentResponse* response) -> ::grpc::Status final;
+                       ServiceNamespace::AddExperimentResponse* response) -> grpc::Status final;
+    auto StartExperiment(grpc::ServerContext* context,
+                         const ServiceNamespace::StartExperimentRequest* request,
+                         ServiceNamespace::StartExperimentResponse* response) -> grpc::Status final;
     auto ShutdownExperiment(grpc::ServerContext* context,
                             const ServiceNamespace::ShutdownExperimentRequest* request,
                             ServiceNamespace::ShutdownExperimentResponse* response)

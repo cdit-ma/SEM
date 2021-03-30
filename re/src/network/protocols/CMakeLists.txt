@@ -1,2 +1,1 @@
-add_subdirectory(experimentdefinition)
 add_subdirectory(triggerevent)

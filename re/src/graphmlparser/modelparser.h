@@ -19,13 +19,13 @@ namespace re::ModelParser {
 class ModelParser {
 public:
     // REVIEW (Mitch): These should be free functions.
-    static std::unique_ptr<NodeManager::Experiment>
-    ParseModel(const std::string& filename, const std::string& experiment_id);
+    static auto ParseModel(const std::string& filename, const std::string& experiment_id)
+        -> std::unique_ptr<NodeManager::Experiment>;
 
-    static std::unique_ptr<NodeManager::Experiment>
-    ParseModelString(const std::string& filename, const std::string& experiment_id);
+    static auto ParseModelString(const std::string& model_string, const std::string& experiment_id)
+        -> std::unique_ptr<NodeManager::Experiment>;
 
-    static std::string GetDeploymentJSON(const NodeManager::Experiment& experiment);
+    static auto GetDeploymentJSON(const NodeManager::Experiment& experiment) -> std::string;
 
 private:
     ModelParser(std::istream& model_stream, const std::string& experiment_id);

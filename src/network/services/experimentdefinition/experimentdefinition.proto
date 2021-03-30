@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-import "controlmessage.proto";
 package re.network.protocol.experimentdefinition;
+import "src/network/services/controlmessage/controlmessage.proto";
 
 message RegistrationRequest {
     string request_uuid = 1;

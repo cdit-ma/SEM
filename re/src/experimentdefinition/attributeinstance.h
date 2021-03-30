@@ -4,7 +4,7 @@
 #include "attributedefinition.h"
 #include "modelentity.h"
 #include "graphmlparser.h"
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "experimentdefinition.pb.h"
 #include <string>
 #include "uuid.h"
 #include <utility>

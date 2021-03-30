@@ -3,7 +3,7 @@
 
 #include "aggregationprotohandler.h"
 
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 #include <utility>
 

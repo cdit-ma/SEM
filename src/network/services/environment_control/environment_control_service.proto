@@ -1,15 +1,28 @@
 syntax = "proto3";
-package sem.network.services.environment_manager;
 
+
+package sem.network.services.environment_manager;
+import "src/network/services/controlmessage/controlmessage.proto";
 message AddExperimentRequest {
     string experiment_name = 1;
     string experiment_manifest = 2;
-    // endpoint of form ip_addr:port
-    string listener_endpoint = 3;
 };
 
 message AddExperimentResponse {
     bool success = 1;
+    string experiment_uuid = 2;
+}
+
+
+message StartExperimentRequest {
+    string experiment_uuid = 1;
+    string listener_control_endpoint = 3;
+    string listener_endpoint = 4;
+    int64 duration = 5;
+}
+
+message StartExperimentResponse {
+
 }
 
 message ListExperimentsRequest {
@@ -18,6 +31,7 @@ message ListExperimentsRequest {
 
 message ListExperimentsResponse {
     bool success = 1;
+    repeated string experiment_uuids = 2;
 };
 
 message ShutdownExperimentRequest {
@@ -37,6 +51,7 @@ message InspectExperimentResponse {
 
 service EnvironmentControl {
     rpc AddExperiment (AddExperimentRequest) returns (AddExperimentResponse);
+    rpc StartExperiment (StartExperimentRequest) returns (StartExperimentResponse);
     rpc ListExperiments (ListExperimentsRequest) returns (ListExperimentsResponse);
     rpc ShutdownExperiment (ShutdownExperimentRequest) returns (ShutdownExperimentResponse);
     rpc InspectExperiment (InspectExperimentRequest) returns (InspectExperimentResponse);

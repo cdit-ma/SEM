@@ -21,7 +21,7 @@
 #include "triggerinstance.h"
 #include "workerdefinition.h"
 #include "workerinstance.h"
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "experimentdefinition.pb.h"
 #include "uuid.h"
 namespace re::Representation {
 

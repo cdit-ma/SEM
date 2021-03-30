@@ -4,7 +4,7 @@
 #include <memory>
 #include <sstream>
 
-#include <proto/controlmessage/controlmessage.pb.h>
+#include "controlmessage.pb.h"
 
 #include "modeleventprotohandler.h"
 #include "systemeventprotohandler.h"

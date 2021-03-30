@@ -118,8 +118,6 @@ private:
     Experiment& GetExperimentInternal(const sem::types::Uuid& experiment_uuid);
     void AddNodes(const sem::types::Uuid& experiment_uuid, const NodeManager::Cluster& cluster);
 
-    sem::types::Ipv4 ip_address_;
-
     // ports available on the environment manager, uses same port range as nodes.
     EndpointTracker environment_manager_endpoint_pool_;
 

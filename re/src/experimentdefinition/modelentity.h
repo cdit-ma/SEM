@@ -2,7 +2,7 @@
 #define RE_MODELENTITY_H
 
 #include "coredata.h"
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "experimentdefinition.pb.h"
 #include <string>
 #include "uuid.h"
 namespace re::Representation {

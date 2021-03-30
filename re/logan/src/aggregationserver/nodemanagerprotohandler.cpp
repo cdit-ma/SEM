@@ -7,7 +7,7 @@
 
 #include <zmq/protoreceiver/protoreceiver.h>
 
-#include <proto/controlmessage/helper.h>
+#include "helper.h"
 
 #include <google/protobuf/util/time_util.h>
 

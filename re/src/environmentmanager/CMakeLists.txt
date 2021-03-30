@@ -11,7 +11,7 @@ target_sources(re_environment_manager PRIVATE
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/container.cpp
 #        ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.cpp
 #        ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.cpp
-#        ${CMAKE_CURRENT_SOURCE_DIR}/environment/environment.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/environment/environment.cpp
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/experiment.cpp
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/logger.cpp
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/node.cpp
@@ -29,6 +29,7 @@ target_sources(re_environment_manager PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/environmentmanager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistrarimpl.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontrol.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/experimentregistry.cpp
 
 
         # Headers
@@ -37,7 +38,7 @@ target_sources(re_environment_manager PRIVATE
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/container.h
 #        ${CMAKE_CURRENT_SOURCE_DIR}/deploymenthandler.h
 #        ${CMAKE_CURRENT_SOURCE_DIR}/deploymentregister.h
-#        ${CMAKE_CURRENT_SOURCE_DIR}/environment/environment.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/environment/environment.h
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/experiment.h
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/logger.h
 #        ${CMAKE_CURRENT_SOURCE_DIR}/environment/node.h
@@ -55,6 +56,7 @@ target_sources(re_environment_manager PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistryimpl.h
         ${CMAKE_CURRENT_SOURCE_DIR}/nodemanagerregistrarimpl.h
         ${CMAKE_CURRENT_SOURCE_DIR}/environmentcontrol.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/experimentregistry.h
         )
 
 # Link Libraries

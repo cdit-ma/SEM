@@ -74,6 +74,7 @@ function(CDIT_MA_GENERATE_PROTOBUF_CPP SRCS HDRS)
                 ${_protobuf_include_path} ${ABS_FIL}
                 DEPENDS ${ABS_FIL} $<TARGET_FILE:protoc>
                 COMMENT "Running C++ protocol buffer compiler on ${FIL}"
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                 VERBATIM)
     endforeach ()
 
@@ -136,6 +137,7 @@ function(CDIT_MA_GENERATE_GRPC_CPP SRCS HDRS)
                 ${_protobuf_include_path} ${ABS_FIL}
                 DEPENDS ${ABS_FIL} $<TARGET_FILE:protoc>
                 COMMENT "Running gRPC C++ protocol buffer compiler on ${FIL}"
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                 VERBATIM)
     endforeach ()
 

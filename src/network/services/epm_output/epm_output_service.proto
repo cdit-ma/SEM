@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package sem.network.services.std_out_listener;
+package sem.network.services.epm_output_service;
 
 service Listening {
     rpc Output (MessageRequest) returns (MessageResponse);

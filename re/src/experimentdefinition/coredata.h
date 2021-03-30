@@ -1,7 +1,7 @@
 #ifndef RE_COREDATA_H
 #define RE_COREDATA_H
 
-#include <network/protocols/experimentdefinition/experimentdefinition.pb.h>
+#include "experimentdefinition.pb.h"
 #include "uuid.h"
 
 namespace re::Representation {

@@ -16,7 +16,6 @@ Environment::Environment(const sem::types::Ipv4& ip_address,
                          std::string tao_naming_service_address,
                          sem::types::unique_queue<uint16_t> manager_port_pool,
                          sem::types::unique_queue<uint16_t> default_experiment_node_port_pool) :
-    ip_address_(ip_address),
     qpid_broker_address_(qpid_broker_address),
     tao_naming_service_address_(std::move(tao_naming_service_address)),
     default_experiment_node_port_pool_{std::move(default_experiment_node_port_pool)},

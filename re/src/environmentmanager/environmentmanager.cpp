@@ -6,6 +6,7 @@
 #include "environmentcontrol.h"
 #include "nodemanagerregistrarimpl.h"
 
+#include "experimentregistry.h"
 #include "grpc_util/server.h"
 #include "socketaddress.hpp"
 
@@ -21,7 +22,7 @@
  */
 int main(int argc, char** argv)
 {
-    std::string ip_address;
+    std::string ip_address_str;
     uint16_t registration_port;
     uint16_t control_port;
     std::string qpid_address;
@@ -31,7 +32,7 @@ int main(int argc, char** argv)
     boost::program_options::options_description options("Environment Manager Options");
 
     options.add_options()("ip_address,a",
-                          boost::program_options::value<std::string>(&ip_address)->required(),
+                          boost::program_options::value<std::string>(&ip_address_str)->required(),
                           "Ip address of environment manager");
     options.add_options()("registration_port,r",
                           boost::program_options::value<uint16_t>(&registration_port)->required(),
@@ -73,10 +74,16 @@ int main(int argc, char** argv)
 
     using namespace sem::environment_manager;
 
+    sem::types::Ipv4 ip_address{ip_address_str};
+    sem::types::SocketAddress qpid_broker_address{qpid_address};
+
+
+    re::EnvironmentManager::Environment environment(ip_address, qpid_address, "", );
     std::unique_ptr<NodeManagerRegistry> nm_registry = std::make_unique<NodeManagerRegistryImpl>();
+    std::unique_ptr<ExperimentRegistry> experiment_registry = std::make_unique<ExperimentRegistry>();
 
     auto nm_registrar = std::make_shared<NodeManagerRegistrarImpl>(*nm_registry);
-    auto environment_control = std::make_shared<EnvironmentControl>(*nm_registry);
+    auto environment_control = std::make_shared<EnvironmentControl>(*nm_registry, &experiment_registry);
 
     sem::grpc_util::Server environment_manager_server{
         sem::types::SocketAddress{sem::types::Ipv4{ip_address}, registration_port},
