@@ -12,6 +12,7 @@
 #include <fstream>
 #include <bitset>
 #include <optional>
+#include <utility>
 
 namespace sem::fft_accel::test {
 
@@ -20,6 +21,7 @@ namespace sem::fft_accel::test {
         std::string input_data_path;
         boost::optional<std::string> expected_result_path;
         uint32_t num_repeats{1};
+        bool send_async;
     };
 
     namespace cmd {
@@ -41,7 +43,9 @@ namespace sem::fft_accel::test {
                     ("expected_result,x", prog_opts::value(&data.expected_result_path),
                      "Specify the base filepath for the expected fft result ('_r.txt' and '_i.txt' will be appended)")
                     ("num_repetitions,n", prog_opts::value(&data.num_repeats)->default_value(1),
-                     "Specify the number of FFT calculation requests that should be made of using the supplied data");
+                    "Specify the number of FFT calculation requests that should be made of using the supplied data")
+                    ("send_async,a", prog_opts::bool_switch(&data.send_async)->default_value(false),
+                    "Set to true to send packets in parallel, by default will send in serial");
 
             prog_opts::options_description cmd_options;
             cmd_options.add(generic).add(config);
@@ -136,32 +140,6 @@ namespace sem::fft_accel::test {
         }
     }
 
-    std::vector<float> calculate_worker_result(const config_data &config, const std::vector<float> &input_data) {
-        using fft_worker = sem::fft_accel::Worker;
-
-        Component client_component("FPGA_FFT_testing_client");
-        auto fft_client = client_component.AddTypedWorker<fft_worker>("test_fft_client_worker");
-
-        Print::Logger print_logger;
-        fft_client->logger().AddLogger(print_logger);
-
-        auto attr_ref = fft_client->GetAttribute(std::string(fft_worker::AttrNames::accelerator_endpoint));
-        if (auto endpoint_attr = attr_ref.lock()) {
-            endpoint_attr->SetValue(config.fae_endpoint);
-        } else {
-            throw std::runtime_error("Failed to acquire lock on FAE endpoint attribute");
-        }
-
-        if (!client_component.Configure()) {
-            throw std::runtime_error("Client component failed to configure");
-        }
-
-        auto&& result = fft_client->calculate_fft(input_data);
-
-        fft_client->Terminate();
-        return result;
-    }
-
     bool compare_and_print_mismatches(std::vector<float> actual, std::vector<float> expected) {
         if (actual.size() != expected.size()) {
             std::cerr << "Size of calculated FFT result doesn't match size of expected result" << std::endl;
@@ -184,6 +162,7 @@ namespace sem::fft_accel::test {
 
 int main(int argc, char **argv) {
     using namespace sem::fft_accel::test;
+    using fft_worker = sem::fft_accel::Worker;
 
     auto config_result = cmd::parse_args(argc, argv);
     if (!config_result.has_value()) {
@@ -200,13 +179,44 @@ int main(int argc, char **argv) {
     }
 
     try {
-        for (int repetition_count = 0; repetition_count < config.num_repeats; repetition_count++) {
-            auto calculated_result = calculate_worker_result(config, fft_input_data);
+        Component client_component("FPGA_FFT_testing_client");
+        auto fft_client = client_component.AddTypedWorker<fft_worker>("test_fft_client_worker");
 
-            if (config.expected_result_path) {
-                compare_and_print_mismatches(calculated_result, expected_result);
+        Print::Logger print_logger;
+        fft_client->logger().AddLogger(print_logger);
+
+        auto attr_ref = fft_client->GetAttribute(std::string(fft_worker::AttrNames::accelerator_endpoint));
+        if (auto endpoint_attr = attr_ref.lock()) {
+            endpoint_attr->SetValue(config.fae_endpoint);
+        } else {
+            throw std::runtime_error("Failed to acquire lock on FAE endpoint attribute");
+        }
+
+        if (!client_component.Configure()) {
+            throw std::runtime_error("Client component failed to configure");
+        }
+
+        if (config.send_async) {
+            fft_client->SetResponseCallback([&expected_result](uint8_t fft_id, std::vector<float> data) {
+                std::cout << "Received packet with FFT_REQUEST_ID = " << fft_id << std::endl;
+                compare_and_print_mismatches(std::move(data), expected_result);
+            });
+        }
+
+        for (int repetition_count = 0; repetition_count < config.num_repeats; repetition_count++) {
+            if (config.send_async) {
+                int fft_id = fft_client->calculate_fft_async(fft_input_data);
+                std::cout << "Send packet with FFT_REQUEST_ID = " << fft_id << std::endl;
+            } else {
+                auto calculated_result = fft_client->calculate_fft(fft_input_data);
+
+                if (config.expected_result_path) {
+                    compare_and_print_mismatches(calculated_result, expected_result);
+                }
             }
         }
+
+        fft_client->Terminate();
 
     } catch (const std::exception &ex) {
         std::cerr << "An exception was thrown from a RE system:" << std::endl

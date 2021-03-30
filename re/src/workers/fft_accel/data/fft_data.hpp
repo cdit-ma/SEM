@@ -83,6 +83,8 @@ namespace sem::fft_accel::data {
 
         [[nodiscard]] uint8_t request_id() const;
 
+        [[nodiscard]] uint16_t fft_size() const;
+
         [[nodiscard]] const std::vector<SampleType> &payload_data() const;
 
     private:
@@ -124,7 +126,7 @@ namespace sem::fft_accel::data {
         data_.at(2) = static_cast<std::byte>(native_packet.request_id());
         // 3rd byte currently unused, formerly used for CSR
         // TODO: Thoroughly investigate endianness of remaining fields to be serialized
-        uint16_t size_as_big_endian = boost::endian::native_to_big(static_cast<uint16_t>(native_packet.payload_data().size()));
+        uint16_t size_as_big_endian = boost::endian::native_to_big(static_cast<uint16_t>(native_packet.fft_size()));
         reinterpret_cast<uint16_t&>(data_.at(4)) = size_as_big_endian;
 
         constexpr auto payload_byte_length = NumElements * sizeof(SampleType);

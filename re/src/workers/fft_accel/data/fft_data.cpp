@@ -31,4 +31,7 @@ template<>
 uint8_t fft_data_packet<float>::request_id() const { return header_data_.request_id(); };
 
 template<>
+uint16_t fft_data_packet<float>::fft_size() const { return header_data_.fft_size(); };
+
+template<>
 const std::vector<float> &fft_data_packet<float>::payload_data() const { return fft_data_; };
