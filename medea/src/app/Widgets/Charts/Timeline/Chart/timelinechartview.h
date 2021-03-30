@@ -43,7 +43,7 @@ public:
 
     bool eventFilter(QObject *watched, QEvent* event) override;
 
-    void setTimeDisplayFormat( TIME_DISPLAY_FORMAT format);
+    void setTimeDisplayFormat(TIME_DISPLAY_FORMAT format);
 
     void addChart(const QPointer<const MEDEA::EventSeries>& series, const MEDEA::ExperimentRunData& exp_run_data);
     void removeChart(const QString& id, bool clearing_chart_list = false);
@@ -52,6 +52,7 @@ public:
 
 signals:
     void seriesLegendHovered(MEDEA::ChartDataKind kind);
+    void lastExperimentRunChartClosed(quint32 exp_run_id);
 
 public slots:
     void themeChanged();
@@ -78,6 +79,7 @@ private:
     void decrementSeriesCountForExperimentRun(quint32 experimentRunID);
     void updateTimelineRange(bool updateDisplayRange = true);
 
+    void updateChart(MEDEA::Chart& chart, const QPointer<const MEDEA::EventSeries>& series);
     void chartsEmptied();
 
     const QString& getDateTimeDisplayFormat(const MEDEA::ChartDataKind& kind) const;

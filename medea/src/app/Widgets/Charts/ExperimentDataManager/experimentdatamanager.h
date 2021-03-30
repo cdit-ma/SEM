@@ -39,7 +39,7 @@ public:
     ChartDialog& getChartDialog();
     DataflowDialog& getDataflowDialog();
 
-    void startTimerLoop(quint32 exp_run_id);
+    void startTimerLoop(quint32 exp_run_id, const QString& exp_name);
     void stopTimerLoop(quint32 exp_run_id);
 
     static void toastNotification(const QString& description, const QString& iconName, Notification::Severity severity = Notification::Severity::INFO);
@@ -65,6 +65,8 @@ private slots:
 
     void visualiseSelectedExperimentRun(const AggServerResponse::ExperimentRun& experimentRun, bool charts, bool pulse);
     void experimentRunDataUpdated(quint32 exp_run_id, qint64 last_updated_time);
+
+    void experimentRunChartsClosed(quint32 exp_run_id);
 
 protected:
     static void constructSingleton(ViewController* vc);
@@ -150,10 +152,17 @@ private:
     ChartDialog* chartDialog_ = nullptr;
     ChartInputPopup chartPopup_;
 
+    struct LiveExperimentTimer {
+        quint32 exp_run_id;
+        QString exp_name;
+        int timer_id;
+    };
+
+    qint32 last_queried_charts_exp_run_id_;
+    qint32 currently_displayed_pulse_exp_run_id_;
+
+    QHash<quint32, LiveExperimentTimer> live_exp_run_timers_;
     QHash<QString, MEDEA::ExperimentData*> experiment_data_hash_;
-    QHash<quint32, int> live_exp_run_timers_;
-    QString live_exp_name_;
-    qint32 live_exp_run_id_;
 
     const ViewController& viewController_;
     static ExperimentDataManager* manager_;

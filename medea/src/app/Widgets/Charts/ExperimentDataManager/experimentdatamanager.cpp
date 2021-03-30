@@ -19,13 +19,16 @@ ExperimentDataManager::ExperimentDataManager(const ViewController& vc)
     chartDialog_ = new ChartDialog();
     dataflowDialog_ = new DataflowDialog();
 
-    live_exp_run_id_ = invalid_experiment_id;
+    last_queried_charts_exp_run_id_ = invalid_experiment_id;
+    currently_displayed_pulse_exp_run_id_ = invalid_experiment_id;
 
     connect(&vc, &ViewController::modelClosed, this, &ExperimentDataManager::clear);
     connect(&vc, &ViewController::vc_displayChartPopup, this, &ExperimentDataManager::showChartInputPopup);
     connect(&vc, &ViewController::vc_viewItemsInChart, this, &ExperimentDataManager::filterRequestsBySelectedEntities);
 
     connect(&chartPopup_, &ChartInputPopup::visualiseExperimentRunData, this, &ExperimentDataManager::visualiseSelectedExperimentRun);
+
+    connect(&timelineChartView(), &TimelineChartView::lastExperimentRunChartClosed, this, &ExperimentDataManager::experimentRunChartsClosed);
 
     connect(&aggregationProxy(), &AggregationProxy::toastNotification, this, &ExperimentDataManager::toastNotification);
 }
@@ -631,12 +634,17 @@ DataflowDialog& ExperimentDataManager::getDataflowDialog()
 /**
  * @brief ExperimentDataManager::startTimerLoop
  * @param exp_run_id
+ * @param exp_name
  */
-void ExperimentDataManager::startTimerLoop(quint32 exp_run_id)
+void ExperimentDataManager::startTimerLoop(quint32 exp_run_id, const QString& exp_name)
 {
     if (!live_exp_run_timers_.contains(exp_run_id)) {
-        auto timer_id = startTimer(default_playback_interval_ms);
-        live_exp_run_timers_.insert(exp_run_id, timer_id);
+        const auto timer_id = startTimer(default_playback_interval_ms);
+        LiveExperimentTimer timer;
+        timer.exp_run_id = exp_run_id;
+        timer.exp_name = exp_name;
+        timer.timer_id = timer_id;
+        live_exp_run_timers_.insert(exp_run_id, timer);
     }
 }
 
@@ -647,11 +655,8 @@ void ExperimentDataManager::startTimerLoop(quint32 exp_run_id)
 void ExperimentDataManager::stopTimerLoop(quint32 exp_run_id)
 {
     if (live_exp_run_timers_.contains(exp_run_id)) {
-        const auto& timer_id = live_exp_run_timers_.take(exp_run_id);
-        killTimer(timer_id);
-        // Invalidate the live experiment id and name
-        live_exp_run_id_ = invalid_experiment_id;
-        live_exp_name_.clear();
+        const auto& timer = live_exp_run_timers_.take(exp_run_id);
+        killTimer(timer.timer_id);
     }
 }
 
@@ -664,23 +669,26 @@ void ExperimentDataManager::timerEvent(QTimerEvent* event)
 {
     Q_UNUSED(event);
 
-    // TODO: Need to discuss what we want happening in the charts when a live experiment(s) is being visualised
-    //  Unlike Pulse, Charts can display data from multiple experiment runs from different experiments at one time
-    //  Previously, the timer was only used for Pulse and was stopped the moment a finished experiment is selected
+    QSet<quint32> finished_exp_ids;
 
-    if (live_exp_run_id_ != invalid_experiment_id) {
-        const auto exp_run_id = static_cast<quint32>(live_exp_run_id_);
+    for (const auto& timer : live_exp_run_timers_) {
         try {
-            auto& exp_run_data = getExperimentRunData(live_exp_name_, exp_run_id);
-            // When the experiment run has an end-time, kill its timer
+            const auto& exp_run_id = timer.exp_run_id;
+            auto& exp_run_data = getExperimentRunData(timer.exp_name, exp_run_id);
             if (exp_run_data.end_time() != 0) {
-                stopTimerLoop(exp_run_id);
+                // If the experiment run has an end-time, add it to the list of finished experiments
+                finished_exp_ids.insert(exp_run_id);
             } else {
                 requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id, &exp_run_data);
             }
         } catch (const std::exception& ex) {
             throw std::invalid_argument(ex.what());
         }
+    }
+
+    // Stop the timers for all the finished experiments
+    for (const auto& id : finished_exp_ids) {
+        stopTimerLoop(id);
     }
 }
 
@@ -764,15 +772,17 @@ void ExperimentDataManager::clear()
     // Clear request filters
     request_filters_.clear();
 
-    // Kill any existing timers
-    for (const auto& exp_run_id : live_exp_run_timers_.keys()) {
+    // Kill all existing timers
+    const auto& live_exp_ids = live_exp_run_timers_.keys();
+    for (const auto& exp_run_id : live_exp_ids) {
         stopTimerLoop(exp_run_id);
     }
 
     experiment_data_hash_.clear();
     live_exp_run_timers_.clear();
-    live_exp_name_.clear();
-    live_exp_run_id_ = invalid_experiment_id;
+
+    last_queried_charts_exp_run_id_ = invalid_experiment_id;
+    currently_displayed_pulse_exp_run_id_ = invalid_experiment_id;
 }
 
 /**
@@ -792,23 +802,22 @@ void ExperimentDataManager::visualiseSelectedExperimentRun(const AggServerRespon
         request_filters_.show_charts = charts;
         request_filters_.show_pulse = pulse;
 
-        // NOTE: We no longer want to stop it in case the charts are still displaying the live experiment
-        // TODO: Refactor timer work
-        // Stop the previous timer if there is one
-        stopTimerLoop(static_cast<quint32>(live_exp_run_id_));
-
-        auto expRunID = static_cast<quint32>(experimentRun.experiment_run_id);
+        const auto exp_run_id = static_cast<quint32>(experimentRun.experiment_run_id);
         if (experimentRun.end_time == 0) {
-            live_exp_name_ = experimentRun.experiment_name;
-            live_exp_run_id_ = experimentRun.experiment_run_id;
-            startTimerLoop(expRunID);
+            // For live experiments, start a timer to continuously request data until the experiment has finished
+            startTimerLoop(exp_run_id, experimentRun.experiment_name);
         }
-
-        requestExperimentData(ExperimentDataRequestType::ExperimentState, expRunID);
 
         if (charts) {
+            last_queried_charts_exp_run_id_ = exp_run_id;
             emit showChartsPanel();
         }
+        if (pulse) {
+            currently_displayed_pulse_exp_run_id_ = exp_run_id;
+        }
+
+        // Request the ExperimentRunState to initialise the Charts and/or graphics items in Pulse
+        requestExperimentData(ExperimentDataRequestType::ExperimentState, exp_run_id);
     }
 }
 
@@ -821,6 +830,21 @@ void ExperimentDataManager::experimentRunDataUpdated(quint32 exp_run_id, qint64 
 {
     // This will update the time range of the charts whenever the experiment run's last updated time has changed
     timelineChartView().updateExperimentRunLastUpdatedTime(exp_run_id, last_updated_time);
+}
+
+/**
+ * @brief ExperimentDataManager::experimentRunChartsClosed
+ * @param exp_run_id
+ */
+void ExperimentDataManager::experimentRunChartsClosed(quint32 exp_run_id)
+{
+    if (live_exp_run_timers_.contains(exp_run_id)) {
+        // If the provided id is live and is the current experiment being displayed in Pulse, do nothing
+        if (exp_run_id != currently_displayed_pulse_exp_run_id_) {
+            // If not, stop the timer used for requesting data for the live experiment
+            stopTimerLoop(exp_run_id);
+        }
+    }
 }
 
 /**
@@ -913,6 +937,8 @@ void ExperimentDataManager::showChartForSeries(const QPointer<const EventSeries>
 {
     if (request_filters_.show_charts) {
         if (!series.isNull()) {
+            // NOTE: If one of the displayed charts was manually closed, this will continuously recreate the chart
+            //  everytime new data is received, until the experiment is finished
             timelineChartView().addChart(series, exp_run_data);
         }
     }
