@@ -17,6 +17,7 @@ HardwareNode::HardwareNode(EntityFactoryBroker& broker, bool is_temp) : Node(bro
     setNodeType(NODE_TYPE::HARDWARE);
     setAcceptsEdgeKind(EDGE_KIND::DEPLOYMENT, EDGE_DIRECTION::TARGET);
     setAcceptsNodeKind(NODE_KIND::OPENCL_PLATFORM);
+    setAcceptsNodeKind(NODE_KIND::FPGA_FFT_DEVICE);
     setLabelFunctional();
 
     if(is_temp){
