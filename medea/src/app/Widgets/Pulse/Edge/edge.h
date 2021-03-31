@@ -5,10 +5,6 @@
 #ifndef PULSE_VIEW_EDGE_H
 #define PULSE_VIEW_EDGE_H
 
-#include "../EdgeAnchor/edgeanchor.h"
-
-#include <QPointF>
-
 namespace Pulse::View {
 
 /**
@@ -21,6 +17,7 @@ public:
 
     virtual void endPointPositionChanged() = 0;
     virtual void endPointVisibilityChanged() = 0;
+    virtual void endPointDestroyed() = 0;
 };
 
 inline Edge::~Edge() = default;

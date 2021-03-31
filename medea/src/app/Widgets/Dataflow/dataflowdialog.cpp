@@ -2,7 +2,6 @@
 #include "dataflowgraphicsview.h"
 
 #include "../DockWidgets/basedockwidget.h"
-#include "../../theme.h"
 
 #include "EntityItems/nodegraphicsitem.h"
 #include "EntityItems/workerinstancegraphicsitem.h"
@@ -121,11 +120,26 @@ void DataflowDialog::constructPulseViewItemsForExperimentRun(const MEDEA::Experi
     // Clear previous states and items
     clear();
 
-    using namespace Pulse::View;
+    // This sets the experiment info displays on the title bar of the panel
+    setExperimentInfo(exp_run_data.experiment_name(), exp_run_data.experiment_run_id());
+    setPlaybackTimeRange(exp_run_data.start_time(), exp_run_data.end_time());
+    playback_controls_.setControlsEnabled(true);
+
+    // Connect the experiment run's signals
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, this, &DataflowDialog::playbackEndTimeChanged);
+    connect(&exp_run_data, &MEDEA::ExperimentRunData::experimentRunFinished, this, &DataflowDialog::turnOffLiveStatus);
+
+    live_mode_ = exp_run_data.end_time() == 0;
+    if (live_mode_) {
+        // Set the last updated time as the initial playback end time if the experiment is live
+        playbackEndTimeChanged(exp_run_data.last_updated_time());
+        emit updateLiveStatus(live_mode_);
+    }
 
     QHash<QString, PortInstance*> port_instances;
     int node_count = 0;
 
+    // Construct the graphics items and add them to the graphics scene
     for (const auto& node : exp_run_data.getNodeData()) {
         checkNotNull(node, "node data");
         auto node_item = constructNodeItem(*node);
@@ -200,6 +214,10 @@ void DataflowDialog::jumpToPreviousActivity()
         const auto& port_prev_time = port->getPreviousEventTime(playback_current_time_);
         prev_time = qMin(port_prev_time, prev_time);
     }
+    for (const auto& port_inst : port_instance_cache_) {
+        const auto& port_prev_time = port_inst->getPreviousEventTime(playback_current_time_);
+        prev_time = qMin(port_prev_time, prev_time);
+    }
     if (prev_time < playback_current_time_) {
         playback_current_time_ = prev_time;
         playback_controls_.setCurrentTime(prev_time);
@@ -214,6 +232,10 @@ void DataflowDialog::jumpToNextActivity()
     qint64 next_time = playback_current_time_;
     for (const auto& port : port_items_) {
         const auto& port_next_time = port->getNextEventTime(playback_current_time_);
+        next_time = qMax(port_next_time, next_time);
+    }
+    for (const auto& port_inst : port_instance_cache_) {
+        const auto& port_next_time = port_inst->getNextEventTime(playback_current_time_);
         next_time = qMax(port_next_time, next_time);
     }
     if (next_time > playback_current_time_) {
@@ -333,7 +355,7 @@ void DataflowDialog::resetPlayback()
  */
 void DataflowDialog::timerEvent(QTimerEvent* event)
 {
-    // We only care about the playback timer
+    // This slot listens to all the timers that have been started for this object; we only care about our playback timer
     if (event->timerId() != timer_id_) {
         return;
     }
@@ -354,6 +376,10 @@ void DataflowDialog::timerEvent(QTimerEvent* event)
 
         for (const auto& port_item : port_items_) {
             port_item->playEvents(from_time, playback_current_time_);
+        }
+
+        for (const auto& port_inst : port_instance_cache_) {
+            port_inst->flashEvents(from_time, playback_current_time_);
         }
     }
 
@@ -380,7 +406,7 @@ void DataflowDialog::checkNotNull(QObject* data_obj, const QString& data_name)
  * @throws std::invalid_argument
  * @return
  */
-DefaultEntityContainer* DataflowDialog::constructNodeItem(NodeData& node)
+DefaultEntityContainer* DataflowDialog::constructNodeItem(const NodeData& node)
 {
     auto node_item = new DefaultEntityContainer(node.getHostname(), "EntityIcons", "HardwareNode",
                                                 node.getIP(), "Icons", "ethernet");
@@ -398,7 +424,7 @@ DefaultEntityContainer* DataflowDialog::constructNodeItem(NodeData& node)
  * @throws std::invalid_argument
  * @return
  */
-DefaultEntityContainer* DataflowDialog::constructContainerInstanceItem(ContainerInstanceData& container, Pulse::View::DefaultEntityContainer* parent)
+DefaultEntityContainer* DataflowDialog::constructContainerInstanceItem(const ContainerInstanceData& container, Pulse::View::DefaultEntityContainer* parent)
 {
     auto type = "Generic OS Process";
     auto icon_name = "servers";
@@ -423,13 +449,13 @@ DefaultEntityContainer* DataflowDialog::constructContainerInstanceItem(Container
  * @throws std::invalid_argument
  * @return
  */
-ComponentInstance* DataflowDialog::constructComponentInstanceItem(ComponentInstanceData& comp_inst, Pulse::View::DefaultEntityContainer* parent)
+ComponentInstance* DataflowDialog::constructComponentInstanceItem(const ComponentInstanceData& comp_inst, Pulse::View::DefaultEntityContainer* parent)
 {
     auto comp_inst_item = new ComponentInstance(comp_inst.getName(), comp_inst.getType(), parent);
     QHash<QString, PortInstance*> port_instances;
     for (const auto& port : comp_inst.getPortInstanceData()) {
         checkNotNull(port, "port instance data");
-        auto port_item = constructPortInstanceItem(*port);
+        auto port_item = constructPortInstanceItem(port);
         port_instance_cache_.insert(port->getGraphmlID(), port_item);
         comp_inst_item->add(port_item);
     }
@@ -448,9 +474,10 @@ ComponentInstance* DataflowDialog::constructComponentInstanceItem(ComponentInsta
  * @param port_inst
  * @return
  */
-PortInstance* DataflowDialog::constructPortInstanceItem(PortInstanceData& port_inst)
+PortInstance* DataflowDialog::constructPortInstanceItem(PortInstanceData* port_inst)
 {
-    return new PortInstance(port_inst.getName(), port_inst.getKind());
+    checkNotNull(port_inst, "port instance data");
+    return new PortInstance(port_inst);
 }
 
 /**
@@ -458,7 +485,7 @@ PortInstance* DataflowDialog::constructPortInstanceItem(PortInstanceData& port_i
  * @param worker_inst
  * @return
  */
-DefaultEntity* DataflowDialog::constructWorkerInstanceItem(WorkerInstanceData& worker_inst)
+DefaultEntity* DataflowDialog::constructWorkerInstanceItem(const WorkerInstanceData& worker_inst)
 {
     return new DefaultEntity(worker_inst.getName(), "Icons", "spanner",
                              worker_inst.getType(), "Icons", "code");
@@ -473,13 +500,18 @@ void DataflowDialog::constructPortConnections(const QList<PortConnectionData*>& 
 {
     for (const auto& connection : connections) {
         checkNotNull(connection, "port connection data");
+
         auto src = port_instance_cache_.value(connection->getFromPortID(), nullptr);
         auto dst = port_instance_cache_.value(connection->getToPortID(), nullptr);
         checkNotNull(src, "source port instance");
         checkNotNull(dst, "destination port instance");
         checkNotNull(src->getOutputAnchor(), "source port instance's output anchor");
         checkNotNull(dst->getInputAnchor(), "destination port instance's input anchor");
-        addItemToScene(new DefaultEdge(*src->getOutputAnchor(), *dst->getInputAnchor()));
+
+        auto edge = new DefaultEdge(*src->getOutputAnchor(), *dst->getInputAnchor());
+        connect(src, &PortInstance::flashEdge, edge, &DefaultEdge::flash);
+        connect(dst, &PortInstance::flashEdge, edge, &DefaultEdge::flash);
+        addItemToScene(edge);
     }
 }
 

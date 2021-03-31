@@ -4,6 +4,8 @@
 #include <QHBoxLayout>
 #include <QDateTime>
 
+const QString default_elapsed_str = "00:00.000";
+
 /**
  * @brief TimeProgressBar::TimeProgressBar
  * @param parent
@@ -109,7 +111,7 @@ void TimeProgressBar::incrementCurrentTime(int ms)
 void TimeProgressBar::resetTimeProgress()
 {
     current_time_ = start_time_;
-    elapsed_time_label_->setText("00.000");
+    elapsed_time_label_->setText(default_elapsed_str);
     time_bar_->reset();
 }
 
@@ -161,49 +163,43 @@ qint64 TimeProgressBar::getDuration() const
  */
 QString TimeProgressBar::getDurationString(qint64 duration_ms) const
 {
-    auto hours = duration_ms / 3.6e6;
-    auto mins = duration_ms / 6e4;
-    auto secs = duration_ms / 1e3;
-    auto msecs = duration_ms;
+    qreal hours = duration_ms / 3.6e6;
+    qreal mins = duration_ms / 6e4;
 
-    // This variable is used to check if the proceeding time strings need to be appended to time_str
-    bool append = false;
     QString time_str;
 
+    // Hours
     if (hours >= 1) {
-        auto&& h = static_cast<int>(hours);
+        int h = static_cast<int>(hours);
         time_str = QString::number(h);
-        mins -= h * 60;
-        append = true;
+        mins = (hours - h) * 60;
     }
 
-    if (mins >= 1) {
-        auto&& m = static_cast<int>(mins);
-        auto&& m_str = QString::number(m);
-        leftPad(m_str, 2, '0');
-        if (append) {
-            time_str += ":" + m_str;
-        } else {
-            time_str = m_str;
-        }
-        secs -= m * 60;
-        append = true;
+    // Minutes
+    int m = static_cast<int>(mins);
+    auto m_str = QString::number(m);
+    leftPad(m_str, 2, '0');
+    if (!time_str.isEmpty()) {
+        time_str += ":" + m_str;
+    } else {
+        time_str = m_str;
     }
 
-    {
-        auto&& s = static_cast<int>(secs);
-        auto&& s_str = QString::number(s);
-        leftPad(s_str, 2, '0');
-        if (append) {
-            time_str += ":" + s_str;
-        } else {
-            time_str = s_str;
-        }
-        msecs -= s * 1000;
+    // Seconds
+    qreal secs = (mins - m) * 60;
+    int s = static_cast<int>(secs);
+    auto s_str = QString::number(s);
+    leftPad(s_str, 2, '0');
+    if (!time_str.isEmpty()) {
+        time_str += ":" + s_str;
+    } else {
+        time_str = s_str;
     }
 
-    auto&& ms = static_cast<int>(msecs);
-    auto&& ms_str = QString::number(ms);
+    // Milliseconds
+    qreal msecs = (secs - s) * 1000;
+    int ms = static_cast<int>(msecs);
+    auto ms_str = QString::number(ms);
     leftPad(ms_str, 3, '0');
     time_str += "." + ms_str;
 

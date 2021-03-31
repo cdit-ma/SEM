@@ -36,12 +36,18 @@ signals:
     void positionChanged(const QPointF& pos);
     void visibilityChanged(bool visible);
 
+public slots:
+    void flashPortLifecycle();
+    void unflashPortLifecycle();
+
 private:
     explicit EdgeConnector(QGraphicsItem* parent = nullptr);
     void setNaturalAnchor(NaturalAnchor* anchor);
 
     NaturalAnchor* natural_anchor_ = nullptr;
-    QColor color_;
+
+    QColor ellipse_color_;
+    bool flashing_ = false;
 
     QList<Edge*> connected_edges_;
 };

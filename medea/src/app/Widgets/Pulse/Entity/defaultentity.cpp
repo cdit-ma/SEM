@@ -48,7 +48,6 @@ void DefaultEntity::connectModelData(QPointer<Pulse::Model::Entity> model_data)
     }
     connect(model_data, &Pulse::Model::Entity::destroyed, this, &DefaultEntity::onModelDeleted);
     connect(model_data, &Pulse::Model::Entity::nameChanged, name_plate_, &NamePlate::changeName);
-    connect(model_data, &Pulse::Model::Entity::iconChanged, name_plate_, &NamePlate::changeIcon);
 }
 
 /**

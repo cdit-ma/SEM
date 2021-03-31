@@ -55,13 +55,13 @@ private:
     void setExperimentInfo(const QString& exp_name, quint32 exp_run_id = 0);
 
     static void checkNotNull(QObject* data_obj, const QString& data_name);
-    static Pulse::View::PortInstance* constructPortInstanceItem(PortInstanceData& port_inst);
-    static Pulse::View::DefaultEntity* constructWorkerInstanceItem(WorkerInstanceData& worker_inst);
+    static Pulse::View::PortInstance* constructPortInstanceItem(PortInstanceData* port_inst);
+    static Pulse::View::DefaultEntity* constructWorkerInstanceItem(const WorkerInstanceData& worker_inst);
 
     void constructPortConnections(const QList<PortConnectionData*>& connections);
-    Pulse::View::DefaultEntityContainer* constructNodeItem(NodeData& node);
-    Pulse::View::DefaultEntityContainer* constructContainerInstanceItem(ContainerInstanceData& container, Pulse::View::DefaultEntityContainer* parent);
-    Pulse::View::ComponentInstance* constructComponentInstanceItem(ComponentInstanceData& comp_inst, Pulse::View::DefaultEntityContainer* parent);
+    Pulse::View::DefaultEntityContainer* constructNodeItem(const NodeData& node);
+    Pulse::View::DefaultEntityContainer* constructContainerInstanceItem(const ContainerInstanceData& container, Pulse::View::DefaultEntityContainer* parent);
+    Pulse::View::ComponentInstance* constructComponentInstanceItem(const ComponentInstanceData& comp_inst, Pulse::View::DefaultEntityContainer* parent);
 
     void constructEdgeItems(const QHash<QString, PortInstanceGraphicsItem*>& port_instances, const QList<PortConnectionData*>& port_connections);
     void addItemToScene(QGraphicsItem* item);
