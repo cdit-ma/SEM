@@ -22,6 +22,7 @@
 
     <graph id="G">
         <node id="fpga">
+
             <data key="kind">Class</data>
             <data key="version">1.0.0</data>
             <data key="worker">FFTAccelWorker</data>
@@ -32,6 +33,13 @@
             <data key="folder">${RE_PATH}/src/workers/fft_accel</data>
             <data key="file">sem_fft_accel_worker.hpp</data>
             <graph id="fpga:">
+                <node id="fpga::accelerator_endpoint">
+                    <data key="type">String</data>
+                    <data key="label">AcceleratorEndpoint</data>
+                    <data key="kind">Attribute</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">arrowsUpDownDark</data>
+                </node>
                 <node id="fpga::SetResponseCallback">
                     <data key="kind">CallbackFunction</data>
                     <data key="label">Got fpga response</data>
