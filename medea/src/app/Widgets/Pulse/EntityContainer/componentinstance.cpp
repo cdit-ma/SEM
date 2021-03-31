@@ -56,9 +56,6 @@ ComponentInstance::ComponentInstance(const QString& label,
 
     setFlags(flags() | QGraphicsWidget::ItemIsMovable);
     connect(Theme::theme(), &Theme::theme_Changed, [this]() { themeChanged(); });
-
-    // NOTE: If no initial parent has been passed in, meaning the parentItem() hasn't been set, the initial background
-    //  colour of this item set in theme will most likely be wrong (no gradient) due to the calculated depth being wrong
     themeChanged();
 }
 
@@ -290,7 +287,7 @@ void ComponentInstance::portVisibilityChanged(PortInstance* port_inst)
         throw std::runtime_error("ComponentInstance::portVisibilityChanged - Port instance is null");
     }
 
-    auto handle_edges_on_visibility_change = [] (bool port_visible, EdgeAnchor* anchor, EdgeAdopter& adopter) {
+    auto update_port_anchor = [] (bool port_visible, EdgeAnchor* anchor, EdgeAdopter& adopter) {
         if (anchor != nullptr) {
             if (port_visible) {
                 anchor->retrieveFromAdopter();
@@ -301,8 +298,8 @@ void ComponentInstance::portVisibilityChanged(PortInstance* port_inst)
     };
 
     const bool visible = port_inst->isVisible();
-    handle_edges_on_visibility_change(visible, port_inst->getInputAnchor(), *getInputAnchor());
-    handle_edges_on_visibility_change(visible, port_inst->getOutputAnchor(), *getOutputAnchor());
+    update_port_anchor(visible, port_inst->getInputAnchor(), *getInputAnchor());
+    update_port_anchor(visible, port_inst->getOutputAnchor(), *getOutputAnchor());
 }
 
 /**
@@ -341,9 +338,14 @@ void ComponentInstance::themeChanged()
     Theme* theme = Theme::theme();
     top_color_ = theme->getActiveWidgetBorderColor();
     border_pen_ = QPen(top_color_, Defaults::pen_width);
+    tray_color_ = theme->getBackgroundColor();
 
-    bool dark_theme = theme->getTextColor() == theme->white();
-    tray_color_ = Utils::getTrayColor(this, theme->getBackgroundColor(), dark_theme);
+    int level = Utils::getDepth(this) + 1;
+    if (theme->getTextColor() == theme->black()) {
+        tray_color_ = tray_color_.lighter(100 + 5 * level);
+    } else {
+        tray_color_ = tray_color_.lighter(100 + 20 * level);
+    }
     update();
 }
 

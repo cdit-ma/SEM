@@ -15,8 +15,8 @@ namespace Pulse::View {
 /**
  * @brief The DelegateAnchor is designed to be able to adopt EdgeConnectors from other EdgeAnchors
  * When a child of the parent item that this DelegateAnchor is owned by has been hidden, the child's EdgeAnchor(s)
- * transfers the connections to its EdgeConnectors to this DelegateAnchor. This means that the EdgeConnectors now
- * listen and respond to the signals and slots triggered by the DelegateAnchor they've been transferred to.
+ * transfers the connections to its EdgeConnectors to this DelegateAnchor. This means that the EdgeConnectors now listen
+ * and responds to the signals and slots triggered by the DelegateAnchor they've been transferred to.
  * These connections to the EdgeConnectors are returned to the passing child's EdgeAnchor when the child is re-shown.
  */
 class DelegateAnchor : public QGraphicsObject, public EdgeAnchor, public EdgeAdopter {
@@ -30,7 +30,7 @@ public:
     void retrieveFromAdopter() override;
 
     void adoptEdges(EdgeAnchor* anchor, EdgeConnector* connector) override;
-    void returnEdges(EdgeAnchor& anchor) override;
+    void returnEdges(EdgeAnchor* anchor) override;
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override {};
 

@@ -49,14 +49,12 @@ void NaturalAnchor::transferToAdopter(EdgeAdopter* adopter)
         throw std::invalid_argument("NaturalAnchor::transferToAdopter - The edge adopter is null");
     }
 
-    auto graphics_obj = dynamic_cast<QGraphicsObject*>(adopter);
-    auto& edge_connector = getEdgeConnector();
-
     // Transfer the parent-ship of the EdgeConnector to the adopter
-    edge_connector.setParentItem(graphics_obj);
+    auto graphics_obj = dynamic_cast<QGraphicsObject*>(adopter);
+    getEdgeConnector().setParentItem(graphics_obj);
 
-    disconnect(&edge_connector);
-    adopter->adoptEdges(this, &edge_connector);
+    disconnect(this, nullptr, &getEdgeConnector(), nullptr);
+    adopter->adoptEdges(this, &getEdgeConnector());
     active_adopter_ = adopter;
 }
 
@@ -66,7 +64,7 @@ void NaturalAnchor::transferToAdopter(EdgeAdopter* adopter)
 void NaturalAnchor::retrieveFromAdopter()
 {
     if (active_adopter_ != nullptr) {
-        active_adopter_->returnEdges(*this);
+        active_adopter_->returnEdges(this);
         active_adopter_ = nullptr;
     }
     connectEdgeConnector();

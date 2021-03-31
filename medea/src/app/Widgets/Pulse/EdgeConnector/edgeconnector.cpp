@@ -69,7 +69,6 @@ void EdgeConnector::disconnectEdge(Edge* edge)
 /**
  * @brief EdgeConnector::setNaturalAnchor
  * @param anchor
- * @throws std::invalid_argument
  */
 void EdgeConnector::setNaturalAnchor(NaturalAnchor* anchor)
 {

@@ -64,9 +64,6 @@ DefaultEntityContainer::DefaultEntityContainer(const QString& label,
 
     setFlags(flags() | QGraphicsWidget::ItemIsMovable);
     connect(Theme::theme(), &Theme::theme_Changed, [this]() { themeChanged(); });
-
-    // NOTE: If no initial parent has been passed in, meaning the parentItem() hasn't been set, the initial background
-    //  colour of this item set in theme will most likely be wrong (no gradient) due to the calculated depth being wrong
     themeChanged();
 }
 
@@ -282,9 +279,14 @@ void DefaultEntityContainer::themeChanged()
     Theme* theme = Theme::theme();
     top_color_ = theme->getActiveWidgetBorderColor();
     border_pen_ = QPen(top_color_, Defaults::pen_width);
+    tray_color_ = theme->getBackgroundColor();
 
-    bool dark_theme = theme->getTextColor() == theme->white();
-    tray_color_ = Utils::getTrayColor(this, theme->getBackgroundColor(), dark_theme);
+    int level = Utils::getDepth(this) + 1;
+    if (theme->getTextColor() == theme->black()) {
+        tray_color_ = tray_color_.lighter(100 + 5 * level);
+    } else {
+        tray_color_ = tray_color_.lighter(100 + 20 * level);
+    }
     update();
 }
 
