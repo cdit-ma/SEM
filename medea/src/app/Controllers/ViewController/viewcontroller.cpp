@@ -1912,9 +1912,61 @@ void ViewController::aboutQt()
 
 void ViewController::aboutMEDEA()
 {
+    auto q_string = [] (const std::basic_string_view<char> str) {
+        return QString::fromStdString(std::string{str});
+    };
+
+    QString&& header_string =
+        "<h3>MEDEA " % q_string(SEM::GetVersion()) % "</h3>"
+        "<a href=\"" % q_string(SEM::GetUrl()) % "\" style=\"color:" % Theme::theme()->getHighlightColorHex() % ";\">"
+        "Centre for Distributed and Intelligent Technologies - Modelling and Analysis </a><br /><br />"
+        "The University of Adelaide<br /><hr />";
+
+    QString&& project_sources =
+        "<br />Project Links:<br /><br />"
+        "Repository: <i>https://github.com/cdit-ma/SEM</i><br />"
+        "Website: <i>https://cdit-ma.github.io</i> <br /><hr /><br />";
+
+    QString&& project_lead =
+        "Project Lead:"
+        "<ul>"
+        "<li> Katrina Falkner </li>"
+        "<li> Gavin Puddy </li>"
+        "</ul>";
+
+    QStringList&& members = {
+        "Cathlyn Aston",
+        "Vanea Chiprianov",
+        "Mitchell Conrad",
+        "Daniel Fraser",
+        "Matthew Hart",
+        "Jim Lin",
+        "Jackson Michael",
+        "Marianne Rieckmann"
+    };
+
+    QString about_medea;
+    QTextStream stream(&about_medea);
+    stream << header_string;
+    stream << project_sources;
+    stream << project_lead;
+
+    stream << "Contributors:";
+    stream << "<ul>";
+    for (const auto& member : members) {
+        stream << "<li> " << member << "</li>";
+    }
+    stream << "</ul>";
+
+    BaseWindow* window = WindowManager::manager()->getActiveWindow();
+    QMessageBox::about(window, "About MEDEA " % q_string(SEM::GetVersion()), about_medea);
+
+    /*
     QString aboutString =
     "<h3>MEDEA " % QString::fromStdString(std::string{SEM::GetVersion()}) % "</h3>"
-    "<a href=\"" % QString::fromStdString(std::string{SEM::GetUrl()}) % "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
+    "<a href=\"" % QString::fromStdString(std::string{SEM::GetUrl()}) %
+    "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %
+    ";\">Centre for Distributed and Intelligent Technologies - Modelling and Analysis</a><br />"
     "The University of Adelaide<hr /><br />"
     "Team:"
     "<ul>"
@@ -1928,8 +1980,10 @@ void ViewController::aboutMEDEA()
     "<li>Marianne Rieckmann</li>"
     "<li>Matthew Hart</li>"
     "</ul>";
+
     BaseWindow* window = WindowManager::manager()->getActiveWindow();
     QMessageBox::about(window, "About MEDEA " % QString::fromStdString(std::string{SEM::GetVersion()}), aboutString);
+     */
 }
 
 void ViewController::cut()
