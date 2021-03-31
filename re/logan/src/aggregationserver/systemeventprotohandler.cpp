@@ -148,6 +148,40 @@ void SystemEventProtoHandler::ProcessProcessStatus(const SystemEvent::ProcessSta
     database_->UpdateLastSampleTime(experiment_run_id_, timestamp);
 }
 
+
+void SystemEventProtoHandler::ProcessDeviceMetricSamples(
+    const SystemEvent::DeviceMetricSamples& dev_samples)
+{
+    for (const auto& gpu_sample : dev_samples.gpu_samples()) {
+        ProcessGPUMetricSample(gpu_sample, dev_samples.hostname());
+    }
+}
+
+
+
+void SystemEventProtoHandler::ProcessGPUMetricSample(const SystemEvent::GPUMetricSample& gpu_sample,
+                            const std::string& hostname) {
+    const auto& gpu_util = database_->quote(gpu_sample.processor_utilisation_perc());
+    const auto& mem_util = database_->quote(gpu_sample.memory_utilisation_mib());
+    const auto& temp = database_->quote(gpu_sample.temperature_cel());
+
+    const std::string& timestamp = database_->quote(TimeUtil::ToString(gpu_sample.timestamp()));
+    std::string gpu_id = "-1";
+    try {
+        gpu_id = database_->quote(
+            gpu_id_cache_.at(GetGPUKey(hostname, gpu_sample.device_name())));
+    } catch(const std::out_of_range& oor_ex) {
+        std::cerr << "Failed to insert GPUStatus for hostname '" << hostname << "', "
+                  << oor_ex.what() << "\n";
+        throw;
+    }
+
+    database_->InsertValues("Hardware.GPUStatus",
+                            {"FilesystemID", "GPUUtilisation", "MemoryUtilisation", "Temperature", "SampleTime"},
+                            {gpu_id, gpu_util, mem_util, temp, timestamp});
+    database_->UpdateLastSampleTime(experiment_run_id_, timestamp);
+}
+
 void SystemEventProtoHandler::ProcessInfoEvent(const SystemEvent::InfoEvent& info)
 {
     // const std::string& timestamp = TimeUtil::ToString(info.timestamp());
@@ -187,6 +221,10 @@ void SystemEventProtoHandler::ProcessInfoEvent(const SystemEvent::InfoEvent& inf
     for(const auto& i_info : info.interface_info()) {
         ProcessInterfaceInfo(i_info, hostname, node_id);
     }
+
+    for(const auto& d_info : info.device_info()) {
+        ProcessDeviceInfo(d_info, node_id);
+    }
 }
 
 void SystemEventProtoHandler::ProcessFileSystemInfo(const SystemEvent::FileSystemInfo& fs_info,
@@ -222,7 +260,8 @@ void SystemEventProtoHandler::ProcessInterfaceInfo(const SystemEvent::InterfaceI
     int interface_id = database_->InsertValuesUnique(
         "Hardware.Interface",
         {"NodeID", "Name", "Type", "Description", "IPv4", "IPv6", "MAC", "Speed"},
-        {node_id_str, name, type, desc, ipv4, ipv6, mac, speed}, {"NodeID", "Name"});
+        {node_id_str, name, type, desc, ipv4, ipv6, mac, speed},
+        {"NodeID", "Name"});
 
     interface_id_cache_.emplace(std::make_pair(GetInterfaceKey(hostname, name), interface_id));
 }
@@ -241,10 +280,32 @@ void SystemEventProtoHandler::ProcessProcessInfo(const SystemEvent::ProcessInfo&
     int process_id = database_->InsertValuesUnique(
         "Hardware.Process",
         {"NodeID", "pID", "WorkingDirectory", "ProcessName", "Args", "StartTime"},
-        {std::to_string(node_id), pid, cwd, name, args, time_str}, {"NodeID", "pID", "StartTime"});
+        {std::to_string(node_id), pid, cwd, name, args, time_str},
+        {"NodeID", "pID", "StartTime"});
 
     process_id_cache_.emplace(
         std::make_pair(GetProcessKey(hostname, p_info.pid(), time_str), process_id));
+}
+
+void SystemEventProtoHandler::ProcessDeviceInfo(const SystemEvent::DeviceInfo& d_info, int node_id)
+{
+    for(const auto& gpu_descriptor : d_info.gpus()) {
+        ProcessGPUDescriptor(gpu_descriptor, d_info.hostname(), node_id);
+    }
+}
+
+void SystemEventProtoHandler::ProcessGPUDescriptor(const SystemEvent::GPUDescriptor& gpu_info,
+                                                   const std::string& hostname,
+                                                   int node_id)
+{
+    const auto& name = gpu_info.name();
+
+    int gpu_id = database_->InsertValuesUnique(
+            "Hardware.GPU",
+            {"NodeID", "Name"},
+            {std::to_string(node_id), name},
+            {"NodeID", "Name"});
+    gpu_id_cache_.emplace(GetGPUKey(hostname, name), gpu_id);
 }
 
 std::string SystemEventProtoHandler::GetInterfaceKey(const std::string& hostname,
@@ -264,4 +325,10 @@ std::string SystemEventProtoHandler::GetProcessKey(const std::string& hostname,
                                                    const std::string& starttime) const
 {
     return hostname + "/" + std::to_string(pid) + "_" + starttime;
+}
+
+std::string SystemEventProtoHandler::GetGPUKey(const std::string& hostname,
+                                                   const std::string& gpu_name) const
+{
+    return hostname + "/" + gpu_name;
 }
