@@ -179,7 +179,7 @@ std::unique_ptr<AggServer::NetworkUtilisationResponse> AggServer::Requester::Get
  */
 std::unique_ptr<AggServer::GPUMetricResponse> AggServer::Requester::GetGPUMetric(const AggServer::GPUMetricRequest& request)
 {
-    auto reply = requester_.SendRequest<GPUMetricRequest, GPUMetricResponse>("GetGPUMetric", request, 5000);
+    auto reply = requester_.SendRequest<GPUMetricRequest, GPUMetricResponse>("GetGPUMetrics", request, 5000);
     try{
         return reply.get();
     }catch(const zmq::RMIException& ex){
