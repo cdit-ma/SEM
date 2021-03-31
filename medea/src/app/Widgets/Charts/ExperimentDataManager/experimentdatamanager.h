@@ -154,7 +154,7 @@ private:
     ChartInputPopup chartPopup_;
 
     QHash<QString, MEDEA::ExperimentData*> experiment_data_hash_;
-    QHash<quint32, int> exp_run_timers_;
+    QHash<quint32, int> live_exp_run_timers_;
     QString live_exp_name_;
     qint32 live_exp_run_id_;
 
