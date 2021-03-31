@@ -5,8 +5,8 @@
 #ifndef SEM_CALLBACK_HANDLER_HPP
 #define SEM_CALLBACK_HANDLER_HPP
 
+#include "sem_fft_accel_worker.h"
 #include "gmock/gmock.h"
-#include "sem_fft_accel_worker.hpp"
 
 namespace sem::fft_accel::runtime::test {
 

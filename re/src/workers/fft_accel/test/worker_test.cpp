@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sem_fft_accel_worker.hpp"
+#include "sem_fft_accel_worker.h"
 
 #include "component.h"
 #include "print_logger.h"

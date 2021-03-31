@@ -5,7 +5,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package(Boost 1.67.0 REQUIRED COMPONENTS system regex)
 
 # Worker library to be exposed to RE
-add_library(sem_fft_accel_fpga_worker SHARED)
+add_library(sem_fft_accel_worker SHARED)
 
 # Single executable for all tests within the project
 if (BUILD_TEST)
@@ -16,36 +16,41 @@ add_subdirectory(data)
 add_subdirectory(network)
 add_subdirectory(runtime)
 
-target_compile_features(sem_fft_accel_fpga_worker
+target_compile_features(sem_fft_accel_worker
         INTERFACE
         cxx_std_17
         )
-target_sources(sem_fft_accel_fpga_worker
+target_sources(sem_fft_accel_worker
         PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/sem_fft_accel_worker.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/sem_fft_accel_worker.h
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/sem_fft_accel_worker.cpp
         )
 
-target_include_directories(sem_fft_accel_fpga_worker
+target_include_directories(sem_fft_accel_worker
         INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
         )
 
-target_link_libraries(sem_fft_accel_fpga_worker
+target_link_libraries(sem_fft_accel_worker
         PUBLIC
         sem_fft_accel_runtime
         re_core
         sem_fft_accel_udp
         )
 
-#export(TARGETS
-#        sem_fft_accel_fpga_worker
-#        NAMESPACE sem::
-#        APPEND
-#        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
-#        EXPORT_LINK_INTERFACE_LIBRARIES
-#        )
+export(TARGETS
+        re_types
+        sem_fft_accel_data
+        sem_fft_accel_network
+        sem_fft_accel_runtime
+        sem_fft_accel_udp
+        sem_fft_accel_worker
+        NAMESPACE sem::
+        APPEND
+        FILE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/sem_exports.cmake
+        EXPORT_LINK_INTERFACE_LIBRARIES
+        )
 
 #if (BUILD_TEST)
 

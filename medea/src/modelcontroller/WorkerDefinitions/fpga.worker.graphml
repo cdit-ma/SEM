@@ -31,7 +31,7 @@
             <data key="icon_prefix">Icons</data>
             <data key="icon">gpu</data>
             <data key="folder">${RE_PATH}/src/workers/fft_accel</data>
-            <data key="file">sem_fft_accel_worker.hpp</data>
+            <data key="file">sem_fft_accel_worker</data>
             <graph id="fpga:">
                 <node id="fpga::accelerator_endpoint">
                     <data key="type">String</data>

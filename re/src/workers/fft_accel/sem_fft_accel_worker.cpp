@@ -2,7 +2,7 @@
 // Created by Jackson Michael on 19/8/20.
 //
 
-#include "sem_fft_accel_worker.hpp"
+#include "sem_fft_accel_worker.h"
 
 #include <utility>
 #include "network/udp/udp_adapter.hpp"

@@ -28,7 +28,7 @@ target_sources(test_sem_fft_accel
 target_link_libraries(test_sem_fft_accel
         PUBLIC
         gtest_main
-        sem_fft_accel_fpga_worker
+        sem_fft_accel_worker
         test_sem_fft_accel_udp_loopback
         test_sem_fft_accel_runtime_util
         )
