@@ -37,7 +37,7 @@ private:
     void ProcessDeviceMetricSamples(const SystemEvent::DeviceMetricSamples& dev_samples);
 
     void ProcessGPUMetricSample(const SystemEvent::GPUMetricSample& gpu_sample,
-                                const std::string& hostname;
+                                const std::string& hostname);
 
     void ProcessInfoEvent(const SystemEvent::InfoEvent& info);
 

@@ -56,6 +56,10 @@ void SystemEventProtoHandler::ProcessStatusEvent(const SystemEvent::StatusEvent&
     for(const auto& p : event.processes()) {
         ProcessProcessStatus(p, hostname, time_str);
     }
+
+    for (const auto& d : event.device_samples()) {
+        ProcessDeviceMetricSamples(d);
+    }
 }
 
 void SystemEventProtoHandler::ProcessInterfaceStatus(const SystemEvent::InterfaceStatus& if_status,
