@@ -85,7 +85,7 @@ TEST(device_sample_aggregator, can_receive_many_charts) {
 
     ASSERT_EQ(device_samples->gpu_samples().size(), num_test_messages);
     for (const auto &sample : device_samples->gpu_samples()) {
-        ASSERT_EQ(sample.processor_utilisation_perc(), test_value);
+        ASSERT_EQ(sample.processor_utilisation_perc(), test_value/100.0f);
     }
 }
 
@@ -102,7 +102,7 @@ TEST(device_sample_aggregator, can_receive_gpu_utilization) {
     ASSERT_NO_THROW(device_samples = test_aggregator.retrieve_device_metrics("test_hostname"));
 
     ASSERT_EQ(device_samples->gpu_samples().size(), 1);
-    ASSERT_EQ(device_samples->gpu_samples()[0].processor_utilisation_perc(), test_value);
+    ASSERT_EQ(device_samples->gpu_samples()[0].processor_utilisation_perc(), test_value/100.0f);
 }
 
 TEST(device_sample_aggregator, can_receive_mem_utilization) {
@@ -118,7 +118,7 @@ TEST(device_sample_aggregator, can_receive_mem_utilization) {
     ASSERT_NO_THROW(device_samples = test_aggregator.retrieve_device_metrics("test_hostname"));
 
     ASSERT_EQ(device_samples->gpu_samples().size(), 1);
-    ASSERT_EQ(device_samples->gpu_samples()[0].memory_utilisation_mib(), test_value);
+    ASSERT_EQ(device_samples->gpu_samples()[0].memory_utilisation_perc(), test_value/100.0f);
 }
 
 TEST(device_sample_aggregator, can_receive_temperature) {

@@ -28,8 +28,8 @@ namespace sem::logging::netdata {
 
             if (nvidia_smi.chart_context() == "nvidia_smi.gpu_utilization") {
                 get_sample(nvidia_smi)->set_processor_utilisation_perc(nvidia_smi.value()/100.0f);
-            } else if (nvidia_smi.chart_context() == "nvidia_smi.mem_usage") {
-                get_sample(nvidia_smi)->set_memory_utilisation_mib(nvidia_smi.value());
+            } else if (nvidia_smi.chart_context() == "nvidia_smi.mem_utilization") {
+                get_sample(nvidia_smi)->set_memory_utilisation_perc(nvidia_smi.value()/100.0f);
             } else if (nvidia_smi.chart_context() == "nvidia_smi.temperature") {
                 get_sample(nvidia_smi)->set_temperature_cel(nvidia_smi.value());
             } else {

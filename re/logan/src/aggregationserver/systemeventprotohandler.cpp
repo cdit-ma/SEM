@@ -166,7 +166,7 @@ void SystemEventProtoHandler::ProcessDeviceMetricSamples(
 void SystemEventProtoHandler::ProcessGPUMetricSample(const SystemEvent::GPUMetricSample& gpu_sample,
                             const std::string& hostname) {
     const auto& gpu_util = database_->quote(gpu_sample.processor_utilisation_perc());
-    const auto& mem_util = database_->quote(gpu_sample.memory_utilisation_mib());
+    const auto& mem_util = database_->quote(gpu_sample.memory_utilisation_perc());
     const auto& temp = database_->quote(gpu_sample.temperature_cel());
 
     const std::string& timestamp = database_->quote(TimeUtil::ToString(gpu_sample.timestamp()));
