@@ -830,6 +830,59 @@ DatabaseClient::GetNetworkUtilInfo(int experiment_run_id,
     }
 }
 
+pqxx::result
+DatabaseClient::GetGPUMetricInfo(int experiment_run_id,
+                                   const re::types::UnboundedTimeRange<time_point>& time_range,
+                                   const std::vector<std::string>& condition_columns,
+                                   const std::vector<std::string>& condition_values)
+{
+    std::stringstream query_stream;
+
+    query_stream << "SELECT Hardware.GPUStatus.GPUUtilisation AS GPUUtilisation, "
+                 << "Hardware.GPUStatus.MemoryUtilisation AS MemoryUtilisation, "
+                 << "Hardware.GPUStatus.Temperature AS Temperature, "
+                 << StringToPSQLTimestamp("SampleTime") << " AS SampleTime,\n";
+    query_stream << "   GPU.Name AS GPUName,\n";
+    query_stream << "   Node.Hostname AS NodeHostname, Node.IP AS NodeIP, Node.GraphmlID AS "
+                    "NodeGraphmlID, Node.ExperimentRunID AS RunID\n";
+    query_stream << "FROM Hardware.GPUStatus INNER JOIN Hardware.GPU ON "
+                    "Hardware.GPUStatus.GPUID = Hardware.GPU.GPUID\n";
+    query_stream << "   INNER JOIN Node ON Hardware.GPU.NodeID = Node.NodeID\n";
+
+    if(!condition_columns.empty()) {
+        query_stream << BuildWhereLikeClause(condition_columns, condition_values) << " AND ";
+    } else {
+        query_stream << " WHERE ";
+    }
+    query_stream << "Node.ExperimentRunID = " << experiment_run_id;
+
+    if(time_range.Start().has_value()) {
+        query_stream << " AND Hardware.GPUStatus.SampleTime >= '"
+                     << re::types::StringFromTimepoint(*time_range.Start()) << "'";
+    }
+
+    if(time_range.End().has_value()) {
+        query_stream << " AND Hardware.GPUStatus.SampleTime <= '"
+                     << re::types::StringFromTimepoint(*time_range.End()) << "'";
+    }
+
+    query_stream << " ORDER BY Node.HostName, Hardware.GPUStatus.SampleTime ASC" << std::endl;
+
+    std::lock_guard<std::mutex> conn_guard(conn_mutex_);
+
+    try {
+        pqxx::work transaction(connection_, "GetGPUMetricTransaction");
+        const auto& pg_result = transaction.exec(query_stream.str());
+        transaction.commit();
+
+        return pg_result;
+    } catch(const std::exception& e) {
+        std::cerr << "An exception occurred while querying GPUMetric info: " << e.what()
+                  << std::endl;
+        throw;
+    }
+}
+
 void DatabaseClient::UpdateShutdownTime(int experiment_run_id, const std::string& end_time)
 {
     std::stringstream query_stream;

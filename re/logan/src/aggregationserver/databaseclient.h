@@ -103,6 +103,11 @@ public:
                                     const std::vector<std::string>& condition_columns,
                                     const std::vector<std::string>& condition_values);
 
+    pqxx::result GetGPUMetricInfo(int experiment_run_id,
+                                    const re::types::UnboundedTimeRange<re::types::time_point>& time_range,
+                                    const std::vector<std::string>& condition_columns,
+                                    const std::vector<std::string>& condition_values);
+
     std::vector<port_graphml_pair> GetPubSubConnectionIDs(int experiment_run_id);
     std::vector<port_graphml_pair> GetReqRepConnectionIDs(int experiment_run_id);
 
