@@ -397,8 +397,7 @@ void NodeData::updateData(const AggServerResponse::Node& node, qint64 new_last_u
 /**
  * @brief NodeData::setupRequests
  */
-void NodeData::setupRequests()
-{
+void NodeData::setupRequests() {
     cpu_utilisation_request_.setExperimentRunID(experiment_run_id_);
     cpu_utilisation_request_.setNodeHostnames({hostname_});
 
