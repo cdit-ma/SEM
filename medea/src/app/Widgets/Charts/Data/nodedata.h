@@ -91,9 +91,9 @@ private:
     MemoryUtilisationEventSeries* memory_utilisation_series_ = nullptr;
     QHash<QString, NetworkUtilisationEventSeries*> network_utilisation_series_;
 
-    QHash<qint32, GPUComputeUtilisationSeries*> gpu_compute_utilisation_series_;
-    QHash<qint32, GPUMemoryUtilisationSeries*> gpu_memory_utilisation_series_;
-    QHash<qint32, GPUTemperatureSeries*> gpu_temperature_series_;
+    QHash<QString, GPUComputeUtilisationSeries*> gpu_compute_utilisation_series_;
+    QHash<QString, GPUMemoryUtilisationSeries*> gpu_memory_utilisation_series_;
+    QHash<QString, GPUTemperatureSeries*> gpu_temperature_series_;
 };
 
 #endif // NODEDATA_H

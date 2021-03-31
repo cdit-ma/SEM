@@ -628,13 +628,13 @@ QVector<AggregationProxy::GPUMetricSample> AggregationProxy::GetGPUMetrics(const
         for (const auto& node : results->node_gpu_metrics()) {
             const auto& hostname = ConstructQString(node.node_info().hostname());
             for (const auto& metrics : node.per_device_metrics()) {
-                const auto& device_index = metrics.gpu_device_index();
+                const auto& device_name = ConstructQString(metrics.gpu_device_name());
                 for (const auto& s : metrics.samples()) {
                     const auto& time_ms = ConstructQDateTime(s.time()).toMSecsSinceEpoch();
                     AggregationProxy::GPUMetricSample sample;
-                    sample.compute_utilisation = new GPUComputeUtilisationEvent(hostname, device_index, s.gpu_utilisation(), time_ms);
-                    sample.memory_utilisation = new GPUMemoryUtilisationEvent(hostname, device_index, s.mem_utilisation_mib(), time_ms);
-                    sample.temperature = new GPUTemperatureEvent(hostname, device_index, s.temperature_celsius(), time_ms);
+                    sample.compute_utilisation = new GPUComputeUtilisationEvent(hostname, device_name, s.gpu_utilisation(), time_ms);
+                    sample.memory_utilisation = new GPUMemoryUtilisationEvent(hostname, device_name, s.mem_utilisation_mib(), time_ms);
+                    sample.temperature = new GPUTemperatureEvent(hostname, device_name, s.temperature_celsius(), time_ms);
                     samples.append(sample);
                 }
             }

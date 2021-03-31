@@ -7,20 +7,20 @@
 /**
  * @brief GPUMemoryUtilisationEvent::GPUMemoryUtilisationEvent
  * @param hostname
- * @param device_index
+ * @param device_name
  * @param utilisation
  * @param time
  * @param parent
  */
 GPUMemoryUtilisationEvent::GPUMemoryUtilisationEvent(const QString& hostname,
-                                                     qint32 device_index,
+                                                     QString device_name,
                                                      double utilisation,
                                                      qint64 time,
                                                      QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::GPU_MEMORY_UTILISATION, time, parent),
-      id_(hostname + QString::number(device_index) + QString::number(time)),
+      id_(hostname + device_name + QString::number(time)),
       hostname_(hostname),
-      device_index_(device_index),
+      device_name_(device_name),
       utilisation_(utilisation) {}
 
 /**
@@ -54,12 +54,12 @@ const QString& GPUMemoryUtilisationEvent::getHostname() const
 }
 
 /**
- * @brief GPUMemoryUtilisationEvent::getDeviceIndex
+ * @brief GPUMemoryUtilisationEvent::getDeviceName
  * @return
  */
-qint32 GPUMemoryUtilisationEvent::getDeviceIndex() const
+QString GPUMemoryUtilisationEvent::getDeviceName() const
 {
-    return device_index_;
+    return device_name_;
 }
 
 /**

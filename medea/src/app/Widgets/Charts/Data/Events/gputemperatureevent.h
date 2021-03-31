@@ -13,7 +13,7 @@ class GPUTemperatureEvent : public MEDEA::Event
 
 public:
     explicit GPUTemperatureEvent(const QString& hostname,
-                                 qint32 device_index,
+                                 QString device_name,
                                  double temperature,
                                  qint64 time,
                                  QObject* parent = nullptr);
@@ -23,14 +23,14 @@ public:
     [[nodiscard]] const QString& getID() const override;
     [[nodiscard]] const QString& getHostname() const;
 
-    [[nodiscard]] qint32 getDeviceIndex() const;
+    [[nodiscard]] QString getDeviceName() const;
     [[nodiscard]] double getValue() const;
 
 private:
     QString id_;
     QString hostname_;
+    QString device_name_;
 
-    qint32 device_index_;
     double temperature_;
 };
 

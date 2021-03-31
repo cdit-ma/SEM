@@ -97,7 +97,6 @@ struct NetworkInterface {
 struct GPUDevice {
     QString name;
     QString vendor;
-    qint32 gpu_device_index;
 };
 
 struct Node {

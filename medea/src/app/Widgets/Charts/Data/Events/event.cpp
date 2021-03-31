@@ -99,15 +99,18 @@ const QString &MEDEA::Event::GetChartDataKindString(MEDEA::ChartDataKind kind)
             static const QString networkStr = "NetworkUtilisation";
             return networkStr;
         }
-        case ChartDataKind::GPU_COMPUTE_UTILISATION:
+        case ChartDataKind::GPU_COMPUTE_UTILISATION: {
             static const QString gpuComputeStr = "GPUComputeUtilisation";
             return gpuComputeStr;
-        case ChartDataKind::GPU_MEMORY_UTILISATION:
+        }
+        case ChartDataKind::GPU_MEMORY_UTILISATION: {
             static const QString gpuMemoryStr = "GPUMemoryUtilisation";
             return gpuMemoryStr;
-        case ChartDataKind::GPU_TEMPERATURE:
+        }
+        case ChartDataKind::GPU_TEMPERATURE: {
             static const QString gpuTemperatureStr = "GPUTemperature";
             return gpuTemperatureStr;
+        }
         default: {
             static const QString defaultStr = "Data";
             return defaultStr;

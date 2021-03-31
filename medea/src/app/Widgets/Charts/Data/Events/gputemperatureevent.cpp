@@ -7,20 +7,20 @@
 /**
  * @brief GPUTemperatureEvent::GPUTemperatureEvent
  * @param hostname
- * @param device_index
+ * @param device_name
  * @param temperature
  * @param time
  * @param parent
  */
 GPUTemperatureEvent::GPUTemperatureEvent(const QString& hostname,
-                                         qint32 device_index,
+                                         QString device_name,
                                          double temperature,
                                          qint64 time,
                                          QObject* parent)
     : MEDEA::Event(MEDEA::ChartDataKind::GPU_TEMPERATURE, time, parent),
-      id_(hostname + QString::number(device_index) + QString::number(time)),
+      id_(hostname + device_name + QString::number(time)),
       hostname_(hostname),
-      device_index_(device_index),
+      device_name_(device_name),
       temperature_(temperature) {}
 
 /**
@@ -54,12 +54,12 @@ const QString& GPUTemperatureEvent::getHostname() const
 }
 
 /**
- * @brief GPUTemperatureEvent::getDeviceIndex
+ * @brief GPUTemperatureEvent::getDeviceName
  * @return
  */
-qint32 GPUTemperatureEvent::getDeviceIndex() const
+QString GPUTemperatureEvent::getDeviceName() const
 {
-    return device_index_;
+    return device_name_;
 }
 
 /**
