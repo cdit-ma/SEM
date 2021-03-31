@@ -160,7 +160,7 @@ TEST(Re_Port_PubSub_Zmq, Basic_Terminate){
 #include "deploymentcontainer.h"
 #include "component.h"
 
-TEST(Re_Port_PubSub_Zmq, Deadlock){
+TEST(Re_Port_PubSub_Zmq, DISABLED_Deadlock){
     using namespace ::PubSub::Basic::Terminate;
 
     //Define the base types
