@@ -94,11 +94,17 @@ struct NetworkInterface {
     qint64 speed;
 };
 
+struct GPUDevice {
+    QString name;
+    QString vendor;
+};
+
 struct Node {
     QString hostname;
     QString ip;
     QVector<Container> containers;
     QVector<NetworkInterface> interfaces;
+    QVector<GPUDevice> gpus;
 };
 
 struct ExperimentState {

@@ -99,16 +99,16 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 				}
 				break;
 			case ExperimentDataRequestType::CPUUtilisationEvent:
-				valid = request_param.canConvert<UtilisationRequest>();
+				valid = request_param.canConvert<HardwareMetricRequest>();
 				if (valid) {
-					auto request = request_param.value<UtilisationRequest>();
+					auto request = request_param.value<HardwareMetricRequest>();
 					requestCPUUtilisationEvents(request, qobject_cast<NodeData*>(requester));
 				}
 				break;
 			case ExperimentDataRequestType::MemoryUtilisationEvent:
-				valid = request_param.canConvert<UtilisationRequest>();
+				valid = request_param.canConvert<HardwareMetricRequest>();
 				if (valid) {
-					auto request = request_param.value<UtilisationRequest>();
+					auto request = request_param.value<HardwareMetricRequest>();
 					requestMemoryUtilisationEvents(request, qobject_cast<NodeData*>(requester));
 				}
 				break;
@@ -127,10 +127,17 @@ void ExperimentDataManager::requestExperimentData(ExperimentDataRequestType requ
 				}
 				break;
             case ExperimentDataRequestType::NetworkUtilisationEvent:
-                valid = request_param.canConvert<UtilisationRequest>();
+                valid = request_param.canConvert<HardwareMetricRequest>();
                 if (valid) {
-                    auto request = request_param.value<UtilisationRequest>();
+                    auto request = request_param.value<HardwareMetricRequest>();
                     requestNetworkUtilisationEvents(request, qobject_cast<NodeData*>(requester));
+                }
+                break;
+		    case ExperimentDataRequestType::GPUMetrics:
+                valid = request_param.canConvert<HardwareMetricRequest>();
+                if (valid) {
+                    auto request = request_param.value<HardwareMetricRequest>();
+                    requestGPUMetrics(request, qobject_cast<NodeData*>(requester));
                 }
                 break;
 		}
@@ -240,7 +247,7 @@ void ExperimentDataManager::requestWorkloadEvents(const WorkloadRequest& request
  * @param request
  * @param requester
  */
-void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest& request, NodeData* requester)
+void ExperimentDataManager::requestCPUUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester)
 {
     const auto& future = aggregationProxy().RequestCPUUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<CPUUtilisationEvent*>>(this);
@@ -261,7 +268,7 @@ void ExperimentDataManager::requestCPUUtilisationEvents(const UtilisationRequest
  * @param request
  * @param requester
  */
-void ExperimentDataManager::requestMemoryUtilisationEvents(const UtilisationRequest& request, NodeData* requester)
+void ExperimentDataManager::requestMemoryUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester)
 {
     const auto& future = aggregationProxy().RequestMemoryUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<MemoryUtilisationEvent*>>(this);
@@ -324,7 +331,7 @@ void ExperimentDataManager::requestPortEvents(const PortEventRequest& request, P
  * @param request
  * @param requester
  */
-void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationRequest& request, NodeData* requester)
+void ExperimentDataManager::requestNetworkUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester)
 {
     const auto& future = aggregationProxy().RequestNetworkUtilisationEvents(request);
     auto futureWatcher = new QFutureWatcher<QVector<NetworkUtilisationEvent*>>(this);
@@ -335,6 +342,27 @@ void ExperimentDataManager::requestNetworkUtilisationEvents(const UtilisationReq
             toastNotification("Failed to get network utilisation events - " + ex.toString(), "waveEmit", Notification::Severity::ERROR);
         } catch (const std::exception& ex) {
             toastNotification("Failed to get network utilisation events - " + QString::fromStdString(ex.what()), "waveEmit", Notification::Severity::ERROR);
+        }
+    });
+    futureWatcher->setFuture(future);
+}
+
+/**
+ * @brief ExperimentDataManager::requestGPUMetrics
+ * @param request
+ * @param requester
+ */
+void ExperimentDataManager::requestGPUMetrics(const HardwareMetricRequest& request, NodeData* requester)
+{
+    const auto& future = aggregationProxy().RequestGPUMetrics(request);
+    auto futureWatcher = new QFutureWatcher<QVector<AggregationProxy::GPUMetricSample>>(this);
+    connect(futureWatcher, &QFutureWatcher<QVector<AggregationProxy::GPUMetricSample>>::finished, [this, futureWatcher, requester]() {
+        try {
+            processGPUMetrics(requester, futureWatcher->result());
+        } catch (const RequestException& ex) {
+            toastNotification("Failed to get gpu metrics - " + ex.toString(), "gpu", Notification::Severity::ERROR);
+        } catch (const std::exception& ex) {
+            toastNotification("Failed to get gpu metrics - " + QString::fromStdString(ex.what()), "gpu", Notification::Severity::ERROR);
         }
     });
     futureWatcher->setFuture(future);
@@ -366,8 +394,8 @@ void ExperimentDataManager::processExperimentRuns(MEDEA::ExperimentData* request
 
     // This is the case where all the experiment runs for all experiments has been requested
     if (exp_name.isEmpty()) {
-        for (const auto &exp_run : exp_runs) {
-            const auto &exp_run_name = exp_run.experiment_name;
+        for (const auto& exp_run : exp_runs) {
+            const auto& exp_run_name = exp_run.experiment_name;
             if (exp_run_name.isEmpty()) {
                 throw MalformedProtoException("ExperimentDataManager::processExperimentRuns - Experiment run name cannot be empty");
             }
@@ -543,6 +571,22 @@ void ExperimentDataManager::processNetworkUtilisationEvents(NodeData* requester,
 {
     if (requester != nullptr) {
         requester->addNetworkUtilisationEvents(events);
+    }
+}
+
+/**
+ * @brief ExperimentDataManager::processGPUMetrics
+ * @param requester
+ * @param samples
+ */
+void ExperimentDataManager::processGPUMetrics(NodeData* requester, const QVector<AggregationProxy::GPUMetricSample>& samples)
+{
+    if (requester != nullptr) {
+        for (const auto& sample : samples) {
+            requester->addGPUComputeUtilisationEvents({sample.compute_utilisation});
+            requester->addGPUMemoryUtilisationEvents({sample.memory_utilisation});
+            requester->addGPUTemperatureEvents({sample.temperature});
+        }
     }
 }
 
@@ -758,6 +802,7 @@ void ExperimentDataManager::requestNodeEvents(NodeData& node)
     requestExperimentData(ExperimentDataRequestType::CPUUtilisationEvent, QVariant::fromValue(node.getCPUUtilisationRequest()), &node);
     requestExperimentData(ExperimentDataRequestType::MemoryUtilisationEvent, QVariant::fromValue(node.getMemoryUtilisationRequest()), &node);
     requestExperimentData(ExperimentDataRequestType::NetworkUtilisationEvent, QVariant::fromValue(node.getNetworkUtilisationRequest()), &node);
+    requestExperimentData(ExperimentDataRequestType::GPUMetrics, QVariant::fromValue(node.getGPUMetricsRequest()), &node);
 }
 
 /**
@@ -903,6 +948,15 @@ void ExperimentDataManager::showChartsForExperimentRun(const MEDEA::ExperimentRu
     }
     if (selected_data_kinds.contains(ChartDataKind::NETWORK_UTILISATION)) {
         series_to_show += exp_run_data.getNetworkUtilisationSeries(node_hostnames);
+    }
+    if (selected_data_kinds.contains(ChartDataKind::GPU_COMPUTE_UTILISATION)) {
+        series_to_show += exp_run_data.getGPUComputeUtilisationSeries(node_hostnames);
+    }
+    if (selected_data_kinds.contains(ChartDataKind::GPU_MEMORY_UTILISATION)) {
+        series_to_show += exp_run_data.getGPUMemoryUtilisationSeries(node_hostnames);
+    }
+    if (selected_data_kinds.contains(ChartDataKind::GPU_TEMPERATURE)) {
+        series_to_show += exp_run_data.getGPUTemperatureSeries(node_hostnames);
     }
     if (selected_data_kinds.contains(ChartDataKind::MARKER)) {
         // Request all Marker events for the exp_run_data - Marker events can't be filtered by view items at the moment

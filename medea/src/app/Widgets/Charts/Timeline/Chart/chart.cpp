@@ -55,7 +55,10 @@ void Chart::addSeries(const QPointer<const MEDEA::EventSeries>& series)
 
     if (series->getKind() == ChartDataKind::CPU_UTILISATION ||
         series->getKind() == ChartDataKind::MEMORY_UTILISATION ||
-        series->getKind() == ChartDataKind::NETWORK_UTILISATION) {
+        series->getKind() == ChartDataKind::NETWORK_UTILISATION ||
+        series->getKind() == ChartDataKind::GPU_COMPUTE_UTILISATION ||
+        series->getKind() == ChartDataKind::GPU_MEMORY_UTILISATION ||
+        series->getKind() == ChartDataKind::GPU_TEMPERATURE) {
 
         containsYRange_ = true;
         connect(series, &EventSeries::minYValueChanged, this, &Chart::updateVerticalMin);
@@ -64,6 +67,9 @@ void Chart::addSeries(const QPointer<const MEDEA::EventSeries>& series)
         const auto& cpu_util = dynamic_cast<const CPUUtilisationEventSeries*>(series.data());
         const auto& mem_util = dynamic_cast<const MemoryUtilisationEventSeries*>(series.data());
         const auto& net_util = dynamic_cast<const NetworkUtilisationEventSeries*>(series.data());
+        const auto& gpu_comp_util = dynamic_cast<const GPUComputeUtilisationSeries*>(series.data());
+        const auto& gpu_mem_util = dynamic_cast<const GPUMemoryUtilisationSeries*>(series.data());
+        const auto& gpu_temp = dynamic_cast<const GPUTemperatureSeries*>(series.data());
 
         if (cpu_util) {
             dataMinY_ = cpu_util->getMinUtilisation();
@@ -74,6 +80,15 @@ void Chart::addSeries(const QPointer<const MEDEA::EventSeries>& series)
         } else if (net_util) {
             dataMinY_ = net_util->getMinUtilisation();
             dataMaxY_ = net_util->getMaxUtilisation();
+        } else if (gpu_comp_util) {
+            dataMinY_ = gpu_comp_util->getMinUtilisation();
+            dataMaxY_ = gpu_comp_util->getMaxUtilisation();
+        } else if (gpu_mem_util) {
+            dataMinY_ = gpu_mem_util->getMinUtilisation();
+            dataMaxY_ = gpu_mem_util->getMaxUtilisation();
+        } else if (gpu_temp) {
+            dataMinY_ = gpu_temp->getMinTemperature();
+            dataMaxY_ = gpu_temp->getMaxTemperature();
         }
     }
 
@@ -293,6 +308,9 @@ void Chart::seriesKindHovered(ChartDataKind kind)
     cpu_util_paint_vals_.opacity = inactive_alpha / 2;
     memory_util_paint_vals_.opacity = inactive_alpha / 2;
     network_util_paint_vals_.opacity = inactive_alpha / 2;
+    gpu_comp_util_paint_vals_.opacity = inactive_alpha / 2;
+    gpu_mem_util_paint_vals_.opacity = inactive_alpha / 2;
+    gpu_temp_paint_vals_.opacity = inactive_alpha / 2;
 
     switch (kind) {
         case ChartDataKind::PORT_LIFECYCLE:
@@ -316,6 +334,15 @@ void Chart::seriesKindHovered(ChartDataKind kind)
         case ChartDataKind::NETWORK_UTILISATION:
             network_util_paint_vals_.opacity = active_alpha;
             break;
+        case ChartDataKind::GPU_COMPUTE_UTILISATION:
+            gpu_comp_util_paint_vals_.opacity = active_alpha;
+            break;
+        case ChartDataKind::GPU_MEMORY_UTILISATION:
+            gpu_mem_util_paint_vals_.opacity = active_alpha;
+            break;
+        case ChartDataKind::GPU_TEMPERATURE:
+            gpu_temp_paint_vals_.opacity = active_alpha;
+            break;
         default:
             port_lifecycle_paint_vals_.paint_val.opacity = active_alpha;
             port_event_paint_vals_.paint_val.opacity = active_alpha;
@@ -324,6 +351,9 @@ void Chart::seriesKindHovered(ChartDataKind kind)
             cpu_util_paint_vals_.opacity = active_alpha;
             memory_util_paint_vals_.opacity = active_alpha;
             network_util_paint_vals_.opacity = active_alpha;
+            gpu_comp_util_paint_vals_.opacity = active_alpha;
+            gpu_mem_util_paint_vals_.opacity = active_alpha;
+            gpu_temp_paint_vals_.opacity = active_alpha;
             break;
     }
 
@@ -367,6 +397,10 @@ void Chart::setupPaintValues(Theme& theme)
     port_event_paint_vals_.paint_val.series_color = std::move(theme.getSeverityColor(Notification::Severity::WARNING));
     workload_event_paint_vals_.paint_val.series_color = std::move(QColor(0, 206, 209));
     marker_event_paint_vals_.series_color = std::move(QColor(221, 188, 153));
+
+    gpu_comp_util_paint_vals_.series_color = Qt::darkBlue;
+    gpu_mem_util_paint_vals_.series_color = Qt::darkGreen;
+    gpu_temp_paint_vals_.series_color = Qt::darkYellow;
 
     cpu_util_paint_vals_.series_color = std::move(QColor(40,144,255));
     memory_util_paint_vals_.series_color = std::move(QColor(30,185,30));
@@ -441,7 +475,6 @@ void Chart::paintEvent(QPaintEvent* event)
     QPainter painter(this);
     painter.setFont(font());
     painter.setRenderHint(QPainter::Antialiasing, false);
-    painter.setRenderHint(QPainter::HighQualityAntialiasing, false);
     painter.fillRect(rect(), backgroundColor_);
 
 	clearHoveredLists();
@@ -502,28 +535,27 @@ void Chart::displayDataMinMax(QPainter& painter)
     if (containsYRange_) {
         painter.save();
 
-        /*
-        // TODO: Display the min/max utilisation elsewhere in the chart
-        auto minStr = QString::number(floor(dataMinY_ * 100)) + "%";
-        auto maxStr = QString::number(ceil(dataMaxY_ * 100)) + "%";
+        QString min_str = "0%";
+        QString max_str = "100%";
+
+        // Display the min/max values for Network utilisation and GPU temperature
         if (series_pointers_.contains(ChartDataKind::NETWORK_UTILISATION)) {
-            minStr = NetworkUtilisationEventSeries::getByteString(dataMinY_);
-            maxStr = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
+            min_str = NetworkUtilisationEventSeries::getByteString(dataMinY_);
+            max_str = NetworkUtilisationEventSeries::getByteString(dataMaxY_);
+        } else if (series_pointers_.contains(ChartDataKind::GPU_TEMPERATURE)) {
+            min_str = QString::number(floor(dataMinY_)) + "C";
+            max_str = QString::number(ceil(dataMaxY_)) + "C";
         }
-        */
 
-        static const auto min_str = "0%";
-        static const auto max_str = "100%";
-
-        static const int padding = 5;
+        static const int padding = 6;
         static const int h = fontMetrics().height() + padding;
-        static const int w = fontMetrics().horizontalAdvance(max_str) + padding;
+        int w = fontMetrics().horizontalAdvance(max_str) + padding;
 
         static const qreal half_pen_w = 0.5;
         painter.setPen(textColor_);
         painter.setBrush(hoveredRectColor_);
 
-        QRectF maxRect(0, half_pen_w, w, h);
+        QRectF maxRect(0, half_pen_w * 2, w, h);
         painter.drawRect(maxRect);
         painter.drawText(maxRect.adjusted(half_pen_w, half_pen_w, -half_pen_w, -half_pen_w),
                          max_str,
@@ -564,13 +596,22 @@ void Chart::paintSeries(QPainter& painter, const QPointer<const EventSeries>& se
             paintMarkerEventSeries(painter, (MarkerEventSeries*) series.data());
             break;
         case ChartDataKind::CPU_UTILISATION:
-            paintUtilisationSeries<CPUUtilisationEvent>(painter, series, cpu_util_paint_vals_);
+            paintSingleLineSeries<CPUUtilisationEvent>(painter, series, cpu_util_paint_vals_);
             break;
         case ChartDataKind::MEMORY_UTILISATION:
-            paintUtilisationSeries<MemoryUtilisationEvent>(painter, series, memory_util_paint_vals_);
+            paintSingleLineSeries<MemoryUtilisationEvent>(painter, series, memory_util_paint_vals_);
             break;
         case ChartDataKind::NETWORK_UTILISATION:
             paintNetworkUtilisationSeries(painter, (NetworkUtilisationEventSeries*) series.data());
+            break;
+        case ChartDataKind::GPU_COMPUTE_UTILISATION:
+            paintSingleLineSeries<GPUComputeUtilisationEvent>(painter, series, gpu_comp_util_paint_vals_);
+            break;
+        case ChartDataKind::GPU_MEMORY_UTILISATION:
+            paintSingleLineSeries<GPUMemoryUtilisationEvent>(painter, series, gpu_mem_util_paint_vals_);
+            break;
+        case ChartDataKind::GPU_TEMPERATURE:
+            paintGPUTemperatureSeries(painter, (GPUTemperatureSeries*) series.data());
             break;
         default:
             qWarning("Chart::paintSeries - Series kind not handled");
@@ -642,18 +683,21 @@ void Chart::paintEventSeries(QPainter& painter,
 }
 
 /**
- * @brief Chart::paintUtilisationSeries
+ * @brief Chart::paintSingleLineSeries
  * @param painter
  * @param series
  * @param paint_vals
  */
 template<class DerivedEvent,
     std::enable_if_t<std::is_same<DerivedEvent, CPUUtilisationEvent>::value ||
-                     std::is_same<DerivedEvent, MemoryUtilisationEvent>::value,
+                     std::is_same<DerivedEvent, MemoryUtilisationEvent>::value ||
+                     std::is_same<DerivedEvent, GPUComputeUtilisationEvent>::value ||
+                     std::is_same<DerivedEvent, GPUMemoryUtilisationEvent>::value ||
+                     std::is_same<DerivedEvent, GPUTemperatureEvent>::value,
         int>>
-void Chart::paintUtilisationSeries(QPainter& painter,
-                                   const QPointer<const EventSeries>& series,
-                                   const SeriesPaintValues& paint_vals)
+void Chart::paintSingleLineSeries(QPainter& painter,
+                                  const QPointer<const EventSeries>& series,
+                                  const SeriesPaintValues& paint_vals)
 {
     if (series.isNull()) {
         return;
@@ -738,15 +782,15 @@ void Chart::paintUtilisationSeries(QPainter& painter,
             continue;
         }
 
-        // Calculate the bins's average utilisation
-        auto utilisation = 0.0;
+        // Calculate the bins' average event_val
+        auto event_val = 0.0;
         for (const auto& event : bins[i]) {
             const auto& converted_event = convertEvent<DerivedEvent>(event);
-            utilisation += converted_event->getUtilisation();
+            event_val += converted_event->getValue();
         }
-        utilisation /= count;
+        event_val /= count;
 
-        auto&& y = y_offset + (1 - utilisation) * available_height;
+        auto&& y = y_offset + (1 - event_val) * available_height;
         auto&& x = (i - pre_bin_count) * bin_width;
         rects.append(QRectF(x, y, bin_width, bin_width));
     }
@@ -990,6 +1034,114 @@ void Chart::paintNetworkUtilisationSeries(QPainter &painter, const QPointer<cons
                           network_util_paint_vals_.opacity,
                           ChartDataKind::NETWORK_UTILISATION);
     }
+}
+
+/**
+ * @brief Chart::paintGPUTemperatureSeries
+ * @param painter
+ * @param series
+ */
+void Chart::paintGPUTemperatureSeries(QPainter& painter, const QPointer<const GPUTemperatureSeries>& series)
+{
+    if (series.isNull()) {
+        return;
+    }
+
+    const auto series_kind = series->getKind();
+    const auto& events = series->getEvents();
+
+    auto display_min = getDisplayMin();
+    auto display_max = getDisplayMax();
+
+    int bin_count = getBinCount(default_ellipse_width_);
+    auto bin_width = getBinWidth(default_ellipse_width_);
+    auto bin_time_width = (display_max - display_min) / bin_count;
+
+    const auto& outer_bounds = getOuterDisplayIterators(events, default_ellipse_width_);
+    const auto& outer_bound_itrs = outer_bounds.second;
+    auto first_contributing_event = outer_bound_itrs.first;
+    auto last_contributing_event = outer_bound_itrs.second;
+
+    // Exit early if there are no events within the display range
+    if (first_contributing_event == events.constEnd()) {
+        return;
+    }
+
+    const auto& outer_bin_counts = outer_bounds.first;
+    int pre_bin_count = outer_bin_counts.first;
+    int total_bin_count = pre_bin_count + bin_count + outer_bin_counts.second;;
+
+    auto first_end_time = display_min - pre_bin_count * bin_time_width;
+    auto current_bin_start_time = first_end_time;
+
+    QVector< QList<GPUTemperatureEvent*> > bins(total_bin_count);
+    QVector<double> bin_end_times;
+    bin_end_times.reserve(total_bin_count);
+
+    // Calculate the bin end times
+    for (int i = 0; i < total_bin_count; i++) {
+        bin_end_times.append(current_bin_start_time + bin_time_width);
+        current_bin_start_time = bin_end_times.last();
+    }
+
+    int current_bin_index = 0;
+    auto current_bin_itr = bin_end_times.constBegin();
+    auto end_bin_itr = bin_end_times.constEnd();
+
+    // Put the event in the correct bin
+    while (first_contributing_event != events.constEnd()) {
+        auto event = (GPUTemperatureEvent*)(*first_contributing_event);
+        if (event == nullptr) {
+            continue;
+        }
+        const auto& event_time = event->getTimeMS();
+        while (current_bin_itr != end_bin_itr) {
+            const auto& bin_end_time = *current_bin_itr;
+            if (event_time >= bin_end_time) {
+                current_bin_itr++;
+                current_bin_index++;
+            } else {
+                break;
+            }
+        }
+        if (current_bin_index < total_bin_count) {
+            bins[current_bin_index].append(event);
+        }
+        if (first_contributing_event == last_contributing_event) {
+            break;
+        }
+        first_contributing_event++;
+    }
+
+    auto available_height = height() - border_width_ * 2 - bin_width;
+    auto y_offset = border_width_;
+    auto y_range = dataMaxY_ - dataMinY_;
+
+    QList<QRectF> rects;
+
+    for (int i = 0; i < bins.size(); i++) {
+        int count = bins[i].count();
+        if (count == 0) {
+            continue;
+        }
+
+        // Calculate the bins' average event_val
+        auto event_val = 0.0;
+        for (const auto& event : bins[i]) {
+            event_val += event->getValue();
+        }
+        event_val /= count;
+
+        auto&& y = y_offset + available_height - (event_val - dataMinY_) / y_range * available_height;
+        auto&& x = (i - pre_bin_count) * bin_width;
+        rects.append(QRectF(x, y, bin_width, bin_width));
+    }
+
+    drawLineFromRects(painter,
+                      rects,
+                      gpu_temp_paint_vals_.series_color,
+                      gpu_temp_paint_vals_.opacity,
+                      ChartDataKind::GPU_TEMPERATURE);
 }
 
 /**

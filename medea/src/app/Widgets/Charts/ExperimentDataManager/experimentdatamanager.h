@@ -25,7 +25,8 @@ enum class ExperimentDataRequestType
     MemoryUtilisationEvent,
     MarkerEvent,
     PortEvent,
-    NetworkUtilisationEvent
+    NetworkUtilisationEvent,
+    GPUMetrics
 };
 
 class ExperimentDataManager : public QObject
@@ -119,11 +120,12 @@ private:
 
     void requestPortLifecycleEvents(const PortLifecycleRequest& request, PortInstanceData* requester);
     void requestWorkloadEvents(const WorkloadRequest& request, WorkerInstanceData* requester);
-    void requestCPUUtilisationEvents(const UtilisationRequest& request, NodeData* requester);
-    void requestMemoryUtilisationEvents(const UtilisationRequest& request, NodeData* requester);
+    void requestCPUUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester);
+    void requestMemoryUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester);
     void requestMarkerEvents(const MarkerRequest& request, MarkerSetData* requester);
     void requestPortEvents(const PortEventRequest& request, PortInstanceData* requester);
-    void requestNetworkUtilisationEvents(const UtilisationRequest& request, NodeData* requester);
+    void requestNetworkUtilisationEvents(const HardwareMetricRequest& request, NodeData* requester);
+    void requestGPUMetrics(const HardwareMetricRequest& request, NodeData* requester);
 
     void processExperimentRuns(MEDEA::ExperimentData* requester, const QString& exp_name, const QVector<AggServerResponse::ExperimentRun>& exp_runs);
     void processExperimentState(MEDEA::ExperimentRunData* requester, const AggServerResponse::ExperimentState& exp_state);
@@ -134,6 +136,7 @@ private:
     void processCPUUtilisationEvents(NodeData* requester, const QVector<CPUUtilisationEvent*>& events);
     void processMemoryUtilisationEvents(NodeData* requester, const QVector<MemoryUtilisationEvent*>& events);
     void processNetworkUtilisationEvents(NodeData* requester, const QVector<NetworkUtilisationEvent*>& events);
+    void processGPUMetrics(NodeData* requester, const QVector<AggregationProxy::GPUMetricSample>& samples);
 
     MEDEA::ExperimentData* constructExperimentData(const QString& exp_name);
     MEDEA::ExperimentData* getExperimentData(const QString& exp_name) const;
@@ -161,7 +164,7 @@ private:
 
 Q_DECLARE_METATYPE(PortLifecycleRequest);
 Q_DECLARE_METATYPE(WorkloadRequest);
-Q_DECLARE_METATYPE(UtilisationRequest);
+Q_DECLARE_METATYPE(HardwareMetricRequest);
 Q_DECLARE_METATYPE(MarkerRequest);
 Q_DECLARE_METATYPE(PortEventRequest);
 

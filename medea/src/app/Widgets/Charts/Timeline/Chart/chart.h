@@ -15,6 +15,9 @@
 #include "../../Data/Series/cpuutilisationeventseries.h"
 #include "../../Data/Series/memoryutilisationeventseries.h"
 #include "../../Data/Series/networkutilisationeventseries.h"
+#include "../../Data/Series/gpucomputeutilisationseries.h"
+#include "../../Data/Series/gpumemoryutilisationseries.h"
+#include "../../Data/Series/gputemperatureseries.h"
 
 #include <QWidget>
 #include <QPen>
@@ -96,6 +99,7 @@ private:
     void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
     void paintMarkerEventSeries(QPainter& painter, const QPointer<const MarkerEventSeries>& series);
     void paintNetworkUtilisationSeries(QPainter& painter, const QPointer<const NetworkUtilisationEventSeries>& series);
+    void paintGPUTemperatureSeries(QPainter& painter, const QPointer<const GPUTemperatureSeries>& series);
 
     template<class DerivedEvent>
     DerivedEvent* convertEvent(const Event* event) const { return (DerivedEvent*) event; };
@@ -108,8 +112,11 @@ private:
 
     template<class DerivedEvent,
         std::enable_if_t<std::is_same<DerivedEvent, CPUUtilisationEvent>::value ||
-                         std::is_same<DerivedEvent, MemoryUtilisationEvent>::value, int> = 1>
-    void paintUtilisationSeries(QPainter& painter, const QPointer<const EventSeries>& series, const SeriesPaintValues& paint_vals);
+                         std::is_same<DerivedEvent, MemoryUtilisationEvent>::value ||
+                         std::is_same<DerivedEvent, GPUComputeUtilisationEvent>::value ||
+                         std::is_same<DerivedEvent, GPUMemoryUtilisationEvent>::value ||
+                         std::is_same<DerivedEvent, GPUTemperatureEvent>::value, int> = 1>
+    void paintSingleLineSeries(QPainter& painter, const QPointer<const EventSeries>& series, const SeriesPaintValues& paint_vals);
 
     QPair<QPair<int, int>, QPair<QList<Event*>::const_iterator, QList<Event*>::const_iterator>>
     getOuterDisplayIterators(const QList<Event*>& events, double target_bin_width) const;
@@ -187,6 +194,9 @@ private:
     SeriesPaintValues marker_event_paint_vals_;
     SeriesPaintValues cpu_util_paint_vals_;
     SeriesPaintValues memory_util_paint_vals_;
+    SeriesPaintValues gpu_comp_util_paint_vals_;
+    SeriesPaintValues gpu_mem_util_paint_vals_;
+    SeriesPaintValues gpu_temp_paint_vals_;
     NetworkSeriesPaintValues network_util_paint_vals_;
     EventSeriesPaintValues<AggServerResponse::LifecycleType> port_lifecycle_paint_vals_;
     EventSeriesPaintValues<PortEvent::PortEventType> port_event_paint_vals_;

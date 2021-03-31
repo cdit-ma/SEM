@@ -141,7 +141,7 @@ message GPUMetricSample {
 	string device_name = 1;
 	google.protobuf.Timestamp timestamp = 2;
 	double processor_utilisation_perc = 3;
-	uint64 memory_utilisation_MiB = 4;
+	double memory_utilisation_perc = 4;
 	double temperature_cel = 5;
 }
 

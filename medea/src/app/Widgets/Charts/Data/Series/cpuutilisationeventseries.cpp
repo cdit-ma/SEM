@@ -1,5 +1,6 @@
 #include "cpuutilisationeventseries.h"
 #include <stdexcept>
+
 /**
  * @brief CPUUtilisationEventSeries::CPUUtilisationEventSeries
  * @param ID
@@ -22,7 +23,7 @@ void CPUUtilisationEventSeries::addEvent(MEDEA::Event* event)
         throw std::invalid_argument("CPUUtilisationEventSeries::addEvent - Invalid event kind.");
     }
     if (!contains(event)) {
-        auto utilisation = qobject_cast<CPUUtilisationEvent*>(event)->getUtilisation();
+        auto utilisation = qobject_cast<CPUUtilisationEvent *>(event)->getValue();
         if (utilisation < minUtilisation_) {
             minUtilisation_ = utilisation;
             emit minYValueChanged(utilisation);

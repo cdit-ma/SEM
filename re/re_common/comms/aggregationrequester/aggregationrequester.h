@@ -27,6 +27,7 @@ public:
     std::unique_ptr<AggServer::MarkerResponse> GetMarkers(const AggServer::MarkerRequest& request);
     std::unique_ptr<AggServer::PortEventResponse> GetPortEvents(const AggServer::PortEventRequest& request);
     std::unique_ptr<AggServer::NetworkUtilisationResponse> GetNetworkUtilisation(const AggServer::NetworkUtilisationRequest& request);
+    std::unique_ptr<AggServer::GPUMetricResponse> GetGPUMetric(const AggServer::GPUMetricRequest& request);
 
 private:
     zmq::ProtoRequester requester_;
