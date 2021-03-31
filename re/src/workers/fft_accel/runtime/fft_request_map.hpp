@@ -162,7 +162,8 @@ namespace sem::fft_accel::runtime {
             }
 
             if (request.remaining_packets() == 0) {
-                auto &&fulfilled_request = staged_packet_groups_.at(request_id);
+                auto fulfilled_request = std::move(staged_packet_groups_.at(request_id));
+                staged_packet_groups_.erase(request_id);
                 unfulfilled_promises_.at(request_id).set_value(fulfilled_request);
                 return {std::optional<fft_result<SampleType>>({request_id, fulfilled_request.to_vector()})};
             } else {

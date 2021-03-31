@@ -13,6 +13,7 @@
 #include "packet_headers.hpp"
 
 #include <iostream>
+#include "boost/endian/conversion.hpp"
 
 namespace sem::fft_accel::data {
 
@@ -68,9 +69,9 @@ namespace sem::fft_accel::data {
         using SerializedPacket = serialized_fft_data<SampleType, max_elements>;
 
         fft_data_packet(const data::vector_range<SampleType> &data_range, uint8_t request_id,
-                        uint8_t sequence_num) :
+                        uint8_t sequence_num, uint16_t fft_request_size) :
                 fft_data_(data_range.begin(), data_range.end()),
-                header_data_(request_id, sequence_num, max_elements){
+                header_data_(request_id, sequence_num, fft_request_size){
             if (fft_data_.size() > max_elements) {
                 throw std::invalid_argument("Attempting to create fft_data_packet from vector that is too large");
             }
@@ -81,6 +82,8 @@ namespace sem::fft_accel::data {
         [[nodiscard]] uint8_t sequence_number() const;
 
         [[nodiscard]] uint8_t request_id() const;
+
+        [[nodiscard]] uint16_t fft_size() const;
 
         [[nodiscard]] const std::vector<SampleType> &payload_data() const;
 
@@ -123,10 +126,17 @@ namespace sem::fft_accel::data {
         data_.at(2) = static_cast<std::byte>(native_packet.request_id());
         // 3rd byte currently unused, formerly used for CSR
         // TODO: Thoroughly investigate endianness of remaining fields to be serialized
-        data_.at(4) = static_cast<std::byte>(native_packet.payload_data().size());
+        uint16_t size_as_big_endian = boost::endian::native_to_big(static_cast<uint16_t>(native_packet.fft_size()));
+        reinterpret_cast<uint16_t&>(data_.at(4)) = size_as_big_endian;
 
         constexpr auto payload_byte_length = NumElements * sizeof(SampleType);
         memcpy(&(*(data_.begin() + 6)), &(*native_packet.payload_data().begin()), payload_byte_length);
+
+        // Note: the &(*(iterator)) syntax is needed for MSVC compatibility
+        auto float_view = reinterpret_cast<std::array<uint32_t, NumElements>*>(&(*(data_.begin() + 6)));
+        for (auto& sample_value : *float_view) {
+            boost::endian::native_to_big_inplace(sample_value);
+        }
     }
 
     template<typename SampleType, size_t NumElements>

@@ -34,7 +34,7 @@ namespace sem::fft_accel::data::test {
         static std::uniform_int_distribution<uint8_t> dis(
                 std::numeric_limits<uint8_t>::min(),
                 std::numeric_limits<uint8_t>::max()
-                );
+        );
 #endif
         return dis(e);
     }
@@ -66,16 +66,19 @@ namespace sem::fft_accel::data::test {
     }
 
     template<typename SampleType>
-    inline fft_data_packet <SampleType> generate_random_fft_data_packet() {
+    inline fft_data_packet<SampleType> generate_random_fft_data_packet() {
+        auto &&vec_data = generate_random_single_packet_fft_vec_data();
+        auto num_samples = static_cast<uint16_t>(vec_data.size() / 2);
         return {
-                generate_random_single_packet_fft_vec_data(),
+                vec_data,
                 get_random<uint8_t>(),
-                get_random<uint8_t>()
+                get_random<uint8_t>(),
+                num_samples,
         };
     }
 
     template<typename SampleType>
-    inline serialized_fft_data <SampleType> generate_random_serialized_data_packet() {
+    inline serialized_fft_data<SampleType> generate_random_serialized_data_packet() {
         return serialized_fft_data<SampleType>(
                 generate_random_array<std::byte, serialized_fft_data<SampleType>::packet_byte_size>()
         );

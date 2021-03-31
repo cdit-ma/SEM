@@ -52,8 +52,9 @@ namespace sem::fft_accel::runtime {
 
     template<typename EventID, typename EventData>
     single_thread_dispatcher<EventID, EventData>::single_thread_dispatcher() :
-            should_continue_running_(true),
-            dispatch_thread_([this]() { run_dispatch_loop(); }) {}
+            should_continue_running_(true) {
+        dispatch_thread_ = std::thread([this]() { run_dispatch_loop(); });
+    }
 
     template<typename EventID, typename EventData>
     single_thread_dispatcher<EventID, EventData>::~single_thread_dispatcher() {
@@ -63,8 +64,10 @@ namespace sem::fft_accel::runtime {
 
     template<typename EventID, typename EventData>
     void single_thread_dispatcher<EventID, EventData>::stop() {
-        std::lock_guard queue_lock(queue_mutex_);
-        should_continue_running_ = false;
+        {
+            std::lock_guard queue_lock(queue_mutex_);
+            should_continue_running_ = false;
+        }
         // Ensure that the queue variable gets the signal to stop waiting for new events
         event_occurred_.notify_all();
     }
@@ -122,7 +125,7 @@ namespace sem::fft_accel::runtime {
     template<typename EventID, typename EventData>
     void single_thread_dispatcher<EventID, EventData>::run_dispatch_loop() {
 
-        while (should_continue_running_.load()) {
+        while (should_continue_running_) {
             std::unique_lock queue_lock(queue_mutex_);
 
             if (!event_queue_.empty()) {

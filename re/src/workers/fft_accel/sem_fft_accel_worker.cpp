@@ -30,6 +30,9 @@ sem::fft_accel::Worker::Worker(const BehaviourContainer &container, const std::s
     }
 }
 
+sem::fft_accel::Worker::~Worker() {
+    Terminate();
+}
 
 void sem::fft_accel::Worker::HandleConfigure() {
     auto endpoint = GetAttribute(std::string(AttrNames::accelerator_endpoint)).lock();

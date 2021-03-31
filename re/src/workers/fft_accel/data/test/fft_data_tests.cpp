@@ -20,7 +20,8 @@ TEST(fft_accel_worker_data_packet, constructor_nothrow) {
             data_packet = std::make_unique<fft_data_packet<float>>(
                     payload_range,
                     get_random<uint8_t>(),
-                    get_random<uint8_t>()
+                    get_random<uint8_t>(),
+                    payload_data.size()/2
             );
     );
     ASSERT_NE(data_packet, nullptr);

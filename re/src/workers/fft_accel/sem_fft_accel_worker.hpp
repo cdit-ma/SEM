@@ -16,6 +16,7 @@ public:
     using callback_func_type = std::function<callback_func_signature>;
 
     Worker(const BehaviourContainer &container, const std::string &inst_name);
+    ~Worker();
 
     const std::string &get_version() const override;
 
