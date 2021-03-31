@@ -114,6 +114,16 @@ public:
     std::unique_ptr<AggServer::NetworkUtilisationResponse>
     ProcessNetworkUtilisationRequest(const AggServer::NetworkUtilisationRequest& message);
 
+    /**
+     * Queries the database client in order to produce the required response to an NetworkUtilisation query
+     * @param message The filtering details for the NetworkUtilisationRequest
+     * @return The filtered NetworkUtilisation events
+     * @throws std::runtime_error - failure to parse database stringed representation of times
+     * @throws std::exception - rethrows any exceptions that occurred during internal function calls
+     */
+    std::unique_ptr<AggServer::GPUMetricResponse>
+    ProcessGPUMetricRequest(const AggServer::GPUMetricRequest& message);
+
 private:
     std::shared_ptr<DatabaseClient> database_;
 

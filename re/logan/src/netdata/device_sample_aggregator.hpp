@@ -26,16 +26,12 @@ namespace sem::logging::netdata {
                 throw std::invalid_argument(error_str + protobuf::chart::chart_type_enum_Name(nvidia_smi.chart_type()));
             }
 
-            auto sample = get_sample(nvidia_smi.hostname(),
-                                     nvidia_smi.chart_family(),
-                                     nvidia_smi.timestamp());
-
             if (nvidia_smi.chart_context() == "nvidia_smi.gpu_utilization") {
-                sample->set_processor_utilisation_perc(nvidia_smi.value());
+                get_sample(nvidia_smi)->set_processor_utilisation_perc(nvidia_smi.value());
             } else if (nvidia_smi.chart_context() == "nvidia_smi.mem_utilization") {
-                sample->set_memory_utilisation_mib(nvidia_smi.value());
+                get_sample(nvidia_smi)->set_memory_utilisation_mib(nvidia_smi.value());
             } else if (nvidia_smi.chart_context() == "nvidia_smi.temperature") {
-                sample->set_temperature_cel(nvidia_smi.value());
+                get_sample(nvidia_smi)->set_temperature_cel(nvidia_smi.value());
             } else {
                 return;
             }
@@ -58,6 +54,13 @@ namespace sem::logging::netdata {
 
     private:
         std::unordered_map<std::string, std::unique_ptr<SystemEvent::DeviceMetricSamples>> device_samples_;
+
+        SystemEvent::GPUMetricSample*
+        get_sample(const protobuf::chart& chart_data) {
+            return get_sample(chart_data.hostname(),
+                              chart_data.chart_family(),
+                              chart_data.timestamp());
+        }
 
         /**
          * Gets a sample associated with the given hostname, device name and timestamp if one exists.

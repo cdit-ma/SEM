@@ -133,6 +133,9 @@ void AggregationReplier::RegisterCallbacks()
     RegisterProtoCallback<NetworkUtilisationRequest, NetworkUtilisationResponse>(
         "GetNetworkUtilisation", std::bind(&AggregationReplier::ProcessNetworkUtilisationRequest,
                                            this, std::placeholders::_1));
+    RegisterProtoCallback<GPUMetricRequest, GPUMetricResponse>(
+        "GetGPUMetrics", std::bind(&AggregationReplier::ProcessGPUMetricRequest,
+                                           this, std::placeholders::_1));
 }
 
 std::unique_ptr<ExperimentRunResponse>
@@ -826,6 +829,75 @@ AggregationReplier::ProcessNetworkUtilisationRequest(const NetworkUtilisationReq
         }
     } catch(const std::exception& ex) {
         std::cerr << "An exception occurred while querying NetworkUtilisationEvents:" << ex.what()
+                  << std::endl;
+        throw;
+    }
+
+    return response;
+}
+
+std::unique_ptr<GPUMetricResponse>
+AggregationReplier::ProcessGPUMetricRequest(const GPUMetricRequest& message)
+{
+    auto response = std::make_unique<GPUMetricResponse>();
+
+    auto time_interval = re::types::proto::FromProto(message.time_interval());
+
+    // Get filter conditions
+    std::vector<std::string> condition_cols;
+    std::vector<std::string> condition_vals;
+    for(const auto& id : message.node_ids()) {
+        condition_cols.emplace_back("Node.GraphmlID");
+        condition_vals.emplace_back(id);
+    }
+    for(const auto& hostname : message.node_hostnames()) {
+        condition_cols.emplace_back("Node.HostName");
+        condition_vals.emplace_back(hostname);
+    }
+
+    try {
+        // NOTE: assumes that the database provides results sorted by hostname!!
+        std::string current_hostname, current_device_name;
+        NodeGPUMetrics* current_node_group = nullptr;
+        GPUDeviceMetrics* current_gpu_group = nullptr;
+
+        const pqxx::result res = database_->GetGPUMetricInfo(message.experiment_run_id(),
+                                                               time_interval, condition_cols,
+                                                               condition_vals);
+
+        for(const auto& row : res) {
+            // Check if we need to create a new Node grouping due to encountering a new hostname
+            auto&& hostname = row["NodeHostname"].as<std::string>();
+            if(current_hostname != hostname) {
+                current_hostname = hostname;
+                current_node_group = response->add_node_gpu_metrics();
+                current_node_group->mutable_node_info()->set_hostname(hostname);
+                current_node_group->mutable_node_info()->set_ip(
+                    row["NodeIP"].as<std::string>());
+            }
+
+            // Check if we need to create a new Interface grouping due to encountering a new MAC
+            auto&& gpu_name = row["GPUName"].as<std::string>();
+            if(current_device_name != gpu_name) {
+                current_device_name = gpu_name;
+                current_gpu_group = current_node_group->add_per_device_metrics();
+                current_gpu_group->set_gpu_device_name(gpu_name);
+            }
+            auto gpu_metric_sample = current_gpu_group->add_samples();
+
+            // Build Event
+            auto&& timestamp_str = row["SampleTime"].as<std::string>();
+            bool did_parse = TimeUtil::FromString(timestamp_str, gpu_metric_sample->mutable_time());
+            if(!did_parse) {
+                throw std::runtime_error("Failed to parse SampleTime field from string: "
+                                         + timestamp_str);
+            }
+            gpu_metric_sample->set_gpu_utilisation(row["GPUUtilisation"].as<uint64_t>());
+            gpu_metric_sample->set_mem_utilisation_mib(row["MemoryUtilisation"].as<uint64_t>());
+            gpu_metric_sample->set_mem_utilisation_mib(row["Temperature"].as<uint64_t>());
+        }
+    } catch(const std::exception& ex) {
+        std::cerr << "An exception occurred while querying GPUMetricEvents:" << ex.what()
                   << std::endl;
         throw;
     }

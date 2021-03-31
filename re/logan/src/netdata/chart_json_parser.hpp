@@ -39,7 +39,8 @@ namespace sem::logging::netdata {
         }
 
         /**
-         *
+         * Any chart_listener registered with this function will have its receive_chart_data function called
+         * whenever the chart_json_parser receives a new JSON serialized netdata chart of the provided chart type
          * @param listener
          * @param type
          */
