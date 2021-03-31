@@ -99,6 +99,7 @@ private:
     void paintSeries(QPainter& painter, const QPointer<const EventSeries>& series);
     void paintMarkerEventSeries(QPainter& painter, const QPointer<const MarkerEventSeries>& series);
     void paintNetworkUtilisationSeries(QPainter& painter, const QPointer<const NetworkUtilisationEventSeries>& series);
+    void paintGPUTemperatureSeries(QPainter& painter, const QPointer<const GPUTemperatureSeries>& series);
 
     template<class DerivedEvent>
     DerivedEvent* convertEvent(const Event* event) const { return (DerivedEvent*) event; };
