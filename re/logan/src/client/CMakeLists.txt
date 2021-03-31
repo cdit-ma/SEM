@@ -21,6 +21,7 @@ target_link_libraries(logan_client_lib
         zmq_protowriter
         system_info_handler
         re_common_proto_systemevent
+        sem_netdata_adapter
         protobuf::libprotobuf
         )
 

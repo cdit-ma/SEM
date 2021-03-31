@@ -14,11 +14,18 @@
 #include "systeminfohandler.h"
 #include <google/protobuf/util/json_util.h>
 
+using namespace sem::logging::netdata;
+
 //Constructor used for print only call
 LogController::LogController():
-    listener_id_(system_.RegisterListener())
+    listener_id_(system_.RegisterListener()),
+    netdata_receiver_(std::make_unique<tcp_receiver>(3456)),
+    json_parser_(std::make_unique<chart_json_parser>()),
+    netdata_aggregator_(std::make_unique<device_sample_aggregator>())
 {
-
+    json_parser_->register_listener(netdata_aggregator_,
+                                    protobuf::chart::nvidia_smi);
+    netdata_receiver_->register_stream_listener(json_parser_);
 }
 
 std::string LogController::GetSystemInfoJson(){
@@ -146,6 +153,13 @@ void LogController::LogThread(const std::string publisher_endpoint, const double
                 send_onetime_info_ = false;
                 auto message = system_.GetSystemInfo(listener_id_);
                 if(message){
+                    if (netdata_aggregator_) {
+                        auto device_data = netdata_aggregator_->retrieve_device_info(message->hostname());
+                        if (device_data) {
+                            auto message_samples = message->add_device_info();
+                            message_samples->CopyFrom(*device_data);
+                        }
+                    }
                     writer->PushMessage(std::move(message));
                 }
             }
@@ -155,6 +169,13 @@ void LogController::LogThread(const std::string publisher_endpoint, const double
                 //Send the tick'd information to all servers
                 auto message = system_.GetSystemStatus(listener_id_);
                 if(message){
+                    if (netdata_aggregator_) {
+                        auto device_data = netdata_aggregator_->retrieve_device_metrics(message->hostname());
+                        if (device_data) {
+                            auto message_samples = message->add_device_samples();
+                            message_samples->CopyFrom(*device_data);
+                        }
+                    }
                     writer->PushMessage(std::move(message));
                 }
             }
