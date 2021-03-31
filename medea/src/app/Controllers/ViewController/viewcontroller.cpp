@@ -81,7 +81,9 @@ ViewController::ViewController()
 
 void ViewController::QueryRunningExperiments()
 {
-    emit vc_displayChartPopup();
+    if (!isWelcomeScreenShowing()) {
+        emit vc_displayChartPopup();
+    }
 }
 
 void ViewController::SettingChanged(SETTINGS key, const QVariant& value)

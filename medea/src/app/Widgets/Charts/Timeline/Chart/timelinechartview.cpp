@@ -73,24 +73,21 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
         throw std::invalid_argument("TimelineChartView::addChart - Series is null.");
     }
 
-    // If a chart already exists for the series, simply replace the series within the chart
-    auto chart = charts_.value(series->getID(), nullptr);
-    if (chart) {
-        // TODO: If the charts don't get updated live, and the exp run was live when the chart was constructed,
-        //  we will need to update the stored range for the exp run and then update the timeline range
-        chart->removeSeries(series->getKind());
-        chart->addSeries(series);
-        return;
-    }
-
     const auto exp_run_id = exp_run_data.experiment_run_id();
     const auto exp_start_time = exp_run_data.start_time();
     const auto& series_id = series->getID();
     const auto& series_label = series->getLabel();
 
-    experimentRunSeriesCount_[exp_run_id]++;
     setTimeRangeForExperimentRun(exp_run_id, exp_start_time, exp_run_data.last_updated_time());
 
+    auto chart = charts_.value(series->getID(), nullptr);
+    if (chart != nullptr) {
+        updateChart(*chart, series);
+        updateTimelineRange(false);
+        return;
+    }
+
+    experimentRunSeriesCount_[exp_run_id]++;
     connect(series, &MEDEA::EventSeries::eventAdded, [this]{ update(); });
     connect(&exp_run_data, &MEDEA::ExperimentRunData::dataUpdated, [this]{ update(); });
 
@@ -137,6 +134,22 @@ void TimelineChartView::addChart(const QPointer<const MEDEA::EventSeries>& serie
 }
 
 /**
+ * @brief TimelineChartView::updateChart
+ * @param series
+ * @param chart
+ * @throws std::invalid_argument
+ */
+void TimelineChartView::updateChart(MEDEA::Chart& chart, const QPointer<const MEDEA::EventSeries>& series)
+{
+    if (series.isNull()) {
+        throw std::invalid_argument("TimelineChartView::updateChart - Series is null.");
+    }
+    // Replace the existing series within the chart with the new one
+    chart.removeSeries(series->getKind());
+    chart.addSeries(series);
+}
+
+/**
  * @brief TimelineChartView::removeChart
  * @param id
  * @param clearing_chart_list
@@ -163,16 +176,6 @@ void TimelineChartView::removeChart(const QString& id, bool clearing_chart_list)
     // Remove the chart label
     auto chart_label = chartLabels_.value(id, nullptr);
     if (chart_label) {
-        /* TODO: Un-comment this out if ever we decide to group/parent ChartLabels
-        auto childrenLabels = chart_label->getChildrenChartLabels();
-        if (!childrenLabels.isEmpty()) {
-            // remove/delete chart chart_label's children labels
-            auto childItr = childrenLabels.begin();
-            while (childItr != childrenLabels.end()) {
-                (*childItr)->deleteLater();
-                childItr = childrenLabels.erase(childItr);
-            }
-        } */
         chartLabels_.remove(id);
         chartLabelList_->removeChartLabel(chart_label);
         chart_label->deleteLater();
@@ -571,6 +574,9 @@ void TimelineChartView::decrementSeriesCountForExperimentRun(quint32 experimentR
     if (seriesCount > 0) {
         return;
     }
+
+    // Tell the ExperimentDataManager that all the charts for the experiment run with the provided id has been closed
+    emit lastExperimentRunChartClosed(experimentRunID);
 
     experimentRunSeriesCount_.remove(experimentRunID);
     experimentRunTimeRange_.remove(experimentRunID);
