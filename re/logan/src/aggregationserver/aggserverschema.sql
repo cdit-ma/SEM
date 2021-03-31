@@ -43,6 +43,9 @@ DROP TABLE IF EXISTS Hardware.InterfaceStatus;
 DROP TABLE IF EXISTS Hardware.FilesystemStatus;
 
 
+DROP TABLE IF EXISTS Hardware.GPUStatus;
+
+
 DROP TABLE IF EXISTS Hardware.System;
 
 
@@ -56,6 +59,9 @@ DROP TABLE IF EXISTS Hardware.Interface;
 
 
 DROP TABLE IF EXISTS Hardware.Filesystem;
+
+
+DROP TABLE IF EXISTS Hardware.GPU;
 
 
 DROP TABLE IF EXISTS Container;
@@ -252,7 +258,7 @@ CONSTRAINT FK_385 FOREIGN KEY (NodeID) REFERENCES Node (NodeID)
 CREATE TABLE Hardware.Process
 (
  ProcessID    SERIAL ,
- pID            SMALLINT NOT NULL ,
+ pID            INT NOT NULL ,
  WorkingDirectory TEXT NOT NULL ,
  ProcessName    TEXT NOT NULL ,
  Args           TEXT NOT NULL ,
@@ -310,7 +316,18 @@ CONSTRAINT FK_377 FOREIGN KEY (NodeID) REFERENCES Node (NodeID)
 
 
 
+-- ************************************** Hardware.GPU
 
+CREATE TABLE Hardware.GPU
+(
+    GPUID   SERIAL,
+    Name    TEXT NOT NULL,
+    NodeID  INT NOT NULL,
+
+PRIMARY KEY (GPUID),
+CONSTRAINT UniqueGPUPerNode UNIQUE (NodeID, Name),
+CONSTRAINT FK_Hardware_GPU_NodeID_Hardware_Node_NodeID FOREIGN KEY (NodeID) REFERENCES Node (NodeID)
+);
 
 
 -- ************************************** ComponentInstance
@@ -413,6 +430,26 @@ CREATE TABLE Hardware.FilesystemStatus
 
 PRIMARY KEY (FilesystemStatusID),
 CONSTRAINT FK_Filesystem_FileSystem_ID_FileSystem_FilsystemID FOREIGN KEY (FilesystemID) REFERENCES Hardware.Filesystem (FilesystemID)
+);
+
+
+
+
+
+
+-- ************************************** Hardware.GPUStatus
+
+CREATE TABLE Hardware.GPUStatus
+(
+    GPUStatusID SERIAL ,
+    GPUID       INT NOT NULL ,
+    SampleTime  TIMESTAMP NOT NULL ,
+    GPUUtilisation DECIMAL NOT NULL ,
+    MemoryUtilisation DECIMAL NOT NULL ,
+    Temperature DECIMAL NOT NULL ,
+
+    PRIMARY KEY (GPUStatusID),
+    CONSTRAINT FK_Hardware_GPUStatus_GPUID_Hardware_GPU_GPUID FOREIGN KEY (GPUID) REFERENCES Hardware.GPU (GPUID)
 );
 
 

@@ -93,6 +93,7 @@ message StatusEvent{
 	repeated ProcessStatus processes = 9;
 	repeated InterfaceStatus interfaces = 10;
 	repeated FileSystemStatus file_systems = 11;
+	repeated DeviceMetricSamples device_samples = 12;
 }
 
 message InfoEvent{
@@ -117,6 +118,8 @@ message InfoEvent{
 
 	repeated FileSystemInfo file_system_info = 14;
 	repeated InterfaceInfo interface_info = 15;
+
+	repeated DeviceInfo device_info = 16;
 }
 
 message GPUDescriptor {
